@@ -1,0 +1,55 @@
+{
+  "confirmed": [
+    {
+      "person_id": "inf_037",
+      "name": "전수빈",
+      "handle": "beureyu",
+      "type": "인플루언서",
+      "visit_date": "2026-05-01",
+      "linked_influencer": null,
+      "capture_file": "captures\\스크린샷 2026-05-01 172439.png",
+      "extracted_handle": "beureyu",
+      "confidence": 1,
+      "matched_at": "2026-05-01T09:18:03.516Z"
+    },
+    {
+      "person_id": "comp_055",
+      "name": "이재용",
+      "handle": "guile_omn",
+      "type": "동행자",
+      "visit_date": "2026-05-02",
+      "linked_influencer": "임채린",
+      "capture_file": "captures\\스크린샷 2026-05-01 172602.png",
+      "extracted_handle": "guile_omn",
+      "confidence": 1,
+      "matched_at": "2026-05-01T09:18:06.354Z"
+    }
+  ],
+  "review_queue": [],
+  "no_match": [
+    {
+      "capture_file": "captures\\스크린샷 2026-05-01 172157.png",
+      "extracted_handle": "kyonkyoun0514",
+      "top_candidate": {
+        "name": "전지영",
+        "handle": "zeonzyoung",
+        "score": 0.46153846153846156
+      }
+    },
+    {
+      "capture_file": "captures\\스크린샷 2026-05-01 172204.png",
+      "extracted_handle": "coolrainlee",
+      "top_candidate": {
+        "name": "박동희",
+        "handle": "charminghee__",
+        "score": 0.3846153846153846
+      }
+    }
+  ],
+  "processed_files": [
+    "C:\\Users\\whwns\\Desktop\\VIBE\\esther-story-match\\captures\\스크린샷 2026-05-01 172157.png",
+    "C:\\Users\\whwns\\Desktop\\VIBE\\esther-story-match\\captures\\스크린샷 2026-05-01 172204.png",
+    "C:\\Users\\whwns\\Desktop\\VIBE\\esther-story-match\\captures\\스크린샷 2026-05-01 172439.png",
+    "C:\\Users\\whwns\\Desktop\\VIBE\\esther-story-match\\captures\\스크린샷 2026-05-01 172602.png"
+  ]
+}
