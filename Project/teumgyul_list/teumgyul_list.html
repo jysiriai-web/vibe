@@ -369,79 +369,12 @@
   }
 
   /* ══════════════════════════════
-     SLIDE 4 — 라이프스타일 PB
+     SLIDE 4 — 인플루언서 리스트
   ══════════════════════════════ */
-  #slide-4 { background: var(--cream); }
-  #slide-4 .deco {
-    position: absolute; top: -100px; left: -80px;
-    width: 380px; height: 380px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(76,175,130,0.08) 0%, transparent 65%);
-    pointer-events: none;
-  }
-  #slide-4 .eyebrow { color: var(--green); }
-  #slide-4 .hero { color: var(--deep); }
-  #slide-4 .tag { background: rgba(76,175,130,0.1); color: var(--green); }
-  #slide-4 .bullet-dot { background: var(--green); }
-  #slide-4 .effect-bar { background: rgba(76,175,130,0.08); color: var(--green); border: 1px solid rgba(76,175,130,0.2); }
-  #slide-4 .placeholder {
-    border: 2px dashed rgba(76,175,130,0.3);
-    background: rgba(76,175,130,0.04);
-    color: rgba(76,175,130,0.45);
-  }
+  #slide-4 { background: var(--white); justify-content: flex-start; }
+  #slide-4 .eyebrow { color: var(--accent); margin-top: 0; }
+  #slide-4 .hero { color: var(--deep); margin-bottom: 20px; font-size: clamp(26px,3.2vw,44px); }
 
-  /* ══════════════════════════════
-     SLIDE 5 — 인플루언서 리스트
-  ══════════════════════════════ */
-  #slide-5 { background: var(--white); justify-content: flex-start; }
-  #slide-5 .eyebrow { color: var(--accent); margin-top: 0; }
-  #slide-5 .hero { color: var(--deep); margin-bottom: 20px; font-size: clamp(26px,3.2vw,44px); }
-
-  .inf-grid {
-    display: grid; grid-template-columns: repeat(4,1fr);
-    gap: 16px; width: 100%; margin-bottom: 28px;
-  }
-  .inf-card {
-    border-radius: 16px; overflow: hidden;
-    border: 1px solid rgba(26,26,46,0.07);
-    background: var(--white);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-    transition: transform 0.25s, box-shadow 0.25s;
-  }
-  .inf-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-  }
-  .inf-photo {
-    width: 100%; aspect-ratio: 1;
-    background: #f0ece6;
-    display: flex; align-items: center; justify-content: center;
-    color: #c0bcb5; font-size: 11px; letter-spacing: 0.5px;
-    overflow: hidden;
-  }
-  .inf-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .inf-info { padding: 10px 12px 14px; }
-  .inf-name {
-    font-size: clamp(13px,1.2vw,15px); font-weight: 600; color: var(--deep);
-    margin-bottom: 3px; display: flex; justify-content: space-between; align-items: center;
-    letter-spacing: -0.01em;
-  }
-  .inf-name a { color: var(--muted); font-size: 13px; text-decoration: none; transition: color 0.2s; }
-  .inf-name a:hover { color: var(--accent); }
-  .inf-handle { font-size: 12px; color: var(--muted); font-family: monospace; margin-bottom: 6px; }
-  .inf-stat { font-size: 12px; color: var(--muted); line-height: 1.6; }
-  .inf-cta { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-  .inf-btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: var(--deep); color: var(--cream);
-    border: none; padding: 13px 34px; border-radius: 100px;
-    font-size: 14px; font-weight: 500; cursor: pointer;
-    font-family: inherit;
-    transition: opacity 0.2s; text-decoration: none;
-  }
-  .inf-btn:hover { opacity: 0.82; }
-  .inf-note { font-size: 12px; color: var(--muted); }
-
-  /* ── INF MODAL ── */
   .inf-modal-overlay {
     position: fixed; top: 0; left: 0;
     width: 100vw; height: 100vh;
@@ -500,75 +433,33 @@
   .inf-data-table a:hover { color: var(--accent); }
 
   /* ══════════════════════════════
-     SLIDE 6 — 블로그
+     SLIDE 5 — 블로그
   ══════════════════════════════ */
-  #slide-6 { background: var(--white); }
-  #slide-6 .eyebrow { color: var(--naver); }
-  #slide-6 .hero { color: var(--deep); }
-  #slide-6 .tag { background: rgba(3,199,90,0.1); color: var(--naver); }
-  #slide-6 .bullet-dot { background: var(--naver); }
-  #slide-6 .effect-bar { background: rgba(3,199,90,0.07); color: var(--naver); border: 1px solid rgba(3,199,90,0.18); }
-  #slide-6 .gif-wrap {
+  #slide-5 { background: var(--white); }
+  #slide-5 .eyebrow { color: var(--naver); }
+  #slide-5 .hero { color: var(--deep); }
+  #slide-5 .tag { background: rgba(3,199,90,0.1); color: var(--naver); }
+  #slide-5 .bullet-dot { background: var(--naver); }
+  #slide-5 .effect-bar { background: rgba(3,199,90,0.07); color: var(--naver); border: 1px solid rgba(3,199,90,0.18); }
+  #slide-5 .gif-wrap {
     border: 2px dashed rgba(3,199,90,0.25);
     background: rgba(3,199,90,0.04);
     color: rgba(3,199,90,0.45);
   }
-  #slide-6 .kw-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
-  #slide-6 .kw {
+  #slide-5 .kw-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  #slide-5 .kw {
     font-size: 11px; font-weight: 600;
     padding: 4px 11px; border-radius: 100px;
     background: rgba(3,199,90,0.08); color: var(--naver);
   }
 
   /* ══════════════════════════════
-     SLIDE 7 — 스케줄 (간트)
+     SLIDE 6 — 스케줄 (간트)
   ══════════════════════════════ */
-  #slide-7 { background: var(--deep); justify-content: flex-start; padding-bottom: clamp(130px, 18vh, 190px); }
-  #slide-7 .eyebrow { color: var(--gold); margin-top: 0; }
-  #slide-7 .hero { color: var(--cream); margin-bottom: 16px; font-size: clamp(26px,3.2vw,44px); }
+  #slide-6 { background: var(--deep); justify-content: flex-start; padding-bottom: clamp(130px, 18vh, 190px); }
+  #slide-6 .eyebrow { color: var(--gold); margin-top: 0; }
+  #slide-6 .hero { color: var(--cream); margin-bottom: 16px; font-size: clamp(26px,3.2vw,44px); }
 
-  .gantt-wrap { width: 100%; }
-  .gantt-header {
-    display: flex; justify-content: space-between;
-    font-size: 11px; font-weight: 700; letter-spacing: 3px;
-    text-transform: uppercase; color: rgba(250,247,242,0.3);
-    margin-bottom: 20px; padding: 0 2px;
-  }
-  .gantt-rows { display: flex; flex-direction: column; gap: 14px; }
-  .gantt-row { display: flex; align-items: center; gap: 20px; }
-  .gantt-label {
-    font-size: clamp(12px,1.4vh,14px); color: rgba(250,247,242,0.6);
-    white-space: nowrap; min-width: 180px; font-weight: 400;
-  }
-  .gantt-track {
-    flex: 1; height: 28px; position: relative;
-    background: rgba(250,247,242,0.04);
-    border-radius: 6px; overflow: hidden;
-  }
-  .gantt-bar {
-    position: absolute; top: 4px; height: 20px; border-radius: 4px;
-  }
-  .gantt-bar.gold { background: var(--gold); }
-  .gantt-bar.pink { background: var(--accent); }
-  .gantt-bar.green { background: var(--green); }
-
-  .gantt-dates {
-    display: flex; margin-top: 14px; padding-left: 200px;
-    position: relative;
-  }
-  .gantt-date-mark {
-    position: absolute;
-    font-size: 10px; color: rgba(250,247,242,0.3);
-    letter-spacing: 1px; transform: translateX(-50%);
-  }
-
-  .gantt-legend {
-    display: flex; gap: 24px; margin-top: 28px; padding-left: 200px;
-  }
-  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: rgba(250,247,242,0.5); }
-  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
-
-  /* ── DUAL CALENDAR ── */
   .cal-container {
     display: grid; grid-template-columns: 1fr 1fr;
     gap: 20px; width: 100%; margin-top: 4px;
@@ -634,11 +525,11 @@
   .milestone.green .ms-date { color: var(--green); }
 
   /* ══════════════════════════════
-     SLIDE 8 — 프로세스
+     SLIDE 7 — 프로세스
   ══════════════════════════════ */
-  #slide-8 { background: var(--cream); }
-  #slide-8 .eyebrow { color: var(--accent); }
-  #slide-8 .hero { color: var(--deep); margin-bottom: 20px; font-size: clamp(26px,3.2vw,44px); }
+  #slide-7 { background: var(--cream); }
+  #slide-7 .eyebrow { color: var(--accent); }
+  #slide-7 .hero { color: var(--deep); margin-bottom: 20px; font-size: clamp(26px,3.2vw,44px); }
 
   .steps {
     display: grid; grid-template-columns: repeat(4,1fr);
@@ -692,9 +583,7 @@
     .split { grid-template-columns: 1fr; }
     .pkg-grid { grid-template-columns: 1fr; }
     .steps { grid-template-columns: 1fr 1fr; }
-    .inf-grid { grid-template-columns: repeat(2, 1fr); }
     .cal-container { grid-template-columns: 1fr; }
-    .gantt-label { min-width: 120px; font-size: 11px; }
     .slide-num { right: 24px !important; }
     #tab-nav { bottom: 10px; }
     .tab-label { display: none; }
@@ -709,11 +598,10 @@
   <div class="tab" data-slide="1"><span class="tab-dot"></span><span class="tab-label">패키지</span></div>
   <div class="tab" data-slide="2"><span class="tab-dot"></span><span class="tab-label">방문형</span></div>
   <div class="tab" data-slide="3"><span class="tab-dot"></span><span class="tab-label">키링PB</span></div>
-  <div class="tab" data-slide="4"><span class="tab-dot"></span><span class="tab-label">라이프PB</span></div>
-  <div class="tab" data-slide="5"><span class="tab-dot"></span><span class="tab-label">리스트</span></div>
-  <div class="tab" data-slide="6"><span class="tab-dot"></span><span class="tab-label">블로그</span></div>
-  <div class="tab" data-slide="7"><span class="tab-dot"></span><span class="tab-label">스케줄</span></div>
-  <div class="tab" data-slide="8"><span class="tab-dot"></span><span class="tab-label">프로세스</span></div>
+  <div class="tab" data-slide="4"><span class="tab-dot"></span><span class="tab-label">리스트</span></div>
+  <div class="tab" data-slide="5"><span class="tab-dot"></span><span class="tab-label">블로그</span></div>
+  <div class="tab" data-slide="6"><span class="tab-dot"></span><span class="tab-label">스케줄</span></div>
+  <div class="tab" data-slide="7"><span class="tab-dot"></span><span class="tab-label">프로세스</span></div>
 </nav>
 
 <div class="slides-container" id="slides">
@@ -728,7 +616,7 @@
     <div class="cover-divider"></div>
     <p class="cover-desc">팝업이 만든 화제성을 검색 유입·콘텐츠 자산으로<br>전환하기 위한 지속 운영 전략</p>
     <div class="cover-brand">SIRIAI</div>
-    <div class="slide-num" style="color:rgba(250,247,242,0.15);">01 / 09</div>
+    <div class="slide-num" style="color:rgba(250,247,242,0.15);">01 / 08</div>
   </section>
 
   <!-- ═══ 1. 패키지 ═══ -->
@@ -774,7 +662,7 @@
         </div>
       </div>
     </div>
-    <div class="slide-num" style="color:var(--deep);">02 / 09</div>
+    <div class="slide-num" style="color:var(--deep);">02 / 08</div>
   </section>
 
   <!-- ═══ 2. 방문형 콘텐츠 ═══ -->
@@ -815,7 +703,7 @@
         </div>
       </div>
     </div>
-    <div class="slide-num" style="color:var(--deep);">03 / 09</div>
+    <div class="slide-num" style="color:var(--deep);">03 / 08</div>
   </section>
 
   <!-- ═══ 3. 키링/악세사리 PB ═══ -->
@@ -863,108 +751,36 @@
         </div>
       </div>
     </div>
-    <div class="slide-num" style="color:var(--cream);">04 / 09</div>
+    <div class="slide-num" style="color:var(--cream);">04 / 08</div>
   </section>
 
-  <!-- ═══ 4. 라이프스타일 PB ═══ -->
+  <!-- ═══ 4. 인플루언서 리스트 ═══ -->
   <section class="slide" id="slide-4">
-    <div class="deco"></div>
-    <p class="eyebrow">라이프스타일 PB</p>
-    <div class="split">
-      <div class="split-text">
-        <span class="tag">기획 중</span>
-        <h2 class="hero">캐릭터 굿즈를 넘어<br>일상 라이프스타일로</h2>
-        <div class="bullets">
-          <div class="bullet">
-            <div class="bullet-dot"></div>
-            <div class="bullet-text"><strong>에스더버니 페이스 타월</strong> — 캐릭터 자수 자카드, 2종 컬러</div>
-          </div>
-          <div class="bullet">
-            <div class="bullet-dot"></div>
-            <div class="bullet-text"><strong>미니 쿠션 · 베개 커버</strong> — 침실 인테리어 굿즈 라인</div>
-          </div>
-          <div class="bullet">
-            <div class="bullet-dot"></div>
-            <div class="bullet-text"><strong>에코백 · 파우치 세트</strong> — 일상 캐리어블</div>
-          </div>
-        </div>
-        <div class="effect-bar">→ 객단가 상승 · 팬덤 재구매 · 라이프스타일 브랜드 확장</div>
-      </div>
-      <div class="split-visual">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;">
-          <div style="border-radius:16px;overflow:hidden;aspect-ratio:9/14;position:relative;">
-            <img src="images/twb_ref(yuri himuro).jpg" alt="타월 착용" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;">
-          </div>
-          <div style="border-radius:16px;overflow:hidden;aspect-ratio:9/14;position:relative;">
-            <img src="images/twb_ref3.jpg" alt="타월 라인업" style="width:100%;height:100%;object-fit:cover;display:block;">
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="slide-num" style="color:var(--deep);">05 / 09</div>
-  </section>
-
-  <!-- ═══ 5. 인플루언서 리스트 ═══ -->
-  <section class="slide" id="slide-5">
     <p class="eyebrow">Influencer Curation</p>
-    <h2 class="hero">선별 인플루언서 리스트</h2>
+    <h2 class="hero">선별 인플루언서</h2>
 
-    <div class="inf-grid" id="infGrid">
-      <div class="inf-card">
-        <div class="inf-photo">
-          <img src="images/김지구.jpg" alt="김지구">
-        </div>
-        <div class="inf-info">
-          <div class="inf-name">김지구 <a href="https://instagram.com/bree_zgu_" target="_blank">↗</a></div>
-          <div class="inf-handle">@bree_zgu_</div>
-          <div class="inf-stat">Followers 17.1K</div>
-          <div class="inf-stat">ER 2.46%</div>
-        </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;width:100%;margin-top:4px;">
+      <div style="border-radius:16px;overflow:hidden;aspect-ratio:3/4;">
+        <img src="images/김지구.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;">
       </div>
-      <div class="inf-card">
-        <div class="inf-photo">
-          <img src="images/Hailey Kim.jpg" alt="Hailey Kim">
-        </div>
-        <div class="inf-info">
-          <div class="inf-name">Hailey Kim <a href="https://instagram.com/277.45k" target="_blank">↗</a></div>
-          <div class="inf-handle">@277.45k</div>
-          <div class="inf-stat">Followers 20.2K</div>
-          <div class="inf-stat">ER 4.58%</div>
-        </div>
+      <div style="border-radius:16px;overflow:hidden;aspect-ratio:3/4;">
+        <img src="images/Hailey Kim.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;">
       </div>
-      <div class="inf-card">
-        <div class="inf-photo">
-          <img src="images/Rina Yun.jpg" alt="Rina Yun">
-        </div>
-        <div class="inf-info">
-          <div class="inf-name">Rina Yun <a href="https://instagram.com/rinnayun" target="_blank">↗</a></div>
-          <div class="inf-handle">@rinnayun</div>
-          <div class="inf-stat">Followers 35.5K</div>
-          <div class="inf-stat">ER 1.65%</div>
-        </div>
+      <div style="border-radius:16px;overflow:hidden;aspect-ratio:3/4;">
+        <img src="images/Rina Yun.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;">
       </div>
-      <div class="inf-card">
-        <div class="inf-photo">
-          <img src="images/수비니.jpg" alt="수비니">
-        </div>
-        <div class="inf-info">
-          <div class="inf-name">수비니 <a href="https://instagram.com/beureyu" target="_blank">↗</a></div>
-          <div class="inf-handle">@beureyu</div>
-          <div class="inf-stat">Followers 54.3K</div>
-          <div class="inf-stat">ER 1.00%</div>
-        </div>
+      <div style="border-radius:16px;overflow:hidden;aspect-ratio:3/4;">
+        <img src="images/수비니.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;">
       </div>
     </div>
 
-    <div class="inf-cta">
-      <button class="inf-btn" onclick="openInfModal()">전체 리스트 보기 →</button>
-    </div>
+    <p style="font-size:13px;color:var(--muted);margin-top:20px;letter-spacing:0.3px;">이런 무드의 인플루언서로 제공 예정</p>
 
-    <div class="slide-num" style="color:var(--deep);">06 / 09</div>
+    <div class="slide-num" style="color:var(--deep);">05 / 08</div>
   </section>
 
-  <!-- ═══ 6. 블로그 ═══ -->
-  <section class="slide" id="slide-6">
+  <!-- ═══ 5. 블로그 ═══ -->
+  <section class="slide" id="slide-5">
     <p class="eyebrow">Naver Blog</p>
     <div class="split" style="grid-template-columns:1fr 1.5fr;">
       <div class="split-text">
@@ -991,7 +807,7 @@
           <div class="kw">#에스더버니키링</div>
         </div>
         <div class="effect-bar" style="margin-top:16px;">→ SEO 장기 노출 · 구매 탐색 전환</div>
-        <button class="inf-btn" onclick="openBlogModal()" style="margin-top:16px;font-size:13px;padding:10px 26px;align-self:flex-start;">블로거 리스트 보기 →</button>
+        <button class="inf-sheet-btn" onclick="openBlogModal()" style="margin-top:16px;align-self:flex-start;">블로거 리스트 보기 ↗</button>
       </div>
       <div class="split-visual">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;">
@@ -1004,11 +820,11 @@
         </div>
       </div>
     </div>
-    <div class="slide-num" style="color:var(--deep);">07 / 09</div>
+    <div class="slide-num" style="color:var(--deep);">06 / 08</div>
   </section>
 
-  <!-- ═══ 7. 스케줄 (간트) ═══ -->
-  <section class="slide" id="slide-7">
+  <!-- ═══ 6. 스케줄 (간트) ═══ -->
+  <section class="slide" id="slide-6">
     <p class="eyebrow">Schedule</p>
     <h2 class="hero">운영 스케줄</h2>
 
@@ -1098,11 +914,11 @@
       <div class="milestone gold"><span class="ms-date">6/16~19</span><span class="ms-label">1차 피처링 리포트</span></div>
     </div>
 
-    <div class="slide-num" style="color:var(--cream);">08 / 09</div>
+    <div class="slide-num" style="color:var(--cream);">07 / 08</div>
   </section>
 
-  <!-- ═══ 8. 프로세스 ═══ -->
-  <section class="slide" id="slide-8">
+  <!-- ═══ 7. 프로세스 ═══ -->
+  <section class="slide" id="slide-7">
     <p class="eyebrow">Process</p>
     <h2 class="hero">운영 프로세스 — 4단계</h2>
 
@@ -1169,7 +985,7 @@
       </div>
     </div>
 
-    <div class="slide-num" style="color:var(--deep);">09 / 09</div>
+    <div class="slide-num" style="color:var(--deep);">08 / 08</div>
   </section>
 
 </div>
@@ -1204,8 +1020,7 @@
   tabs.forEach(t => t.addEventListener('click', () => goTo(parseInt(t.dataset.slide))));
 
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { closeInfModal(); closeBlogModal(); return; }
-    if (document.getElementById('modal-inflist').classList.contains('active')) return;
+    if (e.key === 'Escape') { closeBlogModal(); return; }
     if (document.getElementById('modal-bloglist').classList.contains('active')) return;
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); goTo(currentSlide + 1); }
     else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(currentSlide - 1); }
@@ -1222,13 +1037,6 @@
     if (Math.abs(dx) > 50) goTo(dx > 0 ? currentSlide + 1 : currentSlide - 1);
   }, { passive: true });
 
-  function openInfModal() {
-    document.getElementById('modal-inflist').classList.add('active');
-  }
-  function closeInfModal() {
-    document.getElementById('modal-inflist').classList.remove('active');
-  }
-
   function openBlogModal() {
     document.getElementById('modal-bloglist').classList.add('active');
   }
@@ -1238,39 +1046,6 @@
 
   updateTabs(0);
 </script>
-
-<!-- ═══ 인플루언서 리스트 모달 ═══ -->
-<div class="inf-modal-overlay" id="modal-inflist" onclick="if(event.target===this)closeInfModal()">
-  <div class="inf-modal-content">
-    <div class="inf-modal-header">
-      <h3 class="inf-modal-title">인플루언서 리스트</h3>
-      <div style="display:flex;gap:12px;align-items:center;">
-        <a class="inf-sheet-btn" href="#" target="_blank" id="sheetLinkBtn">구글 시트로 이동 ↗</a>
-        <button class="inf-modal-close" onclick="closeInfModal()">&times;</button>
-      </div>
-    </div>
-    <div class="inf-modal-body">
-      <table class="inf-data-table">
-        <thead>
-          <tr>
-            <th>No.</th>
-            <th>이름</th>
-            <th>팔로워</th>
-            <th>ER</th>
-            <th>Instagram</th>
-          </tr>
-        </thead>
-        <tbody id="infTableBody">
-          <tr>
-            <td colspan="5" style="padding:56px;color:var(--muted);font-size:14px;text-align:center;">
-              리스트 업데이트 예정
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
 
 <!-- ═══ 블로거 리스트 모달 ═══ -->
 <div class="inf-modal-overlay" id="modal-bloglist" onclick="if(event.target===this)closeBlogModal()">
