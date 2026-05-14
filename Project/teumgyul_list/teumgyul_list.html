@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>틈결 × 에스더버니 파트너십 제안 | SIRIAI</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --deep: #1A1A2E;
+    --cream: #FAF7F2;
+    --gold: #C9A96E;
+    --accent: #D4607A;
+    --muted: #8A8A9C;
+    --white: #FFFFFF;
+    --green: #4CAF82;
+    --naver: #03C75A;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .slides-container {
+    display: flex;
+    width: 100vw; height: 100vh;
+    overflow-x: scroll; overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+  }
+  .slides-container::-webkit-scrollbar { display: none; }
+
+  .slide {
+    flex-shrink: 0;
+    width: 100vw; height: 100vh;
+    scroll-snap-align: start;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(40px,5vh,64px) clamp(52px,7vw,108px) clamp(60px,7vh,80px);
+  }
+
+  /* ── NAV ── */
+  #tab-nav {
+    position: fixed; bottom: 20px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 3px; z-index: 1000;
+    background: rgba(15,15,30,0.82);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 100px;
+    padding: 5px 6px;
+  }
+  .tab {
+    display: flex; align-items: center; gap: 5px;
+    padding: 6px 12px; border-radius: 100px;
+    cursor: pointer;
+    transition: background 0.2s;
+    user-select: none;
+  }
+  .tab:hover { background: rgba(255,255,255,0.07); }
+  .tab.active { background: rgba(255,255,255,0.13); }
+  .tab-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    transition: background 0.2s, transform 0.2s;
+  }
+  .tab.active .tab-dot { background: var(--gold); transform: scale(1.3); }
+  .tab-label {
+    font-size: 10px; font-weight: 400;
+    color: rgba(255,255,255,0.4); letter-spacing: 0.3px;
+    transition: color 0.2s;
+  }
+  .tab.active .tab-label { color: rgba(255,255,255,0.88); font-weight: 500; }
+
+  /* ── SLIDE NUM ── */
+  .slide-num {
+    position: absolute; bottom: 28px; right: clamp(52px,7vw,108px);
+    font-family: 'DM Serif Display', serif;
+    font-size: 11px; letter-spacing: 3px; opacity: 0.2;
+  }
+
+  /* ── SHARED LABELS ── */
+  .eyebrow {
+    font-size: 11px; letter-spacing: 5px; font-weight: 700;
+    text-transform: uppercase; margin-bottom: 16px;
+  }
+  .hero {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(30px, 4.2vw, 56px);
+    line-height: 1.15; margin-bottom: 20px;
+  }
+  .sub {
+    font-size: clamp(14px, 1.7vh, 18px);
+    font-weight: 300; line-height: 1.8;
+    color: var(--muted);
+    max-width: 520px;
+  }
+  .tag {
+    display: inline-block; font-size: 10px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    padding: 4px 14px; border-radius: 100px;
+    margin-bottom: 20px;
+  }
+
+  /* ── SPLIT LAYOUT (text left, visual right) ── */
+  .split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(32px, 4vw, 64px);
+    align-items: center;
+    flex: 1;
+  }
+  .split-text { display: flex; flex-direction: column; }
+  .split-visual {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    height: 100%;
+  }
+
+  /* ── BULLETS ── */
+  .bullets { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+  .bullet {
+    display: flex; gap: 12px; align-items: flex-start;
+    font-size: clamp(13px, 1.5vh, 16px); line-height: 1.65;
+  }
+  .bullet-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    flex-shrink: 0; margin-top: 7px;
+  }
+  .bullet-text { color: var(--muted); }
+  .bullet-text strong { font-weight: 700; }
+
+  /* ── EFFECT BAR ── */
+  .effect-bar {
+    padding: 12px 18px; border-radius: 10px;
+    font-size: clamp(12px, 1.4vh, 15px);
+    font-weight: 600; line-height: 1.5;
+    margin-top: auto;
+  }
+
+  /* ── IMG WRAP ── */
+  .img-wrap {
+    border-radius: 20px; overflow: hidden;
+    aspect-ratio: 9/16; max-height: 380px;
+    position: relative; width: 100%;
+  }
+  .img-wrap img {
+    width: 100%; height: 100%;
+    object-fit: cover; object-position: top;
+    display: block;
+  }
+  .img-wrap a { display: block; width: 100%; height: 100%; }
+  .ig-badge {
+    position: absolute; bottom: 10px; right: 10px;
+    background: rgba(0,0,0,0.52); color: #fff;
+    font-size: 12px; font-weight: 700;
+    padding: 5px 12px; border-radius: 100px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.18);
+    letter-spacing: 0.3px;
+  }
+
+  /* ── PLACEHOLDER ── */
+  .placeholder {
+    border-radius: 20px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 10px; aspect-ratio: 9/16; max-height: 380px;
+    width: 100%;
+  }
+  .placeholder .ph-icon { font-size: 30px; opacity: 0.5; }
+  .placeholder .ph-text { font-size: 12px; letter-spacing: 1px; text-align: center; line-height: 1.6; }
+
+  .gif-wrap {
+    border-radius: 14px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 8px; aspect-ratio: 4/3; width: 100%;
+    max-height: 240px;
+  }
+  .gif-wrap .ph-icon { font-size: 28px; opacity: 0.5; }
+  .gif-wrap .ph-text { font-size: 12px; letter-spacing: 1px; }
+
+  /* ══════════════════════════════
+     SLIDE 0 — 표지
+  ══════════════════════════════ */
+  #slide-0 { background: var(--deep); }
+  #slide-0 .deco-a {
+    position: absolute; top: -140px; right: -140px;
+    width: 560px; height: 560px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(201,169,110,0.1) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  #slide-0 .deco-b {
+    position: absolute; bottom: -80px; left: 10%;
+    width: 320px; height: 320px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(212,96,122,0.08) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  #slide-0 .eyebrow { color: var(--gold); font-size: clamp(13px, 1.2vw, 18px); letter-spacing: 7px; }
+  #slide-0 .hero { color: var(--cream); font-size: clamp(58px, 8vw, 108px); margin-bottom: 28px; }
+  #slide-0 .hero em { color: var(--gold); font-style: normal; }
+  #slide-0 .sub { color: rgba(250,247,242,0.5); max-width: 700px; font-size: clamp(18px, 2.2vh, 26px); }
+  .cover-divider {
+    width: 72px; height: 3px; margin: 36px 0;
+    background: linear-gradient(90deg, var(--gold), transparent);
+  }
+  .cover-desc {
+    font-size: clamp(15px, 1.9vh, 20px); font-weight: 300;
+    color: rgba(250,247,242,0.4); line-height: 1.8; max-width: 640px;
+  }
+  .cover-brand {
+    position: absolute; bottom: 36px; left: clamp(52px,7vw,108px);
+    font-size: 11px; letter-spacing: 5px; font-weight: 700;
+    text-transform: uppercase; color: rgba(250,247,242,0.2);
+  }
+
+  /* ══════════════════════════════
+     SLIDE 1 — 패키지
+  ══════════════════════════════ */
+  #slide-1 { background: var(--cream); overflow: visible; }
+  #slide-1 .eyebrow { color: var(--accent); }
+  #slide-1 .hero { color: var(--deep); margin-bottom: 10px; }
+
+  .pkg-discount-note {
+    font-size: 13px; font-weight: 600; color: var(--accent);
+    letter-spacing: 0.3px; margin-bottom: 22px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .pkg-discount-note::before {
+    content: ''; display: inline-block;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); flex-shrink: 0;
+  }
+
+  .pkg-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 32px; padding-top: 24px; padding-bottom: 8px;
+  }
+  .pkg {
+    border-radius: 20px; padding: 32px 36px;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .pkg.basic {
+    background: var(--white); border: 1.5px solid rgba(26,26,46,0.09);
+    opacity: 0.8;
+  }
+  .pkg.premium {
+    background: var(--deep);
+    border: 2px solid rgba(201,169,110,0.55);
+    box-shadow: 0 0 0 6px rgba(201,169,110,0.1), 0 28px 56px rgba(0,0,0,0.28);
+    position: relative;
+    transform: scale(1.1);
+    transform-origin: center;
+    z-index: 2;
+  }
+
+  .pkg-tier {
+    font-size: 10px; font-weight: 700; letter-spacing: 3px;
+    text-transform: uppercase; padding: 4px 14px; border-radius: 100px;
+    display: inline-block; width: fit-content;
+  }
+  .pkg.basic .pkg-tier { background: rgba(26,26,46,0.07); color: var(--muted); }
+  .pkg.premium .pkg-tier { background: var(--gold); color: var(--deep); }
+
+  .pkg-price-area { display: flex; align-items: flex-end; gap: 10px; }
+  .pkg-price {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(32px, 3.6vw, 48px); line-height: 1;
+  }
+  .pkg.basic .pkg-price { color: var(--deep); }
+  .pkg.premium .pkg-price { color: var(--gold); }
+
+  .pkg-price-meta { display: flex; flex-direction: column; gap: 3px; padding-bottom: 4px; }
+  .pkg-original {
+    font-size: 13px; text-decoration: line-through; opacity: 0.6;
+  }
+  .pkg.basic .pkg-original { color: var(--muted); }
+  .pkg.premium .pkg-original { color: rgba(250,247,242,0.5); }
+  .pkg-discount {
+    font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 100px;
+  }
+  .pkg.basic .pkg-discount { background: rgba(212,96,122,0.1); color: var(--accent); }
+  .pkg.premium .pkg-discount { background: rgba(201,169,110,0.2); color: var(--gold); }
+
+  .pkg-float-badge {
+    position: absolute;
+    top: -16px; left: 50%; transform: translateX(-50%);
+    background: var(--gold); color: var(--deep);
+    font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+    padding: 5px 20px; border-radius: 100px;
+    white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(201,169,110,0.4);
+  }
+
+  .pkg-savings {
+    font-size: 12px; font-weight: 700;
+    padding: 4px 11px; border-radius: 7px;
+    display: inline-block; margin-top: 8px;
+  }
+  .pkg.basic .pkg-savings { background: rgba(212,96,122,0.09); color: var(--accent); }
+  .pkg.premium .pkg-savings { background: rgba(201,169,110,0.18); color: var(--gold); }
+
+  .pkg-premium-tagline {
+    font-size: 12px; color: rgba(250,247,242,0.45);
+    font-weight: 400; margin-top: -10px;
+    line-height: 1.6;
+  }
+
+  .pkg-divider { height: 1px; background: rgba(26,26,46,0.07); }
+  .pkg.premium .pkg-divider { background: rgba(250,247,242,0.08); }
+
+  .pkg-items { display: flex; flex-direction: column; gap: 10px; }
+  .pkg-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: clamp(14px, 1.8vh, 17px); line-height: 1.6;
+  }
+  .pkg-item-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; margin-top: 7px; }
+  .pkg.basic .pkg-item-dot { background: var(--accent); }
+  .pkg.premium .pkg-item-dot { background: var(--gold); }
+  .pkg.basic .pkg-item { color: var(--muted); }
+  .pkg.premium .pkg-item { color: rgba(250,247,242,0.7); }
+  .pkg.basic .pkg-item strong { color: var(--deep); }
+  .pkg.premium .pkg-item strong { color: var(--cream); }
+
+  /* ══════════════════════════════
+     SLIDE 2 — 방문형
+  ══════════════════════════════ */
+  #slide-2 { background: var(--white); }
+  #slide-2 .eyebrow { color: var(--accent); }
+  #slide-2 .hero { color: var(--deep); }
+  #slide-2 .tag { background: rgba(212,96,122,0.1); color: var(--accent); }
+  #slide-2 .bullet-dot { background: var(--accent); }
+  #slide-2 .effect-bar { background: rgba(212,96,122,0.08); color: var(--accent); border: 1px solid rgba(212,96,122,0.2); }
+
+  /* ══════════════════════════════
+     SLIDE 3 — 키링/악세사리 PB
+  ══════════════════════════════ */
+  #slide-3 { background: var(--deep); }
+  #slide-3 .deco {
+    position: absolute; bottom: -100px; right: -100px;
+    width: 400px; height: 400px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(201,169,110,0.12) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  #slide-3 .eyebrow { color: var(--gold); }
+  #slide-3 .hero { color: var(--cream); }
+  #slide-3 .tag { background: rgba(201,169,110,0.15); color: var(--gold); }
+  #slide-3 .sub { color: rgba(250,247,242,0.5); }
+  #slide-3 .bullet-text { color: rgba(250,247,242,0.6); }
+  #slide-3 .bullet-text strong { color: var(--cream); }
+  #slide-3 .bullet-dot { background: var(--gold); }
+  #slide-3 .effect-bar { background: rgba(201,169,110,0.12); color: var(--gold); border: 1px solid rgba(201,169,110,0.25); }
+  #slide-3 .img-wrap { border: 1px solid rgba(250,247,242,0.06); }
+  #slide-3 .lineup-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  #slide-3 .lineup-chip {
+    font-size: 11px; font-weight: 500;
+    padding: 4px 12px; border-radius: 100px;
+    background: rgba(201,169,110,0.12); color: var(--gold);
+    border: 1px solid rgba(201,169,110,0.22);
+  }
+
+  /* ══════════════════════════════
+     SLIDE 4 — 라이프스타일 PB
+  ══════════════════════════════ */
+  #slide-4 { background: var(--cream); }
+  #slide-4 .deco {
+    position: absolute; top: -100px; left: -80px;
+    width: 380px; height: 380px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(76,175,130,0.08) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  #slide-4 .eyebrow { color: var(--green); }
+  #slide-4 .hero { color: var(--deep); }
+  #slide-4 .tag { background: rgba(76,175,130,0.1); color: var(--green); }
+  #slide-4 .bullet-dot { background: var(--green); }
+  #slide-4 .effect-bar { background: rgba(76,175,130,0.08); color: var(--green); border: 1px solid rgba(76,175,130,0.2); }
+  #slide-4 .placeholder {
+    border: 2px dashed rgba(76,175,130,0.3);
+    background: rgba(76,175,130,0.04);
+    color: rgba(76,175,130,0.45);
+  }
+
+  /* ══════════════════════════════
+     SLIDE 5 — 인플루언서 리스트
+  ══════════════════════════════ */
+  #slide-5 { background: var(--white); justify-content: flex-start; }
+  #slide-5 .eyebrow { color: var(--accent); margin-top: 0; }
+  #slide-5 .hero { color: var(--deep); margin-bottom: 20px; font-size: clamp(26px,3.2vw,44px); }
+
+  .inf-grid {
+    display: grid; grid-template-columns: repeat(4,1fr);
+    gap: 16px; width: 100%; margin-bottom: 28px;
+  }
+  .inf-card {
+    border-radius: 16px; overflow: hidden;
+    border: 1px solid rgba(26,26,46,0.07);
+    background: var(--white);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    transition: transform 0.25s, box-shadow 0.25s;
+  }
+  .inf-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  }
+  .inf-photo {
+    width: 100%; aspect-ratio: 1;
+    background: #f0ece6;
+    display: flex; align-items: center; justify-content: center;
+    color: #c0bcb5; font-size: 11px; letter-spacing: 0.5px;
+    overflow: hidden;
+  }
+  .inf-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .inf-info { padding: 10px 12px 14px; }
+  .inf-name {
+    font-size: clamp(13px,1.2vw,15px); font-weight: 600; color: var(--deep);
+    margin-bottom: 3px; display: flex; justify-content: space-between; align-items: center;
+    letter-spacing: -0.01em;
+  }
+  .inf-name a { color: var(--muted); font-size: 13px; text-decoration: none; transition: color 0.2s; }
+  .inf-name a:hover { color: var(--accent); }
+  .inf-handle { font-size: 12px; color: var(--muted); font-family: monospace; margin-bottom: 6px; }
+  .inf-stat { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .inf-cta { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .inf-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--deep); color: var(--cream);
+    border: none; padding: 13px 34px; border-radius: 100px;
+    font-size: 14px; font-weight: 500; cursor: pointer;
+    font-family: inherit;
+    transition: opacity 0.2s; text-decoration: none;
+  }
+  .inf-btn:hover { opacity: 0.82; }
+  .inf-note { font-size: 12px; color: var(--muted); }
+
+  /* ── INF MODAL ── */
+  .inf-modal-overlay {
+    position: fixed; top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(16px);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 2000; opacity: 0; pointer-events: none;
+    transition: opacity 0.35s;
+  }
+  .inf-modal-overlay.active { opacity: 1; pointer-events: auto; }
+  .inf-modal-content {
+    background: var(--cream); border-radius: 20px;
+    width: 90%; max-width: 740px; max-height: 80vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 24px 48px rgba(0,0,0,0.18);
+    transform: translateY(16px);
+    transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+    overflow: hidden;
+  }
+  .inf-modal-overlay.active .inf-modal-content { transform: translateY(0); }
+  .inf-modal-header {
+    padding: 24px 30px; border-bottom: 1px solid rgba(26,26,46,0.08);
+    display: flex; justify-content: space-between; align-items: center;
+    flex-shrink: 0; background: var(--cream);
+  }
+  .inf-modal-title { font-size: 17px; font-weight: 700; color: var(--deep); }
+  .inf-sheet-btn {
+    background: var(--deep); color: var(--cream);
+    border: none; padding: 8px 18px; border-radius: 100px;
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    font-family: inherit;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 5px;
+    transition: opacity 0.2s;
+  }
+  .inf-sheet-btn:hover { opacity: 0.82; }
+  .inf-modal-close {
+    background: none; border: none; font-size: 26px; cursor: pointer;
+    color: var(--muted); transition: color 0.2s; line-height: 1;
+  }
+  .inf-modal-close:hover { color: var(--deep); }
+  .inf-modal-body { overflow-y: auto; flex: 1; }
+  .inf-data-table { width: 100%; border-collapse: collapse; }
+  .inf-data-table th, .inf-data-table td {
+    padding: 13px 20px; text-align: center;
+    border-bottom: 1px solid rgba(26,26,46,0.07);
+    font-size: clamp(13px,1.1vw,15px);
+  }
+  .inf-data-table th {
+    background: rgba(26,26,46,0.03); font-weight: 600;
+    color: var(--muted); position: sticky; top: 0; z-index: 10;
+    font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .inf-data-table td.name-col { font-weight: 700; color: var(--deep); text-align: left; }
+  .inf-data-table tr:last-child td { border-bottom: none; }
+  .inf-data-table a { color: var(--muted); text-decoration: none; }
+  .inf-data-table a:hover { color: var(--accent); }
+
+  /* ══════════════════════════════
+     SLIDE 6 — 블로그
+  ══════════════════════════════ */
+  #slide-6 { background: var(--white); }
+  #slide-6 .eyebrow { color: var(--naver); }
+  #slide-6 .hero { color: var(--deep); }
+  #slide-6 .tag { background: rgba(3,199,90,0.1); color: var(--naver); }
+  #slide-6 .bullet-dot { background: var(--naver); }
+  #slide-6 .effect-bar { background: rgba(3,199,90,0.07); color: var(--naver); border: 1px solid rgba(3,199,90,0.18); }
+  #slide-6 .gif-wrap {
+    border: 2px dashed rgba(3,199,90,0.25);
+    background: rgba(3,199,90,0.04);
+    color: rgba(3,199,90,0.45);
+  }
+  #slide-6 .kw-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  #slide-6 .kw {
+    font-size: 11px; font-weight: 600;
+    padding: 4px 11px; border-radius: 100px;
+    background: rgba(3,199,90,0.08); color: var(--naver);
+  }
+
+  /* ══════════════════════════════
+     SLIDE 7 — 스케줄 (간트)
+  ══════════════════════════════ */
+  #slide-7 { background: var(--deep); justify-content: flex-start; padding-bottom: clamp(130px, 18vh, 190px); }
+  #slide-7 .eyebrow { color: var(--gold); margin-top: 0; }
+  #slide-7 .hero { color: var(--cream); margin-bottom: 16px; font-size: clamp(26px,3.2vw,44px); }
+
+  .gantt-wrap { width: 100%; }
+  .gantt-header {
+    display: flex; justify-content: space-between;
+    font-size: 11px; font-weight: 700; letter-spacing: 3px;
+    text-transform: uppercase; color: rgba(250,247,242,0.3);
+    margin-bottom: 20px; padding: 0 2px;
+  }
+  .gantt-rows { display: flex; flex-direction: column; gap: 14px; }
+  .gantt-row { display: flex; align-items: center; gap: 20px; }
+  .gantt-label {
+    font-size: clamp(12px,1.4vh,14px); color: rgba(250,247,242,0.6);
+    white-space: nowrap; min-width: 180px; font-weight: 400;
+  }
+  .gantt-track {
+    flex: 1; height: 28px; position: relative;
+    background: rgba(250,247,242,0.04);
+    border-radius: 6px; overflow: hidden;
+  }
+  .gantt-bar {
+    position: absolute; top: 4px; height: 20px; border-radius: 4px;
+  }
+  .gantt-bar.gold { background: var(--gold); }
+  .gantt-bar.pink { background: var(--accent); }
+  .gantt-bar.green { background: var(--green); }
+
+  .gantt-dates {
+    display: flex; margin-top: 14px; padding-left: 200px;
+    position: relative;
+  }
+  .gantt-date-mark {
+    position: absolute;
+    font-size: 10px; color: rgba(250,247,242,0.3);
+    letter-spacing: 1px; transform: translateX(-50%);
+  }
+
+  .gantt-legend {
+    display: flex; gap: 24px; margin-top: 28px; padding-left: 200px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: rgba(250,247,242,0.5); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* ── DUAL CALENDAR ── */
+  .cal-container {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 20px; width: 100%; margin-top: 4px;
+    flex: 1;
+  }
+  .cal {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px; padding: 22px 20px 18px;
+    display: flex; flex-direction: column;
+  }
+  .cal-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px; flex-shrink: 0; }
+  .cal-month { font-family: 'DM Serif Display', serif; font-size: clamp(20px,2.2vw,26px); color: var(--cream); }
+  .cal-year { font-size: 11px; color: rgba(250,247,242,0.28); letter-spacing: 1px; }
+  .cal-grid {
+    display: grid; grid-template-columns: repeat(7,1fr);
+    grid-template-rows: auto repeat(6, 1fr);
+    gap: 3px; flex: 1;
+  }
+  .cal-dow {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+    text-align: center; color: rgba(250,247,242,0.22);
+    padding-bottom: 6px; text-transform: uppercase;
+  }
+  .cal-day {
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; font-size: clamp(10px,1.1vw,13px);
+    color: rgba(250,247,242,0.38);
+  }
+  .cal-day.ev-gold { background: rgba(201,169,110,0.22); color: var(--gold); font-weight: 600; }
+  .cal-day.ev-pink { background: rgba(212,96,122,0.26); color: var(--accent); font-weight: 600; }
+  .cal-day.ev-green { background: rgba(76,175,130,0.2); color: var(--green); font-weight: 600; }
+  .cal-day.ev-pink.ev-green {
+    background: linear-gradient(135deg, rgba(212,96,122,0.3) 50%, rgba(76,175,130,0.3) 50%);
+    color: var(--cream); font-weight: 600;
+  }
+  .cal-legend {
+    display: flex; gap: 24px; margin-top: 10px;
+    justify-content: center; flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  .cal-milestones {
+    display: flex; gap: 8px; margin-top: 12px;
+    flex-shrink: 0; justify-content: center; flex-wrap: wrap;
+  }
+  .milestone {
+    display: flex; align-items: center; gap: 7px;
+    padding: 7px 14px; border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .ms-date {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+  .ms-label {
+    font-size: 11px; color: rgba(250,247,242,0.55);
+    white-space: nowrap;
+  }
+  .milestone.gold .ms-date { color: var(--gold); }
+  .milestone.pink .ms-date { color: var(--accent); }
+  .milestone.green .ms-date { color: var(--green); }
+
+  /* ══════════════════════════════
+     SLIDE 8 — 프로세스
+  ══════════════════════════════ */
+  #slide-8 { background: var(--cream); }
+  #slide-8 .eyebrow { color: var(--accent); }
+  #slide-8 .hero { color: var(--deep); margin-bottom: 20px; font-size: clamp(26px,3.2vw,44px); }
+
+  .steps {
+    display: grid; grid-template-columns: repeat(4,1fr);
+    gap: 16px;
+  }
+  .step {
+    background: var(--white); border-radius: 16px;
+    padding: 26px 22px;
+    display: flex; flex-direction: column; gap: 16px;
+    position: relative;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+    border: 1px solid rgba(26,26,46,0.06);
+  }
+  .step:not(:last-child)::after {
+    content: '→'; position: absolute; right: -13px; top: 36px;
+    font-size: 14px; color: var(--muted); opacity: 0.4; z-index: 1;
+  }
+
+  .step-badge {
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 800; flex-shrink: 0;
+  }
+  .step:nth-child(1) .step-badge { background: rgba(212,96,122,0.1); color: var(--accent); }
+  .step:nth-child(2) .step-badge { background: rgba(201,169,110,0.12); color: #9a7030; }
+  .step:nth-child(3) .step-badge { background: rgba(76,175,130,0.1); color: var(--green); }
+  .step:nth-child(4) .step-badge { background: rgba(26,26,46,0.07); color: var(--deep); }
+
+  .step-title { font-size: clamp(20px,2.4vh,26px); font-weight: 700; color: var(--deep); line-height: 1.35; }
+  .step-items { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  .step-item {
+    display: flex; gap: 8px; align-items: flex-start;
+    font-size: clamp(14px,1.8vh,18px); color: var(--muted); line-height: 1.6;
+  }
+  .step-item::before { content: '·'; font-size: 16px; flex-shrink: 0; margin-top: -2px; color: var(--muted); }
+
+  .step-footer {
+    display: flex; gap: 12px; margin-top: 20px;
+  }
+  .footer-card {
+    flex: 1; background: var(--deep); border-radius: 14px;
+    padding: 18px 20px; display: flex; align-items: center; gap: 12px;
+  }
+  .footer-icon { font-size: 20px; flex-shrink: 0; }
+  .footer-label { font-size: 13px; font-weight: 600; color: var(--cream); line-height: 1.4; }
+  .footer-sub { font-size: 11px; color: rgba(250,247,242,0.45); margin-top: 2px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .slide { padding: 32px 24px 72px; }
+    .split { grid-template-columns: 1fr; }
+    .pkg-grid { grid-template-columns: 1fr; }
+    .steps { grid-template-columns: 1fr 1fr; }
+    .inf-grid { grid-template-columns: repeat(2, 1fr); }
+    .cal-container { grid-template-columns: 1fr; }
+    .gantt-label { min-width: 120px; font-size: 11px; }
+    .slide-num { right: 24px !important; }
+    #tab-nav { bottom: 10px; }
+    .tab-label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="tab-nav">
+  <div class="tab active" data-slide="0"><span class="tab-dot"></span><span class="tab-label">표지</span></div>
+  <div class="tab" data-slide="1"><span class="tab-dot"></span><span class="tab-label">패키지</span></div>
+  <div class="tab" data-slide="2"><span class="tab-dot"></span><span class="tab-label">방문형</span></div>
+  <div class="tab" data-slide="3"><span class="tab-dot"></span><span class="tab-label">키링PB</span></div>
+  <div class="tab" data-slide="4"><span class="tab-dot"></span><span class="tab-label">라이프PB</span></div>
+  <div class="tab" data-slide="5"><span class="tab-dot"></span><span class="tab-label">리스트</span></div>
+  <div class="tab" data-slide="6"><span class="tab-dot"></span><span class="tab-label">블로그</span></div>
+  <div class="tab" data-slide="7"><span class="tab-dot"></span><span class="tab-label">스케줄</span></div>
+  <div class="tab" data-slide="8"><span class="tab-dot"></span><span class="tab-label">프로세스</span></div>
+</nav>
+
+<div class="slides-container" id="slides">
+
+  <!-- ═══ 0. 표지 ═══ -->
+  <section class="slide" id="slide-0">
+    <div class="deco-a"></div>
+    <div class="deco-b"></div>
+    <p class="eyebrow">Partnership Proposal · 2026</p>
+    <h1 class="hero">틈결 ×<br><em>에스더버니</em></h1>
+    <p class="sub">지속 바이럴을 위한 인플루언서 운영 제안</p>
+    <div class="cover-divider"></div>
+    <p class="cover-desc">팝업이 만든 화제성을 검색 유입·콘텐츠 자산으로<br>전환하기 위한 지속 운영 전략</p>
+    <div class="cover-brand">SIRIAI</div>
+    <div class="slide-num" style="color:rgba(250,247,242,0.15);">01 / 09</div>
+  </section>
+
+  <!-- ═══ 1. 패키지 ═══ -->
+  <section class="slide" id="slide-1">
+    <p class="eyebrow">Package</p>
+    <h2 class="hero" style="color:var(--deep);">파트너십 패키지</h2>
+    <p class="pkg-discount-note">파트너십 한정 특가 — 정가 대비 최대 29% 할인된 금액입니다</p>
+    <div class="pkg-grid">
+      <div class="pkg basic">
+        <div class="pkg-tier">Basic</div>
+        <div class="pkg-price-area">
+          <div class="pkg-price">400만원</div>
+          <div class="pkg-price-meta">
+            <span class="pkg-original">500만원</span>
+            <span class="pkg-discount">20%↓</span>
+          </div>
+        </div>
+        <div class="pkg-savings">100만원 절약</div>
+        <div class="pkg-divider"></div>
+        <div class="pkg-items">
+          <div class="pkg-item"><div class="pkg-item-dot"></div><span><strong>방문형 콘텐츠</strong> — 나노 인플루언서 월 8~12건</span></div>
+          <div class="pkg-item"><div class="pkg-item-dot"></div><span><strong>키링/악세사리 PB</strong> — 에스더버니 IP 굿즈 제작·판매</span></div>
+          <div class="pkg-item"><div class="pkg-item-dot"></div><span><strong>라이프스타일 PB</strong> — 수건 등 홈굿즈 라인 기획</span></div>
+          <div class="pkg-item"><div class="pkg-item-dot"></div><span>월간 피처링 리포트</span></div>
+        </div>
+      </div>
+      <div class="pkg premium">
+        <div class="pkg-float-badge">★ 추천 플랜</div>
+        <div class="pkg-tier">Premium</div>
+        <div class="pkg-price-area">
+          <div class="pkg-price">500만원</div>
+          <div class="pkg-price-meta">
+            <span class="pkg-original">700만원</span>
+            <span class="pkg-discount">29%↓</span>
+          </div>
+        </div>
+        <div class="pkg-savings">200만원 절약</div>
+        <p class="pkg-premium-tagline">인플루언서 바이럴 + 셀럽 SEO까지, 모든 채널 한 번에</p>
+        <div class="pkg-divider"></div>
+        <div class="pkg-items">
+          <div class="pkg-item"><div class="pkg-item-dot"></div><span>기본 패키지 전체 포함</span></div>
+          <div class="pkg-item"><div class="pkg-item-dot"></div><span><strong>릴리 × 김고은 착용 제품</strong> — 네이버 블로그 SEO 발행</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num" style="color:var(--deep);">02 / 09</div>
+  </section>
+
+  <!-- ═══ 2. 방문형 콘텐츠 ═══ -->
+  <section class="slide" id="slide-2">
+    <p class="eyebrow">방문형 콘텐츠</p>
+    <div class="split">
+      <div class="split-text">
+        <span class="tag">공간 자산 활용</span>
+        <h2 class="hero">틈결 공간을 무대로,<br>저장·공유 유발형 콘텐츠</h2>
+        <div class="bullets">
+          <div class="bullet">
+            <div class="bullet-dot"></div>
+            <div class="bullet-text">나노 인플루언서(5천~5만)가 직접 방문, 릴스·피드 업로드 <strong>월 8~12건</strong></div>
+          </div>
+          <div class="bullet">
+            <div class="bullet-dot"></div>
+            <div class="bullet-text">광고 느낌 없이 '발견'의 감성으로 전달 — <strong>저장률·공유율</strong> 높음</div>
+          </div>
+          <div class="bullet">
+            <div class="bullet-dot"></div>
+            <div class="bullet-text">콘텐츠 누적으로 검색 노출과 <strong>오프라인 방문</strong> 지속 증가</div>
+          </div>
+        </div>
+        <div class="effect-bar">→ 조회수 · 저장수 · 오프라인 방문 유도</div>
+      </div>
+      <div class="split-visual">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;">
+          <div style="border-radius:16px;overflow:hidden;aspect-ratio:9/14;position:relative;">
+            <a href="https://www.instagram.com/reel/DX_e6kmBCJY/" target="_blank" rel="noopener" style="display:block;width:100%;height:100%;">
+              <img src="images/type-a.png" alt="방문형 레퍼런스" style="width:100%;height:100%;object-fit:cover;display:block;">
+              <div class="ig-badge">4.7만</div>
+            </a>
+          </div>
+          <div style="border-radius:16px;overflow:hidden;aspect-ratio:9/14;position:relative;">
+            <img src="images/id-visit.png" alt="방문형 레퍼런스" style="width:100%;height:100%;object-fit:cover;display:block;">
+            <div class="ig-badge">5.9만</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num" style="color:var(--deep);">03 / 09</div>
+  </section>
+
+  <!-- ═══ 3. 키링/악세사리 PB ═══ -->
+  <section class="slide" id="slide-3">
+    <div class="deco"></div>
+    <p class="eyebrow">키링 / 악세사리 PB</p>
+    <div class="split">
+      <div class="split-text">
+        <span class="tag">상품 자산 활용</span>
+        <h2 class="hero">인플루언서가 착용하면<br>팬덤이 바로 삽니다</h2>
+        <div class="bullets">
+          <div class="bullet">
+            <div class="bullet-dot"></div>
+            <div class="bullet-text">에스더버니 IP 키링·악세사리 PB 제작 후 인플루언서 <strong>착용·언박싱 콘텐츠</strong></div>
+          </div>
+          <div class="bullet">
+            <div class="bullet-dot"></div>
+            <div class="bullet-text">팝업에서 형성된 팬덤의 구매 욕구를 <strong>스마트스토어</strong>로 직접 연결</div>
+          </div>
+          <div class="bullet">
+            <div class="bullet-dot"></div>
+            <div class="bullet-text"><strong>한정 수량·한정 컬러</strong>로 즉시성과 희소성 동시 확보</div>
+          </div>
+        </div>
+        <div class="lineup-row">
+          <div class="lineup-chip">에스더버니 키링</div>
+          <div class="lineup-chip">캐릭터 케이스</div>
+          <div class="lineup-chip">미니 파우치</div>
+          <div class="lineup-chip">스트랩 · 참</div>
+        </div>
+        <div class="effect-bar" style="margin-top:16px;">→ 굿즈 직접 매출 · 클릭 · 구매 전환</div>
+      </div>
+      <div class="split-visual">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;">
+          <div style="border-radius:16px;overflow:hidden;aspect-ratio:9/14;position:relative;">
+            <a href="https://www.instagram.com/reel/DX9gEegzRsv/" target="_blank" rel="noopener" style="display:block;width:100%;height:100%;">
+              <img src="images/type-b.png" alt="키링 레퍼런스" style="width:100%;height:100%;object-fit:cover;display:block;">
+              <div class="ig-badge">4822</div>
+            </a>
+          </div>
+          <div style="border-radius:16px;overflow:hidden;aspect-ratio:9/14;position:relative;">
+            <img src="images/oddtype-2.png" alt="oddtype 레퍼런스" style="width:100%;height:100%;object-fit:cover;display:block;">
+            <div class="ig-badge">2.6만</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num" style="color:var(--cream);">04 / 09</div>
+  </section>
+
+  <!-- ═══ 4. 라이프스타일 PB ═══ -->
+  <section class="slide" id="slide-4">
+    <div class="deco"></div>
+    <p class="eyebrow">라이프스타일 PB</p>
+    <div class="split">
+      <div class="split-text">
+        <span class="tag">기획 중</span>
+        <h2 class="hero">캐릭터 굿즈를 넘어<br>일상 라이프스타일로</h2>
+        <div class="bullets">
+          <div class="bullet">
+            <div class="bullet-dot"></div>
+            <div class="bullet-text"><strong>에스더버니 페이스 타월</strong> — 캐릭터 자수 자카드, 2종 컬러</div>
+          </div>
+          <div class="bullet">
+            <div class="bullet-dot"></div>
+            <div class="bullet-text"><strong>미니 쿠션 · 베개 커버</strong> — 침실 인테리어 굿즈 라인</div>
+          </div>
+          <div class="bullet">
+            <div class="bullet-dot"></div>
+            <div class="bullet-text"><strong>에코백 · 파우치 세트</strong> — 일상 캐리어블</div>
+          </div>
+        </div>
+        <div class="effect-bar">→ 객단가 상승 · 팬덤 재구매 · 라이프스타일 브랜드 확장</div>
+      </div>
+      <div class="split-visual">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;">
+          <div style="border-radius:16px;overflow:hidden;aspect-ratio:9/14;position:relative;">
+            <img src="images/twb_ref(yuri himuro).jpg" alt="타월 착용" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;">
+          </div>
+          <div style="border-radius:16px;overflow:hidden;aspect-ratio:9/14;position:relative;">
+            <img src="images/twb_ref3.jpg" alt="타월 라인업" style="width:100%;height:100%;object-fit:cover;display:block;">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num" style="color:var(--deep);">05 / 09</div>
+  </section>
+
+  <!-- ═══ 5. 인플루언서 리스트 ═══ -->
+  <section class="slide" id="slide-5">
+    <p class="eyebrow">Influencer Curation</p>
+    <h2 class="hero">선별 인플루언서 리스트</h2>
+
+    <div class="inf-grid" id="infGrid">
+      <div class="inf-card">
+        <div class="inf-photo">
+          <img src="images/김지구.jpg" alt="김지구">
+        </div>
+        <div class="inf-info">
+          <div class="inf-name">김지구 <a href="https://instagram.com/bree_zgu_" target="_blank">↗</a></div>
+          <div class="inf-handle">@bree_zgu_</div>
+          <div class="inf-stat">Followers 17.1K</div>
+          <div class="inf-stat">ER 2.46%</div>
+        </div>
+      </div>
+      <div class="inf-card">
+        <div class="inf-photo">
+          <img src="images/Hailey Kim.jpg" alt="Hailey Kim">
+        </div>
+        <div class="inf-info">
+          <div class="inf-name">Hailey Kim <a href="https://instagram.com/277.45k" target="_blank">↗</a></div>
+          <div class="inf-handle">@277.45k</div>
+          <div class="inf-stat">Followers 20.2K</div>
+          <div class="inf-stat">ER 4.58%</div>
+        </div>
+      </div>
+      <div class="inf-card">
+        <div class="inf-photo">
+          <img src="images/Rina Yun.jpg" alt="Rina Yun">
+        </div>
+        <div class="inf-info">
+          <div class="inf-name">Rina Yun <a href="https://instagram.com/rinnayun" target="_blank">↗</a></div>
+          <div class="inf-handle">@rinnayun</div>
+          <div class="inf-stat">Followers 35.5K</div>
+          <div class="inf-stat">ER 1.65%</div>
+        </div>
+      </div>
+      <div class="inf-card">
+        <div class="inf-photo">
+          <img src="images/수비니.jpg" alt="수비니">
+        </div>
+        <div class="inf-info">
+          <div class="inf-name">수비니 <a href="https://instagram.com/beureyu" target="_blank">↗</a></div>
+          <div class="inf-handle">@beureyu</div>
+          <div class="inf-stat">Followers 54.3K</div>
+          <div class="inf-stat">ER 1.00%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="inf-cta">
+      <button class="inf-btn" onclick="openInfModal()">전체 리스트 보기 →</button>
+    </div>
+
+    <div class="slide-num" style="color:var(--deep);">06 / 09</div>
+  </section>
+
+  <!-- ═══ 6. 블로그 ═══ -->
+  <section class="slide" id="slide-6">
+    <p class="eyebrow">Naver Blog</p>
+    <div class="split" style="grid-template-columns:1fr 1.5fr;">
+      <div class="split-text">
+        <span class="tag">SEO × 셀럽 콘텐츠</span>
+        <h2 class="hero">셀럽 착용 그 제품,<br>검색하면 바로 나옵니다</h2>
+        <div class="bullets">
+          <div class="bullet">
+            <div class="bullet-dot"></div>
+            <div class="bullet-text">팝업 당일 릴리·김고은 착용 제품 <strong>상세 리스팅</strong> → 블로그 즉시 발행</div>
+          </div>
+          <div class="bullet">
+            <div class="bullet-dot"></div>
+            <div class="bullet-text"><strong>SEO 최적화</strong> — '릴리착용', '김고은굿즈' 등 연관 검색어 기반 상위 노출</div>
+          </div>
+          <div class="bullet">
+            <div class="bullet-dot"></div>
+            <div class="bullet-text">스마트스토어·공식몰 직접 연결 — <strong>클릭 → 구매</strong> 전환 단축</div>
+          </div>
+        </div>
+        <div class="kw-row">
+          <div class="kw">#릴리착용</div>
+          <div class="kw">#김고은굿즈</div>
+          <div class="kw">#에스더버니팝업</div>
+          <div class="kw">#에스더버니키링</div>
+        </div>
+        <div class="effect-bar" style="margin-top:16px;">→ SEO 장기 노출 · 구매 탐색 전환</div>
+        <button class="inf-btn" onclick="openBlogModal()" style="margin-top:16px;font-size:13px;padding:10px 26px;align-self:flex-start;">블로거 리스트 보기 →</button>
+      </div>
+      <div class="split-visual">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;">
+          <div style="border-radius:14px;overflow:hidden;aspect-ratio:9/14;position:relative;">
+            <video src="images/blog_tmt.mp4" autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video>
+          </div>
+          <div style="border-radius:14px;overflow:hidden;aspect-ratio:9/14;position:relative;">
+            <img src="images/blog3.gif" alt="블로그 레퍼런스 3" style="width:100%;height:100%;object-fit:cover;display:block;">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num" style="color:var(--deep);">07 / 09</div>
+  </section>
+
+  <!-- ═══ 7. 스케줄 (간트) ═══ -->
+  <section class="slide" id="slide-7">
+    <p class="eyebrow">Schedule</p>
+    <h2 class="hero">운영 스케줄</h2>
+
+    <div class="cal-container">
+
+      <!-- 5월 2026 (May 1 = Friday) -->
+      <div class="cal">
+        <div class="cal-header">
+          <span class="cal-month">5월</span>
+          <span class="cal-year">2026</span>
+        </div>
+        <div class="cal-grid">
+          <div class="cal-dow">일</div><div class="cal-dow">월</div><div class="cal-dow">화</div>
+          <div class="cal-dow">수</div><div class="cal-dow">목</div><div class="cal-dow">금</div><div class="cal-dow">토</div>
+          <!-- Row 1: May 1 = Fri -->
+          <div class="cal-day"></div><div class="cal-day"></div><div class="cal-day"></div>
+          <div class="cal-day"></div><div class="cal-day"></div>
+          <div class="cal-day">1</div><div class="cal-day">2</div>
+          <!-- Row 2 -->
+          <div class="cal-day">3</div><div class="cal-day">4</div><div class="cal-day">5</div>
+          <div class="cal-day">6</div><div class="cal-day">7</div><div class="cal-day">8</div><div class="cal-day">9</div>
+          <!-- Row 3 -->
+          <div class="cal-day">10</div><div class="cal-day">11</div><div class="cal-day">12</div>
+          <div class="cal-day">13</div><div class="cal-day">14</div><div class="cal-day">15</div><div class="cal-day">16</div>
+          <!-- Row 4: 18-22 gold (인플루언서 선별) -->
+          <div class="cal-day">17</div>
+          <div class="cal-day ev-gold">18</div><div class="cal-day ev-gold">19</div><div class="cal-day ev-gold">20</div>
+          <div class="cal-day ev-gold">21</div><div class="cal-day ev-gold">22</div>
+          <div class="cal-day">23</div>
+          <!-- Row 5: 25-27 gold (가이드), 28-30 pink (콘텐츠) -->
+          <div class="cal-day">24</div>
+          <div class="cal-day ev-gold">25</div><div class="cal-day ev-gold">26</div><div class="cal-day ev-gold">27</div>
+          <div class="cal-day ev-pink">28</div><div class="cal-day ev-pink">29</div><div class="cal-day ev-pink">30</div>
+          <!-- Row 6: 31 pink -->
+          <div class="cal-day ev-pink">31</div>
+          <div class="cal-day"></div><div class="cal-day"></div><div class="cal-day"></div>
+          <div class="cal-day"></div><div class="cal-day"></div><div class="cal-day"></div>
+        </div>
+      </div>
+
+      <!-- 6월 2026 (June 1 = Monday) -->
+      <div class="cal">
+        <div class="cal-header">
+          <span class="cal-month">6월</span>
+          <span class="cal-year">2026</span>
+        </div>
+        <div class="cal-grid">
+          <div class="cal-dow">일</div><div class="cal-dow">월</div><div class="cal-dow">화</div>
+          <div class="cal-dow">수</div><div class="cal-dow">목</div><div class="cal-dow">금</div><div class="cal-dow">토</div>
+          <!-- Row 1: June 1 = Mon — 1~6 pink+green (콘텐츠+블로그 동시) -->
+          <div class="cal-day"></div>
+          <div class="cal-day ev-pink ev-green">1</div><div class="cal-day ev-pink ev-green">2</div>
+          <div class="cal-day ev-pink ev-green">3</div><div class="cal-day ev-pink ev-green">4</div>
+          <div class="cal-day ev-pink ev-green">5</div><div class="cal-day ev-pink ev-green">6</div>
+          <!-- Row 2: 7 pink+green, 8-12 green (블로그) -->
+          <div class="cal-day ev-pink ev-green">7</div>
+          <div class="cal-day ev-green">8</div><div class="cal-day ev-green">9</div>
+          <div class="cal-day ev-green">10</div><div class="cal-day ev-green">11</div><div class="cal-day ev-green">12</div>
+          <div class="cal-day">13</div>
+          <!-- Row 3: 16-19 gold (리포트) -->
+          <div class="cal-day">14</div><div class="cal-day">15</div>
+          <div class="cal-day ev-gold">16</div><div class="cal-day ev-gold">17</div>
+          <div class="cal-day ev-gold">18</div><div class="cal-day ev-gold">19</div>
+          <div class="cal-day">20</div>
+          <!-- Row 4 -->
+          <div class="cal-day">21</div><div class="cal-day">22</div><div class="cal-day">23</div>
+          <div class="cal-day">24</div><div class="cal-day">25</div><div class="cal-day">26</div><div class="cal-day">27</div>
+          <!-- Row 5 -->
+          <div class="cal-day">28</div><div class="cal-day">29</div><div class="cal-day">30</div>
+          <div class="cal-day"></div><div class="cal-day"></div><div class="cal-day"></div><div class="cal-day"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="cal-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--gold);"></div>인플루언서 운영 / 리포트</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent);"></div>콘텐츠 업로드 + PB 런칭</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--green);"></div>네이버 블로그 발행</div>
+    </div>
+
+    <div class="cal-milestones">
+      <div class="milestone gold"><span class="ms-date">5/18~22</span><span class="ms-label">인플루언서 선별 · 섭외</span></div>
+      <div class="milestone gold"><span class="ms-date">5/25~27</span><span class="ms-label">가이딩 자료 · 방문 슬롯 배정</span></div>
+      <div class="milestone pink"><span class="ms-date">5/28~6/7</span><span class="ms-label">콘텐츠 업로드 + PB 굿즈 런칭</span></div>
+      <div class="milestone green"><span class="ms-date">6/1~12</span><span class="ms-label">네이버 블로그 SEO 발행</span></div>
+      <div class="milestone gold"><span class="ms-date">6/16~19</span><span class="ms-label">1차 피처링 리포트</span></div>
+    </div>
+
+    <div class="slide-num" style="color:var(--cream);">08 / 09</div>
+  </section>
+
+  <!-- ═══ 8. 프로세스 ═══ -->
+  <section class="slide" id="slide-8">
+    <p class="eyebrow">Process</p>
+    <h2 class="hero">운영 프로세스 — 4단계</h2>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-badge">01</div>
+        <div class="step-title">인플루언서 선별</div>
+        <div class="step-items">
+          <div class="step-item">에스더버니 타겟 오디언스 분석</div>
+          <div class="step-item">인플루언서 15인 선별 (팔로워·단가·적합도)</div>
+          <div class="step-item">콘텐츠 타입별 배분 계획</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-badge">02</div>
+        <div class="step-title">오프라인 방문<br>가이딩 & 실행</div>
+        <div class="step-items">
+          <div class="step-item">촬영 포인트·구도 가이드 전달</div>
+          <div class="step-item">방문 슬롯 배정 (혼잡 시간대 회피)</div>
+          <div class="step-item">PB 굿즈 발송 & 언박싱 가이드</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-badge">03</div>
+        <div class="step-title">콘텐츠 확산</div>
+        <div class="step-items">
+          <div class="step-item">업로드 확인 및 태그 검수</div>
+          <div class="step-item">조회수·저장·댓글 모니터링</div>
+          <div class="step-item">반응 좋은 콘텐츠 브랜드 계정 리그램</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-badge">04</div>
+        <div class="step-title">피처링 리포트</div>
+        <div class="step-items">
+          <div class="step-item">도달·노출·저장·클릭 집계</div>
+          <div class="step-item">리포트 PDF 제출</div>
+          <div class="step-item">다음 사이클 방향 제안</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-footer">
+      <div class="footer-card">
+        <div class="footer-icon">📊</div>
+        <div>
+          <div class="footer-label">피처링 리포트</div>
+          <div class="footer-sub">매월 데이터 기반 성과 측정</div>
+        </div>
+      </div>
+      <div class="footer-card">
+        <div class="footer-icon">🔄</div>
+        <div>
+          <div class="footer-label">월별 사이클</div>
+          <div class="footer-sub">바이럴이 끊기지 않는 구조</div>
+        </div>
+      </div>
+      <div class="footer-card">
+        <div class="footer-icon">🐰</div>
+        <div>
+          <div class="footer-label">SIRIAI 풀 매니징</div>
+          <div class="footer-sub">섭외·가이딩·모니터링·보고 일괄</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-num" style="color:var(--deep);">09 / 09</div>
+  </section>
+
+</div>
+
+<script>
+  const container = document.getElementById('slides');
+  const tabs = document.querySelectorAll('.tab');
+  const slides = document.querySelectorAll('.slide');
+  let currentSlide = 0;
+
+  function updateTabs(idx) {
+    currentSlide = idx;
+    tabs.forEach((t, i) => t.classList.toggle('active', i === idx));
+  }
+
+  function goTo(idx) {
+    idx = Math.max(0, Math.min(slides.length - 1, idx));
+    slides[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+    updateTabs(idx);
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting && e.intersectionRatio >= 0.6) {
+        const idx = Array.from(slides).indexOf(e.target);
+        if (idx !== -1) updateTabs(idx);
+      }
+    });
+  }, { threshold: 0.6, root: container });
+  slides.forEach(s => observer.observe(s));
+
+  tabs.forEach(t => t.addEventListener('click', () => goTo(parseInt(t.dataset.slide))));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeInfModal(); closeBlogModal(); return; }
+    if (document.getElementById('modal-inflist').classList.contains('active')) return;
+    if (document.getElementById('modal-bloglist').classList.contains('active')) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); goTo(currentSlide + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(currentSlide - 1); }
+    else if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+      else document.exitFullscreen().catch(() => {});
+    }
+  });
+
+  let touchStartX = 0;
+  container.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  container.addEventListener('touchend', e => {
+    const dx = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(dx) > 50) goTo(dx > 0 ? currentSlide + 1 : currentSlide - 1);
+  }, { passive: true });
+
+  function openInfModal() {
+    document.getElementById('modal-inflist').classList.add('active');
+  }
+  function closeInfModal() {
+    document.getElementById('modal-inflist').classList.remove('active');
+  }
+
+  function openBlogModal() {
+    document.getElementById('modal-bloglist').classList.add('active');
+  }
+  function closeBlogModal() {
+    document.getElementById('modal-bloglist').classList.remove('active');
+  }
+
+  updateTabs(0);
+</script>
+
+<!-- ═══ 인플루언서 리스트 모달 ═══ -->
+<div class="inf-modal-overlay" id="modal-inflist" onclick="if(event.target===this)closeInfModal()">
+  <div class="inf-modal-content">
+    <div class="inf-modal-header">
+      <h3 class="inf-modal-title">인플루언서 리스트</h3>
+      <div style="display:flex;gap:12px;align-items:center;">
+        <a class="inf-sheet-btn" href="#" target="_blank" id="sheetLinkBtn">구글 시트로 이동 ↗</a>
+        <button class="inf-modal-close" onclick="closeInfModal()">&times;</button>
+      </div>
+    </div>
+    <div class="inf-modal-body">
+      <table class="inf-data-table">
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>이름</th>
+            <th>팔로워</th>
+            <th>ER</th>
+            <th>Instagram</th>
+          </tr>
+        </thead>
+        <tbody id="infTableBody">
+          <tr>
+            <td colspan="5" style="padding:56px;color:var(--muted);font-size:14px;text-align:center;">
+              리스트 업데이트 예정
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 블로거 리스트 모달 ═══ -->
+<div class="inf-modal-overlay" id="modal-bloglist" onclick="if(event.target===this)closeBlogModal()">
+  <div class="inf-modal-content">
+    <div class="inf-modal-header">
+      <h3 class="inf-modal-title">블로거 리스트</h3>
+      <button class="inf-modal-close" onclick="closeBlogModal()">&times;</button>
+    </div>
+    <div class="inf-modal-body">
+      <table class="inf-data-table">
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>블로그 ID</th>
+            <th>링크</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td class="name-col">iamchocolat</td><td><a href="http://blog.naver.com/iamchocolat" target="_blank" rel="noopener">블로그 ↗</a></td></tr>
+          <tr><td>2</td><td class="name-col">alsrud9311</td><td><a href="https://blog.naver.com/alsrud9311" target="_blank" rel="noopener">블로그 ↗</a></td></tr>
+          <tr><td>3</td><td class="name-col">will1235</td><td><a href="https://m.blog.naver.com/will1235" target="_blank" rel="noopener">블로그 ↗</a></td></tr>
+          <tr><td>4</td><td class="name-col">wofls94</td><td><a href="https://blog.naver.com/wofls94" target="_blank" rel="noopener">블로그 ↗</a></td></tr>
+          <tr><td>5</td><td class="name-col">wldl6815</td><td><a href="https://blog.naver.com/wldl6815" target="_blank" rel="noopener">블로그 ↗</a></td></tr>
+          <tr><td>6</td><td class="name-col">haecho_life</td><td><a href="https://blog.naver.com/haecho_life" target="_blank" rel="noopener">블로그 ↗</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
