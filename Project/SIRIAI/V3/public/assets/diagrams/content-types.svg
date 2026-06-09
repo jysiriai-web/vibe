@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" font-family="'Pretendard','Malgun Gothic','Apple SD Gothic Neo',sans-serif">
+  <rect width="1200" height="300" fill="#F3EEE2"/>
+  <text x="64" y="52" font-family="'JetBrains Mono','Courier New',monospace" font-size="12" letter-spacing="2.5" fill="#211A33" fill-opacity="0.46">콘텐츠 타입 — 브랜드 니즈에 맞춰</text>
+
+  <g text-anchor="middle">
+    <rect x="60" y="84" width="230" height="92" rx="16" fill="#FBF8F1" stroke="#211A33" stroke-opacity="0.13"/>
+    <text x="175" y="138" font-size="19" font-weight="700" fill="#211A33">리뷰</text>
+    <rect x="343" y="84" width="230" height="92" rx="16" fill="#FBF8F1" stroke="#211A33" stroke-opacity="0.13"/>
+    <text x="458" y="138" font-size="19" font-weight="700" fill="#211A33">튜토리얼</text>
+    <rect x="626" y="84" width="230" height="92" rx="16" fill="#FBF8F1" stroke="#211A33" stroke-opacity="0.13"/>
+    <text x="741" y="138" font-size="19" font-weight="700" fill="#211A33">챌린지</text>
+    <rect x="909" y="84" width="230" height="92" rx="16" fill="#FBF8F1" stroke="#211A33" stroke-opacity="0.13"/>
+    <text x="1024" y="138" font-size="19" font-weight="700" fill="#211A33">비포 &amp; 애프터</text>
+  </g>
+
+  <text x="600" y="244" text-anchor="middle" font-size="14.5" fill="#211A33" fill-opacity="0.66">지정 가능 — 성별 · 연령 · 국가 · 콘텐츠 타입</text>
+</svg>

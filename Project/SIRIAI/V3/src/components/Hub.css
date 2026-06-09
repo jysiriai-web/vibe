@@ -1,0 +1,131 @@
+.hub {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: var(--s-9) var(--edge) var(--s-10);
+}
+
+.hub__head {
+  max-width: 40em;
+  margin-bottom: var(--s-8);
+  animation: fadeUp var(--t-med) var(--ease) both;
+}
+.hub__eyebrow { margin-bottom: var(--s-4); }
+.hub__title {
+  font-family: var(--f-kr);
+  font-weight: var(--w-semibold);
+  font-size: var(--fs-h1);
+  line-height: var(--lh-head);
+  letter-spacing: var(--tracking-head);
+  color: var(--ink);
+}
+.hub__sub {
+  margin-top: var(--s-4);
+  font-size: var(--fs-lead);
+  color: var(--ink-2);
+}
+
+.hub__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--s-5);
+}
+
+@media (max-width: 980px) {
+  .hub__grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 540px) {
+  .hub__grid { grid-template-columns: 1fr; }
+}
+
+/* ---- 카드 ---- */
+.hub-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--s-6);
+  min-height: 280px;
+  text-align: left;
+  padding: var(--s-5);
+  border-radius: var(--r-md);
+  border: var(--bw) solid var(--line);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  transition: transform var(--t-med) var(--ease), box-shadow var(--t-med) var(--ease),
+    border-color var(--t-med) var(--ease);
+  animation: fadeUp var(--t-med) var(--ease) both;
+  animation-delay: calc(var(--i) * 70ms);
+}
+
+.hub-card__no {
+  font-family: var(--f-serif); /* Bodoni — 드문 에디토리얼 색인 악센트 */
+  font-size: 30px;
+  font-weight: var(--w-medium);
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--ink-3);
+}
+.hub-card--ready:hover .hub-card__no { color: var(--ink); }
+
+.hub-card__body { display: flex; flex-direction: column; gap: var(--s-2); }
+.hub-card__title {
+  font-family: var(--f-kr);
+  font-weight: var(--w-semibold);
+  font-size: var(--fs-h3);
+  letter-spacing: var(--tracking-head);
+  color: var(--ink);
+}
+.hub-card__en {
+  font-size: 12.5px;
+  letter-spacing: -0.01em;
+  color: var(--ink-3);
+}
+.hub-card__line {
+  margin-top: var(--s-2);
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.hub-card__foot { color: var(--ink-3); }
+/* coming_soon 상태 뱃지 (작은 알약) */
+.hub-card__badge {
+  align-self: flex-start;
+  padding: 4px 11px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line-strong);
+  background: rgba(255, 255, 255, 0.35);
+  color: var(--coming);
+}
+
+/* ready: 호버 시 떠오름 */
+.hub-card--ready { cursor: pointer; }
+.hub-card--ready:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
+  border-color: var(--line-strong);
+}
+.hub-card--ready:hover .hub-card__foot { color: var(--ink); }
+
+/* coming_soon: 흐림 + 절제된 표식 (상투어 없이) */
+.hub-card--soon {
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.32);
+}
+.hub-card--soon .hub-card__title,
+.hub-card--soon .hub-card__en,
+.hub-card--soon .hub-card__line {
+  color: var(--coming);
+}
+.hub-card--soon::after {
+  /* 점선 테두리로 '아직 열리지 않은 자리' 암시 */
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-md);
+  border: 1px dashed var(--line-strong);
+  opacity: 0.5;
+  pointer-events: none;
+}
+.hub-card--soon:hover { transform: translateY(-2px); }
+.hub-card--soon:hover .hub-card__title { color: var(--ink-2); }

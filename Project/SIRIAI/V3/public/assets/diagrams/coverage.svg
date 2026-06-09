@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 340" font-family="'Pretendard','Malgun Gothic','Apple SD Gothic Neo',sans-serif">
+  <rect width="1200" height="340" fill="#F3EEE2"/>
+  <text x="64" y="52" font-family="'JetBrains Mono','Courier New',monospace" font-size="12" letter-spacing="2.5" fill="#211A33" fill-opacity="0.46">글로벌 시딩 커버리지</text>
+
+  <g text-anchor="middle">
+    <text x="300" y="180" font-size="66" font-weight="700" fill="#211A33" font-family="'Helvetica Neue',Arial,sans-serif">75<tspan font-size="26" font-weight="400" dx="3" fill="#211A33">개국</tspan></text>
+    <text x="300" y="216" font-family="'JetBrains Mono','Courier New',monospace" font-size="12" letter-spacing="1.5" fill="#211A33" fill-opacity="0.46">대상 국가</text>
+
+    <text x="600" y="180" font-size="66" font-weight="700" fill="#211A33" font-family="'Helvetica Neue',Arial,sans-serif">12<tspan font-size="40">+</tspan></text>
+    <text x="600" y="216" font-family="'JetBrains Mono','Courier New',monospace" font-size="12" letter-spacing="1.5" fill="#211A33" fill-opacity="0.46">콘텐츠 플랫폼</text>
+
+    <text x="900" y="174" font-size="46" font-weight="700" fill="#5a4a85">나노 중심</text>
+    <text x="900" y="216" font-family="'JetBrains Mono','Courier New',monospace" font-size="12" letter-spacing="1.5" fill="#211A33" fill-opacity="0.46">인플루언서</text>
+  </g>
+
+  <line x1="64" y1="252" x2="1136" y2="252" stroke="#211A33" stroke-opacity="0.13"/>
+  <g text-anchor="middle" font-size="13.5" fill="#5a4a85">
+    <rect x="338" y="276" width="84" height="32" rx="16" fill="#e9e3f3"/><text x="380" y="297">TikTok</text>
+    <rect x="432" y="276" width="104" height="32" rx="16" fill="#e9e3f3"/><text x="484" y="297">Instagram</text>
+    <rect x="546" y="276" width="92" height="32" rx="16" fill="#e9e3f3"/><text x="592" y="297">YouTube</text>
+    <rect x="648" y="276" width="96" height="32" rx="16" fill="#e9e3f3"/><text x="696" y="297">샤오홍슈</text>
+    <rect x="754" y="276" width="92" height="32" rx="16" fill="#FBF8F1" stroke="#211A33" stroke-opacity="0.13"/><text x="800" y="297" fill="#211A33" fill-opacity="0.46">외 다수</text>
+  </g>
+</svg>

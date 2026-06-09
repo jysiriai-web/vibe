@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 440" font-family="'Pretendard','Malgun Gothic','Apple SD Gothic Neo',sans-serif">
+  <rect width="1200" height="440" fill="#F3EEE2"/>
+  <line x1="600" y1="56" x2="600" y2="392" stroke="#211A33" stroke-opacity="0.13"/>
+
+  <!-- LEFT : 기존 -->
+  <text x="64" y="74" font-family="'JetBrains Mono','Courier New',monospace" font-size="12" letter-spacing="2" fill="#211A33" fill-opacity="0.46">기존 방식</text>
+  <text x="64" y="114" font-size="23" font-weight="700" fill="#211A33">등록된 풀에서 고른다</text>
+  <rect x="64" y="150" width="456" height="132" rx="14" fill="#FBF8F1" stroke="#211A33" stroke-opacity="0.13"/>
+  <text x="86" y="180" font-family="'JetBrains Mono','Courier New',monospace" font-size="11" letter-spacing="1.5" fill="#211A33" fill-opacity="0.46">등록 풀 (고정)</text>
+  <g fill="#211A33" fill-opacity="0.26">
+    <circle cx="108" cy="226" r="12"/><circle cx="160" cy="226" r="12"/><circle cx="212" cy="226" r="12"/><circle cx="264" cy="226" r="12"/><circle cx="316" cy="226" r="12"/><circle cx="368" cy="226" r="12"/><circle cx="420" cy="226" r="12"/><circle cx="472" cy="226" r="12"/>
+  </g>
+  <text x="64" y="338" font-size="15.5" fill="#211A33" fill-opacity="0.66">캠페인마다 같은 리스트를 반복 제안</text>
+
+  <!-- RIGHT : SIRIAI -->
+  <text x="664" y="74" font-family="'JetBrains Mono','Courier New',monospace" font-size="12" letter-spacing="2" fill="#5a4a85">SIRIAI 국내 시딩</text>
+  <text x="664" y="114" font-size="23" font-weight="700" fill="#211A33">조건을 읽고, 매번 새로 발굴</text>
+
+  <g font-size="13.5" fill="#5a4a85" text-anchor="middle">
+    <rect x="664" y="146" width="70" height="32" rx="16" fill="#e9e3f3"/><text x="699" y="167">성별</text>
+    <rect x="744" y="146" width="70" height="32" rx="16" fill="#e9e3f3"/><text x="779" y="167">연령</text>
+    <rect x="824" y="146" width="62" height="32" rx="16" fill="#e9e3f3"/><text x="855" y="167">ER</text>
+    <rect x="896" y="146" width="70" height="32" rx="16" fill="#e9e3f3"/><text x="931" y="167">감도</text>
+    <rect x="976" y="146" width="70" height="32" rx="16" fill="#e9e3f3"/><text x="1011" y="167">타겟</text>
+  </g>
+  <text x="688" y="214" font-size="20" fill="#211A33" fill-opacity="0.4">↓</text>
+  <rect x="664" y="226" width="456" height="112" rx="14" fill="#FBF8F1" stroke="#cabce8"/>
+  <text x="686" y="254" font-family="'JetBrains Mono','Courier New',monospace" font-size="11" letter-spacing="1.5" fill="#5a4a85">매번 새로 발굴</text>
+  <g fill="#cabce8">
+    <circle cx="708" cy="298" r="12"/><circle cx="762" cy="298" r="12"/><circle cx="816" cy="298" r="12"/><circle cx="870" cy="298" r="12"/><circle cx="924" cy="298" r="12"/>
+  </g>
+  <text x="664" y="380" font-size="15.5" fill="#5a4a85">브랜드 결에 맞는 사람을, 그때그때 새로</text>
+</svg>

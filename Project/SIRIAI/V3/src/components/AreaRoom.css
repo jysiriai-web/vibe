@@ -1,0 +1,113 @@
+.room {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  animation: fadeIn var(--t-med) var(--ease) both;
+}
+
+.room__head { margin-bottom: var(--s-7); }
+.room__eyebrow { margin-bottom: var(--s-4); color: var(--ink-3); }
+.room__headline {
+  font-family: var(--f-kr);
+  font-weight: var(--w-semibold);
+  font-size: var(--fs-h1);
+  line-height: var(--lh-head);
+  letter-spacing: var(--tracking-head);
+  white-space: pre-line;
+  color: var(--ink);
+}
+.room__sub {
+  margin-top: var(--s-4);
+  font-size: var(--fs-lead);
+  color: var(--ink-2);
+}
+
+/* ---- 2단 그리드 ---- */
+.room__grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.85fr) 1.15fr;
+  gap: var(--s-7);
+  align-items: start;
+  min-height: 440px;
+}
+@media (max-width: 900px) {
+  .room__grid { grid-template-columns: 1fr; gap: var(--s-6); min-height: 0; }
+}
+
+/* 좌측 컨텍스트 */
+.room__left { position: relative; }
+
+.room__intro { animation: fadeIn var(--t-med) var(--ease) both; }
+.room__proof {
+  margin-top: var(--s-5);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-4) var(--s-5);
+}
+.room__proof li { display: flex; flex-direction: column; gap: 4px; }
+.room__proof-v {
+  font-family: var(--f-en);
+  font-weight: var(--w-bold);
+  font-size: 26px;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.room__proof-l { color: var(--ink-3); }
+
+.room__context {
+  position: sticky;
+  top: calc(var(--header-h) + var(--s-5));
+  padding: var(--s-5);
+  border-radius: var(--r-md);
+  border: var(--bw) solid var(--line);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  animation: fadeUp var(--t-med) var(--ease) both;
+}
+.room__context-label { color: var(--ink-3); margin-bottom: var(--s-4); }
+.room__context-q {
+  font-family: var(--f-kr);
+  font-weight: var(--w-semibold);
+  font-size: var(--fs-h3);
+  line-height: 1.4;
+  letter-spacing: var(--tracking-head);
+  color: var(--ink);
+}
+.room__back {
+  margin-top: var(--s-5);
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+  transition: color var(--t-fast) var(--ease);
+}
+.room__back:hover { color: var(--ink); }
+
+/* 우측 영역 최소 높이로 캐러셀 마스킹 영역 확보 */
+.room__right { min-width: 0; }
+
+/* ---- 서비스 ---- */
+.room__services { margin-top: var(--s-9); }
+.room__section-label { color: var(--ink-3); margin-bottom: var(--s-5); }
+.room__service-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--s-4);
+}
+.service-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--s-5);
+  border-radius: var(--r-sm);
+  border: var(--bw) solid var(--line);
+  background: rgba(255, 255, 255, 0.4);
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.service-card:hover { border-color: var(--line-strong); background: var(--glass-bg); }
+.service-card__en { color: var(--ink-3); }
+.service-card__name {
+  font-family: var(--f-kr);
+  font-weight: var(--w-semibold);
+  font-size: 15px;
+  color: var(--ink);
+}
+.service-card__blurb { font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }

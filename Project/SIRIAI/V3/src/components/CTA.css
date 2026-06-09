@@ -1,0 +1,56 @@
+.cta__copy { display: flex; flex-direction: column; gap: 2px; }
+.cta__en { font-size: 14px; color: var(--ink-3); letter-spacing: -0.01em; }
+.cta__kr {
+  font-family: var(--f-kr);
+  font-weight: var(--w-semibold);
+  font-size: var(--fs-h3);
+  letter-spacing: var(--tracking-head);
+  color: var(--ink);
+}
+.cta__sub { margin-top: 4px; font-size: var(--fs-sm); color: var(--ink-2); }
+.cta__actions { display: flex; flex-wrap: wrap; gap: var(--s-3); }
+.cta__note { color: var(--ink-3); }
+
+/* inline (답변 말단) */
+.cta--inline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-5);
+  border-radius: var(--r-md);
+  border: var(--bw) solid var(--line);
+  background: var(--glass-bg);
+}
+
+/* band (분야 하단 풀폭) */
+.cta--band {
+  margin-top: var(--s-10);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--s-6);
+  padding: var(--s-7);
+  border-radius: var(--r-md);
+  border: var(--bw) solid var(--line-strong);
+  background:
+    radial-gradient(80% 120% at 0% 0%, var(--lilac), transparent 60%),
+    var(--glass-bg);
+}
+.cta--band .cta__note { grid-column: 1 / -1; }
+@media (max-width: 720px) {
+  .cta--band { grid-template-columns: 1fr; }
+}
+
+/* compact (챗봇 폴백) */
+.cta--compact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  border-radius: var(--r-sm);
+  border: var(--bw) solid var(--line);
+  background: rgba(255, 255, 255, 0.5);
+}
+.cta--compact .cta__kr { font-size: 15px; }
+.cta--compact .btn-pill { font-size: 14px; padding: 10px 18px; }
+.cta--compact .btn-ghost { font-size: 14px; padding: 9px 16px; }
