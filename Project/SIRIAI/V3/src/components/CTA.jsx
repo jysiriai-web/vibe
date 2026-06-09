@@ -10,7 +10,7 @@ export default function CTA({ meta, variant = 'inline' }) {
       <div className="cta__copy">
         <p className="cta__en en">{cta.en}</p>
         <p className="cta__kr">{cta.kr}</p>
-        {variant !== 'compact' && <p className="cta__sub">{cta.sub}</p>}
+        {variant === 'inline' && <p className="cta__sub">{cta.sub}</p>}
       </div>
 
       <div className="cta__actions">
@@ -24,7 +24,7 @@ export default function CTA({ meta, variant = 'inline' }) {
           1:1 오픈채팅
         </a>
       </div>
-      {variant !== 'compact' && (
+      {variant === 'inline' && (
         <p className="cta__note label-mono">{channels.openchatNote}</p>
       )}
     </div>

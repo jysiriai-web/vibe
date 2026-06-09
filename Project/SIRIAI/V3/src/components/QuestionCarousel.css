@@ -42,10 +42,8 @@
   will-change: transform, opacity;
 }
 
-/* 중심(전면) 칩 — 가장 또렷 */
+/* 중심(전면) 칩 — 크기는 scale로 통일, 또렷함은 면/보더/그림자로만 */
 .wheel__chip.is-active {
-  font-size: 17px;
-  padding: 15px 26px;
   background: var(--surface);
   border-color: var(--line-strong);
   box-shadow: var(--shadow-pop);

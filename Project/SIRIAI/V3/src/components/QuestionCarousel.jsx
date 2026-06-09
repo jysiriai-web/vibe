@@ -64,6 +64,8 @@ export default function QuestionCarousel({ qna, onPick }) {
           const near = Math.abs(r) <= RADIUS + 1
           const pos = Math.max(-(RADIUS + 1), Math.min(RADIUS + 1, r))
           const opacity = visible ? (r === 0 ? 1 : Math.abs(r) === 1 ? 0.8 : 0.42) : 0
+          // 리볼버 원근: 중심(전면) 칸이 가장 크고, 뒤로 물러날수록 작아진다
+          const scale = r === 0 ? 1 : Math.abs(r) === 1 ? 0.88 : visible ? 0.76 : 0.68
 
           return (
             <button
@@ -73,7 +75,7 @@ export default function QuestionCarousel({ qna, onPick }) {
               tabIndex={visible ? 0 : -1}
               aria-hidden={!visible}
               style={{
-                transform: `translate(-50%, calc(${pos} * var(--slot) - 50%))`,
+                transform: `translate(-50%, calc(${pos} * var(--slot) - 50%)) scale(${scale})`,
                 opacity,
                 zIndex: 10 - Math.abs(r),
                 pointerEvents: visible ? 'auto' : 'none',

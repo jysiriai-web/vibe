@@ -53,7 +53,7 @@ export const content = {
       title: '시리아이에게 물어보기',
       subtitle: '큐레이션 챗봇 · 등록된 답변만 드립니다',
       greeting:
-        '안녕하세요. 시리아이입니다.\n인플루언서 비즈니스에 대해 궁금한 점을 골라보거나, 편하게 물어보세요.',
+        '안녕하세요. 시리아이입니다.\n궁금한 점을 골라보시거나, 편하게 물어보세요.',
       placeholder: '무엇이 궁금하신가요?',
       fallback:
         '아직 제가 정확히 답할 수 있는 질문이 아니에요. 아래에서 골라보시거나, 바로 문의 주시면 사람이 답해 드릴게요.',
@@ -68,14 +68,14 @@ export const content = {
     {
       id: 'influencer',
       order: 1,
-      title: '인플루언서 비즈니스',
-      subtitle: 'Siriai Influencer System',
+      title: '크리에이터 콘텐츠',
+      subtitle: 'Creator Content',
       cardLine: '가입자 풀이 아니라, 당신께 맞는 사람을.',
       status: 'ready',
 
       hero: {
         eyebrow: 'Siriai Influencer System',
-        headline: '시리아이의 인플루언서 비즈니스는\n본질적으로 다릅니다',
+        headline: '시리아이의 크리에이터 콘텐츠는\n본질적으로 다릅니다',
         sub: '가입자 풀이 아니라, 당신께 맞는 사람을.',
         image: '', // 인플루언서 비주얼 — 실사진은 핸드오프/Figma 단계. 지금은 캡션 placeholder
         imageAlt: '인플루언서 이미지',
@@ -301,81 +301,203 @@ export const content = {
           group: '',
         },
       ],
-      referencesNote: '해외 케이스는 검증된 파트너와의 현지 실행입니다. 브랜드 로고·실명은 공개 동의 후 노출됩니다.',
+      referencesNote: '해외 케이스는 파트너와의 현지 실행 · 로고·실명은 공개 동의 후.',
 
-      // 하위 서비스 (인플루언서 비즈니스 안에 nested) — 짧은 소개 모듈
+      // 하위 서비스 (크리에이터 콘텐츠 안에 nested) — 짧은 소개 모듈
       services: [
-        { name: '국내 시딩', en: 'Korea Seeding', blurb: '풀을 돌려쓰지 않고, 캠페인마다 결을 읽어 새로 발굴.' },
-        { name: '글로벌 시딩', en: 'Global Seeding', blurb: '75개국·12+ 플랫폼, 나노 인플루언서 중심 숏폼.' },
-        { name: '모델 스타일링', en: 'Model Styling', blurb: '섭외·기획·촬영을 1~3단계 모듈로 선택.' },
-        { name: '유튜브 캠페인', en: 'YouTube Campaign', blurb: '데이터 기반 크리에이터 선별, 영상으로 깊이 전달.' },
-        { name: '라이브 커머스', en: 'Live Commerce', blurb: '검증된 제작 파트너와 함께하는 기획형 라이브.' },
-        { name: '브랜드 콘텐츠', en: 'Branded Content', blurb: '제품을 감각적으로 시각화하는 촬영·연출.' },
-        { name: '인스타 콘텐츠', en: 'Instagram Content', blurb: '키비주얼·숏폼·AI 이미지로 피드를 정기 운영.' },
+        { name: '국내 시딩', en: 'Korea Seeding', blurb: '캠페인마다 결을 읽어 새로 발굴.' },
+        { name: '글로벌 시딩', en: 'Global Seeding', blurb: '75개국·12+ 플랫폼, 나노 중심.' },
+        { name: '모델 스타일링', en: 'Model Styling', blurb: '섭외·기획·촬영 모듈 선택.' },
+        { name: '유튜브 캠페인', en: 'YouTube Campaign', blurb: '데이터로 크리에이터를 선별.' },
+        { name: '라이브 커머스', en: 'Live Commerce', blurb: '검증된 파트너와 기획형 라이브.' },
+        { name: '브랜드 콘텐츠', en: 'Branded Content', blurb: '제품을 감각적으로 시각화.' },
+        { name: '인스타 콘텐츠', en: 'Instagram Content', blurb: '키비주얼·숏폼·AI 이미지 정기 운영.' },
       ],
     },
 
     /* ===================================================================== *
-     * 02 — 아키텍팅 (COMING_SOON · 카피만 존재)
+     * 02 — 비즈니스 컨설팅 / Architecting (READY)
      * ===================================================================== */
     {
       id: 'architecting',
       order: 2,
-      title: '아키텍팅',
+      title: '비즈니스 컨설팅',
       subtitle: 'Architecting',
-      cardLine: '우리가 일하는 방식.',
-      status: 'coming_soon',
+      cardLine: '예산이 아니라, 비어 있는 자리를 채웁니다.',
+      status: 'ready',
+
       hero: {
         eyebrow: 'Architecting',
         headline: '당신이 놓친 건 예산이 아니라,\n비어 있는 ‘자리’입니다',
         sub: '틀 없이 니즈를 해결하는 problem solver 집단.',
+        image: '',
+        imageAlt: '비즈니스 컨설팅 이미지',
+        imageCaption: '넓은 인사이트를, 빠르게 구조로',
       },
-      teaser: {
-        line: '기초 설계부터 완성, 실행까지 — A to Z를 직접 설계합니다.',
-        sub: '진행 이력이 없던 프로젝트도 처음부터 끝까지. 이 자리의 이야기는 곧 펼쳐집니다.',
-      },
+
+      qna: [
+        {
+          id: 'arc-what',
+          entry: true,
+          question: '아키텍팅은 뭘 하는 팀인가요?',
+          keywords: ['뭘', '무슨', '하는', '팀', '역할', '아키텍팅'],
+          answer: {
+            body: '틀 없이 니즈를 해결하는 problem solver 집단입니다. 문제를 정의하고, 구조로 모델링하고, 실행까지 직접 설계합니다. 진행 이력이 없던 프로젝트도 처음부터 끝까지.',
+            visuals: [
+              { type: 'process', items: ['문제 정의', '구조 모델링', '실행 설계', '완수'] },
+            ],
+          },
+          followUps: ['arc-why', 'arc-ai'],
+        },
+        {
+          id: 'arc-why',
+          entry: true,
+          question: '마케팅 회사인데 왜 컨설팅인가요?',
+          keywords: ['왜', '컨설팅', '마케팅', '차이', '다른'],
+          answer: {
+            body: '우리는 ‘무엇을 파는가’보다 ‘무엇을 놓쳤는가’를 먼저 봅니다. 표면의 숫자가 아니라 브랜드가 겪는 본질적 공백을 진단하고, 그 위에 구조를 올립니다.',
+            extra: '콘텐츠는 그 구조의 시작점일 뿐입니다.',
+            visuals: [],
+          },
+          followUps: ['arc-scope'],
+        },
+        {
+          id: 'arc-ai',
+          question: 'AI 리터러시 기반이라는 건 무슨 뜻인가요?',
+          keywords: ['ai', '리터러시', '인사이트', '데이터', '기반'],
+          answer: {
+            body: '넓은 인사이트를 빠르게 구조로 바꿉니다. AI 리터러시 위에서 가설을 세우고 확인해, 감이 아니라 검증된 인사이트로 의사결정을 돕습니다.',
+            visuals: [],
+          },
+          followUps: ['arc-scope'],
+        },
+        {
+          id: 'arc-scope',
+          question: '어디까지 함께하나요?',
+          keywords: ['어디까지', '범위', '실행', '완성', 'a to z', '끝'],
+          answer: {
+            body: '기초 설계부터 완성, 실행까지 — A to Z를 한 팀이 끝까지 가져갑니다. 설계만 하고 떠나지 않습니다.',
+            visuals: [],
+          },
+          followUps: [],
+          ctaLeaf: true,
+        },
+      ],
+
       references: [],
-      qna: [],
+
+      services: [
+        { name: '브랜드 진단', en: 'Diagnosis', blurb: '놓친 자리를 먼저 찾습니다.' },
+        { name: '구조 설계', en: 'Architecting', blurb: '인사이트를 실행 구조로.' },
+        { name: '실행 동행', en: 'Execution', blurb: '완성·실행까지 한 팀이.' },
+      ],
     },
 
     /* ===================================================================== *
-     * 03 — sa:ai (COMING_SOON · 외부 figma)
+     * 03 — 소프트웨어 엔지니어링 / sa:ai (READY)
+     *   지표(3.4×·2주)·하위서비스는 공개 홈페이지 게재분 → 노출 가능
      * ===================================================================== */
     {
       id: 'saai',
       order: 3,
-      title: 'sa:ai',
-      subtitle: 'Software Engineering',
+      title: '소프트웨어 엔지니어링',
+      subtitle: 'sa:ai',
       cardLine: '우리의 마케팅은, 자체 기술 위에서 돕니다.',
-      status: 'coming_soon',
+      status: 'ready',
+
       hero: {
-        eyebrow: 'sa:ai · Software',
+        eyebrow: 'sa:ai · Software Engineering',
         headline: '관계에서 시작해 데이터로 확장하고,\n기록으로 증명합니다',
         sub: 'Creators remember us.',
+        image: '',
+        imageAlt: '소프트웨어 엔지니어링 이미지',
+        imageCaption: 'Performance · Creative · Archivo',
       },
-      teaser: {
-        line: '모든 SNS·플랫폼 콘텐츠를 아카이빙하는 솔루션. Performance · Creative · Archivo.',
-        sub: '우리의 모든 마케팅이 돌아가는 기술을, 외부 브랜드의 솔루션으로도 짓습니다.',
-      },
-      tech: 'Built on OpenAI · Anthropic · Gemini · Vercel',
+
+      proof: [
+        { value: '3.4×', label: '개발 생산성 향상' },
+        { value: '2주', label: '아이디어 → 작동 프로토타입' },
+        { value: '1팀', label: '기획·UX·구현·운영 일괄' },
+      ],
+
+      qna: [
+        {
+          id: 'saai-what',
+          entry: true,
+          question: 'sa:ai는 어떤 솔루션인가요?',
+          keywords: ['뭐', '솔루션', '아카이빙', '서비스', 'saai', '사아이'],
+          answer: {
+            body: '모든 SNS·플랫폼의 콘텐츠를 한곳에 아카이빙합니다. 브랜드용은 발행한 콘텐츠의 효과·감도·생존을 추적하고, 개인용은 플랫폼을 가리지 않고 본 콘텐츠를 한 번에 모으는 라이브러리가 됩니다.',
+            visuals: [
+              {
+                type: 'list',
+                title: '세 개의 축',
+                items: ['Performance — 효과', 'Creative — 감도', 'Archivo — 기록'],
+              },
+            ],
+          },
+          followUps: ['saai-why', 'saai-fast'],
+        },
+        {
+          id: 'saai-why',
+          entry: true,
+          question: '왜 마케팅 회사가 소프트웨어를 직접 만드나요?',
+          keywords: ['왜', '직접', '소프트웨어', '기술', '만드'],
+          answer: {
+            body: '우리의 모든 마케팅이 자체 기술 위에서 돕니다. 관계에서 시작해 데이터로 확장하고, 기록으로 증명합니다 — 그 엔진을 직접 짓기에, 외부 브랜드의 솔루션으로도 지을 수 있습니다.',
+            visuals: [],
+          },
+          followUps: ['saai-fast'],
+        },
+        {
+          id: 'saai-fast',
+          question: '얼마나 빨리 만들 수 있나요?',
+          keywords: ['빨리', '얼마나', '기간', '프로토타입', '개발', '생산성'],
+          answer: {
+            body: '페인 포인트를 이해하는 서비스 기획에서 시작해, 디자인 시스템 위에서 곧장 구현합니다. 평균적으로 아이디어에서 작동하는 프로토타입까지 2주, 개발 생산성은 3.4배까지.',
+            visuals: [
+              { type: 'process', items: ['서비스 기획', '프로토타입', '디자인 시스템', '운영'] },
+            ],
+          },
+          followUps: ['saai-tech'],
+        },
+        {
+          id: 'saai-tech',
+          question: '어떤 기술 위에서 움직이나요?',
+          keywords: ['기술', '스택', 'openai', 'anthropic', 'gemini', 'vercel'],
+          answer: {
+            body: 'OpenAI·Anthropic·Gemini 위에서 추론하고, Vercel 위에서 배포합니다. 기능을 과시하기보다, 결과로 번역되는 기술만 씁니다.',
+            visuals: [{ type: 'note', text: 'Built on OpenAI · Anthropic · Gemini · Vercel' }],
+          },
+          followUps: [],
+          ctaLeaf: true,
+        },
+      ],
+
       references: [],
-      qna: [],
+
+      services: [
+        { name: '서비스 기획', en: 'Service Planning', blurb: '페인 포인트부터 정의.' },
+        { name: '프로덕트 개발', en: 'Product Dev', blurb: '며칠 만에 프로토타입까지.' },
+        { name: 'UX & UI', en: 'Design System', blurb: '디자인 시스템 위에서 구현.' },
+      ],
     },
 
     /* ===================================================================== *
-     * 04 — Private Brand (COMING_SOON · 준비중, 암시만 / 상투어 금지)
+     * 04 — 시그니처 브랜드 / Signature Brand (COMING_SOON · 의도적 절제)
+     *   브랜드 원칙: 상투어 없이 실루엣·여백·2026 으로만 암시. 깊이 얕게 유지.
      * ===================================================================== */
     {
       id: 'pb',
       order: 4,
-      title: 'Private Brand',
-      subtitle: 'Private Brand',
+      title: '시그니처 브랜드',
+      subtitle: 'Signature Brand',
       cardLine: '우리 브랜드도, 만듭니다.',
       status: 'coming_soon',
       hero: {
-        eyebrow: 'Private Brand',
+        eyebrow: 'Signature Brand',
         headline: '우리는 남의 브랜드만 키우지 않습니다.\n우리 브랜드도 만듭니다',
-        sub: '',
+        sub: '시대의 흐름을, 실제로 쓸 수 있는 자산으로.',
       },
       teaser: {
         line: '필름과 디스플레이 사이. 실루엣으로 먼저 도착합니다.',
