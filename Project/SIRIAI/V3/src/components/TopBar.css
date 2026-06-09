@@ -35,7 +35,7 @@
   gap: var(--s-3);
 }
 .topbar__crumb {
-  color: var(--ink-3);
+  color: var(--ink-2);
   transition: color var(--t-fast) var(--ease);
 }
 .topbar__crumb:hover { color: var(--ink); }

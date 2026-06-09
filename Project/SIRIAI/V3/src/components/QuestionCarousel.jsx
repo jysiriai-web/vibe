@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { prefersReducedMotion } from '../lib/useTypewriter.js'
 import './QuestionCarousel.css'
 
-const SLOT = 60       // 슬롯(바) 세로 간격(px)
+const SLOT = 66       // 슬롯(바) 세로 간격(px)
 const PERIOD_MS = 2500 // 한 칸 굴러 올라가는 시간
 
 /* 평면 롤러 — 질문 바가 세로로 쌓여 끊김없이 굴러 올라간다(대화의 강 + 리볼버).

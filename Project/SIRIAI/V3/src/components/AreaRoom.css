@@ -78,11 +78,11 @@
 .room__proof-v {
   font-family: var(--f-en);
   font-weight: var(--w-bold);
-  font-size: clamp(20px, 1.9vw, 26px);
+  font-size: clamp(23px, 2.2vw, 31px);
   letter-spacing: -0.02em;
   color: var(--ink);
 }
-.room__proof-l { color: var(--ink-3); }
+.room__proof-l { color: var(--ink-2); }
 
 /* 질문 열렸을 때 좌측 컨텍스트 */
 .room__context {
