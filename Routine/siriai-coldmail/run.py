@@ -21,6 +21,12 @@ for _stream in (sys.stdout, sys.stderr):
     except Exception:
         pass
 
+# _shared 패키지를 import 하려면 Routine/ 를 sys.path 에 추가
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+# 이 루틴(siriai-coldmail)의 백업 폴더 (루틴별)
+BACKUP_DIR = Path(__file__).resolve().parent / "backups"
+
 
 def _col_letter(idx0: int) -> str:
     """0-based 열 인덱스 → A1 표기 열 문자 (0→A, 26→AA)."""
@@ -45,7 +51,7 @@ def _find_header_row(rows: list) -> int:
 def cmd_inspect(args) -> int:
     from collections import Counter
 
-    from coldmail import config, sheets
+    from _shared import config, sheets
 
     sh = sheets.open_sheet()
     print(f"[OK] 연결 성공: '{sh.title}'  (ID={config.SHEET_ID})\n")
@@ -109,7 +115,7 @@ def _load_tab(sh, title: str):
 
 def _build_category_index(sh) -> dict:
     """마스터 브랜드명 → 구분 역색인 (정규화 키 기준, 첫 등장 우선)."""
-    from coldmail import config, normalize
+    from _shared import config, normalize
 
     _, vals, hi, hdr = _load_tab(sh, config.MASTER_TAB)
     gi, bi = hdr.index("구분"), hdr.index("브랜드명")
@@ -127,7 +133,8 @@ def _build_category_index(sh) -> dict:
 
 def _build_override_index():
     """보정 사전 → 정규화 키 → 구분."""
-    from coldmail import category_overrides, normalize
+    from coldmail import category_overrides
+    from _shared import normalize
 
     idx = {}
     for raw, cat in category_overrides.OVERRIDES.items():
@@ -138,7 +145,8 @@ def _build_override_index():
 
 def _build_master_email_index(sh) -> dict:
     """마스터 브랜드명 → 이메일(연락처) 역색인. 기존 DB 재활용(토큰 0)."""
-    from coldmail import config, email_find, normalize
+    from coldmail import email_find
+    from _shared import config, normalize
 
     _, vals, hi, hdr = _load_tab(sh, config.MASTER_TAB)
     bi, di = hdr.index("브랜드명"), hdr.index("연락처")
@@ -159,7 +167,7 @@ def _build_master_email_index(sh) -> dict:
 
 def cmd_renumber(args) -> int:
     """A열 '#' 을 데이터 순서대로 1..N 재번호. 기본 dry-run."""
-    from coldmail import sheets
+    from _shared import sheets
 
     if not args.tab:
         print("--tab 을 지정하세요 (예: --renumber --tab 6월)")
@@ -197,9 +205,9 @@ def cmd_renumber(args) -> int:
         print("  [중단] 실제 쓰기는 --yes 동반 필요.")
         return 0
 
-    from coldmail import backup
+    from _shared import backup
 
-    bpath, cnt = backup.backup_tab(ws, args.tab)
+    bpath, cnt = backup.backup_tab(ws, args.tab, BACKUP_DIR)
     print(f"\n  백업 완료: {bpath}  ({cnt}행)")
     sheets.with_backoff(lambda: ws.batch_update(updates, value_input_option="RAW"))
     print(f"  기록 완료: {_col_letter(ai)}열 {len(updates)}개 셀 (#).")
@@ -208,7 +216,7 @@ def cmd_renumber(args) -> int:
 
 def cmd_delete_list(args) -> int:
     """파일의 행 번호 목록을 삭제(백업 후 역순). 파일 각 줄 첫 탭 컬럼=행번호. 기본 dry-run."""
-    from coldmail import backup, sheets
+    from _shared import backup, sheets
 
     if not args.tab or not args.file:
         print("--tab 과 --file 둘 다 필요")
@@ -234,7 +242,7 @@ def cmd_delete_list(args) -> int:
     if not args.yes:
         print("  [중단] --yes 필요")
         return 0
-    bpath, n = backup.backup_tab(ws, args.tab)
+    bpath, n = backup.backup_tab(ws, args.tab, BACKUP_DIR)
     print(f"  백업: {bpath} ({n}행)")
     reqs = [{"deleteDimension": {"range": {"sheetId": ws.id, "dimension": "ROWS",
             "startIndex": r - 1, "endIndex": r}}} for r in sorted(rows, reverse=True)]
@@ -245,7 +253,7 @@ def cmd_delete_list(args) -> int:
 
 def cmd_fill_from(args) -> int:
     """파일에서 셀 채움. 각 줄 'row<TAB>열헤더<TAB>값'. 빈 셀에만 쓴다. 기본 dry-run."""
-    from coldmail import backup, sheets
+    from _shared import backup, sheets
 
     if not args.tab or not args.file:
         print("--tab 과 --file 둘 다 필요")
@@ -283,7 +291,7 @@ def cmd_fill_from(args) -> int:
     if not updates or not args.yes:
         print("  [중단/없음] --yes 필요" if updates else "  채울 것 없음")
         return 0
-    bpath, n = backup.backup_tab(ws, args.tab)
+    bpath, n = backup.backup_tab(ws, args.tab, BACKUP_DIR)
     print(f"  백업: {bpath} ({n}행)")
     sheets.with_backoff(lambda: ws.batch_update(updates, value_input_option="RAW"))
     print(f"  기록 완료: {len(updates)}개 셀")
@@ -292,7 +300,7 @@ def cmd_fill_from(args) -> int:
 
 def cmd_list_todo(args) -> int:
     """구분 또는 이메일이 빈 행을 전부 출력 (row<TAB>brand<TAB>결손). 처리 대상 목록."""
-    from coldmail import sheets
+    from _shared import sheets
 
     if not args.tab:
         print("--tab 을 지정하세요")
@@ -321,7 +329,8 @@ def cmd_prune(args) -> int:
     """중복 제거 + 순수 제조사 삭제 후보 산출. 기본 dry-run. 삭제는 백업 후 역순."""
     from collections import defaultdict
 
-    from coldmail import manufacturer, normalize, sheets
+    from coldmail import manufacturer
+    from _shared import normalize, sheets
 
     if not args.tab:
         print("--tab 을 지정하세요 (예: --prune --tab 6월)")
@@ -387,9 +396,9 @@ def cmd_prune(args) -> int:
         print("  [중단] 실제 삭제는 --yes 동반 필요.")
         return 0
 
-    from coldmail import backup
+    from _shared import backup
 
-    bpath, n = backup.backup_tab(ws, args.tab)
+    bpath, n = backup.backup_tab(ws, args.tab, BACKUP_DIR)
     print(f"\n  백업 완료: {bpath}  ({n}행)")
     requests = [
         {"deleteDimension": {"range": {
@@ -404,7 +413,7 @@ def cmd_prune(args) -> int:
 
 def cmd_category(args) -> int:
     """월별 탭의 빈 구분(B열)을 보정 사전 → 마스터 라벨 순으로 채운다. 기본 dry-run."""
-    from coldmail import normalize, sheets
+    from _shared import normalize, sheets
 
     if not args.tab:
         print("--tab 을 지정하세요 (예: --only category --tab 6월)")
@@ -475,9 +484,9 @@ def cmd_category(args) -> int:
         print("  [중단] 실제 쓰기는 --yes 동반 필요(검토 확인용).")
         return 0
 
-    from coldmail import backup
+    from _shared import backup
 
-    bpath, n = backup.backup_tab(ws, args.tab)
+    bpath, n = backup.backup_tab(ws, args.tab, BACKUP_DIR)
     print(f"\n  백업 완료: {bpath}  ({n}행)")
     col_letter = _col_letter(gi)  # 구분 열 (6월=B)
     updates = [{"range": f"{col_letter}{row}", "values": [[val]]} for row, val in writable]
@@ -489,7 +498,8 @@ def cmd_category(args) -> int:
 def cmd_email(args) -> int:
     """월별 탭의 빈 이메일(D열)을 findings 기준으로 채운다. 기본 dry-run.
     기존 값 무손상: 비어 있는 셀에만 쓴다. D6 원칙(미확보·추정은 D에 안 씀)."""
-    from coldmail import email_find, email_findings, normalize, sheets
+    from coldmail import email_find, email_findings
+    from _shared import normalize, sheets
 
     if not args.tab:
         print("--tab 을 지정하세요 (예: --only email --tab 6월)")
@@ -569,9 +579,9 @@ def cmd_email(args) -> int:
         print("  [중단] 실제 쓰기는 --yes 동반 필요(검토 확인용).")
         return 0
 
-    from coldmail import backup
+    from _shared import backup
 
-    bpath, n = backup.backup_tab(ws, args.tab)
+    bpath, n = backup.backup_tab(ws, args.tab, BACKUP_DIR)
     print(f"\n  백업 완료: {bpath}  ({n}행)")
 
     updates = []

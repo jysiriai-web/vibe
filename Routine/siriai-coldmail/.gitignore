@@ -1,19 +1,15 @@
-# 시크릿 — 절대 커밋 금지
-secrets/
-.env
-*.json.bak
-
-# 런타임 산출물
+# 이 루틴의 런타임 산출물 (버려도 됨)
 backups/
 reports/
 logs/
 state/
+*.json.bak
+
+# 스크래치 분석 파일
+_*.py
 
 # Python
 __pycache__/
 *.pyc
-.venv/
-venv/
 
-# 스크래치 분석 파일
-_*.py
+# (참고) secrets/·.venv/ 는 Routine/ 상위로 이동 → Routine/.gitignore 에서 제외됨

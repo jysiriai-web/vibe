@@ -1,4 +1,4 @@
-"""gspread 연결·읽기 래퍼.
+"""gspread 연결·읽기 래퍼 (공유).
 
 설계 원칙 (PRD §5.3 / §6):
 - 읽기는 한 번에 (get_all_values / get_values), 행 단위 read 금지.
@@ -32,7 +32,7 @@ def get_client():
     if not key.exists():
         raise SystemExit(
             f"서비스 계정 키가 없습니다: {key}\n"
-            "PRD §5.2 의 1회성 셋업으로 JSON 키를 받아 secrets/service_account.json 에 두세요."
+            "PRD §5.2 의 1회성 셋업으로 JSON 키를 받아 Routine/secrets/service_account.json 에 두세요."
         )
     return gspread.service_account(filename=str(key))
 

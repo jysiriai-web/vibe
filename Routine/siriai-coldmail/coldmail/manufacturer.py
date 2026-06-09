@@ -31,7 +31,7 @@ NAMES = {
 
 
 def _norm(name: str) -> str:
-    from . import normalize
+    from _shared import normalize
 
     return normalize.one_key(name)
 

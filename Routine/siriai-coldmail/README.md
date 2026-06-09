@@ -1,47 +1,57 @@
-# SIRIAI 콜드메일 — 이메일 확보 도구 (V1)
+# SIRIAI 콜드메일 — 이메일 확보 루틴 (V1)
 
-구글시트 월별 탭의 회사/브랜드명을 읽어 ① 이메일 확보 ② 구분 분류 ③ 제조사 처리 ④ 중복 체크를 자동화한다.
-설계·결정 근거는 [`PRD.md`](PRD.md) 참조.
+구글시트 월별 탭의 회사/브랜드명을 읽어 ① 제조사·중복 정리 ② 구분 분류 ③ 이메일 확보를 자동화한다.
+설계·결정 근거는 [`PRD.md`](PRD.md), 전체 폴더 규칙은 상위 [`../README.md`](../README.md) 참조.
 
-## 셋업 (1회)
+> 공유 인프라(시트접근·인증·정규화·백업)는 `Routine/_shared/`, 이 루틴 고유 로직은 `coldmail/` 에 있다.
 
-1. ✅ **Python 3.12 + 의존성 설치 완료** — `.venv/` 에 격리 설치돼 있음. (재설치 시: `.venv\Scripts\python.exe -m pip install -r requirements.txt`)
-2. **서비스 계정 키** (PRD §5.2) — *남은 작업*
-   - GCP 콘솔에서 서비스 계정 생성 → JSON 키 다운로드 → `secrets/service_account.json` 으로 저장.
-   - 받은 봇 이메일(`...@....iam.gserviceaccount.com`)을 대상 구글시트에 **편집자**로 공유.
-3. **(선택) `.env`** — `.env.example` 을 복사해 `.env` 로 저장하고 `SHEET_ID` 확인.
+## 셋업
 
-## 사용 — `run.cmd` 래퍼로 실행 (venv·UTF-8 자동 처리)
+1. ✅ **Python 3.12 + 공유 venv** — `Routine/.venv/` 에 설치돼 있음 (모든 루틴 공용).
+   재설치 시: `..\.venv\Scripts\python.exe -m pip install -r ..\requirements.txt`
+2. ✅ **서비스 계정 키** — `Routine/secrets/service_account.json` (공유, git 제외).
+3. (선택) `Routine/.env` 로 `SHEET_ID` 등 덮어쓰기.
+
+## 사용 — `run.cmd` 래퍼 (공유 venv·UTF-8 자동)
+
+모든 쓰기 명령은 **기본 dry-run**, 실제 반영은 `--apply --yes` (쓰기 전 자동 백업).
 
 ```powershell
-# 1) 연결·시트 구조 확인 (지금 동작하는 유일한 명령)
-.\run.cmd --inspect
-.\run.cmd --inspect --tab 7월
+.\run.cmd --inspect --tab 6월              # 연결·헤더·구분분포·행별 보기
+.\run.cmd --list-todo --tab 6월            # 구분/이메일 빈 행 목록
 
-# 이후 단계(아래)는 PRD 승인 후 단계적 구현
-.\run.cmd --tab 7월 --dry-run           # 변경 미리보기
-.\run.cmd --tab 7월 --apply --plan ...   # 백업→확인→실제 쓰기
-.\run.cmd --tab 6월 --only category      # 6월: 구분만
+.\run.cmd --only category --tab 6월        # 구분 채움 (보정사전→마스터)
+.\run.cmd --only category --tab 6월 --recheck   # 채워진 구분 교정
+.\run.cmd --only email --tab 6월           # 이메일 채움 (마스터→findings)
+.\run.cmd --prune --tab 6월                # 중복 + 제조사 삭제 후보
+.\run.cmd --renumber --tab 6월             # A열 # 재번호
+
+.\run.cmd --delete-list --file reports/del.txt --tab 6월   # 행목록 삭제
+.\run.cmd --fill-from --file reports/fills.tsv --tab 6월   # row<TAB>열<TAB>값 채움
+
+# 실제 반영: 위 명령 끝에  --apply --yes
 ```
 
 ## 안전 원칙 (PRD §6)
 
 - 마스터 `브랜드 에셋` 탭은 **읽기 전용** — 절대 쓰지 않음.
-- 모든 쓰기는 **백업 → dry-run → 사람 확인 → 실제 쓰기**.
-- 자동 삭제 없음(삭제대상은 표시만, 사람이 확인 후 별도 명령).
-- 기존 이메일은 덮어쓰지 않음. 보조열은 작업 후 자동 숨김.
+- 모든 쓰기 = **백업 → dry-run → --apply --yes**. 빈 셀에만 쓰고 기존값 무손상.
+- 삭제는 백업 후 역순(아래→위) batch.
 
 ## 구조
 
 ```
-run.cmd           실행 래퍼 (venv python + UTF-8)
-run.py            CLI 진입점 (현재 --inspect 동작)
-requirements.txt
-coldmail/
-  config.py       탭명·열매핑·경로 (열매핑은 --inspect 후 확정)
-  sheets.py       gspread 연결·읽기/배치쓰기 래퍼
-  (예정) dedupe / manufacturer / classify / email_find / plan / apply
-.venv/            가상환경 (git 제외)
-secrets/          서비스 계정 키 (git 제외)
-backups/ reports/ logs/ state/   런타임 산출물 (git 제외)
+Routine/
+├── _shared/          공유: config·sheets·normalize·backup       (모든 루틴 import)
+├── secrets/ .venv/   서비스계정 키 · 공유 파이썬 환경 (git 제외)
+├── requirements.txt
+└── siriai-coldmail/
+    ├── run.cmd / run.py        실행 래퍼 / CLI 진입점
+    ├── coldmail/               이 루틴 고유 로직
+    │   ├── manufacturer.py     제조사 판별
+    │   ├── category_overrides.py  구분 보정사전
+    │   ├── email_find.py       이메일 탐색 헬퍼
+    │   └── email_findings.py   이메일 검증 캐시
+    ├── backups/ reports/       런타임 산출물 (git 제외)
+    └── PRD.md / README.md
 ```
