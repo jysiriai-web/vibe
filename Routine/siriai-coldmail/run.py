@@ -205,6 +205,33 @@ def cmd_renumber(args) -> int:
     return 0
 
 
+def cmd_list_todo(args) -> int:
+    """구분 또는 이메일이 빈 행을 전부 출력 (row<TAB>brand<TAB>결손). 처리 대상 목록."""
+    from coldmail import sheets
+
+    if not args.tab:
+        print("--tab 을 지정하세요")
+        return 2
+    sh = sheets.open_sheet()
+    _, vals, hi, hdr = _load_tab(sh, args.tab)
+    gi, bi, di = hdr.index("구분"), hdr.index("브랜드명"), hdr.index("연락처")
+    out = []
+    for off, r in enumerate(vals[hi + 1 :]):
+        if not any(c.strip() for c in r):
+            continue
+        row = hi + 2 + off
+        g = r[gi].strip() if len(r) > gi else ""
+        b = r[bi].strip() if len(r) > bi else ""
+        e = r[di].strip() if len(r) > di else ""
+        if b and (not g or not e):
+            miss = ("구분" if not g else "") + ("이메일" if not e else "")
+            out.append(f"{row}\t{b}\t{miss}")
+    print(f"### 미해결 {len(out)}건 ###")
+    for line in out:
+        print(line)
+    return 0
+
+
 def cmd_prune(args) -> int:
     """중복 제거 + 순수 제조사 삭제 후보 산출. 기본 dry-run. 삭제는 백업 후 역순."""
     from collections import defaultdict
@@ -502,6 +529,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--only", help="특정 단계만 실행 (예: category = 구분만)")
     p.add_argument("--renumber", action="store_true", help="A열 # 을 데이터 순서대로 재번호")
     p.add_argument("--prune", action="store_true", help="중복 행 제거 + 순수 제조사 삭제 후보")
+    p.add_argument("--list-todo", action="store_true", help="구분/이메일 빈 행 전체 출력")
     p.add_argument("--recheck", action="store_true", help="채워진 구분을 보정사전과 대조해 불일치 교정")
     p.add_argument("--clean", action="store_true", help="메모 분리·빈행 정리")
     p.add_argument("--purge-confirmed", action="store_true", help="삭제대상 실삭제")
@@ -519,6 +547,8 @@ def main(argv=None) -> int:
 
     if args.inspect:
         return cmd_inspect(args)
+    if args.list_todo:
+        return cmd_list_todo(args)
     if args.prune:
         return cmd_prune(args)
     if args.renumber:
