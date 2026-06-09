@@ -78,17 +78,16 @@ export const content = {
         eyebrow: 'Siriai Influencer System',
         headline: '시리아이의 크리에이터 콘텐츠는\n본질적으로 다릅니다',
         sub: '가입자 풀이 아니라, 당신께 맞는 사람을.',
-        image: '/assets/mock/creator.svg', // 목업 — 추후 인플루언서 레퍼런스 영상·이미지(포트폴리오)로 교체
-        imageAlt: '크리에이터 콘텐츠 비주얼',
-        imageCaption: '인플루언서 레퍼런스 영상·이미지가 들어갈 자리 (예시)',
+        image: '/assets/mock/ref_main.svg', // 16:9 메인 목업 — 실제 레퍼런스 영상으로 교체
+        imageAlt: '크리에이터 콘텐츠 레퍼런스',
+        imageCaption: '인플루언서 레퍼런스 영상 (예시)',
       },
 
-      // 검증된 숫자만 (단가·미검증 수치 제외)
-      proof: [
-        { value: '100%', label: '콘텐츠 업로드율' },
-        { value: '75개국', label: '글로벌 시딩 커버리지' },
-        { value: '120,000', label: '글로벌 큐레이터' },
-        { value: '17곳+', label: '함께한 거래처' },
+      // 강점 카드 — 거래처 수 제외, 마우스오버 설명형
+      strengths: [
+        { value: 'AI', label: 'AI 스코어링', detail: '가입자 풀이 아니라 인스타그램 전체를 AI로 훑어, 브랜드에 맞는 사람을 매번 새로 발굴합니다.' },
+        { value: '75개국', label: '글로벌 커버리지', detail: '75개국·12개+ 플랫폼에서 현지 나노 인플루언서로 시딩합니다.' },
+        { value: '후불제', label: '합리적 가격', detail: '유지비·마크업 없이 실제 업로드분만 후불 정산 — 같은 예산에 더 많은 콘텐츠.' },
       ],
 
       // 예상 질문 트리 (캐러셀 + 챗봇 공용). entry=true → 캐러셀 우선 노출
@@ -329,10 +328,16 @@ export const content = {
         eyebrow: 'Architecting',
         headline: '당신이 놓친 건 예산이 아니라,\n비어 있는 ‘자리’입니다',
         sub: '틀 없이 니즈를 해결하는 problem solver 집단.',
-        image: '/assets/mock/consulting.svg',
-        imageAlt: '비즈니스 컨설팅 비주얼',
-        imageCaption: '넓은 인사이트를, 빠르게 구조로 — 가상 비주얼(목업)',
+        image: '/assets/mock/ref_main.svg',
+        imageAlt: '비즈니스 컨설팅 레퍼런스',
+        imageCaption: '컨설팅 사례 (예시)',
       },
+
+      strengths: [
+        { value: '0→1', label: '문제 정의', detail: '표면의 숫자가 아니라 본질적인 공백이 어디인지부터 진단합니다.' },
+        { value: 'AI', label: '리터러시', detail: '넓은 인사이트를 AI 리터러시로 빠르게 구조로 옮깁니다.' },
+        { value: 'A–Z', label: '완수', detail: '기초 설계부터 완성·실행까지 한 팀이 끝까지 가져갑니다.' },
+      ],
 
       // 잠재고객 빈도순. entry=top.
       qna: [
@@ -460,15 +465,15 @@ export const content = {
         eyebrow: 'sa:ai · Software Engineering',
         headline: '관계에서 시작해 데이터로 확장하고,\n기록으로 증명합니다',
         sub: 'Creators remember us.',
-        image: '/assets/mock/software.svg',
-        imageAlt: '소프트웨어 엔지니어링 비주얼',
-        imageCaption: 'Performance · Creative · Archivo — 가상 비주얼(목업)',
+        image: '/assets/mock/ref_main.svg',
+        imageAlt: '소프트웨어 엔지니어링 레퍼런스',
+        imageCaption: 'sa:ai 제품 데모 (예시)',
       },
 
-      proof: [
-        { value: '3.4×', label: '개발 생산성 향상' },
-        { value: '2주', label: '아이디어 → 작동 프로토타입' },
-        { value: '1팀', label: '기획·UX·구현·운영 일괄' },
+      strengths: [
+        { value: '3.4×', label: '개발 생산성', detail: '디자인 시스템 위에서 개발 생산성이 평균 3.4배까지.' },
+        { value: '2주', label: '프로토타입', detail: '아이디어에서 작동하는 프로토타입까지 평균 2주.' },
+        { value: '1팀', label: 'End-to-End', detail: '기획·UX·구현·운영을 한 팀이 번역 손실 없이 일괄로.' },
       ],
 
       // 잠재고객 빈도순. entry=top.

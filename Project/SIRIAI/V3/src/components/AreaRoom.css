@@ -37,20 +37,20 @@
   max-width: 36em;
 }
 
-/* ---- 중앙 2단 ---- */
+/* ---- 중앙 2단 (좌: 레퍼런스+강점 / 우: 리볼버) ---- */
 .room__grid {
   display: grid;
-  grid-template-columns: minmax(260px, 0.82fr) 1.18fr;
+  grid-template-columns: minmax(340px, 1.1fr) 0.9fr;
   gap: var(--s-7);
-  align-items: center;
+  align-items: stretch;     /* 위치 통일: 좌측 높이에 우측을 맞춤 */
 }
 .room__grid.is-answer { align-items: start; }
 
 .room__left { position: relative; min-width: 0; }
-.room__right { min-width: 0; display: flex; align-items: center; }
+.room__right { min-width: 0; display: flex; align-items: center; justify-content: center; }
 .room__grid.is-answer .room__right { align-items: flex-start; }
 
-/* 좌측 인트로(비주얼+수치) */
+/* 좌측 인트로(레퍼런스 16:9 + 강점 카드) */
 .room__intro {
   display: flex;
   flex-direction: column;
@@ -58,31 +58,6 @@
   min-height: 0;
   animation: fadeIn var(--t-med) var(--ease) both;
 }
-/* 세로형(9:16) 이미지 프레임 — 높이 기준으로 잡고 폭은 비율 따라, 칸 가운데 */
-.room__intro .imgph {
-  width: auto;
-  height: 42vh;
-  max-height: 440px;
-  max-width: 100%;
-  aspect-ratio: 9 / 16;
-  margin-inline: auto;
-  flex: none;
-}
-.room__intro .imgph--real img { height: 100%; }
-.room__proof {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--s-3) var(--s-5);
-}
-.room__proof li { display: flex; flex-direction: column; gap: 2px; }
-.room__proof-v {
-  font-family: var(--f-en);
-  font-weight: var(--w-bold);
-  font-size: clamp(23px, 2.2vw, 31px);
-  letter-spacing: -0.02em;
-  color: var(--ink);
-}
-.room__proof-l { color: var(--ink-2); }
 
 /* 질문 열렸을 때 좌측 컨텍스트 */
 .room__context {

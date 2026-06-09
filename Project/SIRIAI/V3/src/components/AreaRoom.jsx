@@ -3,7 +3,8 @@ import QuestionCarousel from './QuestionCarousel.jsx'
 import AnswerPanel from './AnswerPanel.jsx'
 import ComingSoon from './ComingSoon.jsx'
 import CTA from './CTA.jsx'
-import ImagePlaceholder from './ImagePlaceholder.jsx'
+import ReferenceMedia from './ReferenceMedia.jsx'
+import StrengthCards from './StrengthCards.jsx'
 import './AreaRoom.css'
 
 /* (2) 사업분야 상세 = 한 화면 "Q&A 룸"
@@ -42,22 +43,12 @@ export default function AreaRoom({ area, activeQ, onOpenQuestion, onBack, meta }
             </div>
           ) : (
             <div className="room__intro">
-              <ImagePlaceholder
+              <ReferenceMedia
                 src={area.hero.image}
-                alt={area.hero.imageAlt}
                 caption={area.hero.imageCaption}
-                ratio="9 / 16"
+                thumbs={3}
               />
-              {area.proof?.length > 0 && (
-                <ul className="room__proof">
-                  {area.proof.map((p) => (
-                    <li key={p.label}>
-                      <span className="room__proof-v">{p.value}</span>
-                      <span className="room__proof-l label-mono">{p.label}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <StrengthCards items={area.strengths} />
             </div>
           )}
         </div>
