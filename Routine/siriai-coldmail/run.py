@@ -151,47 +151,139 @@ def cmd_category(args) -> int:
     ws, vals, hi, hdr = _load_tab(sh, args.tab)
     gi, bi = hdr.index("구분"), hdr.index("브랜드명")
 
-    plan = []  # (row, brand, suggested, source)
+    def _resolve(ks):
+        for k in ks:  # 보정 우선
+            if k in o_idx:
+                return o_idx[k], "보정"
+        for k in ks:  # 다음 마스터
+            if k in m_idx:
+                return m_idx[k], "마스터"
+        return None, None
+
+    plan = []         # 빈 구분 채우기: (row, brand, sug, src)
+    corrections = []  # --recheck 교정:  (row, brand, cur, new)
     for off, r in enumerate(vals[hi + 1 :]):
         row = hi + 2 + off
         if not any(c.strip() for c in r):
             continue
         cur = r[gi].strip() if len(r) > gi else ""
         brand = r[bi].strip() if len(r) > bi else ""
-        if not brand or cur:  # 브랜드 없거나 이미 채워짐 → 건너뜀
+        if not brand:
             continue
-        sug, src = None, None
         ks = normalize.keys(brand)
-        for k in ks:  # 보정 우선
-            if k in o_idx:
-                sug, src = o_idx[k], "보정"
-                break
-        if not sug:
-            for k in ks:  # 다음 마스터
-                if k in m_idx:
-                    sug, src = m_idx[k], "마스터"
-                    break
-        plan.append((row, brand, sug, src))
+        if not cur:
+            sug, src = _resolve(ks)
+            plan.append((row, brand, sug, src))
+        elif args.recheck:
+            ov = next((o_idx[k] for k in ks if k in o_idx), None)
+            if ov and ov != cur:
+                corrections.append((row, brand, cur, ov))
 
-    print(f"[{args.tab}] 구분 빈 행: {len(plan)}건\n")
-    print("   행 | 브랜드             | 제안구분   | 근거")
-    print("  ----+--------------------+-----------+--------------")
+    head = f"[{args.tab}] 구분 빈 행: {len(plan)}건"
+    if args.recheck:
+        head += f", 교정 후보: {len(corrections)}건"
+    print(head + "\n")
+    print("   행 | 브랜드             | 제안구분        | 근거")
+    print("  ----+--------------------+----------------+--------------")
     for row, brand, sug, src in plan:
-        print(f"  {row:>3} | {brand:<18} | {sug or '—확인필요':<9} | {src or '마스터 미존재'}")
+        print(f"  {row:>3} | {brand:<18} | {sug or '—확인필요':<14} | {src or '마스터 미존재'}")
+    for row, brand, cur, new in corrections:
+        print(f"  {row:>3} | {brand:<18} | {cur} → {new:<10} | 교정(보정사전)")
+
     writable = [(row, sug) for (row, _b, sug, _s) in plan if sug]
-    print(f"\n  → 채울 수 있음 {len(writable)}/{len(plan)}건, 확인필요 {len(plan) - len(writable)}건")
+    writable += [(row, new) for (row, _b, _c, new) in corrections]
+    fill_n = sum(1 for (_r, _b, sug, _s) in plan if sug)
+    msg = f"\n  → 채울 수 있음 {fill_n}/{len(plan)}건"
+    if args.recheck:
+        msg += f", 교정 {len(corrections)}건"
+    print(msg + f", 확인필요 {len(plan) - fill_n}건")
 
     if not args.apply:
-        print("  [DRY-RUN] 쓰기 없음. 실제 반영: --only category --tab "
-              f"{args.tab} --apply --yes")
+        print("  [DRY-RUN] 쓰기 없음. 실제 반영: --apply --yes")
         return 0
-
-    # --- 실제 쓰기 경로 ---
     if not writable:
         print("  쓸 값이 없습니다.")
         return 0
     if not args.yes:
-        print("  [중단] 실제 쓰기는 --yes 가 함께 있어야 합니다(검토 확인용).")
+        print("  [중단] 실제 쓰기는 --yes 동반 필요(검토 확인용).")
+        return 0
+
+    from coldmail import backup
+
+    bpath, n = backup.backup_tab(ws, args.tab)
+    print(f"\n  백업 완료: {bpath}  ({n}행)")
+    col_letter = _col_letter(gi)  # 구분 열 (6월=B)
+    updates = [{"range": f"{col_letter}{row}", "values": [[val]]} for row, val in writable]
+    sheets.with_backoff(lambda: ws.batch_update(updates, value_input_option="RAW"))
+    print(f"  기록 완료: {col_letter}열 {len(updates)}개 셀 (구분).")
+    return 0
+
+
+def cmd_email(args) -> int:
+    """월별 탭의 빈 이메일(D열)을 findings 기준으로 채운다. 기본 dry-run.
+    기존 값 무손상: 비어 있는 셀에만 쓴다. D6 원칙(미확보·추정은 D에 안 씀)."""
+    from coldmail import email_find, email_findings, normalize, sheets
+
+    if not args.tab:
+        print("--tab 을 지정하세요 (예: --only email --tab 6월)")
+        return 2
+
+    f_idx = {}
+    for raw, info in email_findings.FINDINGS.items():
+        for k in normalize.keys(raw):
+            f_idx[k] = info
+
+    sh = sheets.open_sheet()
+    ws, vals, hi, hdr = _load_tab(sh, args.tab)
+
+    def col(name):
+        return hdr.index(name) if name in hdr else None
+
+    di, ei, qi, bi = col("연락처"), col("비고"), col("출처"), col("브랜드명")
+    if di is None or bi is None:
+        print("연락처/브랜드명 열을 찾지 못했습니다.")
+        return 2
+
+    plan = []  # (row, brand, action, email, source, note, conf)
+    for off, r in enumerate(vals[hi + 1 :]):
+        row = hi + 2 + off
+        if not any(c.strip() for c in r):
+            continue
+        brand = r[bi].strip() if len(r) > bi else ""
+        cur = r[di].strip() if len(r) > di else ""
+        if not brand or cur:  # 브랜드 없거나 이미 이메일 있음 → 건너뜀
+            continue
+        info = next((f_idx[k] for k in normalize.keys(brand) if k in f_idx), None)
+        if not info:
+            plan.append((row, brand, "확인필요", "", "", "탐색결과 없음", ""))
+            continue
+        em, conf = info.get("email", ""), info.get("confidence", "")
+        lbl = email_find.label(em, conf)
+        base = info.get("note", "")
+        note = base if (not lbl or base.startswith(lbl)) else f"{lbl} {base}".strip()
+        if em and conf != "미확보":
+            plan.append((row, brand, "FILL", em, info.get("source", ""), note, conf))
+        else:
+            plan.append((row, brand, "미확보", "", info.get("source", ""), note, conf))
+
+    print(f"[{args.tab}] 이메일 빈 행: {len(plan)}건\n")
+    print("   행 | 브랜드        | 동작     | 이메일                       | 신뢰 | 비고")
+    print("  ----+---------------+---------+------------------------------+------+------------------")
+    for row, brand, act, em, src, note, conf in plan:
+        print(f"  {row:>3} | {brand:<13} | {act:<7} | {em or '—':<28} | {conf or '—':<4} | {note}")
+
+    fills = [(row, em, src, note) for (row, _b, act, em, src, note, _c) in plan if act == "FILL"]
+    print(f"\n  → 채움 {len(fills)}건, 미확보/확인필요 {len(plan) - len(fills)}건")
+
+    if not args.apply:
+        print("  [DRY-RUN] 쓰기 없음. 실제 반영: --only email --tab "
+              f"{args.tab} --apply --yes")
+        return 0
+    if not fills:
+        print("  쓸 이메일이 없습니다.")
+        return 0
+    if not args.yes:
+        print("  [중단] 실제 쓰기는 --yes 동반 필요(검토 확인용).")
         return 0
 
     from coldmail import backup
@@ -199,10 +291,17 @@ def cmd_category(args) -> int:
     bpath, n = backup.backup_tab(ws, args.tab)
     print(f"\n  백업 완료: {bpath}  ({n}행)")
 
-    col_letter = _col_letter(gi)  # 구분 열 (6월=B)
-    updates = [{"range": f"{col_letter}{row}", "values": [[sug]]} for row, sug in writable]
+    updates = []
+    cur_rows = {hi + 2 + off: r for off, r in enumerate(vals[hi + 1 :])}
+    for row, em, src, note in fills:
+        r = cur_rows.get(row, [])
+        updates.append({"range": f"{_col_letter(di)}{row}", "values": [[em]]})
+        if qi is not None and not (r[qi].strip() if len(r) > qi else ""):
+            updates.append({"range": f"{_col_letter(qi)}{row}", "values": [[src]]})
+        if ei is not None and note and not (r[ei].strip() if len(r) > ei else ""):
+            updates.append({"range": f"{_col_letter(ei)}{row}", "values": [[note]]})
     sheets.with_backoff(lambda: ws.batch_update(updates, value_input_option="RAW"))
-    print(f"  기록 완료: {col_letter}열 {len(updates)}개 셀 (구분).")
+    print(f"  기록 완료: {len(updates)}개 셀 (이메일 D / 출처 Q / 비고 E, 빈 셀만).")
     return 0
 
 
@@ -230,6 +329,7 @@ def build_parser() -> argparse.ArgumentParser:
     mode.add_argument("--backup-only", action="store_true", help="스냅샷만 뜨고 종료")
 
     p.add_argument("--only", help="특정 단계만 실행 (예: category = 구분만)")
+    p.add_argument("--recheck", action="store_true", help="채워진 구분을 보정사전과 대조해 불일치 교정")
     p.add_argument("--clean", action="store_true", help="메모 분리·빈행 정리")
     p.add_argument("--purge-confirmed", action="store_true", help="삭제대상 실삭제")
     p.add_argument("--show-cols", action="store_true", help="자동 숨긴 보조열 다시 펼침")
@@ -248,6 +348,8 @@ def main(argv=None) -> int:
         return cmd_inspect(args)
     if args.only == "category":
         return cmd_category(args)
+    if args.only == "email":
+        return cmd_email(args)
     if any([args.apply, args.dry_run, args.backup_only, args.clean,
             args.purge_confirmed, args.gc, args.show_cols, args.only]):
         return _todo("처리/쓰기")(args)
