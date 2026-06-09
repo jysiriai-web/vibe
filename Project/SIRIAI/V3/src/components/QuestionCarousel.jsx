@@ -38,13 +38,20 @@ export default function QuestionCarousel({ qna, onPick }) {
   useEffect(() => {
     if (reduce || N <= 1) return
     let raf
-    let pos = 0
+    let base = 0
+    let acc = 0
     let last = performance.now()
-    const speed = 1 / PERIOD_MS
+    const MOVE = 640   // 한 칸 굴러 올라가는 시간
+    const DWELL = 1500 // 가운데서 멈춰 있는 시간 (읽고 클릭)
+    const CYCLE = MOVE + DWELL
+    const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2)
     const tick = (now) => {
       const dt = Math.min(now - last, 64)
       last = now
-      if (!paused.current) pos = (pos + dt * speed) % N
+      if (!paused.current) acc += dt
+      while (acc >= CYCLE) { acc -= CYCLE; base = (base + 1) % N }
+      const frac = acc < MOVE ? ease(acc / MOVE) : 1
+      const pos = (base + frac) % N
       for (let i = 0; i < refs.current.length; i++) {
         const el = refs.current[i]
         if (!el) continue

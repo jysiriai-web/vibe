@@ -29,7 +29,16 @@
   white-space: pre-line;
   word-break: keep-all;
   color: var(--ink);
+  transform-origin: left top;
+  animation: msgIntro 0.9s var(--ease) both;  /* 진입 시 크게→제자리 */
 }
+/* 인트로: 메시지가 크게 떴다가 줄어들고, 그 뒤 콘텐츠가 등장 */
+@keyframes msgIntro {
+  from { opacity: 0; transform: scale(1.32); }
+  to { opacity: 1; transform: scale(1); }
+}
+.room__grid { animation: fadeUp 0.55s var(--ease) both; animation-delay: 0.42s; }
+.room__strengths { animation-delay: 0.56s; }
 .room__sub {
   margin-top: var(--s-3);
   font-size: var(--fs-lead);
@@ -37,12 +46,12 @@
   max-width: 36em;
 }
 
-/* ---- 중앙 2단 (좌: 레퍼런스+강점 참고 / 우: 리볼버 메인) ---- */
+/* ---- 중앙 2단 (좌: 레퍼런스 / 우: 리볼버) — 5:5 ---- */
 .room__grid {
   display: grid;
-  grid-template-columns: minmax(300px, 0.78fr) 1.22fr;  /* 리볼버(우)가 메인 */
+  grid-template-columns: 1fr 1fr;   /* 5:5 */
   gap: var(--s-7);
-  align-items: stretch;     /* 위치 통일: 좌측 높이에 우측을 맞춤 */
+  align-items: center;
 }
 .room__grid.is-answer { align-items: start; }
 
@@ -58,7 +67,15 @@
   min-height: 0;
   animation: fadeIn var(--t-med) var(--ease) both;
 }
-.room__intro .refmedia { max-width: 380px; }
+.room__intro .refmedia { max-width: 560px; }
+
+/* 하단 강점 스트립 — 빈 하단 공간 활용 (idle 전용) */
+.room__strengths {
+  margin-top: var(--s-6);
+  padding-top: var(--s-5);
+  border-top: var(--bw) solid var(--line);
+  animation: fadeUp var(--t-med) var(--ease) both;
+}
 
 /* 질문 열렸을 때 좌측 컨텍스트 */
 .room__context {

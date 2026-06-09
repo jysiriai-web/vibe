@@ -18,7 +18,7 @@ export default function AreaRoom({ area, activeQ, onOpenQuestion, onBack, meta }
   const activeQuestion = activeQ ? getQuestion(area, activeQ) : null
 
   return (
-    <div className="room">
+    <div className="room" key={area.id}>
       {/* compact 헤더 — 좌: 타이틀 / 우: 협업 CTA */}
       <header className="room__head">
         <div className="room__head-text">
@@ -48,7 +48,6 @@ export default function AreaRoom({ area, activeQ, onOpenQuestion, onBack, meta }
                 caption={area.hero.imageCaption}
                 thumbs={3}
               />
-              <StrengthCards items={area.strengths} />
             </div>
           )}
         </div>
@@ -67,6 +66,13 @@ export default function AreaRoom({ area, activeQ, onOpenQuestion, onBack, meta }
           )}
         </div>
       </div>
+
+      {/* 하단 강점 스트립 — 빈 하단을 채운다 (질문 열리면 숨김) */}
+      {!activeQuestion && area.strengths?.length > 0 && (
+        <div className="room__strengths">
+          <StrengthCards items={area.strengths} />
+        </div>
+      )}
     </div>
   )
 }

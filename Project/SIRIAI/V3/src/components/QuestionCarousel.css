@@ -23,7 +23,7 @@
   left: 50%;
   top: 50%;
   transform-origin: center center;
-  width: min(94%, 460px);
+  width: min(96%, 520px);
   text-align: center;
   font-family: var(--f-kr);
   font-size: 17px;
@@ -34,18 +34,18 @@
   padding: 15px 26px;
   border-radius: var(--r-pill);
   border: var(--bw) solid var(--line);
-  background: var(--glass-bg);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.66), rgba(255, 255, 255, 0.44));
   -webkit-backdrop-filter: var(--glass-blur);
   backdrop-filter: var(--glass-blur);
-  box-shadow: var(--shadow-soft);
+  box-shadow: 0 6px 18px rgba(33, 26, 51, 0.07);
   will-change: transform, opacity;
 }
 
-/* 가운데(전면) 바 — 가장 또렷 */
+/* 가운데(전면) 바 — 가장 또렷, 살짝 떠오른 느낌 */
 .qbar.is-active {
   background: var(--surface);
   border-color: var(--line-strong);
-  box-shadow: var(--shadow-pop);
+  box-shadow: 0 16px 36px rgba(33, 26, 51, 0.16), 0 2px 6px rgba(33, 26, 51, 0.08);
 }
 .qbar:hover {
   background: var(--surface);
