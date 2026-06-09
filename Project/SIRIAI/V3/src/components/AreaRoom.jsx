@@ -7,9 +7,9 @@ import ReferenceMedia from './ReferenceMedia.jsx'
 import StrengthCards from './StrengthCards.jsx'
 import './AreaRoom.css'
 
-/* (2) 사업분야 상세 = 한 화면 "Q&A 룸"
-   목표: 스크롤 없이 1뷰포트에 담긴다 (헤드 compact · 중앙 2단이 높이를 채움 · 슬림 푸터).
-   레퍼런스는 큰 모듈 대신 한 줄 브랜드 크레딧으로 압축. */
+/* (2) 사업분야 상세 = "Q&A 룸"
+   좌: 레퍼런스(16:9 참고) + 강점 카드 / 우: 리볼버(메인) 또는 답변.
+   CTA는 헤더 우측. 질문이 열리면 좌측은 선택 질문 컨텍스트로 전환. */
 export default function AreaRoom({ area, activeQ, onOpenQuestion, onBack, meta }) {
   if (area.status !== 'ready') {
     return <ComingSoon area={area} meta={meta} />
