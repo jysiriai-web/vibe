@@ -79,25 +79,14 @@ export default function AreaRoom({ area, activeQ, onOpenQuestion, onBack, meta }
         </div>
       </div>
 
-      {/* 슬림 푸터: 서비스 칩 · 브랜드 크레딧 · CTA. 질문이 열리면 숨겨 답변에 공간을 준다. */}
+      {/* 슬림 푸터: 브랜드 크레딧 · CTA. 질문이 열리면 숨겨 답변에 공간을 준다. */}
       {!activeQuestion && (
         <footer className="room__foot">
-          <div className="room__foot-meta">
-            {area.services?.length > 0 && (
-              <ul className="room__svc">
-                {area.services.map((s) => (
-                  <li key={s.name} className="svc-pill" title={s.blurb}>
-                    {s.name}
-                  </li>
-                ))}
-              </ul>
-            )}
-            {brands.length > 0 && (
-              <p className="room__brands label-mono">
-                함께한 브랜드 · {brands.slice(0, 6).join(' · ')}
-              </p>
-            )}
-          </div>
+          {brands.length > 0 && (
+            <p className="room__brands label-mono">
+              함께한 브랜드 · {brands.slice(0, 6).join(' · ')}
+            </p>
+          )}
           <CTA meta={meta} variant="band" />
         </footer>
       )}

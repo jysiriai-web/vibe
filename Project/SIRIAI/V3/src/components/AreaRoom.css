@@ -1,13 +1,11 @@
-/* 영역 룸 — 스크롤 없이 1뷰포트에 담는 flex 컬럼 레이아웃 */
+/* 영역 룸 — 자연 흐름(겹침 방지). 헤드 compact + 2단 + 슬림 푸터. */
 .room {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-height: 0;
   width: 100%;
-  max-width: var(--maxw);   /* ★ 와이드 모니터에서 이미지/그리드 비대화 방지 */
+  max-width: var(--maxw);   /* 와이드 모니터에서 이미지/그리드 비대화 방지 */
   margin: 0 auto;
-  gap: var(--s-5);
+  gap: var(--s-6);
   animation: fadeIn var(--t-med) var(--ease) both;
 }
 
@@ -31,21 +29,18 @@
   max-width: 36em;
 }
 
-/* ---- 중앙 2단: 남은 높이를 채운다 ---- */
+/* ---- 중앙 2단 ---- */
 .room__grid {
-  flex: 1;
-  min-height: 0;
   display: grid;
   grid-template-columns: minmax(260px, 0.82fr) 1.18fr;
   gap: var(--s-7);
   align-items: center;
 }
-/* 답변이 열리면 상단 정렬 → 긴 답변도 위에서부터 한 화면에 들어온다 */
 .room__grid.is-answer { align-items: start; }
-.room__grid.is-answer .room__right { align-items: flex-start; }
 
-.room__left { position: relative; min-width: 0; min-height: 0; }
-.room__right { min-width: 0; min-height: 0; display: flex; align-items: center; }
+.room__left { position: relative; min-width: 0; }
+.room__right { min-width: 0; display: flex; align-items: center; }
+.room__grid.is-answer .room__right { align-items: flex-start; }
 
 /* 좌측 인트로(비주얼+수치) */
 .room__intro {
