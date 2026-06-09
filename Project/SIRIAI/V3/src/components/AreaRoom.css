@@ -4,6 +4,9 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  width: 100%;
+  max-width: var(--maxw);   /* ★ 와이드 모니터에서 이미지/그리드 비대화 방지 */
+  margin: 0 auto;
   gap: var(--s-5);
   animation: fadeIn var(--t-med) var(--ease) both;
 }
@@ -49,8 +52,12 @@
   display: flex;
   flex-direction: column;
   gap: var(--s-4);
+  min-height: 0;
   animation: fadeIn var(--t-med) var(--ease) both;
 }
+/* 이미지가 칸을 넘쳐 헤드/푸터와 겹치지 않게 높이 캡 */
+.room__intro .imgph { max-height: 40vh; flex: none; }
+.room__intro .imgph--real img { height: 100%; }
 .room__proof {
   display: grid;
   grid-template-columns: 1fr 1fr;
