@@ -77,9 +77,9 @@ export const content = {
         eyebrow: 'Siriai Influencer System',
         headline: '시리아이의 크리에이터 콘텐츠는\n본질적으로 다릅니다',
         sub: '가입자 풀이 아니라, 당신께 맞는 사람을.',
-        image: '/assets/mock/creator.svg', // 가상 비주얼(목업) — 실사진은 핸드오프 단계에서 교체
+        image: '/assets/mock/creator.svg', // 목업 — 추후 인플루언서 레퍼런스 영상·이미지(포트폴리오)로 교체
         imageAlt: '크리에이터 콘텐츠 비주얼',
-        imageCaption: '크리에이터 콘텐츠 — 가상 비주얼(목업)',
+        imageCaption: '인플루언서 레퍼런스 영상·이미지가 들어갈 자리 (예시)',
       },
 
       // 검증된 숫자만 (단가·미검증 수치 제외)

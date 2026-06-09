@@ -10,7 +10,7 @@
 
 .app-main {
   min-width: 0;       /* grid 자식 overflow 방지 */
-  padding: var(--s-6) var(--edge) var(--s-8);
+  padding: var(--s-5) var(--edge);
 }
 
 @media (max-width: 880px) {

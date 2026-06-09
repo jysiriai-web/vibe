@@ -41,6 +41,16 @@
   .cta--band { grid-template-columns: 1fr; }
 }
 
+/* mini (헤더 우측 — 버튼만) */
+.cta--mini {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex-shrink: 0;
+}
+.cta--mini .btn-pill { font-size: 14px; padding: 11px 20px; }
+.cta--mini .btn-ghost { font-size: 14px; padding: 10px 18px; }
+
 /* compact (챗봇 폴백) */
 .cta--compact {
   display: flex;

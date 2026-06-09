@@ -16,18 +16,16 @@ export default function AreaRoom({ area, activeQ, onOpenQuestion, onBack, meta }
 
   const activeQuestion = activeQ ? getQuestion(area, activeQ) : null
 
-  // 레퍼런스 → 동의 게이트 반영한 표시명만 추려 한 줄 크레딧으로
-  const brands = (area.references || []).map((r) =>
-    r.consent === 'ok' || r.consent === 'confidential' ? r.brand : r.displayBrand || r.group || r.brand
-  )
-
   return (
     <div className="room">
-      {/* compact 헤더 */}
+      {/* compact 헤더 — 좌: 타이틀 / 우: 협업 CTA */}
       <header className="room__head">
-        <p className="room__eyebrow en label-mono">{area.hero.eyebrow}</p>
-        <h1 className="room__headline">{area.hero.headline}</h1>
-        {area.hero.sub && <p className="room__sub">{area.hero.sub}</p>}
+        <div className="room__head-text">
+          <p className="room__eyebrow en label-mono">{area.hero.eyebrow}</p>
+          <h1 className="room__headline">{area.hero.headline}</h1>
+          {area.hero.sub && <p className="room__sub">{area.hero.sub}</p>}
+        </div>
+        <CTA meta={meta} variant="mini" />
       </header>
 
       {/* 중앙 2단 — 남은 높이를 채운다 (idle=중앙정렬 / 답변=상단정렬) */}
@@ -78,18 +76,6 @@ export default function AreaRoom({ area, activeQ, onOpenQuestion, onBack, meta }
           )}
         </div>
       </div>
-
-      {/* 슬림 푸터: 브랜드 크레딧 · CTA. 질문이 열리면 숨겨 답변에 공간을 준다. */}
-      {!activeQuestion && (
-        <footer className="room__foot">
-          {brands.length > 0 && (
-            <p className="room__brands label-mono">
-              함께한 브랜드 · {brands.slice(0, 6).join(' · ')}
-            </p>
-          )}
-          <CTA meta={meta} variant="band" />
-        </footer>
-      )}
     </div>
   )
 }

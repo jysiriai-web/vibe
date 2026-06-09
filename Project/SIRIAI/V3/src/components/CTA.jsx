@@ -7,11 +7,13 @@ export default function CTA({ meta, variant = 'inline' }) {
 
   return (
     <div className={`cta cta--${variant}`}>
-      <div className="cta__copy">
-        <p className="cta__en en">{cta.en}</p>
-        <p className="cta__kr">{cta.kr}</p>
-        {variant === 'inline' && <p className="cta__sub">{cta.sub}</p>}
-      </div>
+      {variant !== 'mini' && (
+        <div className="cta__copy">
+          <p className="cta__en en">{cta.en}</p>
+          <p className="cta__kr">{cta.kr}</p>
+          {variant === 'inline' && <p className="cta__sub">{cta.sub}</p>}
+        </div>
+      )}
 
       <div className="cta__actions">
         <a className="btn-pill" href={mailto}>{cta.button}</a>

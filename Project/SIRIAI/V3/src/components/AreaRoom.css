@@ -9,8 +9,16 @@
   animation: fadeIn var(--t-med) var(--ease) both;
 }
 
-/* ---- compact 헤더 ---- */
-.room__head { flex: none; }
+/* ---- compact 헤더 (좌: 타이틀 / 우: 협업 CTA) ---- */
+.room__head {
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-5) var(--s-6);
+  flex-wrap: wrap;
+}
+.room__head-text { flex: 1 1 340px; min-width: 0; }
 .room__eyebrow { margin-bottom: var(--s-2); color: var(--ink-3); }
 .room__headline {
   font-family: var(--f-kr);
@@ -50,8 +58,8 @@
   min-height: 0;
   animation: fadeIn var(--t-med) var(--ease) both;
 }
-/* 이미지가 칸을 넘쳐 헤드/푸터와 겹치지 않게 높이 캡 */
-.room__intro .imgph { max-height: 40vh; flex: none; }
+/* 이미지가 칸을 넘쳐 겹치지 않게 높이 캡 */
+.room__intro .imgph { max-height: 32vh; flex: none; }
 .room__intro .imgph--real img { height: 100%; }
 .room__proof {
   display: grid;
