@@ -2,13 +2,12 @@ import { useEffect, useMemo, useRef } from 'react'
 import { prefersReducedMotion } from '../lib/useTypewriter.js'
 import './QuestionCarousel.css'
 
-const STEP = 30       // 챔버 사이 각도(deg) — 중앙±2(0,±30,±60)=5챔버가 그림처럼 노출
-const RADIUS = 150    // 실린더 반지름(px)
-const VISIBLE = 66    // 전면 가시 각도(±)
-const PERIOD_MS = 2600 // 한 챔버 넘어가는 시간 (롤링 속도)
+const RADIUS = 118     // 실린더 반지름(px) — 작게 = 여백 줄임
+const VISIBLE = 66     // 전면 가시 각도(±)
+const PERIOD_MS = 2800 // 한 챔버 넘어가는 시간 (롤링 속도)
 
-/* 각도 a(=챔버의 현재 회전각)로부터 칩 스타일 계산 */
-function styleFor(a) {
+/* 각도 a로부터 칩 스타일 계산 (step = 챔버 간격) */
+function styleFor(a, step) {
   a = ((a % 360) + 360) % 360
   if (a > 180) a -= 360
   const abs = Math.abs(a)
@@ -18,14 +17,13 @@ function styleFor(a) {
     opacity: front ? Math.max(0.16, 1 - abs / 92) : 0,
     pe: front ? 'auto' : 'none',
     z: 100 - Math.round(abs),
-    active: abs < STEP / 2,
+    active: abs < step / 2,
     front,
   }
 }
 
-/* ★ "리볼버" 질문 롤러 — 3D 실린더가 끊김 없이 연속 회전(1→2→…→N→1 루프).
-   각 챔버가 텍스트째 기울며 굴러간다. hover/focus 시 정지 → 클릭 → 답변.
-   prefers-reduced-motion 시 정적 리스트. */
+/* ★ 질문 롤러 — 3D 실린더가 끊김 없이 연속 회전(1→2→…→N→1).
+   챔버 간격 = 360/N → 빈 구간 없이 꽉 차서 루프. hover/focus 시 정지. */
 export default function QuestionCarousel({ qna, onPick }) {
   const ordered = useMemo(() => {
     const list = qna || []
@@ -33,17 +31,17 @@ export default function QuestionCarousel({ qna, onPick }) {
   }, [qna])
 
   const N = ordered.length
+  const step = N > 0 ? 360 / N : 360 // 한 바퀴를 N등분 → 빈 구간 0
   const reduce = prefersReducedMotion()
   const refs = useRef([])
   const paused = useRef(false)
 
-  // rAF로 매 프레임 회전(연속). DOM을 직접 갱신 → React 리렌더 없음.
   useEffect(() => {
     if (reduce || N <= 1) return
     let raf
     let pos = 0
     let last = performance.now()
-    const speed = 1 / PERIOD_MS // 초당 1/2.6 챔버
+    const speed = 1 / PERIOD_MS
     const tick = (now) => {
       const dt = Math.min(now - last, 64)
       last = now
@@ -51,7 +49,7 @@ export default function QuestionCarousel({ qna, onPick }) {
       for (let i = 0; i < refs.current.length; i++) {
         const el = refs.current[i]
         if (!el) continue
-        const s = styleFor((i - pos) * STEP)
+        const s = styleFor((i - pos) * step, step)
         el.style.transform = s.transform
         el.style.opacity = s.opacity
         el.style.pointerEvents = s.pe
@@ -63,11 +61,10 @@ export default function QuestionCarousel({ qna, onPick }) {
     }
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
-  }, [reduce, N])
+  }, [reduce, N, step])
 
   if (N === 0) return null
 
-  // 정적(모션 최소화) 버전
   if (reduce) {
     return (
       <div className="carousel" aria-label="예상 질문">
@@ -95,7 +92,7 @@ export default function QuestionCarousel({ qna, onPick }) {
       >
         <div className="drum__stage">
           {ordered.map((q, idx) => {
-            const s0 = styleFor(idx * STEP) // 초기 프레임(첫 렌더 깜빡임 방지)
+            const s0 = styleFor(idx * step, step)
             return (
               <button
                 key={q.id}

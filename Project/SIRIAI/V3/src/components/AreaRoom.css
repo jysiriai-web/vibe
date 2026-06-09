@@ -58,8 +58,16 @@
   min-height: 0;
   animation: fadeIn var(--t-med) var(--ease) both;
 }
-/* 이미지가 칸을 넘쳐 겹치지 않게 높이 캡 */
-.room__intro .imgph { max-height: 32vh; flex: none; }
+/* 세로형(9:16) 이미지 프레임 — 높이 기준으로 잡고 폭은 비율 따라, 칸 가운데 */
+.room__intro .imgph {
+  width: auto;
+  height: 42vh;
+  max-height: 440px;
+  max-width: 100%;
+  aspect-ratio: 9 / 16;
+  margin-inline: auto;
+  flex: none;
+}
 .room__intro .imgph--real img { height: 100%; }
 .room__proof {
   display: grid;

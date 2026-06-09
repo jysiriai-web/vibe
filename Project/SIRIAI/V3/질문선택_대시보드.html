@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SIRIAI · 질문 선택 대시보드</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#f3eee2; --surface:#fff; --ink:#211a33; --ink-2:rgba(33,26,51,.66); --ink-3:rgba(33,26,51,.46);
+    --line:rgba(33,26,51,.13); --line-strong:rgba(33,26,51,.26); --accent:#2a6fdb;
+    --peach:rgba(246,201,168,.5); --lilac:rgba(221,208,239,.45);
+    --kr:'Pretendard',system-ui,sans-serif; --en:'Helvetica Neue','Arimo',var(--kr); --mono:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box} *::-webkit-scrollbar{width:8px} *::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:8px}
+  body{margin:0;font-family:var(--kr);color:var(--ink);background:
+    radial-gradient(60% 50% at 14% 4%,var(--peach),transparent 60%),
+    radial-gradient(55% 45% at 90% 2%,var(--lilac),transparent 60%),var(--paper);
+    background-attachment:fixed;line-height:1.6;padding-bottom:120px}
+  .wrap{max-width:1080px;margin:0 auto;padding:40px 28px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3)}
+  h1{font-size:clamp(26px,3.4vw,40px);font-weight:600;letter-spacing:-.02em;margin:8px 0 6px}
+  .lead{color:var(--ink-2);max-width:60ch;font-size:15px}
+  .how{margin-top:16px;padding:14px 18px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.5);font-size:13.5px;color:var(--ink-2)}
+  .how b{color:var(--ink)}
+  .tabs{display:flex;flex-wrap:wrap;gap:8px;margin:28px 0 8px;position:sticky;top:0;background:linear-gradient(var(--paper),rgba(243,238,226,.86));backdrop-filter:blur(8px);padding:10px 0;z-index:5}
+  .tab{font-family:var(--kr);font-size:14px;font-weight:500;color:var(--ink-2);padding:9px 16px;border-radius:100px;border:1px solid var(--line);background:rgba(255,255,255,.4);cursor:pointer}
+  .tab.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .tab .cnt{font-family:var(--mono);font-size:11px;opacity:.7;margin-left:6px}
+  .panel{display:none} .panel.on{display:block;animation:f .3s ease}
+  @keyframes f{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .cat{margin-top:26px}
+  .cat__h{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+  .cat__h .label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+  .cat__h .name{font-weight:600;font-size:15px}
+  .cat__h .all{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--accent);cursor:pointer;background:none;border:none}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  @media(max-width:720px){.grid{grid-template-columns:1fr}}
+  label.q{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.4);cursor:pointer;font-size:14px;transition:border-color .15s,background .15s}
+  label.q:hover{border-color:var(--line-strong);background:rgba(255,255,255,.7)}
+  label.q.sel{border-color:var(--ink);background:rgba(255,255,255,.85)}
+  label.q input{margin-top:3px;width:16px;height:16px;accent-color:var(--ink);flex:none}
+  /* concepts */
+  .concept{border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.5);padding:18px 20px;margin-bottom:12px;cursor:pointer;transition:border-color .15s}
+  .concept:hover{border-color:var(--line-strong)} .concept.sel{border-color:var(--ink);background:rgba(255,255,255,.85)}
+  .concept__top{display:flex;align-items:center;gap:12px}
+  .concept__top input{width:18px;height:18px;accent-color:var(--ink)}
+  .concept__name{font-weight:600;font-size:16px}
+  .concept__eff{margin-left:auto;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);border:1px solid var(--line);border-radius:100px;padding:3px 9px}
+  .concept__one{color:var(--ink-2);font-size:14px;margin:8px 0 0 30px}
+  .concept__d{margin:10px 0 0 30px;font-size:13px;color:var(--ink-2)}
+  .concept__d b{color:var(--ink);font-weight:500}
+  /* export bar */
+  .bar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.82);backdrop-filter:blur(14px);border-top:1px solid var(--line-strong);padding:14px 28px;display:flex;align-items:center;gap:16px;z-index:20}
+  .bar .sum{font-size:13.5px;color:var(--ink-2)} .bar .sum b{color:var(--ink)}
+  .btn{font-family:var(--en);font-weight:500;font-size:14px;padding:11px 22px;border-radius:100px;border:none;cursor:pointer}
+  .btn-ink{background:var(--ink);color:var(--paper)} .btn-ghost{background:rgba(255,255,255,.6);border:1px solid var(--line);color:var(--ink)}
+  .bar .spacer{margin-left:auto}
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(33,26,51,.4);display:none;align-items:center;justify-content:center;z-index:40;padding:20px}
+  .modal.on{display:flex}
+  .modal__box{background:var(--paper);border-radius:18px;max-width:680px;width:100%;max-height:84vh;overflow:auto;padding:24px}
+  .modal__box h3{margin:0 0 6px;font-size:18px}
+  .modal__box p{color:var(--ink-2);font-size:13.5px;margin:0 0 12px}
+  textarea{width:100%;height:300px;font-family:var(--mono);font-size:12px;line-height:1.6;border:1px solid var(--line-strong);border-radius:12px;padding:14px;background:var(--surface);color:var(--ink);resize:vertical}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">SIRIAI · Question Bank</p>
+  <h1>리볼버 질문 선택 대시보드</h1>
+  <p class="lead">사업영역별 예상 질문 100개씩(총 300개)과 리볼버 대안 시안 10개입니다. <b>덱에 넣고 싶은 질문을 체크</b>하고, 맘에 드는 <b>리볼버 대안</b>도 골라주세요.</p>
+  <div class="how">사용법 — ① 탭을 옮기며 원하는 질문에 체크 (카테고리별 <b>전체</b> 토글 가능) · ② 리볼버 대안 탭에서 마음에 드는 시안 체크 · ③ 우하단 <b>선택 내보내기</b> → 나온 텍스트를 복사해 채팅창에 붙여넣기 → 제가 답변까지 붙여 덱에 반영합니다. (체크는 새로고침해도 유지됩니다.)</p>
+
+  <div class="tabs" id="tabs"></div>
+  <div id="panels"></div>
+</div>
+
+<div class="bar">
+  <div class="sum" id="sum">선택 0개</div>
+  <div class="spacer"></div>
+  <button class="btn btn-ghost" id="clearBtn">전체 초기화</button>
+  <button class="btn btn-ink" id="exportBtn">선택 내보내기 →</button>
+</div>
+
+<div class="modal" id="modal">
+  <div class="modal__box">
+    <h3>선택 내보내기</h3>
+    <p>아래 내용을 전부 복사해서 채팅창에 붙여넣어 주세요. 제가 선택하신 질문에 답변을 달아 덱에 반영합니다.</p>
+    <textarea id="out" readonly></textarea>
+    <div style="margin-top:12px;display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-ghost" id="closeBtn">닫기</button>
+      <button class="btn btn-ink" id="copyBtn">클립보드에 복사</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = {
+  areas: [
+    {id:'creator', name:'크리에이터 콘텐츠', questions:[
+      {c:'차별점/플랫폼차이',q:'기존 인플루언서 대행사랑 뭐가 다른가요?'},{c:'차별점/플랫폼차이',q:'가입자 풀에서 뽑는 방식 아닌가요?'},{c:'차별점/플랫폼차이',q:'AI로 인플루언서를 찾는다는 게 무슨 뜻이죠?'},{c:'차별점/플랫폼차이',q:'매번 새로 발굴하면 시간이 더 걸리지 않나요?'},{c:'차별점/플랫폼차이',q:'플랫폼 기반인가요 대행 기반인가요?'},{c:'차별점/플랫폼차이',q:'인스타 전체에서 찾는다는 게 실제로 가능한가요?'},{c:'차별점/플랫폼차이',q:'다른 시딩 업체랑 결과가 어떻게 다른가요?'},{c:'차별점/플랫폼차이',q:'AI 발굴이 사람 큐레이션보다 정확한가요?'},
+      {c:'인플루언서선별·리스트',q:'우리 브랜드에 맞는 인플루언서는 어떻게 고르나요?'},{c:'인플루언서선별·리스트',q:'섭외 후보 리스트를 미리 볼 수 있나요?'},{c:'인플루언서선별·리스트',q:'몇 명 정도 후보를 추려주시나요?'},{c:'인플루언서선별·리스트',q:'팔로워 가짜 계정은 어떻게 걸러내나요?'},{c:'인플루언서선별·리스트',q:'우리가 원하는 인플루언서 직접 지정 가능한가요?'},{c:'인플루언서선별·리스트',q:'나노 인플루언서 위주로도 진행되나요?'},{c:'인플루언서선별·리스트',q:'경쟁사랑 협업했던 사람은 빼주시나요?'},{c:'인플루언서선별·리스트',q:'선별 기준에 인게이지먼트율도 보나요?'},{c:'인플루언서선별·리스트',q:'우리 타겟 연령대에 맞는 채널만 골라지나요?'},{c:'인플루언서선별·리스트',q:'인플루언서 과거 콘텐츠 톤도 검토하나요?'},
+      {c:'진행프로세스·기간',q:'전체 진행 절차가 어떻게 되나요?'},{c:'진행프로세스·기간',q:'의뢰부터 업로드까지 얼마나 걸리나요?'},{c:'진행프로세스·기간',q:'한 캠페인 평균 기간이 어느 정도예요?'},{c:'진행프로세스·기간',q:'급한 런칭에도 맞춰줄 수 있나요?'},{c:'진행프로세스·기간',q:'진행 중간에 인플루언서 교체도 되나요?'},{c:'진행프로세스·기간',q:'우리 쪽에서 준비할 게 뭐가 있나요?'},{c:'진행프로세스·기간',q:'제품 발송은 누가 챙기나요?'},{c:'진행프로세스·기간',q:'콘텐츠 가이드는 어떻게 전달되나요?'},{c:'진행프로세스·기간',q:'몇 명까지 동시에 진행 가능한가요?'},
+      {c:'비용·정산·후불제',q:'후불제라는데 정확히 어떤 구조예요?'},{c:'비용·정산·후불제',q:'업로드 안 한 인플루언서는 비용 안 내도 되나요?'},{c:'비용·정산·후불제',q:'선입금이 아예 없는 건가요?'},{c:'비용·정산·후불제',q:'단가는 어떻게 책정되나요?'},{c:'비용·정산·후불제',q:'최소 집행 예산이 있나요?'},{c:'비용·정산·후불제',q:'정산은 업로드 후 언제 하나요?'},{c:'비용·정산·후불제',q:'세금계산서 발행되나요?'},{c:'비용·정산·후불제',q:'중간에 예산을 늘리거나 줄일 수 있나요?'},{c:'비용·정산·후불제',q:'제품 협찬만으로 진행되는 경우도 있나요?'},{c:'비용·정산·후불제',q:'채널별로 비용 차이가 큰가요?'},
+      {c:'성과·리포트·KPI',q:'캠페인 끝나면 어떤 리포트를 받나요?'},{c:'성과·리포트·KPI',q:'성과 지표는 뭘로 측정하나요?'},{c:'성과·리포트·KPI',q:'도달이나 노출 수치도 제공되나요?'},{c:'성과·리포트·KPI',q:'매출 전환까지 추적이 되나요?'},{c:'성과·리포트·KPI',q:'업로드율 100%라는 게 무슨 의미예요?'},{c:'성과·리포트·KPI',q:'리포트는 실시간으로 볼 수 있나요?'},{c:'성과·리포트·KPI',q:'KPI 목표를 미리 합의할 수 있나요?'},{c:'성과·리포트·KPI',q:'콘텐츠별 반응을 따로 볼 수 있나요?'},{c:'성과·리포트·KPI',q:'성과가 기대 이하면 보완책이 있나요?'},
+      {c:'해외/글로벌시딩',q:'해외 인플루언서 시딩도 가능한가요?'},{c:'해외/글로벌시딩',q:'75개국이면 어디까지 커버되나요?'},{c:'해외/글로벌시딩',q:'미국이나 일본 시장도 진행되나요?'},{c:'해외/글로벌시딩',q:'동남아 나노 인플루언서도 찾아주나요?'},{c:'해외/글로벌시딩',q:'현지어 콘텐츠 가이드는 어떻게 하나요?'},{c:'해외/글로벌시딩',q:'해외 배송은 누가 처리하나요?'},{c:'해외/글로벌시딩',q:'글로벌 시딩 정산은 어떻게 되나요?'},{c:'해외/글로벌시딩',q:'국내랑 해외 동시에 진행 가능한가요?'},{c:'해외/글로벌시딩',q:'해외 인플루언서 검증은 어떻게 하나요?'},
+      {c:'콘텐츠2차활용·IP',q:'인플루언서 콘텐츠를 광고에 써도 되나요?'},{c:'콘텐츠2차활용·IP',q:'2차 활용 권리는 어떻게 확보되나요?'},{c:'콘텐츠2차활용·IP',q:'우리 자사몰에 콘텐츠 게시 가능한가요?'},{c:'콘텐츠2차활용·IP',q:'콘텐츠 저작권은 누가 갖나요?'},{c:'콘텐츠2차활용·IP',q:'2차 활용 시 추가 비용이 드나요?'},{c:'콘텐츠2차활용·IP',q:'활용 기간 제한이 있나요?'},{c:'콘텐츠2차활용·IP',q:'퍼포먼스 소재로 전환해서 써도 되나요?'},
+      {c:'계약·착수조건',q:'계약은 캠페인 단위인가요 기간 단위인가요?'},{c:'계약·착수조건',q:'착수하려면 뭐가 필요한가요?'},{c:'계약·착수조건',q:'최소 계약 기간이 있나요?'},{c:'계약·착수조건',q:'NDA 체결도 가능한가요?'},{c:'계약·착수조건',q:'단발성 테스트로 먼저 해볼 수 있나요?'},{c:'계약·착수조건',q:'중도 해지하면 어떻게 되나요?'},{c:'계약·착수조건',q:'독점 조건 같은 게 있나요?'},
+      {c:'레퍼런스·업종적합성',q:'비슷한 업종 진행 사례가 있나요?'},{c:'레퍼런스·업종적합성',q:'화장품 브랜드 레퍼런스 보여주실 수 있나요?'},{c:'레퍼런스·업종적합성',q:'무신사나 이니스프리도 진행하셨나요?'},{c:'레퍼런스·업종적합성',q:'K-팝 챌린지는 어떤 식으로 했나요?'},{c:'레퍼런스·업종적합성',q:'식품이나 건기식도 경험 있나요?'},{c:'레퍼런스·업종적합성',q:'거래처가 몇 곳이나 되나요?'},{c:'레퍼런스·업종적합성',q:'우리처럼 신생 브랜드도 받아주나요?'},{c:'레퍼런스·업종적합성',q:'성공 사례 수치를 공유받을 수 있나요?'},
+      {c:'리스크·미업로드대응',q:'인플루언서가 업로드 안 하면 어떻게 되나요?'},{c:'리스크·미업로드대응',q:'제품만 받고 잠수 타는 경우 대응책이 있나요?'},{c:'리스크·미업로드대응',q:'콘텐츠가 가이드랑 다르면 수정 요청 되나요?'},{c:'리스크·미업로드대응',q:'부정적 후기가 올라오면 어떻게 하나요?'},{c:'리스크·미업로드대응',q:'인플루언서 논란 생기면 어떻게 대처하나요?'},{c:'리스크·미업로드대응',q:'업로드 후 게시물 삭제하면요?'},{c:'리스크·미업로드대응',q:'광고 표기 위반 같은 건 관리되나요?'},{c:'리스크·미업로드대응',q:'품질 미달 콘텐츠는 비용 청구되나요?'},
+      {c:'채널별',q:'틱톡 시딩도 진행되나요?'},{c:'채널별',q:'유튜브 캠페인은 어떻게 운영되나요?'},{c:'채널별',q:'릴스 중심으로 돌릴 수 있나요?'},{c:'채널별',q:'샤오홍슈 같은 중국 플랫폼도 되나요?'},{c:'채널별',q:'12개 플랫폼이면 구체적으로 어디예요?'},{c:'채널별',q:'채널별로 효과가 어떻게 다른가요?'},{c:'채널별',q:'우리 타겟엔 어떤 채널을 추천하나요?'},{c:'채널별',q:'숏폼이랑 롱폼 둘 다 가능한가요?'},
+      {c:'라이브커머스·모델·촬영',q:'라이브 커머스도 운영해 주나요?'},{c:'라이브커머스·모델·촬영',q:'모델 스타일링은 어디까지 해주나요?'},{c:'라이브커머스·모델·촬영',q:'제품 촬영 콘텐츠도 제작되나요?'},{c:'라이브커머스·모델·촬영',q:'브랜드 화보 같은 작업도 가능한가요?'},{c:'라이브커머스·모델·촬영',q:'라이브 커머스 매출 정산은 어떻게 되나요?'},{c:'라이브커머스·모델·촬영',q:'촬영 스튜디오나 장소는 누가 섭외하나요?'}
+    ]},
+    {id:'consulting', name:'비즈니스 컨설팅', questions:[
+      {c:'무엇을 하는 팀인가',q:'비즈니스 컨설팅 아키텍팅이 정확히 뭘 하는 건가요?'},{c:'무엇을 하는 팀인가',q:'아키텍팅이라는 말이 좀 생소한데 쉽게 설명해줄 수 있나요?'},{c:'무엇을 하는 팀인가',q:'전략 짜주는 건가요 아니면 실행까지 해주는 건가요?'},{c:'무엇을 하는 팀인가',q:'문제정의부터 같이 해준다는 게 어떤 의미죠?'},{c:'무엇을 하는 팀인가',q:'우리가 뭘 원하는지 모를 때도 도와주나요?'},{c:'무엇을 하는 팀인가',q:'구조 모델링이라는 게 실무에선 어떻게 나타나나요?'},{c:'무엇을 하는 팀인가',q:'기획서만 주는 건지 실제로 굴러가게 만들어주는 건지요?'},{c:'무엇을 하는 팀인가',q:'한 팀이 처음부터 끝까지 다 한다는 게 가능한가요?'},{c:'무엇을 하는 팀인가',q:'어떤 종류의 문제를 주로 다루세요?'},{c:'무엇을 하는 팀인가',q:'마케팅만 보나요 아니면 사업 전반을 보나요?'},
+      {c:'마케팅사와 컨설팅의 관계',q:'마케팅 대행사인데 컨설팅도 한다는 게 무슨 조합이죠?'},{c:'마케팅사와 컨설팅의 관계',q:'실행팀이 컨설팅하면 객관성이 떨어지지 않나요?'},{c:'마케팅사와 컨설팅의 관계',q:'컨설팅 따로 마케팅 따로 맡기는 거랑 뭐가 다른가요?'},{c:'마케팅사와 컨설팅의 관계',q:'컨설팅 받고 나서 실행은 다른 데 맡겨도 되나요?'},{c:'마케팅사와 컨설팅의 관계',q:'기존에 쓰던 대행사가 있는데 같이 가도 되나요?'},{c:'마케팅사와 컨설팅의 관계',q:'컨설팅 결과가 결국 자사 영업으로 이어지는 거 아닌가요?'},{c:'마케팅사와 컨설팅의 관계',q:'마케팅 실행력이 컨설팅에 어떻게 도움이 되나요?'},{c:'마케팅사와 컨설팅의 관계',q:'실행 안 하고 컨설팅만 받는 것도 가능한가요?'},{c:'마케팅사와 컨설팅의 관계',q:'광고비 집행이랑 컨설팅 비용은 별개인가요?'},{c:'마케팅사와 컨설팅의 관계',q:'대행사 관리까지 대신 봐줄 수 있나요?'},
+      {c:'AI 리터러시·인사이트',q:'AI 리터러시 기반이라는데 컨설팅에 AI를 쓴다는 건가요?'},{c:'AI 리터러시·인사이트',q:'인사이트를 빠르게 뽑는다는데 결국 GPT 돌리는 건가요?'},{c:'AI 리터러시·인사이트',q:'AI로 분석한 결과를 그대로 믿어도 되나요?'},{c:'AI 리터러시·인사이트',q:'사람 인사이트랑 AI 분석을 어떻게 섞나요?'},{c:'AI 리터러시·인사이트',q:'AI 쓰면 일반 컨설팅보다 빠르다는 게 사실인가요?'},{c:'AI 리터러시·인사이트',q:'우리 데이터를 AI에 넣으면 보안은 괜찮나요?'},{c:'AI 리터러시·인사이트',q:'넓은 인사이트를 구조로 만든다는 게 구체적으로 뭐죠?'},{c:'AI 리터러시·인사이트',q:'AI 없이도 같은 결과를 낼 수 있나요?'},{c:'AI 리터러시·인사이트',q:'우리 업종을 잘 모르면 AI로도 한계 있지 않나요?'},{c:'AI 리터러시·인사이트',q:'AI 활용 역량을 우리 팀에도 전수해주나요?'},
+      {c:'범위·기간·산출물',q:'보통 프로젝트 기간이 어느 정도 걸리나요?'},{c:'범위·기간·산출물',q:'최종 산출물로 뭘 받게 되나요?'},{c:'범위·기간·산출물',q:'보고서만 받는 건지 실행 가능한 형태로 받는 건지요?'},{c:'범위·기간·산출물',q:'짧게 2~3주짜리 단기 프로젝트도 가능한가요?'},{c:'범위·기간·산출물',q:'범위를 어디까지로 잡아야 할지 모르겠는데 도와주나요?'},{c:'범위·기간·산출물',q:'중간 중간 산출물을 단계별로 받아볼 수 있나요?'},{c:'범위·기간·산출물',q:'실행까지 포함하면 기간이 얼마나 늘어나나요?'},{c:'범위·기간·산출물',q:'산출물에 대한 저작권이나 소유권은 누구한테 있나요?'},{c:'범위·기간·산출물',q:'프로젝트 끝나면 우리 내부에서 운영할 수 있게 정리되나요?'},{c:'범위·기간·산출물',q:'범위 밖 요청이 생기면 어떻게 처리되나요?'},
+      {c:'비용·계약 형태',q:'비용은 대략 어느 정도 수준인가요?'},{c:'비용·계약 형태',q:'프로젝트 단위인가요 월 단위 리테이너인가요?'},{c:'비용·계약 형태',q:'비용 산정 기준이 뭔가요?'},{c:'비용·계약 형태',q:'실행 성과에 따라 비용이 달라지는 구조도 가능한가요?'},{c:'비용·계약 형태',q:'착수금이랑 잔금 비율은 어떻게 되나요?'},{c:'비용·계약 형태',q:'예산이 빠듯한데 범위 조정으로 맞출 수 있나요?'},{c:'비용·계약 형태',q:'중간에 프로젝트를 멈추면 비용은 어떻게 되나요?'},{c:'비용·계약 형태',q:'계약 기간 약정이 따로 있나요?'},{c:'비용·계약 형태',q:'추가 요청 생기면 비용이 계속 붙는 구조인가요?'},{c:'비용·계약 형태',q:'세금계산서 발행이나 정산은 어떻게 진행되나요?'},
+      {c:'어떤 문제에 맞는가',q:'매출이 정체됐는데 이런 것도 봐주나요?'},{c:'어떤 문제에 맞는가',q:'신규 브랜드 론칭 준비 중인데 적합한가요?'},{c:'어떤 문제에 맞는가',q:'문제가 뭔지 정의 자체가 안 되는 상황인데 맞나요?'},{c:'어떤 문제에 맞는가',q:'리브랜딩 방향을 못 잡고 있는데 도움이 될까요?'},{c:'어떤 문제에 맞는가',q:'조직 내부에 정답이 없을 때 와도 되나요?'},{c:'어떤 문제에 맞는가',q:'온라인 전환이 안 되는데 이런 문제도 다루나요?'},{c:'어떤 문제에 맞는가',q:'마케팅 예산은 쓰는데 효과가 없을 때 봐주나요?'},{c:'어떤 문제에 맞는가',q:'우리 같은 작은 규모 회사도 의뢰할 수 있나요?'},{c:'어떤 문제에 맞는가',q:'제조업인데 이쪽 컨설팅도 가능한가요?'},{c:'어떤 문제에 맞는가',q:'내부에서 안 풀리는 갈등 구조도 정리해주나요?'},
+      {c:'진행 방식·협업',q:'프로젝트는 어떤 순서로 진행되나요?'},{c:'진행 방식·협업',q:'우리 쪽에서 얼마나 시간을 내야 하나요?'},{c:'진행 방식·협업',q:'담당자가 자주 바뀌진 않나요?'},{c:'진행 방식·협업',q:'회의는 주로 대면인가요 원격인가요?'},{c:'진행 방식·협업',q:'우리 내부 자료를 어디까지 공유해야 하나요?'},{c:'진행 방식·협업',q:'진행 상황은 어떻게 공유받게 되나요?'},{c:'진행 방식·협업',q:'의사결정이 막히면 어떻게 풀어가나요?'},{c:'진행 방식·협업',q:'우리 팀과 직접 협업하는 방식인가요?'},{c:'진행 방식·협업',q:'중간에 방향이 틀렸다 싶으면 수정 가능한가요?'},{c:'진행 방식·협업',q:'한 프로젝트에 몇 명이 투입되나요?'},
+      {c:'사례·성과 증빙',q:'비슷한 문제를 해결한 사례가 있나요?'},{c:'사례·성과 증빙',q:'실제로 성과가 났던 케이스를 보여줄 수 있나요?'},{c:'사례·성과 증빙',q:'우리 업종 레퍼런스가 있나요?'},{c:'사례·성과 증빙',q:'성과를 무엇으로 측정했는지 알 수 있나요?'},{c:'사례·성과 증빙',q:'실패했거나 잘 안 된 케이스도 솔직히 들려주나요?'},{c:'사례·성과 증빙',q:'기존 고객사 추천을 받아볼 수 있나요?'},{c:'사례·성과 증빙',q:'프로젝트 후에 실제로 매출이 올랐던 사례가 있나요?'},{c:'사례·성과 증빙',q:'제안 단계에서 우리 문제로 샘플 분석을 보여줄 수 있나요?'},{c:'사례·성과 증빙',q:'성과가 컨설팅 덕분인지 어떻게 구분하나요?'},{c:'사례·성과 증빙',q:'포트폴리오를 미리 볼 수 있는 자료가 있나요?'},
+      {c:'다른 컨설팅과의 차이',q:'대형 컨설팅펌이랑 뭐가 다른가요?'},{c:'다른 컨설팅과의 차이',q:'보고서만 주고 끝나는 컨설팅이랑 차별점이 뭐죠?'},{c:'다른 컨설팅과의 차이',q:'프레임워크에 끼워 맞추는 식은 아닌가요?'},{c:'다른 컨설팅과의 차이',q:'규모 작은 팀인데 그게 오히려 강점이 되나요?'},{c:'다른 컨설팅과의 차이',q:'실행까지 한다는 게 다른 곳엔 없는 건가요?'},{c:'다른 컨설팅과의 차이',q:'왜 굳이 SIRIAI를 선택해야 하나요?'},{c:'다른 컨설팅과의 차이',q:'AI 쓴다는 곳 많은데 여긴 뭐가 다른가요?'},{c:'다른 컨설팅과의 차이',q:'우리 내부에서 직접 하는 거랑 비교하면 뭐가 나은가요?'},{c:'다른 컨설팅과의 차이',q:'속도가 빠르다는데 그만큼 깊이가 얕진 않나요?'},{c:'다른 컨설팅과의 차이',q:'프리랜서 컨설턴트 쓰는 거랑 차이가 뭔가요?'},
+      {c:'착수·시작 조건',q:'처음 시작은 어떻게 하면 되나요?'},{c:'착수·시작 조건',q:'우리가 미리 준비해둬야 할 자료가 있나요?'},{c:'착수·시작 조건',q:'착수 전에 무료 진단 같은 게 있나요?'},{c:'착수·시작 조건',q:'문제가 명확하지 않아도 미팅부터 잡을 수 있나요?'},{c:'착수·시작 조건',q:'의뢰하려면 내부 결재가 어느 정도 필요할까요?'},{c:'착수·시작 조건',q:'제안서를 먼저 받아볼 수 있나요?'},{c:'착수·시작 조건',q:'최소 예산이나 최소 범위 조건이 있나요?'},{c:'착수·시작 조건',q:'문의하면 보통 며칠 안에 답을 받나요?'},{c:'착수·시작 조건',q:'NDA 먼저 쓰고 상담 시작할 수 있나요?'},{c:'착수·시작 조건',q:'지금 당장 급한데 빠르게 착수도 가능한가요?'}
+    ]},
+    {id:'software', name:'소프트웨어 엔지니어링', questions:[
+      {c:'sa:ai 솔루션 정체',q:'sa:ai가 정확히 어떤 솔루션인가요?'},{c:'sa:ai 솔루션 정체',q:'콘텐츠 아카이빙이 구체적으로 뭘 말하나요?'},{c:'sa:ai 솔루션 정체',q:'기존 SaaS 툴이랑 뭐가 다른가요?'},{c:'sa:ai 솔루션 정체',q:'이건 완제품인가요 맞춤개발인가요?'},{c:'sa:ai 솔루션 정체',q:'Performance·Creative·Archivo 3축이 뭔가요?'},{c:'sa:ai 솔루션 정체',q:'우리 같은 브랜드가 왜 이게 필요하죠?'},{c:'sa:ai 솔루션 정체',q:'지금 실제로 쓰고 있는 고객사 있나요?'},{c:'sa:ai 솔루션 정체',q:'데모를 한번 볼 수 있을까요?'},{c:'sa:ai 솔루션 정체',q:'어떤 문제를 풀려고 만든 건가요?'},{c:'sa:ai 솔루션 정체',q:'솔루션 이름이 sa:ai인 이유가 있나요?'},
+      {c:'브랜드용 vs 개인용',q:'브랜드용이랑 개인용 차이가 뭐예요?'},{c:'브랜드용 vs 개인용',q:'우리 브랜드는 어느 쪽을 써야 하나요?'},{c:'브랜드용 vs 개인용',q:'효과·감도·생존 추적이 무슨 뜻이죠?'},{c:'브랜드용 vs 개인용',q:'콘텐츠 라이브러리는 뭘 모아주나요?'},{c:'브랜드용 vs 개인용',q:'둘을 같이 쓰는 것도 가능한가요?'},{c:'브랜드용 vs 개인용',q:'개인용은 직원 개개인이 쓰는 건가요?'},{c:'브랜드용 vs 개인용',q:'브랜드용에서 생존 추적은 어떻게 하나요?'},{c:'브랜드용 vs 개인용',q:'감도라는 지표는 어떻게 측정하죠?'},{c:'브랜드용 vs 개인용',q:'개인용으로 시작했다가 브랜드용 전환되나요?'},
+      {c:'왜 마케팅사가 SW를',q:'마케팅 회사가 왜 직접 개발을 하나요?'},{c:'왜 마케팅사가 SW를',q:'개발은 IT회사에 맡기는 게 낫지 않나요?'},{c:'왜 마케팅사가 SW를',q:'마케팅 대행이랑 개발을 같이 하면 뭐가 좋죠?'},{c:'왜 마케팅사가 SW를',q:'개발 전문 회사보다 경쟁력이 있나요?'},{c:'왜 마케팅사가 SW를',q:'마케팅 알면 개발 결과물이 달라지나요?'},{c:'왜 마케팅사가 SW를',q:'이런 사례가 다른 데도 있나요?'},{c:'왜 마케팅사가 SW를',q:'개발팀은 따로 있는 건가요?'},{c:'왜 마케팅사가 SW를',q:'본업이 마케팅인데 개발이 부업 아닌가요?'},{c:'왜 마케팅사가 SW를',q:'마케터가 직접 코딩까지 하는 건가요?'},
+      {c:'개발 속도·생산성',q:'생산성 3.4배는 뭘 기준으로 한 건가요?'},{c:'개발 속도·생산성',q:'진짜 2주만에 프로토타입이 나오나요?'},{c:'개발 속도·생산성',q:'속도가 빠르면 품질은 괜찮나요?'},{c:'개발 속도·생산성',q:'3.4배라는 수치 검증된 건가요?'},{c:'개발 속도·생산성',q:'우리 프로젝트도 2주면 되나요?'},{c:'개발 속도·생산성',q:'빨리 만들면 나중에 손이 더 가지 않나요?'},{c:'개발 속도·생산성',q:'기획부터 출시까지 얼마나 걸려요?'},{c:'개발 속도·생산성',q:'빠른 속도의 비결이 뭔가요?'},{c:'개발 속도·생산성',q:'기존 대비 얼마나 빨라지는 건가요?'},{c:'개발 속도·생산성',q:'프로토타입 이후 정식 개발은 얼마나 걸리죠?'},
+      {c:'기술 스택·AI 활용',q:'어떤 기술 스택으로 개발하나요?'},{c:'기술 스택·AI 활용',q:'OpenAI랑 Anthropic 둘 다 쓰나요?'},{c:'기술 스택·AI 활용',q:'AI로 개발한다는 게 무슨 의미죠?'},{c:'기술 스택·AI 활용',q:'Vercel 위에서 돌린다는 게 뭔가요?'},{c:'기술 스택·AI 활용',q:'AI가 만든 코드 믿어도 되나요?'},{c:'기술 스택·AI 활용',q:'Gemini는 어떤 용도로 쓰나요?'},{c:'기술 스택·AI 활용',q:'우리 프로젝트엔 어떤 모델을 쓰게 되나요?'},{c:'기술 스택·AI 활용',q:'AI 의존도가 너무 높은 건 아닌가요?'},{c:'기술 스택·AI 활용',q:'기술 스택을 우리가 지정할 수 있나요?'},{c:'기술 스택·AI 활용',q:'나중에 다른 회사가 유지보수 가능한 스택인가요?'},
+      {c:'외주 개발 범위',q:'우리 아이디어만 줘도 개발해 주나요?'},{c:'외주 개발 범위',q:'앱도 만들어 주나요 웹만 하나요?'},{c:'외주 개발 범위',q:'기획 없이 와도 같이 잡아 주나요?'},{c:'외주 개발 범위',q:'우리 내부 시스템이랑 연동도 되나요?'},{c:'외주 개발 범위',q:'어디까지 외주로 맡길 수 있나요?'},{c:'외주 개발 범위',q:'sa:ai 말고 다른 것도 개발해 주나요?'},{c:'외주 개발 범위',q:'규모가 작은 프로젝트도 받나요?'},{c:'외주 개발 범위',q:'커머스 사이트 구축도 가능한가요?'},{c:'외주 개발 범위',q:'기존에 있던 서비스 개선도 맡길 수 있나요?'},{c:'외주 개발 범위',q:'내부 업무 자동화 툴도 만들어 주나요?'},
+      {c:'비용·계약',q:'개발 비용은 어떻게 책정되나요?'},{c:'비용·계약',q:'프로젝트 단위로 계약하나요 월 구독인가요?'},{c:'비용·계약',q:'착수금이랑 잔금 비율이 어떻게 되나요?'},{c:'비용·계약',q:'중간에 요구사항 바뀌면 추가 비용 드나요?'},{c:'비용·계약',q:'최소 계약 규모가 정해져 있나요?'},{c:'비용·계약',q:'빠르게 만들면 비용도 저렴해지나요?'},{c:'비용·계약',q:'마케팅 계약이랑 묶으면 할인되나요?'},{c:'비용·계약',q:'견적은 어떻게 받아볼 수 있나요?'},{c:'비용·계약',q:'유지보수 비용은 별도인가요?'},{c:'비용·계약',q:'예산이 빠듯한데 단계별 진행도 되나요?'},
+      {c:'데이터·보안·소유권',q:'개발한 소스코드는 누가 소유하나요?'},{c:'데이터·보안·소유권',q:'우리 콘텐츠 데이터는 안전하게 보관되나요?'},{c:'데이터·보안·소유권',q:'AI한테 우리 데이터가 학습되진 않나요?'},{c:'데이터·보안·소유권',q:'소스코드 전체를 넘겨받을 수 있나요?'},{c:'데이터·보안·소유권',q:'보안 사고 났을 때 책임은 어떻게 되죠?'},{c:'데이터·보안·소유권',q:'NDA는 당연히 써 주시는 거죠?'},{c:'데이터·보안·소유권',q:'데이터는 어디 서버에 저장되나요?'},{c:'데이터·보안·소유권',q:'계약 끝나면 우리 데이터는 어떻게 되나요?'},{c:'데이터·보안·소유권',q:'개인정보 처리 규정은 준수하나요?'},{c:'데이터·보안·소유권',q:'결과물 지식재산권은 우리한테 귀속되나요?'},
+      {c:'디자인 시스템·UX',q:'UX·UI 디자인도 직접 하시나요?'},{c:'디자인 시스템·UX',q:'디자인 시스템은 어떻게 잡아 주나요?'},{c:'디자인 시스템·UX',q:'우리 브랜드 톤에 맞춰 디자인되나요?'},{c:'디자인 시스템·UX',q:'디자이너랑 개발자가 같은 팀인가요?'},{c:'디자인 시스템·UX',q:'화면 시안 먼저 보여 주시나요?'},{c:'디자인 시스템·UX',q:'모바일이랑 PC 둘 다 대응되나요?'},{c:'디자인 시스템·UX',q:'디자인 수정 요청은 몇 번까지 되나요?'},{c:'디자인 시스템·UX',q:'기존 우리 디자인 가이드 반영 가능한가요?'},
+      {c:'운영·유지보수·확장',q:'출시 후 운영도 맡아 주시나요?'},{c:'운영·유지보수·확장',q:'오류 나면 얼마나 빨리 대응되나요?'},{c:'운영·유지보수·확장',q:'사용자가 늘면 확장도 되나요?'},{c:'운영·유지보수·확장',q:'기능 추가는 나중에도 계속 가능한가요?'},{c:'운영·유지보수·확장',q:'유지보수 계약은 얼마 단위로 하나요?'},{c:'운영·유지보수·확장',q:'운영을 우리 내부 팀에 인계할 수 있나요?'},{c:'운영·유지보수·확장',q:'담당자가 바뀌어도 운영 연속성 있나요?'},{c:'운영·유지보수·확장',q:'서버 비용은 누가 부담하나요?'},{c:'운영·유지보수·확장',q:'트래픽 몰릴 때 안정성은 어떤가요?'},{c:'운영·유지보수·확장',q:'한 팀이 운영까지 한다는 게 장점인가요?'}
+    ]}
+  ],
+  concepts: [
+    {name:'활자 식자기 (The Compositor)',eff:'낮음',one:"질문들이 활판 인쇄 조판처럼 한 줄씩 '식자'되며 떠오르는 에디토리얼 타입세터.",how:'질문 5~7개가 좌측 정렬 세로 목록으로, 각 줄이 다른 타이밍으로 자간이 좁혀지며(0.3em→정상) 잉크가 종이에 스며들 듯 페이드인. idle엔 한 줄씩 아주 느리게 다른 질문으로 교체(기존 글자가 위로 밀려 사라지고 새 글자가 식자). hover 시 그 줄 잉크가 진해지고 mono 번호가 슬라이드인, 클릭 시 답변 타이핑.',why:'회전 같은 물리 메타포 대신 ‘인쇄=텍스트가 종이에 박힌다’는 브랜드 본질을 모션으로 직역. 3D·곡면 없이 순수 타이포그래피만으로 살아있는 느낌 → 싸구려 위젯 인상 차단.'},
+    {name:'여백의 행성계 (Quiet Orbit)',eff:'중간',one:'질문들이 보이지 않는 궤도를 따라 종이 위를 아주 느리게 표류하는 성좌형 배치.',how:'질문 칩이 중앙을 비운 채 넓은 여백에 비대칭으로 흩어져 각자 다른 속도의 사인 곡선으로 미세 부유(±6px, 20~40초). 추천 질문일수록 진하고 멀수록 흐림. hover하면 그 칩만 정지하며 옅은 글로우, 다른 칩이 비켜 길을 냄. 클릭하면 중앙으로 빨려들며 답변으로 모핑.',why:'정해진 줄을 버리고 비주기 표류로 자연스러움 연출. 미니멀 여백 미학과 결합해 갤러리 설치작품 같은 고급감, 모든 칩이 동시에 보여 탐색성도 높음.'},
+    {name:'현상되는 인덱스 (Develop / Index)',eff:'낮음',one:'암실에서 사진이 현상되듯 질문 목록이 흐림→선명으로 떠오르는 mono 인덱스 카드.',how:'mono 번호(01—07)와 질문이 세로 인덱스로 쌓여 있고 초기엔 blur(8px)+낮은 opacity로 ‘미현상’. 위에서부터 순차로 blur가 풀리며 또렷(stagger). 커서가 오면 얇은 ink 언더라인이 좌→우로 그어지고 라벨이 ‘읽기 →’로. idle이 길면 순서가 천천히 셔플되며 새 질문이 위로 현상.',why:'blur-to-sharp는 ‘집중/초점’ 메타포로 정적이지 않으면서 과하지 않음. 사진 현상·인쇄 인덱스 은유가 따뜻한 종이 톤과 만나 아날로그 아카이브 감성.'},
+    {name:'생각 중인 커서 (The Thinking Line)',eff:'낮음',one:'AI가 스스로 질문을 떠올리듯, placeholder가 끊임없이 한 질문을 타이핑→삭제하는 단일 라인.',how:'화면엔 입력 필드 하나와 깜빡이는 커서뿐. placeholder에 질문이 타이핑됐다가 backspace로 지워지고 다음 질문이 타이핑되는 루프. 아래 작은 mono로 ‘또는 직접 물어보세요’. 떠 있는 질문을 클릭하면 그대로 입력되어 답변 시작. 직접 타이핑도 가능.',why:'탐색 UI와 챗봇 입력을 하나로 합쳐 ‘리스트’ 형태 자체를 제거 — 가장 미니멀. 기존 타이핑 흐름과 완벽 일관, AI가 골똘히 생각하는 인상 → 기술 비전 포지셔닝과도 맞음.'},
+    {name:'넘기는 색인지 (Riffle / Card Deck)',eff:'중간',one:'두꺼운 종이 색인 카드가 위에 떠 있고 뒤로 카드들이 살짝 엿보이며 천천히 넘어가는 덱.',how:'질문 카드를 z축으로 약간씩 어긋나게 평면 적층(회전 없음) — 맨 위만 선명, 뒤는 모서리만. idle엔 맨 위 카드가 떠오르며 페이드아웃되고 다음 카드가 올라오는 ‘넘김’이 5~6초마다. hover 시 정지+그림자 깊어짐. 화살표/스와이프 수동 탐색, 클릭 시 펼쳐지며 답변면으로.',why:'곡면 3D가 주던 ‘싸구려 위젯’감의 원인(원통·왜곡)을 제거하고 종이 카드의 무게감·그림자·적층만 남겨 촉각적 고급감. 도서관 색인 카드 메타포가 에디토리얼 톤과 정확히 맞음.'},
+    {name:'대화의 강 (Conversation Stream)',eff:'중간',one:'이미 시작된 대화 한가운데로 입장하듯, 지난 질문들이 위로 흘러 지나가는 채팅 스트림.',how:'하단에서 회색 질문 버블이 하나씩 떠올라 위로 흘러가다 상단에서 페이드아웃되는 끊김 없는 세로 스트림. 가까울수록 진해짐. hover하면 전체 정지+해당 버블 커짐. 클릭하면 그 버블이 사용자 발화처럼 우측 정렬되며 곧바로 봇 답변 타이핑.',why:'탐색 UI가 곧 채팅 UI의 연장선이 되어 클릭→답변 흐름이 완벽히 자연스러움. 회전 대신 ‘흐르는 대화’ 시간 은유로 이미 살아 움직이는 제품 인상.'},
+    {name:'여백의 호명 (Spotlight Roll-Call)',eff:'낮음',one:'질문 목록 전체가 흐릿하게 떠 있고, 보이지 않는 스포트라이트가 한 줄씩 비추며 호명한다.',how:'전체 질문이 옅게 정렬돼 있고 idle엔 한 번에 한 줄만 진해지며(그 줄 배경에 cream 워시 점등) 3초 머문 뒤 다음 줄로 넘어감. hover 시 그 줄에 고정, 빼면 자동 순회. 클릭하면 비춰진 줄만 남고 나머지 페이드아웃되며 답변 시작.',why:'움직이는 건 ‘빛’뿐 — 요소는 제자리라 흔들림·왜곡 없이 차분하면서 명백히 살아있음. 워시 글로우(브랜드 핵심 자산)를 인터랙션 주역으로 승격 → 톤 일관성 매우 높음.'},
+    {name:'접지 펼침 (The Unfolding Brochure)',eff:'중간',one:'접힌 브로슈어가 펼쳐지듯 질문 패널들이 아코디언처럼 호흡하며 한 면씩 열린다.',how:'질문들이 세로로 얇게 접힌 패널 띠로 쌓여 있고 idle엔 한 패널씩 순서대로 살짝 열려 전문이 드러났다가 다시 접히는 호흡 모션이 느리게 순환. hover하면 부드럽게 펼쳐져 질문+한 줄 미리보기. 클릭 시 화면 폭까지 펼쳐지며 답변면으로 연속 전개.',why:'‘펼침’이라는 종이 물성을 모션으로 삼아 인쇄물 메타포 일관 유지. 접힌→펼친 전환이 답변 공개와 매끄럽게 이어져 한 동작으로 흐름.'},
+    {name:'수은 방울 (Mercury Drops)',eff:'높음',one:'질문들이 수은처럼 응집·분리되는 유체 metaball로, 끌어당기면 합쳐지며 답이 흘러나온다.',how:'옅은 ink 톤 둥근 질문 ‘방울’들이 SVG goo 필터로 가까워지면 표면장력처럼 이어지고 멀어지면 분리되며 느리게 부유. 커서가 다가가면 근처 방울이 자석처럼 끌려오고 가장 가까운 방울 텍스트가 또렷. 클릭하면 중앙으로 흘러들어 답변 패널로 ‘녹아’ 펼쳐지며 타이핑.',why:'유체 metaball은 회전 위젯과 정반대의 유기적·예측불가 모션으로 강한 살아있음을 만들면서, 채도 낮은 잉크 단색이면 형광 없이 고급. 흔히 안 쓰는 질감이라 차별화 큼.'},
+    {name:'조판 한 단 (Justified Column)',eff:'중간',one:'질문 전체가 신문 한 단처럼 양끝맞춤 본문으로 흐르고, AI의 시선(밑줄)이 문장 사이를 옮겨 다닌다.',how:'질문들을 마침표로 이은 하나의 양끝맞춤 본문 단락으로 조판(각 구절이 클릭 영역). idle엔 얇은 ink 언더라인이 한 구절에서 다음으로 미끄러지며 ‘읽는 중’ 표시. hover 시 커서 구절에 흡착, 클릭하면 나머지 텍스트가 물러나고 선택 구절이 위로 올라가 헤드가 되며 답변 타이핑.',why:'리스트·칩·카드라는 UI 컴포넌트 형태를 완전히 버리고 질문을 읽을거리(본문)로 제시 — 가장 에디토리얼하고 안 흔한 접근. 양끝맞춤 단과 이동하는 reading guide가 잡지 펼침면 같은 정제된 인상.'}
+  ]
+};
+
+const KEY='siriai_qsel_v1';
+let state = JSON.parse(localStorage.getItem(KEY) || '{"q":{},"c":{}}');
+const save=()=>localStorage.setItem(KEY,JSON.stringify(state));
+const qid=(a,i)=>a+'_'+i;
+
+const tabs=document.getElementById('tabs'), panels=document.getElementById('panels');
+const tabDefs=[...DATA.areas.map(a=>({id:a.id,label:a.name})),{id:'concepts',label:'리볼버 대안 10'}];
+let active=tabDefs[0].id;
+
+function countArea(a){return a.questions.filter((_,i)=>state.q[qid(a.id,i)]).length}
+function totalQ(){return DATA.areas.reduce((s,a)=>s+countArea(a),0)}
+function totalC(){return Object.values(state.c).filter(Boolean).length}
+
+function renderTabs(){
+  tabs.innerHTML='';
+  tabDefs.forEach(t=>{
+    const b=document.createElement('button');b.className='tab'+(t.id===active?' on':'');
+    let c='';
+    if(t.id==='concepts'){const n=totalC();c=n?`<span class="cnt">${n}</span>`:'';}
+    else{const a=DATA.areas.find(x=>x.id===t.id);const n=countArea(a);c=n?`<span class="cnt">${n}</span>`:'';}
+    b.innerHTML=t.label+c;
+    b.onclick=()=>{active=t.id;renderTabs();renderPanels();};
+    tabs.appendChild(b);
+  });
+}
+
+function renderPanels(){
+  panels.innerHTML='';
+  if(active==='concepts'){renderConcepts();updateSum();return;}
+  const a=DATA.areas.find(x=>x.id===active);
+  const p=document.createElement('div');p.className='panel on';
+  const cats=[...new Set(a.questions.map(q=>q.c))];
+  cats.forEach(cat=>{
+    const items=a.questions.map((q,i)=>({q,i})).filter(x=>x.q.c===cat);
+    const wrap=document.createElement('div');wrap.className='cat';
+    wrap.innerHTML=`<div class="cat__h"><span class="label">${cat}</span><span class="name"></span><button class="all">전체 토글</button></div>`;
+    const grid=document.createElement('div');grid.className='grid';
+    items.forEach(({q,i})=>{
+      const id=qid(a.id,i);const on=!!state.q[id];
+      const l=document.createElement('label');l.className='q'+(on?' sel':'');
+      l.innerHTML=`<input type="checkbox" ${on?'checked':''}><span>${q.q}</span>`;
+      l.querySelector('input').onchange=e=>{state.q[id]=e.target.checked;save();l.classList.toggle('sel',e.target.checked);renderTabs();updateSum();};
+      grid.appendChild(l);
+    });
+    wrap.querySelector('.all').onclick=()=>{
+      const anyOff=items.some(({i})=>!state.q[qid(a.id,i)]);
+      items.forEach(({i})=>state.q[qid(a.id,i)]=anyOff);save();renderPanels();renderTabs();updateSum();
+    };
+    wrap.appendChild(grid);p.appendChild(wrap);
+  });
+  panels.appendChild(p);updateSum();
+}
+
+function renderConcepts(){
+  const p=document.createElement('div');p.className='panel on';
+  DATA.concepts.forEach((c,i)=>{
+    const on=!!state.c[i];
+    const d=document.createElement('div');d.className='concept'+(on?' sel':'');
+    d.innerHTML=`<div class="concept__top"><input type="checkbox" ${on?'checked':''}><span class="concept__name">${c.name}</span><span class="concept__eff">난이도 ${c.eff}</span></div>
+      <div class="concept__one">${c.one}</div>
+      <div class="concept__d"><b>작동:</b> ${c.how}</div>
+      <div class="concept__d"><b>왜 참신:</b> ${c.why}</div>`;
+    d.querySelector('input').onchange=e=>{state.c[i]=e.target.checked;save();d.classList.toggle('sel',e.target.checked);renderTabs();updateSum();};
+    p.appendChild(d);
+  });
+  panels.appendChild(p);
+}
+
+function updateSum(){document.getElementById('sum').innerHTML=`질문 <b>${totalQ()}</b>개 · 리볼버 대안 <b>${totalC()}</b>개 선택`;}
+
+function buildExport(){
+  let out='=== SIRIAI 질문 선택 결과 ===\n';
+  DATA.areas.forEach(a=>{
+    const sel=a.questions.filter((_,i)=>state.q[qid(a.id,i)]);
+    out+=`\n[${a.name}] ${sel.length}개\n`;
+    sel.forEach(q=>out+=`- (${q.c}) ${q.q}\n`);
+  });
+  const cs=DATA.concepts.filter((_,i)=>state.c[i]);
+  out+=`\n[리볼버 대안] ${cs.length}개\n`;
+  cs.forEach(c=>out+=`★ ${c.name}\n`);
+  out+='\n※ 위 선택을 덱에 반영해줘.';
+  return out;
+}
+
+document.getElementById('exportBtn').onclick=()=>{document.getElementById('out').value=buildExport();document.getElementById('modal').classList.add('on');};
+document.getElementById('closeBtn').onclick=()=>document.getElementById('modal').classList.remove('on');
+document.getElementById('copyBtn').onclick=async()=>{const t=document.getElementById('out');t.select();try{await navigator.clipboard.writeText(t.value);document.getElementById('copyBtn').textContent='복사됨 ✓';setTimeout(()=>document.getElementById('copyBtn').textContent='클립보드에 복사',1500);}catch(e){document.execCommand('copy');}};
+document.getElementById('clearBtn').onclick=()=>{if(confirm('모든 선택을 지울까요?')){state={q:{},c:{}};save();renderPanels();renderConcepts;renderTabs();updateSum();active=tabDefs[0].id;renderTabs();renderPanels();}};
+
+renderTabs();renderPanels();
+</script>
+</body>
+</html>

@@ -9,8 +9,8 @@
 /* ---- 3D 리볼버 드럼 ---- */
 .drum {
   position: relative;
-  height: 300px;
-  perspective: 780px;
+  height: 252px;
+  perspective: 720px;
   /* 위/아래 가장자리 페이드 → 회전이 안개 속으로 드나드는 느낌 */
   -webkit-mask-image: linear-gradient(180deg, transparent, #000 23%, #000 77%, transparent);
   mask-image: linear-gradient(180deg, transparent, #000 23%, #000 77%, transparent);

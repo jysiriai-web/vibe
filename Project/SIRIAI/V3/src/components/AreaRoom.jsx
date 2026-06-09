@@ -46,7 +46,7 @@ export default function AreaRoom({ area, activeQ, onOpenQuestion, onBack, meta }
                 src={area.hero.image}
                 alt={area.hero.imageAlt}
                 caption={area.hero.imageCaption}
-                ratio="4 / 3"
+                ratio="9 / 16"
               />
               {area.proof?.length > 0 && (
                 <ul className="room__proof">
