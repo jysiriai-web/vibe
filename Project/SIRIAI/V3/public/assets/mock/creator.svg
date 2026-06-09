@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600" role="img" aria-label="크리에이터 콘텐츠 비주얼(가상)">
+  <defs>
+    <linearGradient id="cw" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8ead9"/>
+      <stop offset="0.55" stop-color="#f3eee2"/>
+      <stop offset="1" stop-color="#ece3d1"/>
+    </linearGradient>
+    <radialGradient id="cg1" cx="0.26" cy="0.28" r="0.5">
+      <stop offset="0" stop-color="#f6c9a8" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#f6c9a8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="cg2" cx="0.82" cy="0.2" r="0.5">
+      <stop offset="0" stop-color="#ddd0ef" stop-opacity="0.8"/>
+      <stop offset="1" stop-color="#ddd0ef" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="cg3" cx="0.7" cy="0.95" r="0.6">
+      <stop offset="0" stop-color="#ffe0c4" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#ffe0c4" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#cw)"/>
+  <rect width="800" height="600" fill="url(#cg1)"/>
+  <rect width="800" height="600" fill="url(#cg2)"/>
+  <rect width="800" height="600" fill="url(#cg3)"/>
+  <!-- 소프트 보케 -->
+  <circle cx="612" cy="150" r="120" fill="#fff" opacity="0.28"/>
+  <circle cx="170" cy="430" r="92" fill="#fff" opacity="0.22"/>
+  <!-- 크리에이터 실루엣 3 -->
+  <g fill="#211a33">
+    <g opacity="0.10" transform="translate(250 360)">
+      <circle cx="0" cy="-70" r="46"/>
+      <path d="M-86 96c0-58 38-92 86-92s86 34 86 92z"/>
+    </g>
+    <g opacity="0.16" transform="translate(430 330)">
+      <circle cx="0" cy="-78" r="52"/>
+      <path d="M-96 104c0-64 42-100 96-100s96 36 96 100z"/>
+    </g>
+    <g opacity="0.10" transform="translate(600 372)">
+      <circle cx="0" cy="-66" r="42"/>
+      <path d="M-80 90c0-54 36-86 80-86s80 32 80 86z"/>
+    </g>
+  </g>
+  <!-- 잉크 알약 한 점(브랜드 강조) -->
+  <rect x="328" y="486" width="144" height="30" rx="15" fill="#211a33"/>
+  <line x1="64" y1="64" x2="736" y2="64" stroke="#211a33" stroke-opacity="0.12"/>
+</svg>

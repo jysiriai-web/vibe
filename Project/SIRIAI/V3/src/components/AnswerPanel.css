@@ -73,14 +73,22 @@
 
 /* ===== AnswerVisual 공용 스타일 ===================================== */
 
-/* diagram (SVG) */
+/* diagram (SVG) — 1화면 답변을 위해 높이 캡 */
 .av-diagram {
   border-radius: var(--r-sm);
   overflow: hidden;
   border: var(--bw) solid var(--line);
   background: var(--surface);
+  display: flex;
+  justify-content: center;
 }
-.av-diagram img { width: 100%; height: auto; display: block; }
+.av-diagram img {
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  max-height: 26vh;
+  display: block;
+}
 .av-cap {
   padding: 10px var(--s-4);
   font-size: 13px;

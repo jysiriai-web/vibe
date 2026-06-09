@@ -1,11 +1,16 @@
+/* 영역 룸 — 스크롤 없이 1뷰포트에 담는 flex 컬럼 레이아웃 */
 .room {
-  max-width: var(--maxw);
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  gap: var(--s-5);
   animation: fadeIn var(--t-med) var(--ease) both;
 }
 
-.room__head { margin-bottom: var(--s-7); }
-.room__eyebrow { margin-bottom: var(--s-4); color: var(--ink-3); }
+/* ---- compact 헤더 ---- */
+.room__head { flex: none; }
+.room__eyebrow { margin-bottom: var(--s-2); color: var(--ink-3); }
 .room__headline {
   font-family: var(--f-kr);
   font-weight: var(--w-semibold);
@@ -13,49 +18,56 @@
   line-height: var(--lh-head);
   letter-spacing: var(--tracking-head);
   white-space: pre-line;
+  word-break: keep-all;
   color: var(--ink);
 }
 .room__sub {
-  margin-top: var(--s-4);
+  margin-top: var(--s-3);
   font-size: var(--fs-lead);
   color: var(--ink-2);
+  max-width: 36em;
 }
 
-/* ---- 2단 그리드 ---- */
+/* ---- 중앙 2단: 남은 높이를 채운다 ---- */
 .room__grid {
+  flex: 1;
+  min-height: 0;
   display: grid;
-  grid-template-columns: minmax(280px, 0.85fr) 1.15fr;
+  grid-template-columns: minmax(260px, 0.82fr) 1.18fr;
   gap: var(--s-7);
-  align-items: start;
-  min-height: 440px;
+  align-items: center;
 }
-@media (max-width: 900px) {
-  .room__grid { grid-template-columns: 1fr; gap: var(--s-6); min-height: 0; }
+/* 답변이 열리면 상단 정렬 → 긴 답변도 위에서부터 한 화면에 들어온다 */
+.room__grid.is-answer { align-items: start; }
+.room__grid.is-answer .room__right { align-items: flex-start; }
+
+.room__left { position: relative; min-width: 0; min-height: 0; }
+.room__right { min-width: 0; min-height: 0; display: flex; align-items: center; }
+
+/* 좌측 인트로(비주얼+수치) */
+.room__intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  animation: fadeIn var(--t-med) var(--ease) both;
 }
-
-/* 좌측 컨텍스트 */
-.room__left { position: relative; }
-
-.room__intro { animation: fadeIn var(--t-med) var(--ease) both; }
 .room__proof {
-  margin-top: var(--s-5);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--s-4) var(--s-5);
+  gap: var(--s-3) var(--s-5);
 }
-.room__proof li { display: flex; flex-direction: column; gap: 4px; }
+.room__proof li { display: flex; flex-direction: column; gap: 2px; }
 .room__proof-v {
   font-family: var(--f-en);
   font-weight: var(--w-bold);
-  font-size: 26px;
+  font-size: clamp(20px, 1.9vw, 26px);
   letter-spacing: -0.02em;
   color: var(--ink);
 }
 .room__proof-l { color: var(--ink-3); }
 
+/* 질문 열렸을 때 좌측 컨텍스트 */
 .room__context {
-  position: sticky;
-  top: calc(var(--header-h) + var(--s-5));
   padding: var(--s-5);
   border-radius: var(--r-md);
   border: var(--bw) solid var(--line);
@@ -81,33 +93,48 @@
 }
 .room__back:hover { color: var(--ink); }
 
-/* 우측 영역 최소 높이로 캐러셀 마스킹 영역 확보 */
-.room__right { min-width: 0; }
-
-/* ---- 서비스 ---- */
-.room__services { margin-top: var(--s-9); }
-.room__section-label { color: var(--ink-3); margin-bottom: var(--s-5); }
-.room__service-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: var(--s-4);
-}
-.service-card {
+/* ---- 슬림 푸터: 서비스 · 브랜드 · CTA ---- */
+.room__foot {
+  flex: none;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: var(--s-5);
-  border-radius: var(--r-sm);
-  border: var(--bw) solid var(--line);
-  background: rgba(255, 255, 255, 0.4);
-  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+  gap: var(--s-3);
+  padding-top: var(--s-4);
+  border-top: var(--bw) solid var(--line);
 }
-.service-card:hover { border-color: var(--line-strong); background: var(--glass-bg); }
-.service-card__en { color: var(--ink-3); }
-.service-card__name {
+.room__foot-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3) var(--s-5);
+}
+.room__svc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.svc-pill {
   font-family: var(--f-kr);
-  font-weight: var(--w-semibold);
-  font-size: 15px;
-  color: var(--ink);
+  font-size: 12.5px;
+  font-weight: var(--w-medium);
+  color: var(--ink-2);
+  padding: 5px 12px;
+  border-radius: var(--r-pill);
+  border: var(--bw) solid var(--line);
+  background: rgba(255, 255, 255, 0.35);
+  white-space: nowrap;
+  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
 }
-.service-card__blurb { font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }
+.svc-pill:hover { color: var(--ink); border-color: var(--line-strong); }
+.room__brands { color: var(--ink-3); white-space: nowrap; }
+
+/* ---- 반응형: 화면이 좁거나 낮으면 자연 흐름(스크롤 허용) ---- */
+@media (max-width: 900px) {
+  .room { height: auto; gap: var(--s-6); }
+  .room__grid { grid-template-columns: 1fr; gap: var(--s-5); align-items: start; }
+  .room__foot-meta { justify-content: flex-start; }
+}
+@media (max-height: 720px) and (min-width: 901px) {
+  .room { height: auto; }
+}

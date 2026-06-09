@@ -77,9 +77,9 @@ export const content = {
         eyebrow: 'Siriai Influencer System',
         headline: '시리아이의 크리에이터 콘텐츠는\n본질적으로 다릅니다',
         sub: '가입자 풀이 아니라, 당신께 맞는 사람을.',
-        image: '', // 인플루언서 비주얼 — 실사진은 핸드오프/Figma 단계. 지금은 캡션 placeholder
-        imageAlt: '인플루언서 이미지',
-        imageCaption: '인플루언서 비주얼 — 실사진 합류 예정',
+        image: '/assets/mock/creator.svg', // 가상 비주얼(목업) — 실사진은 핸드오프 단계에서 교체
+        imageAlt: '크리에이터 콘텐츠 비주얼',
+        imageCaption: '크리에이터 콘텐츠 — 가상 비주얼(목업)',
       },
 
       // 검증된 숫자만 (단가·미검증 수치 제외)
@@ -330,9 +330,9 @@ export const content = {
         eyebrow: 'Architecting',
         headline: '당신이 놓친 건 예산이 아니라,\n비어 있는 ‘자리’입니다',
         sub: '틀 없이 니즈를 해결하는 problem solver 집단.',
-        image: '',
-        imageAlt: '비즈니스 컨설팅 이미지',
-        imageCaption: '넓은 인사이트를, 빠르게 구조로',
+        image: '/assets/mock/consulting.svg',
+        imageAlt: '비즈니스 컨설팅 비주얼',
+        imageCaption: '넓은 인사이트를, 빠르게 구조로 — 가상 비주얼(목업)',
       },
 
       qna: [
@@ -409,9 +409,9 @@ export const content = {
         eyebrow: 'sa:ai · Software Engineering',
         headline: '관계에서 시작해 데이터로 확장하고,\n기록으로 증명합니다',
         sub: 'Creators remember us.',
-        image: '',
-        imageAlt: '소프트웨어 엔지니어링 이미지',
-        imageCaption: 'Performance · Creative · Archivo',
+        image: '/assets/mock/software.svg',
+        imageAlt: '소프트웨어 엔지니어링 비주얼',
+        imageCaption: 'Performance · Creative · Archivo — 가상 비주얼(목업)',
       },
 
       proof: [

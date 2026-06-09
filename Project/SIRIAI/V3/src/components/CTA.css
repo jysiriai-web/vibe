@@ -22,20 +22,20 @@
   background: var(--glass-bg);
 }
 
-/* band (분야 하단 풀폭) */
+/* band (분야 하단 슬림 풀폭 — 1뷰포트 푸터용) */
 .cta--band {
-  margin-top: var(--s-10);
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
-  gap: var(--s-6);
-  padding: var(--s-7);
+  gap: var(--s-5);
+  padding: var(--s-4) var(--s-5);
   border-radius: var(--r-md);
   border: var(--bw) solid var(--line-strong);
   background:
     radial-gradient(80% 120% at 0% 0%, var(--lilac), transparent 60%),
     var(--glass-bg);
 }
+.cta--band .cta__en { display: none; } /* 슬림 밴드: 국문 한 줄만 */
 .cta--band .cta__note { grid-column: 1 / -1; }
 @media (max-width: 720px) {
   .cta--band { grid-template-columns: 1fr; }

@@ -9,6 +9,10 @@
   box-sizing: border-box;
 }
 
+/* 스크롤바 전역 숨김 (스크롤은 휠/키/터치로 — 어떤 비율에서도 바 미노출) */
+* { scrollbar-width: none; -ms-overflow-style: none; }
+*::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
 html,
 body,
 #root {
@@ -69,16 +73,6 @@ img {
   border-radius: 4px;
 }
 
-/* ---- 공통 라벨 (JetBrains Mono, UPPERCASE, 넓은 자간) ---- */
-.label-mono {
-  font-family: var(--f-mono);
-  font-size: var(--fs-label);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  color: var(--ink-3);
-  font-weight: var(--w-medium);
-}
-
 /* 영문 전용 표기 (Siriai influencer system 등) */
 .en {
   font-family: var(--f-en);
@@ -87,6 +81,17 @@ img {
 /* 일문 표기 (知り合い) */
 .jp {
   font-family: var(--f-jp);
+}
+
+/* ---- 공통 라벨 (JetBrains Mono, UPPERCASE, 넓은 자간) ----
+   ⚠️ .en / .jp 보다 뒤에 정의 — 'en label-mono'처럼 겹쳐도 라벨은 항상 모노. */
+.label-mono {
+  font-family: var(--f-mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: var(--w-medium);
 }
 
 /* 스크린리더 전용 */

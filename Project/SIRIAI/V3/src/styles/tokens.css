@@ -52,14 +52,15 @@
   --f-jp: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Noto Sans JP', sans-serif;
   --f-body: var(--f-kr); /* 본문 기본은 국문 Pretendard */
 
-  --fs-display: clamp(34px, 5.6vw, 78px); /* 히어로 (국문 헤드라인 스케일) */
-  --fs-h1: clamp(28px, 4.2vw, 56px);
-  --fs-h2: clamp(22px, 2.8vw, 38px);
-  --fs-h3: clamp(18px, 1.6vw, 22px);
-  --fs-lead: clamp(15px, 1.4vw, 20px);
-  --fs-body: 16px;
-  --fs-sm: 14px;
-  --fs-label: 11.5px;  /* JetBrains Mono 라벨 */
+  /* 타입 스케일 — 홈페이지(shiny-pithivier) 실측에 정렬: 헤딩 작고 정제, vw 계수 낮춤 */
+  --fs-display: clamp(30px, 4.4vw, 58px); /* 히어로 */
+  --fs-h1: clamp(23px, 2.8vw, 40px);      /* 분야 헤드라인 (작게) */
+  --fs-h2: clamp(20px, 2.2vw, 30px);
+  --fs-h3: clamp(17px, 1.5vw, 21px);
+  --fs-lead: clamp(14px, 1.1vw, 17px);
+  --fs-body: 15.5px;
+  --fs-sm: 13.5px;
+  --fs-label: 11px;  /* JetBrains Mono 라벨 */
 
   --lh-tight: 1.08;
   --lh-head: 1.16;

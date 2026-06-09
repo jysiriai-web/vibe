@@ -1,19 +1,24 @@
-.carousel { position: relative; }
+.carousel { position: relative; width: 100%; }
 
 .carousel__hint {
   color: var(--ink-3);
-  margin-bottom: var(--s-5);
+  margin-bottom: var(--s-4);
+  text-align: center;
 }
 
-/* ---- 리볼버 휠 ---- */
-.wheel {
-  --slot: 66px;
+/* ---- 3D 리볼버 드럼 ---- */
+.drum {
   position: relative;
-  height: calc(var(--slot) * 5.4);
-  overflow: hidden;
+  height: 300px;
+  perspective: 780px;
   /* 위/아래 가장자리 페이드 → 회전이 안개 속으로 드나드는 느낌 */
-  -webkit-mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
-  mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 23%, #000 77%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 23%, #000 77%, transparent);
+}
+.drum__stage {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
 }
 
 /* 공통 칩 */
@@ -24,7 +29,7 @@
   font-weight: var(--w-medium);
   letter-spacing: -0.01em;
   color: var(--ink);
-  padding: 13px 22px;
+  padding: 12px 22px;
   border-radius: var(--r-pill);
   border: var(--bw) solid var(--line);
   background: var(--glass-bg);
@@ -34,22 +39,24 @@
   white-space: nowrap;
 }
 
-/* 휠 위에 절대배치되는 칩 (transform/opacity는 인라인으로 제어) */
-.wheel__chip {
+/* 실린더 표면에 붙는 칩 (transform/opacity는 인라인 제어) */
+.drum__chip {
   position: absolute;
   left: 50%;
   top: 50%;
+  transform-origin: center center;
   will-change: transform, opacity;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
-/* 중심(전면) 칩 — 크기는 scale로 통일, 또렷함은 면/보더/그림자로만 */
-.wheel__chip.is-active {
+/* 전면 칩 — 가장 또렷 */
+.drum__chip.is-active {
   background: var(--surface);
   border-color: var(--line-strong);
   box-shadow: var(--shadow-pop);
 }
-
-.wheel__chip:hover {
+.drum__chip:hover {
   background: var(--surface);
   border-color: var(--line-strong);
 }
@@ -59,6 +66,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--s-3);
-  align-items: flex-start;
+  align-items: center;
 }
-.carousel__static .qchip { white-space: normal; text-align: left; }
+.carousel__static .qchip { white-space: normal; }
