@@ -46,12 +46,15 @@ export default function Sidebar({ areas, activeAreaId, history, onPickArea, onPi
               return (
                 <li key={area.id}>
                   <button
-                    className={`sidebar__area ${active ? 'is-active' : ''} ${ready ? '' : 'is-soon'}`}
-                    onClick={() => onPickArea(area.id)}
+                    className={`sidebar__area ${active ? 'is-active' : ''} ${ready ? '' : 'is-locked'}`}
+                    onClick={ready ? () => onPickArea(area.id) : undefined}
+                    disabled={!ready}
+                    aria-disabled={!ready}
+                    title={ready ? undefined : '준비 중 — 2026 공개 예정'}
                   >
                     <span className="sidebar__area-icon" aria-hidden="true">{ICONS[area.id]}</span>
                     <span className="sidebar__area-title">{area.title}</span>
-                    {!ready && <span className="sidebar__area-dot" aria-hidden="true" />}
+                    {!ready && <span className="sidebar__area-lock label-mono">2026</span>}
                   </button>
                 </li>
               )

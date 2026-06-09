@@ -52,18 +52,29 @@
 .sidebar__area.is-active .sidebar__area-icon { color: var(--ink); }
 .sidebar__area-title {
   font-family: var(--f-kr);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: var(--w-medium);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.012em;
+  white-space: nowrap;        /* 한 줄 고정 */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .sidebar__area.is-active .sidebar__area-title { font-weight: var(--w-semibold); }
-.sidebar__area.is-soon { color: var(--ink-3); }
-.sidebar__area.is-soon .sidebar__area-icon { color: var(--coming); }
-.sidebar__area.is-soon:hover { color: var(--ink-2); }
-.sidebar__area-dot {
-  width: 5px; height: 5px; border-radius: 50%;
+
+/* 잠금(준비중) 분야 — 클릭 불가 + 사유 표시 */
+.sidebar__area.is-locked {
+  color: var(--ink-3);
+  cursor: default;
+}
+.sidebar__area.is-locked .sidebar__area-icon { color: var(--coming); }
+.sidebar__area.is-locked:hover { background: transparent; color: var(--ink-3); }
+.sidebar__area-lock {
   margin-left: auto;
-  background: var(--line-strong);
+  color: var(--ink-3);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-pill);
+  padding: 2px 8px;
+  font-size: 10px;
 }
 
 /* ---- 히스토리 ---- */
