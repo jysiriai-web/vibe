@@ -135,6 +135,76 @@ def _build_override_index():
     return idx
 
 
+def _build_master_email_index(sh) -> dict:
+    """마스터 브랜드명 → 이메일(연락처) 역색인. 기존 DB 재활용(토큰 0)."""
+    from coldmail import config, email_find, normalize
+
+    _, vals, hi, hdr = _load_tab(sh, config.MASTER_TAB)
+    bi, di = hdr.index("브랜드명"), hdr.index("연락처")
+    idx: dict = {}
+    for r in vals[hi + 1 :]:
+        if len(r) <= max(bi, di):
+            continue
+        b, raw = r[bi].strip(), r[di].strip()
+        if not b or "@" not in raw:
+            continue
+        ems = email_find.extract(raw)  # "a@x / b@x" → 첫 후보
+        if not ems:
+            continue
+        for k in normalize.keys(b):
+            idx.setdefault(k, ems[0])
+    return idx
+
+
+def cmd_renumber(args) -> int:
+    """A열 '#' 을 데이터 순서대로 1..N 재번호. 기본 dry-run."""
+    from coldmail import sheets
+
+    if not args.tab:
+        print("--tab 을 지정하세요 (예: --renumber --tab 6월)")
+        return 2
+    sh = sheets.open_sheet()
+    ws, vals, hi, hdr = _load_tab(sh, args.tab)
+    ai = hdr.index("#") if "#" in hdr else 0
+
+    updates, changed = [], 0
+    n = 0
+    for off, r in enumerate(vals[hi + 1 :]):
+        if not any(c.strip() for c in r):
+            continue
+        n += 1
+        row = hi + 2 + off
+        cur = r[ai].strip() if len(r) > ai else ""
+        if cur != str(n):
+            changed += 1
+            updates.append({"range": f"{_col_letter(ai)}{row}", "values": [[n]]})
+
+    print(f"[{args.tab}] 데이터 {n}행, # 불일치 {changed}건 (dry-run)")
+    for u in updates[:5]:
+        print(f"   {u['range']} → {u['values'][0][0]}")
+    if len(updates) > 5:
+        print(f"   … 외 {len(updates) - 5}건")
+
+    if not args.apply:
+        print("  [DRY-RUN] 쓰기 없음. 실제 반영: --renumber --tab "
+              f"{args.tab} --apply --yes")
+        return 0
+    if not updates:
+        print("  이미 번호가 맞습니다.")
+        return 0
+    if not args.yes:
+        print("  [중단] 실제 쓰기는 --yes 동반 필요.")
+        return 0
+
+    from coldmail import backup
+
+    bpath, cnt = backup.backup_tab(ws, args.tab)
+    print(f"\n  백업 완료: {bpath}  ({cnt}행)")
+    sheets.with_backoff(lambda: ws.batch_update(updates, value_input_option="RAW"))
+    print(f"  기록 완료: {_col_letter(ai)}열 {len(updates)}개 셀 (#).")
+    return 0
+
+
 def cmd_category(args) -> int:
     """월별 탭의 빈 구분(B열)을 보정 사전 → 마스터 라벨 순으로 채운다. 기본 dry-run."""
     from coldmail import normalize, sheets
@@ -244,6 +314,11 @@ def cmd_email(args) -> int:
         print("연락처/브랜드명 열을 찾지 못했습니다.")
         return 2
 
+    from collections import Counter
+
+    m_email = _build_master_email_index(sh)  # 기존 DB 이메일 (토큰 0)
+    print(f"마스터 이메일 인덱스: {len(m_email)} 키 / findings: {len(f_idx)} 키\n")
+
     plan = []  # (row, brand, action, email, source, note, conf)
     for off, r in enumerate(vals[hi + 1 :]):
         row = hi + 2 + off
@@ -253,7 +328,12 @@ def cmd_email(args) -> int:
         cur = r[di].strip() if len(r) > di else ""
         if not brand or cur:  # 브랜드 없거나 이미 이메일 있음 → 건너뜀
             continue
-        info = next((f_idx[k] for k in normalize.keys(brand) if k in f_idx), None)
+        keys = normalize.keys(brand)
+        mem = next((m_email[k] for k in keys if k in m_email), None)
+        if mem:  # 1) 마스터(브랜드에셋) — 토큰 0
+            plan.append((row, brand, "FILL", mem, "기존DB", "브랜드에셋 매칭", "높음"))
+            continue
+        info = next((f_idx[k] for k in keys if k in f_idx), None)  # 2) findings 캐시
         if not info:
             plan.append((row, brand, "확인필요", "", "", "탐색결과 없음", ""))
             continue
@@ -266,14 +346,20 @@ def cmd_email(args) -> int:
         else:
             plan.append((row, brand, "미확보", "", info.get("source", ""), note, conf))
 
-    print(f"[{args.tab}] 이메일 빈 행: {len(plan)}건\n")
-    print("   행 | 브랜드        | 동작     | 이메일                       | 신뢰 | 비고")
-    print("  ----+---------------+---------+------------------------------+------+------------------")
-    for row, brand, act, em, src, note, conf in plan:
-        print(f"  {row:>3} | {brand:<13} | {act:<7} | {em or '—':<28} | {conf or '—':<4} | {note}")
-
     fills = [(row, em, src, note) for (row, _b, act, em, src, note, _c) in plan if act == "FILL"]
-    print(f"\n  → 채움 {len(fills)}건, 미확보/확인필요 {len(plan) - len(fills)}건")
+    needs = [brand for (_r, brand, act, *_x) in plan if act == "확인필요"]
+    by_src = Counter(src for (_r, _b, act, _e, src, _n, _c) in plan if act == "FILL")
+
+    print(f"[{args.tab}] 이메일 빈 행: {len(plan)}건")
+    print(f"  채움 가능 {len(fills)}건 (출처별 {dict(by_src)}), 미확보/확인필요 {len(plan) - len(fills)}건\n")
+    if len(plan) <= 40:
+        print("   행 | 브랜드        | 동작     | 이메일                       | 신뢰")
+        print("  ----+---------------+---------+------------------------------+------")
+        for row, brand, act, em, src, note, conf in plan:
+            print(f"  {row:>3} | {brand:<13} | {act:<7} | {em or '—':<28} | {conf or '—'}")
+    elif needs:
+        print(f"  확인필요(마스터·findings 미존재 → 웹조사 필요) {len(needs)}건:")
+        print("   " + ", ".join(needs[:50]) + (f"  … 외 {len(needs) - 50}건" if len(needs) > 50 else ""))
 
     if not args.apply:
         print("  [DRY-RUN] 쓰기 없음. 실제 반영: --only email --tab "
@@ -329,6 +415,7 @@ def build_parser() -> argparse.ArgumentParser:
     mode.add_argument("--backup-only", action="store_true", help="스냅샷만 뜨고 종료")
 
     p.add_argument("--only", help="특정 단계만 실행 (예: category = 구분만)")
+    p.add_argument("--renumber", action="store_true", help="A열 # 을 데이터 순서대로 재번호")
     p.add_argument("--recheck", action="store_true", help="채워진 구분을 보정사전과 대조해 불일치 교정")
     p.add_argument("--clean", action="store_true", help="메모 분리·빈행 정리")
     p.add_argument("--purge-confirmed", action="store_true", help="삭제대상 실삭제")
@@ -346,6 +433,8 @@ def main(argv=None) -> int:
 
     if args.inspect:
         return cmd_inspect(args)
+    if args.renumber:
+        return cmd_renumber(args)
     if args.only == "category":
         return cmd_category(args)
     if args.only == "email":
