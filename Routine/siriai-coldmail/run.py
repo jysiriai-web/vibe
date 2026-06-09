@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from pathlib import Path
 
 # Windows 콘솔(cp949)에서도 한글이 깨지지 않도록 stdout/stderr 를 UTF-8 로 강제
 for _stream in (sys.stdout, sys.stderr):
@@ -202,6 +203,90 @@ def cmd_renumber(args) -> int:
     print(f"\n  백업 완료: {bpath}  ({cnt}행)")
     sheets.with_backoff(lambda: ws.batch_update(updates, value_input_option="RAW"))
     print(f"  기록 완료: {_col_letter(ai)}열 {len(updates)}개 셀 (#).")
+    return 0
+
+
+def cmd_delete_list(args) -> int:
+    """파일의 행 번호 목록을 삭제(백업 후 역순). 파일 각 줄 첫 탭 컬럼=행번호. 기본 dry-run."""
+    from coldmail import backup, sheets
+
+    if not args.tab or not args.file:
+        print("--tab 과 --file 둘 다 필요")
+        return 2
+    rows = []
+    for line in Path(args.file).read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        tok = line.split("\t")[0].strip()
+        if tok.isdigit():
+            rows.append(int(tok))
+    rows = sorted(set(rows))
+    sh = sheets.open_sheet()
+    ws = sh.worksheet(args.tab)
+    print(f"[{args.tab}] 삭제 대상 {len(rows)}행 (dry-run). 예: {rows[:8]}…")
+
+    if not args.apply:
+        print(f"  실제 삭제: --delete-list --file {args.file} --tab {args.tab} --apply --yes")
+        return 0
+    if not rows:
+        return 0
+    if not args.yes:
+        print("  [중단] --yes 필요")
+        return 0
+    bpath, n = backup.backup_tab(ws, args.tab)
+    print(f"  백업: {bpath} ({n}행)")
+    reqs = [{"deleteDimension": {"range": {"sheetId": ws.id, "dimension": "ROWS",
+            "startIndex": r - 1, "endIndex": r}}} for r in sorted(rows, reverse=True)]
+    sheets.with_backoff(lambda: ws.spreadsheet.batch_update({"requests": reqs}))
+    print(f"  삭제 완료: {len(rows)}행. → --renumber 권장")
+    return 0
+
+
+def cmd_fill_from(args) -> int:
+    """파일에서 셀 채움. 각 줄 'row<TAB>열헤더<TAB>값'. 빈 셀에만 쓴다. 기본 dry-run."""
+    from coldmail import backup, sheets
+
+    if not args.tab or not args.file:
+        print("--tab 과 --file 둘 다 필요")
+        return 2
+    sh = sheets.open_sheet()
+    ws, vals, hi, hdr = _load_tab(sh, args.tab)
+    cur = {hi + 2 + off: r for off, r in enumerate(vals[hi + 1 :])}
+
+    updates, skipped = [], 0
+    for line in Path(args.file).read_text(encoding="utf-8").splitlines():
+        if not line.strip() or line.startswith("#"):
+            continue
+        parts = line.split("\t")
+        if len(parts) < 3:
+            continue
+        row, col, val = int(parts[0]), parts[1].strip(), parts[2].strip()
+        if col not in hdr or not val:
+            continue
+        ci = hdr.index(col)
+        r = cur.get(row, [])
+        if len(r) > ci and r[ci].strip():  # 기존값 보존
+            skipped += 1
+            continue
+        updates.append({"range": f"{_col_letter(ci)}{row}", "values": [[val]]})
+
+    print(f"[{args.tab}] 채울 셀 {len(updates)}개 (기존값 {skipped}개 보존). dry-run")
+    for u in updates[:6]:
+        print(f"   {u['range']} = {u['values'][0][0]}")
+    if len(updates) > 6:
+        print(f"   … 외 {len(updates) - 6}개")
+
+    if not args.apply:
+        print(f"  실제 반영: --fill-from --file {args.file} --tab {args.tab} --apply --yes")
+        return 0
+    if not updates or not args.yes:
+        print("  [중단/없음] --yes 필요" if updates else "  채울 것 없음")
+        return 0
+    bpath, n = backup.backup_tab(ws, args.tab)
+    print(f"  백업: {bpath} ({n}행)")
+    sheets.with_backoff(lambda: ws.batch_update(updates, value_input_option="RAW"))
+    print(f"  기록 완료: {len(updates)}개 셀")
     return 0
 
 
@@ -530,6 +615,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--renumber", action="store_true", help="A열 # 을 데이터 순서대로 재번호")
     p.add_argument("--prune", action="store_true", help="중복 행 제거 + 순수 제조사 삭제 후보")
     p.add_argument("--list-todo", action="store_true", help="구분/이메일 빈 행 전체 출력")
+    p.add_argument("--delete-list", action="store_true", help="--file 의 행번호 목록 삭제")
+    p.add_argument("--fill-from", action="store_true", help="--file(row,열,값)에서 빈 셀 채움")
+    p.add_argument("--file", help="--delete-list/--fill-from 입력 파일")
     p.add_argument("--recheck", action="store_true", help="채워진 구분을 보정사전과 대조해 불일치 교정")
     p.add_argument("--clean", action="store_true", help="메모 분리·빈행 정리")
     p.add_argument("--purge-confirmed", action="store_true", help="삭제대상 실삭제")
@@ -549,6 +637,10 @@ def main(argv=None) -> int:
         return cmd_inspect(args)
     if args.list_todo:
         return cmd_list_todo(args)
+    if args.delete_list:
+        return cmd_delete_list(args)
+    if args.fill_from:
+        return cmd_fill_from(args)
     if args.prune:
         return cmd_prune(args)
     if args.renumber:
