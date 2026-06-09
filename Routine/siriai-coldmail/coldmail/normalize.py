@@ -22,6 +22,15 @@ def variants(raw: str) -> list[str]:
     return [p for p in (s.strip() for s in parts) if p]
 
 
+def one_key(raw: str) -> str:
+    """중복 판정용 단일 키 — 괄호 내용 제거 후 정규화(예: '오호라(글루가)' → '오호라')."""
+    s = re.sub(r"[（(].*?[）)]", "", raw or "")
+    for w in _SAFE_LEGAL:
+        s = s.replace(w, "")
+    s = unicodedata.normalize("NFC", s).lower()
+    return re.sub(r"[\s\W_]+", "", s, flags=re.UNICODE)
+
+
 def keys(raw: str) -> set[str]:
     out: set[str] = set()
     for v in variants(raw):

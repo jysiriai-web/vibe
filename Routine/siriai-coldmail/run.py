@@ -205,6 +205,91 @@ def cmd_renumber(args) -> int:
     return 0
 
 
+def cmd_prune(args) -> int:
+    """중복 제거 + 순수 제조사 삭제 후보 산출. 기본 dry-run. 삭제는 백업 후 역순."""
+    from collections import defaultdict
+
+    from coldmail import manufacturer, normalize, sheets
+
+    if not args.tab:
+        print("--tab 을 지정하세요 (예: --prune --tab 6월)")
+        return 2
+    sh = sheets.open_sheet()
+    ws, vals, hi, hdr = _load_tab(sh, args.tab)
+    bi = hdr.index("브랜드명")
+    di = hdr.index("연락처") if "연락처" in hdr else None
+
+    rows = []  # (row, brand, has_email)
+    for off, r in enumerate(vals[hi + 1 :]):
+        if not any(c.strip() for c in r):
+            continue
+        row = hi + 2 + off
+        brand = r[bi].strip() if len(r) > bi else ""
+        if not brand:
+            continue
+        has_email = bool(di is not None and len(r) > di and r[di].strip())
+        rows.append((row, brand, has_email))
+
+    # 1) 중복: one_key 그룹 — 이메일 있는 행 우선·낮은 행 유지, 나머지 삭제
+    groups = defaultdict(list)
+    for row, brand, has_email in rows:
+        groups[normalize.one_key(brand)].append((row, brand, has_email))
+    dup_del = []  # (row, brand, keep_row)
+    for members in groups.values():
+        if len(members) < 2:
+            continue
+        keep, *rest = sorted(members, key=lambda m: (not m[2], m[0]))
+        for row, brand, _e in rest:
+            dup_del.append((row, brand, keep[0]))
+    dup_rows = {r for r, _b, _k in dup_del}
+
+    # 2) 제조사: 중복으로 이미 빠질 행 제외
+    manuf_del = []  # (row, brand, reason)
+    for row, brand, _e in rows:
+        if row in dup_rows:
+            continue
+        is_m, reason = manufacturer.is_manufacturer(brand)
+        if is_m:
+            manuf_del.append((row, brand, reason))
+
+    print(f"[{args.tab}] 삭제 후보 — 중복 {len(dup_del)} + 제조사 {len(manuf_del)}\n")
+    print("【중복】 유지행 남기고 제거:")
+    for row, brand, keep in dup_del[:30]:
+        print(f"   {row:>3}행 {brand}  (유지 {keep}행)")
+    if len(dup_del) > 30:
+        print(f"   … 외 {len(dup_del) - 30}건")
+    print("\n【제조사 의심】 자체브랜드 있으면 제외 요청하세요:")
+    for row, brand, reason in manuf_del:
+        print(f"   {row:>3}행 {brand}  [{reason}]")
+
+    all_del = sorted(dup_rows | {r for r, _b, _r in manuf_del})
+    print(f"\n  → 삭제 예정 총 {len(all_del)}행 (중복 {len(dup_del)} + 제조사 {len(manuf_del)})")
+
+    if not args.apply:
+        print(f"  [DRY-RUN] 삭제 없음. 실제 삭제: --prune --tab {args.tab} --apply --yes")
+        return 0
+    if not all_del:
+        print("  삭제할 행이 없습니다.")
+        return 0
+    if not args.yes:
+        print("  [중단] 실제 삭제는 --yes 동반 필요.")
+        return 0
+
+    from coldmail import backup
+
+    bpath, n = backup.backup_tab(ws, args.tab)
+    print(f"\n  백업 완료: {bpath}  ({n}행)")
+    requests = [
+        {"deleteDimension": {"range": {
+            "sheetId": ws.id, "dimension": "ROWS",
+            "startIndex": row - 1, "endIndex": row}}}
+        for row in sorted(all_del, reverse=True)  # 역순(아래→위)
+    ]
+    sheets.with_backoff(lambda: ws.spreadsheet.batch_update({"requests": requests}))
+    print(f"  삭제 완료: {len(all_del)}행. → 이어서 `--renumber` 권장.")
+    return 0
+
+
 def cmd_category(args) -> int:
     """월별 탭의 빈 구분(B열)을 보정 사전 → 마스터 라벨 순으로 채운다. 기본 dry-run."""
     from coldmail import normalize, sheets
@@ -416,6 +501,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p.add_argument("--only", help="특정 단계만 실행 (예: category = 구분만)")
     p.add_argument("--renumber", action="store_true", help="A열 # 을 데이터 순서대로 재번호")
+    p.add_argument("--prune", action="store_true", help="중복 행 제거 + 순수 제조사 삭제 후보")
     p.add_argument("--recheck", action="store_true", help="채워진 구분을 보정사전과 대조해 불일치 교정")
     p.add_argument("--clean", action="store_true", help="메모 분리·빈행 정리")
     p.add_argument("--purge-confirmed", action="store_true", help="삭제대상 실삭제")
@@ -433,6 +519,8 @@ def main(argv=None) -> int:
 
     if args.inspect:
         return cmd_inspect(args)
+    if args.prune:
+        return cmd_prune(args)
     if args.renumber:
         return cmd_renumber(args)
     if args.only == "category":
