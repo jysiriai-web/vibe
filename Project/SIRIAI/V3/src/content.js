@@ -27,8 +27,8 @@ export const content = {
     hub: {
       eyebrow: 'Business Areas',
       title: '무엇을 찾고 계신가요?',
-      sub: '필요한 분야를 고르면, 궁금한 질문부터 꺼내 보여드립니다.',
-      enterLabel: '들어가기 →',
+      sub: '분야를 고르면, 궁금한 질문부터 꺼내 드립니다.',
+      enterLabel: '들어가기',
       comingLabel: 'SOON',    // 카드 상태칩 (상투어 회피)
       soonLabel: ' — 곧 공개', // coming_soon 카드 aria 보조 (스크린리더)
     },

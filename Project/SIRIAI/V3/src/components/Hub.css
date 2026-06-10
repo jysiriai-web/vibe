@@ -40,11 +40,12 @@
 /* ---- 카드 ---- */
 .hub-card {
   position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: var(--s-6);
-  min-height: 280px;
+  gap: var(--s-5);
+  min-height: 268px;
   text-align: left;
   padding: var(--s-5);
   border-radius: var(--r-md);
@@ -57,18 +58,49 @@
   animation: fadeUp var(--t-med) var(--ease) both;
   animation-delay: calc(var(--i) * 70ms);
 }
+/* 카드별 옅은 웜 워시 — 호버 시 떠오르며 분야마다 다른 온도 */
+.hub-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity var(--t-med) var(--ease);
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 0% 0%, var(--card-wash, var(--peach)), transparent 62%);
+}
+.hub-card--ready:hover::before { opacity: 1; }
+.hub-card:nth-child(1) { --card-wash: var(--peach); }
+.hub-card:nth-child(2) { --card-wash: var(--lilac); }
+.hub-card:nth-child(3) { --card-wash: var(--cream); }
+.hub-card:nth-child(4) { --card-wash: var(--lilac); }
 
+/* 상단: 색인 번호 + 화살표/뱃지 */
+.hub-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 .hub-card__no {
   font-family: var(--f-serif); /* Bodoni — 드문 에디토리얼 색인 악센트 */
-  font-size: 30px;
+  font-size: 38px;
   font-weight: var(--w-medium);
   line-height: 1;
   letter-spacing: 0;
   color: var(--ink-3);
+  transition: color var(--t-med) var(--ease);
 }
 .hub-card--ready:hover .hub-card__no { color: var(--ink); }
+.hub-card__arrow {
+  font-size: 18px;
+  color: var(--ink-3);
+  transform: translateX(-2px);
+  opacity: 0;
+  transition: opacity var(--t-fast) var(--ease), transform var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.hub-card--ready:hover .hub-card__arrow { opacity: 1; transform: translateX(0); color: var(--ink); }
 
-.hub-card__body { display: flex; flex-direction: column; gap: var(--s-2); }
+.hub-card__body { display: flex; flex-direction: column; gap: var(--s-1); position: relative; }
 .hub-card__title {
   font-family: var(--f-kr);
   font-weight: var(--w-semibold);
@@ -82,15 +114,40 @@
   color: var(--ink-3);
 }
 .hub-card__line {
-  margin-top: var(--s-2);
+  margin-top: var(--s-3);
   font-size: var(--fs-sm);
   line-height: 1.55;
   color: var(--ink-2);
 }
-.hub-card__foot { color: var(--ink-3); }
+
+/* 푸터 — 같은 칸에서 "들어가기" ↔ 첫 질문 크로스페이드 (레이아웃 점프 없음) */
+.hub-card__foot {
+  position: relative;
+  min-height: 1.5em;
+  font-size: var(--fs-sm);
+}
+.hub-card__foot-default,
+.hub-card__foot-peek {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transition: opacity var(--t-med) var(--ease);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hub-card__foot-default { color: var(--ink-3); }
+.hub-card__foot-peek {
+  font-family: var(--f-kr);
+  color: var(--ink);
+  opacity: 0;
+}
+.hub-card--ready:hover .hub-card__foot-default { opacity: 0; }
+.hub-card--ready:hover .hub-card__foot-peek { opacity: 1; }
+
 /* coming_soon 상태 뱃지 (작은 알약) */
 .hub-card__badge {
-  align-self: flex-start;
   padding: 4px 11px;
   border-radius: var(--r-pill);
   border: 1px solid var(--line-strong);
@@ -105,7 +162,6 @@
   box-shadow: var(--shadow);
   border-color: var(--line-strong);
 }
-.hub-card--ready:hover .hub-card__foot { color: var(--ink); }
 
 /* coming_soon: 흐림 + 절제된 표식 (상투어 없이) */
 .hub-card--soon {
