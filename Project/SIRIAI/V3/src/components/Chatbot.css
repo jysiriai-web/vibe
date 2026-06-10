@@ -11,6 +11,7 @@
 
 /* FAB */
 .bot__fab {
+  position: relative;
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -22,6 +23,18 @@
   transition: transform var(--t-fast) var(--ease);
 }
 .bot__fab:hover { transform: translateY(-2px) scale(1.04); }
+/* 알림 점 — "물어보세요" 신호 (닫혀 있을 때만) */
+.bot__fab-dot {
+  position: absolute;
+  top: 11px;
+  right: 12px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #5a9b78;
+  border: 2px solid var(--ink);
+  animation: botPulse 2.2s var(--ease) infinite;
+}
 
 /* 패널 */
 .bot__panel {
@@ -51,8 +64,40 @@
   -webkit-backdrop-filter: var(--glass-blur);
   backdrop-filter: var(--glass-blur);
 }
-.bot__title { font-family: var(--f-kr); font-weight: var(--w-semibold); font-size: 15px; color: var(--ink); }
+.bot__head-id { display: flex; align-items: center; gap: var(--s-3); }
+.bot__title {
+  display: flex;
+  align-items: center;
+  font-family: var(--f-kr);
+  font-weight: var(--w-semibold);
+  font-size: 15px;
+  color: var(--ink);
+}
 .bot__subtitle { color: var(--ink-3); margin-top: 2px; }
+/* 온라인 상태 — 차분한 세이지 점 + 부드러운 펄스 */
+.bot__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 8px;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  font-weight: var(--w-normal);
+  color: var(--ink-3);
+  letter-spacing: 0.02em;
+}
+.bot__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #5a9b78;
+  box-shadow: 0 0 0 0 rgba(90, 155, 120, 0.5);
+  animation: botPulse 2.2s var(--ease) infinite;
+}
+@keyframes botPulse {
+  0% { box-shadow: 0 0 0 0 rgba(90, 155, 120, 0.45); }
+  70%, 100% { box-shadow: 0 0 0 5px rgba(90, 155, 120, 0); }
+}
 .bot__close { color: var(--ink-3); font-size: 14px; width: 28px; height: 28px; border-radius: 50%; }
 .bot__close:hover { background: var(--ink-ghost); color: var(--ink); }
 
@@ -70,8 +115,32 @@
 .bubble-row--user { align-items: flex-end; }
 .bubble-row--bot { align-items: flex-start; }
 
+/* 아바타 + 버블 한 줄 (봇은 아바타 노출, 유저는 버블만) */
+.bubble-line {
+  display: flex;
+  gap: var(--s-2);
+  align-items: flex-start;
+  width: fit-content;
+  max-width: 92%;
+}
+
+/* 시리아이 아바타 (스파크 마크) */
+.bot__avatar {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  margin-top: 2px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--ink);
+  color: var(--paper);
+}
+.bot__avatar--lg { width: 36px; height: 36px; }
+.bot__avatar--lg svg { width: 16px; height: 16px; }
+
 .bubble {
-  max-width: 86%;
+  max-width: 100%;
   padding: 11px 15px;
   border-radius: 16px;
   font-size: 14px;
@@ -96,8 +165,36 @@
 }
 .bubble__cta { margin-top: var(--s-3); }
 
+/* 사람(담당자)에게 바로 연결 — 특이 질문 폴백에서 노출 */
+.bubble__escalate {
+  margin-top: var(--s-4);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-2);
+}
+.escalate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--f-kr);
+  font-size: 13px;
+  font-weight: var(--w-medium);
+  color: var(--paper);
+  background: var(--ink);
+  padding: 9px 15px;
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-soft);
+  transition: transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.escalate-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+.escalate-btn svg { width: 12px; height: 12px; }
+.escalate-alt { color: var(--ink-3); }
+.escalate-alt:hover { color: var(--ink); text-decoration: underline; }
+
 /* 추천 칩 */
 .bot__sugs { display: flex; flex-wrap: wrap; gap: var(--s-2); max-width: 92%; }
+.bubble-row--bot .bot__sugs { padding-left: 34px; } /* 아바타 폭만큼 들여 버블과 정렬 */
 .bot__sugs-label { width: 100%; color: var(--ink-3); margin-bottom: 2px; }
 .sug {
   font-family: var(--f-kr);
@@ -160,4 +257,5 @@
 @media (prefers-reduced-motion: reduce) {
   .bot__panel { animation: none; }
   .bubble--typing span { animation: none; }
+  .bot__dot, .bot__fab-dot { animation: none; }
 }
