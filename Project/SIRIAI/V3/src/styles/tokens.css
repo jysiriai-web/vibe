@@ -62,6 +62,12 @@
   --fs-sm: 14px;
   --fs-label: 11.5px;  /* JetBrains Mono 라벨 */
 
+  /* 헤드라인 "읽고→접기" — 진입 시 크게 떠서 읽히고, 작게 줄어 상단에 박힌다.
+     resting = 부제(틀 없이 니즈를…) 정도로 작게. grow = 진입 시 확대 배율. */
+  --fs-head-rest: clamp(16px, 1.35vw, 20px);
+  --head-grow: 1.95;
+  --head-dur: 1.5s;
+
   --lh-tight: 1.08;
   --lh-head: 1.16;
   --lh-body: 1.6;

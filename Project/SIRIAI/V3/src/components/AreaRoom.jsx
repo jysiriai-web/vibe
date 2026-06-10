@@ -17,62 +17,62 @@ export default function AreaRoom({ area, activeQ, onOpenQuestion, onBack, meta }
 
   const activeQuestion = activeQ ? getQuestion(area, activeQ) : null
 
+  // ===== 답변 뷰: 선택한 질문이 곧 제목 → 크게 읽히고 접힘 → 아래 상세 설명 =====
+  if (activeQuestion) {
+    return (
+      <div className="room" key={area.id}>
+        <header className="room__head room__head--answer">
+          <button className="room__back" onClick={onBack}>← 질문 더 보기</button>
+          <h1 className="room__headline room__headline--q" key={activeQuestion.id}>
+            {activeQuestion.question}
+          </h1>
+        </header>
+
+        <div className="room__answerwrap" key={`a-${activeQuestion.id}`}>
+          <AnswerPanel
+            question={activeQuestion}
+            area={area}
+            meta={meta}
+            onOpenQuestion={onOpenQuestion}
+          />
+        </div>
+      </div>
+    )
+  }
+
+  // ===== 아이들 뷰: 영역 헤드라인(읽고→접기) + 레퍼런스 | 리볼버 + 강점 스트립 =====
   return (
     <div className="room" key={area.id}>
       {/* compact 헤더 — 좌: 타이틀 / 우: 협업 CTA */}
       <header className="room__head">
         <div className="room__head-text">
           <p className="room__eyebrow en label-mono">{area.hero.eyebrow}</p>
-          <h1 className="room__headline">{area.hero.headline}</h1>
+          <h1 className="room__headline" key={`h-${area.id}`}>{area.hero.headline}</h1>
           {area.hero.sub && <p className="room__sub">{area.hero.sub}</p>}
         </div>
         <CTA meta={meta} variant="mini" />
       </header>
 
-      {/* 중앙 2단 — 남은 높이를 채운다 (idle=중앙정렬 / 답변=상단정렬) */}
-      <div className={`room__grid ${activeQuestion ? 'is-answer' : ''}`}>
-        {/* 좌: 비주얼 + 검증수치 (질문 열리면 선택 질문 컨텍스트) */}
+      {/* 중앙 2단 — 좌: 레퍼런스 16:9 + 강점(세로로 채움) / 우: 리볼버(메인) */}
+      <div className="room__grid">
         <div className="room__left">
-          {activeQuestion ? (
-            <div className="room__context" key={activeQuestion.id}>
-              <p className="room__context-label label-mono">선택한 질문</p>
-              <p className="room__context-q">{activeQuestion.question}</p>
-              <button className="room__back" onClick={onBack}>
-                ← 질문 더 보기
-              </button>
-            </div>
-          ) : (
-            <div className="room__intro">
-              <ReferenceMedia
-                src={area.hero.image}
-                caption={area.hero.imageCaption}
-                thumbs={3}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* 우: 리볼버 또는 답변 */}
-        <div className="room__right">
-          {activeQuestion ? (
-            <AnswerPanel
-              question={activeQuestion}
-              area={area}
-              meta={meta}
-              onOpenQuestion={onOpenQuestion}
+          <div className="room__intro">
+            <ReferenceMedia
+              src={area.hero.image}
+              caption={area.hero.imageCaption}
+              thumbs={3}
             />
-          ) : (
-            <QuestionCarousel qna={area.qna} onPick={onOpenQuestion} />
-          )}
+            {area.strengths?.length > 0 && (
+              <div className="room__strengths">
+                <StrengthCards items={area.strengths} />
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="room__right">
+          <QuestionCarousel qna={area.qna} onPick={onOpenQuestion} />
         </div>
       </div>
-
-      {/* 하단 강점 스트립 — 빈 하단을 채운다 (질문 열리면 숨김) */}
-      {!activeQuestion && area.strengths?.length > 0 && (
-        <div className="room__strengths">
-          <StrengthCards items={area.strengths} />
-        </div>
-      )}
     </div>
   )
 }

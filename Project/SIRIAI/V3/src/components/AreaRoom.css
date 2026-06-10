@@ -20,30 +20,54 @@
 }
 .room__head-text { flex: 1 1 340px; min-width: 0; }
 .room__eyebrow { margin-bottom: var(--s-2); color: var(--ink-3); }
+
+/* 헤드라인 = "읽고→접기": 진입 시 크게 떠서 잠깐 머물러 읽히고,
+   부제 크기로 작아져 상단에 박힌다. 그 다음 시선은 콘텐츠로. */
 .room__headline {
   font-family: var(--f-kr);
   font-weight: var(--w-semibold);
-  font-size: var(--fs-h1);
+  font-size: var(--fs-head-rest);   /* 최종(작게) 크기 = 레이아웃 기준 */
   line-height: var(--lh-head);
   letter-spacing: var(--tracking-head);
   white-space: pre-line;
   word-break: keep-all;
   color: var(--ink);
   transform-origin: left top;
-  animation: msgIntro 0.9s var(--ease) both;  /* 진입 시 크게→제자리 */
+  animation: headlineCollapse var(--head-dur) var(--ease) both;
 }
-/* 인트로: 메시지가 크게 떴다가 줄어들고, 그 뒤 콘텐츠가 등장 */
-@keyframes msgIntro {
-  from { opacity: 0; transform: scale(1.32); }
-  to { opacity: 1; transform: scale(1); }
+/* scale 만 쓰므로 레이아웃(높이)은 항상 '작은' 상태 → 오버플로우 없음.
+   큰 상태는 일시적 transform 오버레이일 뿐. */
+@keyframes headlineCollapse {
+  0%   { opacity: 0; transform: scale(var(--head-grow)) translateY(4px); }
+  18%  { opacity: 1; transform: scale(var(--head-grow)); }  /* 잠깐 크게 머물며 읽히기 */
+  100% { opacity: 1; transform: scale(1); }                  /* 작게 접혀 상단에 */
 }
-.room__grid { animation: fadeUp 0.55s var(--ease) both; animation-delay: 0.42s; }
-.room__strengths { animation-delay: 0.56s; }
+/* 콘텐츠는 헤드라인이 거의 접힌 뒤 등장 */
+.room__grid { animation: fadeUp 0.6s var(--ease) both; animation-delay: 0.72s; }
 .room__sub {
-  margin-top: var(--s-3);
+  margin-top: var(--s-2);
   font-size: var(--fs-lead);
   color: var(--ink-2);
   max-width: 36em;
+}
+
+/* ===== 답변 뷰: 질문이 곧 제목 (단일 컬럼 흐름) ===== */
+.room__head--answer {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-3);
+}
+.room__headline--q {
+  --head-grow: 1.7;          /* 질문 텍스트는 길 수 있어 확대 배율 ↓ */
+  --head-dur: 1.2s;
+  max-width: 20em;           /* 큰 상태가 옆으로 번지지 않게 */
+  font-weight: var(--w-bold);
+}
+.room__answerwrap {
+  max-width: 760px;
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) both;
+  animation-delay: 0.55s;    /* 질문이 접히는 동안 답변은 대기 */
 }
 
 /* ---- 중앙 2단 (좌: 레퍼런스 / 우: 리볼버) — 5:5 ---- */
@@ -53,11 +77,8 @@
   gap: var(--s-7);
   align-items: center;
 }
-.room__grid.is-answer { align-items: start; }
-
 .room__left { position: relative; min-width: 0; }
 .room__right { min-width: 0; display: flex; align-items: center; justify-content: center; }
-.room__grid.is-answer .room__right { align-items: flex-start; }
 
 /* 좌측 인트로(레퍼런스 16:9 + 강점 카드) — 참고 영역이라 폭 상한 */
 .room__intro {
@@ -69,35 +90,16 @@
 }
 .room__intro .refmedia { max-width: 560px; }
 
-/* 하단 강점 스트립 — 빈 하단 공간 활용 (idle 전용) */
+/* 강점 카드 — 좌측 컬럼에서 레퍼런스 아래를 채워 리볼버(우측) 높이와 균형 */
 .room__strengths {
-  margin-top: var(--s-6);
-  padding-top: var(--s-5);
+  margin-top: var(--s-2);
+  padding-top: var(--s-4);
   border-top: var(--bw) solid var(--line);
-  animation: fadeUp var(--t-med) var(--ease) both;
 }
 
-/* 질문 열렸을 때 좌측 컨텍스트 */
-.room__context {
-  padding: var(--s-5);
-  border-radius: var(--r-md);
-  border: var(--bw) solid var(--line);
-  background: var(--glass-bg);
-  -webkit-backdrop-filter: var(--glass-blur);
-  backdrop-filter: var(--glass-blur);
-  animation: fadeUp var(--t-med) var(--ease) both;
-}
-.room__context-label { color: var(--ink-3); margin-bottom: var(--s-4); }
-.room__context-q {
-  font-family: var(--f-kr);
-  font-weight: var(--w-semibold);
-  font-size: var(--fs-h3);
-  line-height: 1.4;
-  letter-spacing: var(--tracking-head);
-  color: var(--ink);
-}
+/* 답변 뷰 상단 되돌아가기 */
 .room__back {
-  margin-top: var(--s-5);
+  align-self: flex-start;
   font-size: var(--fs-sm);
   color: var(--ink-2);
   transition: color var(--t-fast) var(--ease);

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { getQuestion } from '../content.js'
 import { useTypewriter, prefersReducedMotion } from '../lib/useTypewriter.js'
 import AnswerVisual from './AnswerVisual.jsx'
@@ -11,8 +12,17 @@ export default function AnswerPanel({ question, area, meta, onOpenQuestion }) {
   const showCta = ctaLeaf || followUps.length === 0
   const reduce = prefersReducedMotion()
 
+  // 질문 제목이 크게→작게 접히는 동안 타이핑을 잠깐 미룬다(겹침 방지)
+  const [armed, setArmed] = useState(reduce)
+  useEffect(() => {
+    if (reduce) { setArmed(true); return }
+    setArmed(false)
+    const t = setTimeout(() => setArmed(true), 560)
+    return () => clearTimeout(t)
+  }, [reduce, question.id])
+
   // 본문 → (다 치면) 보조문장 순서로 타이핑
-  const body = useTypewriter(answer.body || '', { reduce, start: true, speed: 18 })
+  const body = useTypewriter(answer.body || '', { reduce, start: armed, speed: 18 })
   const hasExtra = !!answer.extra
   const extra = useTypewriter(answer.extra || '', { reduce, start: body.done, speed: 16 })
 
