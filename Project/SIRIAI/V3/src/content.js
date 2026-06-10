@@ -333,6 +333,11 @@ export const content = {
       cardLine: '예산이 아니라, 비어 있는 자리를 채웁니다.',
       status: 'ready',
 
+      // 레퍼런스 비주얼 — 홈페이지 브랜드 아트(라이트 프레임). 단일이라 탭 없음.
+      refMedia: [
+        { key: 'structure', src: '/assets/ref/ac-structure.png', frame: 'light', caption: '비즈니스 컨설팅 — 구조 비주얼' },
+      ],
+
       hero: {
         eyebrow: 'Architecting',
         headline: '당신이 놓친 건 예산이 아니라,\n비어 있는 ‘자리’입니다',
@@ -469,6 +474,11 @@ export const content = {
       subtitle: 'sa:ai',
       cardLine: '우리의 마케팅은, 자체 기술 위에서 돕니다.',
       status: 'ready',
+
+      // 레퍼런스 비주얼 — 홈페이지 브랜드 아트(라이트 프레임). 단일이라 탭 없음.
+      refMedia: [
+        { key: 'system', src: '/assets/ref/se-system.png', frame: 'light', caption: 'sa:ai 자체 기술 — 시스템 비주얼' },
+      ],
 
       hero: {
         eyebrow: 'sa:ai · Software Engineering',

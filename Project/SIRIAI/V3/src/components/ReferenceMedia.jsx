@@ -14,7 +14,10 @@ export default function ReferenceMedia({ cases = [], badge = '레퍼런스' }) {
 
   return (
     <figure className="refmedia">
-      <div className="refmedia__main">
+      <div
+        className="refmedia__main"
+        style={item.frame === 'light' ? { background: 'var(--surface)' } : undefined}
+      >
         {showImg ? (
           <img
             src={item.src}
