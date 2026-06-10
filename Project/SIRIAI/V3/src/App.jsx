@@ -54,6 +54,15 @@ export default function App() {
 
   const backToCarousel = useCallback(() => setActiveQ(null), [])
 
+  // 채팅 스레드 안에서 '이어서 물어보기'를 누른 질문도 사이드바 히스토리에 기록
+  // (activeQ는 그대로 → 스레드 리셋 없이 누적 유지)
+  const recordHistory = useCallback((qid, aId) => {
+    setHistory((h) => {
+      const filtered = h.filter((x) => !(x.areaId === aId && x.qid === qid))
+      return [...filtered, { areaId: aId, qid }]
+    })
+  }, [])
+
   const restoreHistory = useCallback((entry) => {
     setAreaId(entry.areaId)
     setActiveQ(entry.qid)
@@ -92,6 +101,7 @@ export default function App() {
                 area={area}
                 activeQ={activeQ}
                 onOpenQuestion={(qid) => openQuestion(qid, area.id)}
+                onRecordHistory={recordHistory}
                 onBack={backToCarousel}
                 meta={content.meta}
               />

@@ -10,7 +10,7 @@ import './AreaRoom.css'
 /* (2) 사업분야 상세 = "Q&A 룸"
    좌: 레퍼런스(16:9 참고) + 강점 카드 / 우: 리볼버(메인) 또는 답변.
    CTA는 헤더 우측. 질문이 열리면 좌측은 선택 질문 컨텍스트로 전환. */
-export default function AreaRoom({ area, activeQ, onOpenQuestion, onBack, meta }) {
+export default function AreaRoom({ area, activeQ, onOpenQuestion, onRecordHistory, onBack, meta }) {
   if (area.status !== 'ready') {
     return <ComingSoon area={area} meta={meta} />
   }
@@ -19,7 +19,7 @@ export default function AreaRoom({ area, activeQ, onOpenQuestion, onBack, meta }
 
   // ===== 답변 뷰: 채팅 스레드 (내 질문 = 메시지, 답변 = 어시스턴트 타이핑) =====
   if (activeQuestion) {
-    return <ChatThread area={area} activeQ={activeQ} meta={meta} onBack={onBack} />
+    return <ChatThread area={area} activeQ={activeQ} meta={meta} onBack={onBack} onRecordHistory={onRecordHistory} />
   }
 
   // ===== 아이들 뷰: 영역 헤드라인(읽고→접기) + 레퍼런스 | 리볼버 + 강점 스트립 =====

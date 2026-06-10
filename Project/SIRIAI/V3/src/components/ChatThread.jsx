@@ -101,28 +101,34 @@ function Exchange({ q, area, meta, animate, onFollow }) {
 /* 답변 화면 = 채팅 스레드. 내가 누른 질문이 그대로 첫 메시지가 되고,
    이어서 물어보기를 누르면 같은 대화에 새 주고받음이 쌓인다(연속적 경험).
    헤더는 상단에 고정, 콘텐츠는 위에서부터 흐른다(중앙정렬 X). */
-export default function ChatThread({ area, activeQ, meta, onBack }) {
+export default function ChatThread({ area, activeQ, meta, onBack, onRecordHistory }) {
   const [thread, setThread] = useState(() => (activeQ ? [activeQ] : []))
   const prev = useRef(activeQ)
   const lenRef = useRef(thread.length)
-  const endRef = useRef(null)
+  const threadRef = useRef(null)
 
-  // 외부(리볼버/사이드바)에서 질문이 바뀌면 새 대화로 리셋
+  // 외부(리볼버/사이드바)에서 질문이 바뀌면 새 대화로 리셋 + 맨 위로
   useEffect(() => {
     if (activeQ && activeQ !== prev.current) {
       setThread([activeQ])
       lenRef.current = 1
+      if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'auto' })
     }
     prev.current = activeQ
   }, [activeQ])
 
-  // 이어서 물어보기 → 같은 스레드에 누적 (네비게이션 X)
-  const append = (qid) => setThread((t) => (t.includes(qid) ? t : [...t, qid]))
+  // 이어서 물어보기 → 같은 스레드에 누적(네비게이션 X) + 사이드바 히스토리에도 기록
+  const append = (qid) => {
+    setThread((t) => (t.includes(qid) ? t : [...t, qid]))
+    onRecordHistory?.(qid, area.id)
+  }
 
-  // 새 교환이 쌓이면 아래로 스크롤
+  // 새 교환이 쌓이면, 그 질문을 화면 최상단으로 올린다(이전 질문은 위로 스크롤해 확인)
   useEffect(() => {
-    if (thread.length > lenRef.current && endRef.current) {
-      endRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    if (thread.length > lenRef.current && threadRef.current) {
+      const items = threadRef.current.querySelectorAll('.chatx')
+      const last = items[items.length - 1]
+      if (last) last.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
     lenRef.current = thread.length
   }, [thread])
@@ -143,7 +149,7 @@ export default function ChatThread({ area, activeQ, meta, onBack }) {
         </div>
       </header>
 
-      <div className="chat__thread">
+      <div className={`chat__thread ${thread.length > 1 ? 'is-multi' : ''}`} ref={threadRef}>
         {thread.map((qid, i) => {
           const q = getQuestion(area, qid)
           if (!q) return null
@@ -158,7 +164,6 @@ export default function ChatThread({ area, activeQ, meta, onBack }) {
             />
           )
         })}
-        <div ref={endRef} aria-hidden="true" />
       </div>
     </div>
   )

@@ -24,8 +24,13 @@ export default function ReferenceMedia({ cases = [], badge = '레퍼런스' }) {
           />
         ) : (
           <div className="refmedia__ph">
+            <div className="refmedia__ph-grid" aria-hidden="true">
+              <span className="refmedia__ph-tile"><i className="refmedia__ph-play" /></span>
+              <span className="refmedia__ph-tile"><i className="refmedia__ph-play" /></span>
+              <span className="refmedia__ph-tile"><i className="refmedia__ph-play" /></span>
+              <span className="refmedia__ph-tile"><i className="refmedia__ph-play" /></span>
+            </div>
             {item.brand && <span className="refmedia__ph-brand">{item.brand}</span>}
-            <span className="refmedia__ph-note label-mono">이미지 준비 중</span>
           </div>
         )}
         <span className="refmedia__badge label-mono">{badge}</span>

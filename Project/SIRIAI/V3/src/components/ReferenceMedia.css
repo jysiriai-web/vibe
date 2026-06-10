@@ -22,28 +22,57 @@
   display: block;
 }
 
-/* 파일 없을 때 브랜드 플레이스홀더 */
+/* 파일 없을 때 — 디자인된 reels 그리드 목업(4 포트레이트 타일 + 브랜드) */
 .refmedia__ph {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--s-3);
-  background:
-    radial-gradient(60% 70% at 24% 16%, rgba(246, 201, 168, 0.22), transparent 60%),
-    radial-gradient(62% 72% at 82% 88%, rgba(221, 208, 239, 0.22), transparent 60%),
-    var(--ink);
+  position: absolute;
+  inset: 0;
+  background: var(--ink);
+}
+.refmedia__ph-grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+  padding: 3px;
+}
+.refmedia__ph-tile {
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.refmedia__ph-tile:nth-child(1) { background: linear-gradient(160deg, rgba(246, 201, 168, 0.5), rgba(33, 26, 51, 0.85)); }
+.refmedia__ph-tile:nth-child(2) { background: linear-gradient(160deg, rgba(221, 208, 239, 0.5), rgba(33, 26, 51, 0.85)); }
+.refmedia__ph-tile:nth-child(3) { background: linear-gradient(160deg, rgba(255, 224, 196, 0.5), rgba(33, 26, 51, 0.85)); }
+.refmedia__ph-tile:nth-child(4) { background: linear-gradient(160deg, rgba(246, 201, 168, 0.42), rgba(33, 26, 51, 0.85)); }
+.refmedia__ph-play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 6px 0 6px 10px;
+  border-color: transparent transparent transparent rgba(243, 238, 226, 0.78);
 }
 .refmedia__ph-brand {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 6px 16px;
+  border-radius: var(--r-pill);
+  background: rgba(33, 26, 51, 0.62);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
   font-family: var(--f-en);
   font-weight: var(--w-bold);
-  font-size: clamp(22px, 3vw, 38px);
+  font-size: clamp(18px, 2.4vw, 30px);
   letter-spacing: -0.02em;
   color: var(--paper);
+  white-space: nowrap;
 }
-.refmedia__ph-note { color: rgba(243, 238, 226, 0.55); }
 
 /* 라벨 */
 .refmedia__badge {

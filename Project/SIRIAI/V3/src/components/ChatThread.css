@@ -77,8 +77,11 @@
   gap: var(--s-6);
   padding-bottom: var(--s-7);
 }
+/* 대화가 2개 이상이면 아래 여백을 둬, 새 질문을 화면 최상단까지 끌어올릴 수 있게 */
+.chat__thread.is-multi { padding-bottom: 58vh; }
 
-.chatx { display: flex; flex-direction: column; gap: var(--s-4); }
+/* scroll-margin: 새 질문을 최상단으로 올릴 때 TopBar+sticky 헤더 아래에 멈추도록 */
+.chatx { display: flex; flex-direction: column; gap: var(--s-4); scroll-margin-top: 124px; }
 .chatx__row { display: flex; align-items: flex-start; gap: var(--s-3); }
 .chatx__row--user { justify-content: flex-end; }
 .chatx__row--bot { justify-content: flex-start; }
