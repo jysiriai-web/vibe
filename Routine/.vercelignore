@@ -1,0 +1,11 @@
+secrets/
+.venv/
+.env
+siriai-coldmail/
+backups/
+reports/
+workshop_site/
+.claude/
+*.py
+*.pyc
+__pycache__/
