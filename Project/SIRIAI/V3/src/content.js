@@ -83,6 +83,15 @@ export const content = {
         imageCaption: '인플루언서 레퍼런스 영상 (예시)',
       },
 
+      // 레퍼런스 영상 뷰어(브랜드 전환형). src 파일을 public/assets/ref/ 에 넣으면 자동 노출,
+      // 없으면 브랜드 플레이스홀더. (준용님이 붙여준 reels 그리드 — 공개 OK 케이스)
+      // ⚠️ 아래 references(실명·동의 게이트)와 별개 필드. 마스킹 대상은 여기 넣지 말 것.
+      refMedia: [
+        { key: 'oddtype', brand: 'ODDTYPE', tag: 'BEAUTY', src: '/assets/ref/oddtype.png', caption: '뷰티 크리에이터 시딩 · Reels (예시)' },
+        { key: '29apostrophe', brand: '29apostrophe', tag: 'BEAUTY', src: '/assets/ref/29apostrophe.png', caption: '언박싱·홈뷰티 · Reels (예시)' },
+        { key: 'forhz', brand: 'forhz', tag: 'BEAUTY', src: '/assets/ref/forhz.png', caption: '스킨케어 캠페인 · Reels (예시)' },
+      ],
+
       // 강점 카드 — 거래처 수 제외, 마우스오버 설명형
       strengths: [
         { value: 'AI', label: 'AI 스코어링', detail: '가입자 풀이 아니라 인스타그램 전체를 AI로 훑어, 브랜드에 맞는 사람을 매번 새로 발굴합니다.' },

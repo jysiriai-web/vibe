@@ -40,9 +40,13 @@ export default function AreaRoom({ area, activeQ, onOpenQuestion, onBack, meta }
         <div className="room__left">
           <div className="room__intro">
             <ReferenceMedia
-              src={area.hero.image}
-              caption={area.hero.imageCaption}
-              thumbs={3}
+              cases={
+                area.refMedia?.length
+                  ? area.refMedia
+                  : area.hero.image
+                    ? [{ key: area.id, src: area.hero.image, caption: area.hero.imageCaption }]
+                    : []
+              }
             />
             {area.strengths?.length > 0 && (
               <div className="room__strengths">

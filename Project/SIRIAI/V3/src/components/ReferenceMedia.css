@@ -5,27 +5,51 @@
   width: 100%;
 }
 
-/* 16:9 메인 */
+/* 메인 프레임 — reels 그리드 영상 톤(딥 잉크 배경, 레터박스 자연스럽게) */
 .refmedia__main {
   position: relative;
   aspect-ratio: 16 / 9;
   border-radius: var(--r-md);
   overflow: hidden;
   border: var(--bw) solid var(--line);
-  background: var(--surface);
+  background: var(--ink);
   box-shadow: var(--shadow-soft);
 }
-.refmedia__main img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.refmedia__ph {
-  width: 100%; height: 100%;
-  background:
-    radial-gradient(60% 70% at 22% 18%, var(--peach), transparent 62%),
-    radial-gradient(60% 70% at 82% 86%, var(--lilac), transparent 60%),
-    var(--surface);
+.refmedia__main img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;   /* 완성된 케이스 이미지를 잘리지 않게 통째로 */
+  display: block;
 }
+
+/* 파일 없을 때 브랜드 플레이스홀더 */
+.refmedia__ph {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  background:
+    radial-gradient(60% 70% at 24% 16%, rgba(246, 201, 168, 0.22), transparent 60%),
+    radial-gradient(62% 72% at 82% 88%, rgba(221, 208, 239, 0.22), transparent 60%),
+    var(--ink);
+}
+.refmedia__ph-brand {
+  font-family: var(--f-en);
+  font-weight: var(--w-bold);
+  font-size: clamp(22px, 3vw, 38px);
+  letter-spacing: -0.02em;
+  color: var(--paper);
+}
+.refmedia__ph-note { color: rgba(243, 238, 226, 0.55); }
+
+/* 라벨 */
 .refmedia__badge {
   position: absolute;
-  top: 10px; left: 12px;
+  top: 10px;
+  left: 12px;
   color: var(--ink-2);
   background: rgba(255, 255, 255, 0.72);
   -webkit-backdrop-filter: blur(6px);
@@ -33,34 +57,38 @@
   padding: 3px 9px;
   border-radius: var(--r-pill);
 }
+.refmedia__tag {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  color: rgba(243, 238, 226, 0.82);
+  letter-spacing: 0.16em;
+}
 
-/* 썸네일 스트립 */
-.refmedia__strip {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+/* 브랜드 전환 탭 */
+.refmedia__tabs {
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--s-2);
 }
-.refmedia__thumb {
-  position: relative;
-  aspect-ratio: 16 / 9;
-  border-radius: var(--r-sm);
+.refmedia__tab {
+  font-family: var(--f-en);
+  font-size: 12.5px;
+  font-weight: var(--w-medium);
+  letter-spacing: -0.01em;
+  color: var(--ink-3);
+  padding: 6px 13px;
+  border-radius: var(--r-pill);
   border: var(--bw) solid var(--line);
-  background:
-    radial-gradient(70% 80% at 30% 20%, var(--cream), transparent 65%),
-    radial-gradient(70% 80% at 80% 90%, var(--lilac), transparent 60%),
-    var(--surface);
-  cursor: pointer;
-  transition: border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+  background: rgba(255, 255, 255, 0.4);
+  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease),
+    background var(--t-fast) var(--ease);
 }
-.refmedia__thumb:hover { border-color: var(--line-strong); transform: translateY(-1px); }
-.refmedia__play {
-  position: absolute;
-  left: 50%; top: 50%;
-  transform: translate(-50%, -50%);
-  width: 0; height: 0;
-  border-style: solid;
-  border-width: 5px 0 5px 9px;
-  border-color: transparent transparent transparent rgba(33, 26, 51, 0.5);
+.refmedia__tab:hover { color: var(--ink); border-color: var(--line-strong); }
+.refmedia__tab.is-active {
+  color: var(--paper);
+  background: var(--ink);
+  border-color: var(--ink);
 }
 
 .refmedia__cap { color: var(--ink-3); }
