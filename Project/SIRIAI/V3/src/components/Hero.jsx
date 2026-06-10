@@ -1,3 +1,4 @@
+import HeroBackdrop from './HeroBackdrop.jsx'
 import './Hero.css'
 
 /* (0) 인트로(Hero) — 에디토리얼/갤러리 입구.
@@ -7,6 +8,9 @@ export default function Hero({ meta, onEnter, onBrand }) {
   const { hero, wordmark, jp } = meta
   return (
     <section className="hero" onClick={onEnter}>
+      {/* 움직이는 흐르는 라인 배경 (콘텐츠 뒤) */}
+      <HeroBackdrop />
+
       {/* 상단 아카이브 프레임 */}
       <div className="hero__frame">
         <button

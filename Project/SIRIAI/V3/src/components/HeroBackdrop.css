@@ -1,0 +1,24 @@
+/* 흐르는 등고선 배경 — 콘텐츠 뒤(z 0), 클릭 통과, 모션 최소화 시 정지 */
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.hero-bg__flow {
+  animation: heroFlow var(--dur, 30s) linear infinite;
+  will-change: transform;
+}
+/* bbox(2880u)의 -50% = 1440u = 한 화면 폭 → 이음매 없음 */
+@keyframes heroFlow {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.hero-bg__flow.is-rev { animation-direction: reverse; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-bg__flow { animation: none; }
+}

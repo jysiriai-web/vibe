@@ -15,6 +15,7 @@
 .hero__frame {
   position: absolute;
   top: 0; left: 0; right: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -56,6 +57,7 @@
 /* ---- 본문 ---- */
 .hero__inner {
   position: relative;
+  z-index: 2;
   max-width: 940px;
   animation: fadeUp var(--t-slow) var(--ease) both;
 }
