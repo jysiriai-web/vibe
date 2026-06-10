@@ -51,25 +51,6 @@
   max-width: 36em;
 }
 
-/* ===== 답변 뷰: 질문이 곧 제목 (단일 컬럼 흐름) ===== */
-.room__head--answer {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--s-3);
-}
-.room__headline--q {
-  --head-grow: 1.7;          /* 질문 텍스트는 길 수 있어 확대 배율 ↓ */
-  --head-dur: 1.2s;
-  max-width: 20em;           /* 큰 상태가 옆으로 번지지 않게 */
-  font-weight: var(--w-bold);
-}
-.room__answerwrap {
-  max-width: 760px;
-  opacity: 0;
-  animation: fadeUp 0.6s var(--ease) both;
-  animation-delay: 0.55s;    /* 질문이 접히는 동안 답변은 대기 */
-}
-
 /* ---- 중앙 2단 (좌: 레퍼런스 / 우: 리볼버) — 5:5 ---- */
 .room__grid {
   display: grid;
@@ -96,15 +77,6 @@
   padding-top: var(--s-4);
   border-top: var(--bw) solid var(--line);
 }
-
-/* 답변 뷰 상단 되돌아가기 */
-.room__back {
-  align-self: flex-start;
-  font-size: var(--fs-sm);
-  color: var(--ink-2);
-  transition: color var(--t-fast) var(--ease);
-}
-.room__back:hover { color: var(--ink); }
 
 /* ---- 슬림 푸터: 서비스 · 브랜드 · CTA ---- */
 .room__foot {

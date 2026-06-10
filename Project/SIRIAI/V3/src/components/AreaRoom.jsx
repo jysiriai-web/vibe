@@ -1,6 +1,6 @@
 import { getQuestion } from '../content.js'
 import QuestionCarousel from './QuestionCarousel.jsx'
-import AnswerPanel from './AnswerPanel.jsx'
+import ChatThread from './ChatThread.jsx'
 import ComingSoon from './ComingSoon.jsx'
 import CTA from './CTA.jsx'
 import ReferenceMedia from './ReferenceMedia.jsx'
@@ -17,27 +17,9 @@ export default function AreaRoom({ area, activeQ, onOpenQuestion, onBack, meta }
 
   const activeQuestion = activeQ ? getQuestion(area, activeQ) : null
 
-  // ===== 답변 뷰: 선택한 질문이 곧 제목 → 크게 읽히고 접힘 → 아래 상세 설명 =====
+  // ===== 답변 뷰: 채팅 스레드 (내 질문 = 메시지, 답변 = 어시스턴트 타이핑) =====
   if (activeQuestion) {
-    return (
-      <div className="room" key={area.id}>
-        <header className="room__head room__head--answer">
-          <button className="room__back" onClick={onBack}>← 질문 더 보기</button>
-          <h1 className="room__headline room__headline--q" key={activeQuestion.id}>
-            {activeQuestion.question}
-          </h1>
-        </header>
-
-        <div className="room__answerwrap" key={`a-${activeQuestion.id}`}>
-          <AnswerPanel
-            question={activeQuestion}
-            area={area}
-            meta={meta}
-            onOpenQuestion={onOpenQuestion}
-          />
-        </div>
-      </div>
-    )
+    return <ChatThread area={area} activeQ={activeQ} meta={meta} onBack={onBack} />
   }
 
   // ===== 아이들 뷰: 영역 헤드라인(읽고→접기) + 레퍼런스 | 리볼버 + 강점 스트립 =====
