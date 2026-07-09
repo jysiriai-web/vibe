@@ -60,7 +60,7 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 
 main { padding: 24px 30px 70px; }
 
-.sim-frame { width: 100%; height: calc(100vh - 210px); min-height: 640px; border: 1px solid var(--line); border-radius: 16px; background: #fff; box-shadow: var(--shadow); }
+.sim-frame { width: 100%; min-height: 600px; border: none; background: transparent; display: block; }
 .tscroll { overflow-x: auto; max-width: 100%; border-radius: 14px; box-shadow: var(--shadow); }
 table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
 .tscroll table { min-width: 640px; box-shadow: none; }

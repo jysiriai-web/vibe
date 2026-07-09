@@ -289,10 +289,10 @@ function viewDeliver(accts) {
     <table><thead><tr><th>★</th><th>계정</th>${th('v', '조회수')}${th('l', '좋아요')}${th('c', '댓글')}${th('sh', '공유')}<th>콘텐츠</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
-// ⑤ 정산 — 비용·마진 시뮬레이터(독립 계산기) 임베드
+// ⑤ 정산 — 비용·마진 시뮬레이터. 테두리 없는 iframe을 내용 높이만큼 자동 확장(이중 스크롤·액자 제거).
 function viewSettle() {
-  return `<div class="note" style="margin:0 0 14px">캠페인 <b>비용·매출·마진 시뮬레이터</b>. 슬라이더로 모집 인원·단가·가드닝을 조정하면 순마진이 실시간 계산돼요. (베이온 기준 · 마루 6천엔·시리아이 5천엔·매출 10만원/건)</div>
-    <iframe class="sim-frame" src="/beiyon_margin_simulator.html" title="정산 시뮬레이터"></iframe>`;
+  return `<iframe class="sim-frame" src="/beiyon_margin_simulator.html" title="정산 시뮬레이터"
+    onload="try{var d=this.contentWindow.document;var fit=()=>{this.style.height=(d.documentElement.scrollHeight+24)+'px';};fit();setTimeout(fit,500);setTimeout(fit,1500);}catch(e){this.style.height='1600px';}"></iframe>`;
 }
 
 const emptyScan = () => `<div class="empty">아직 데이터가 없어요.<br><br><button class="btn primary" onclick="scan()">지금 스캔하기</button></div>`;
