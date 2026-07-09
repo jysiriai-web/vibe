@@ -99,7 +99,8 @@ function render() {
   if (state.tab === 'recruit') c.innerHTML = viewRecruit(accts);
   else if (state.tab === 'upload') c.innerHTML = viewUpload(accts);
   else if (state.tab === 'garden') c.innerHTML = viewGarden(accts, orders);
-  else c.innerHTML = viewDeliver(accts);
+  else if (state.tab === 'deliver') c.innerHTML = viewDeliver(accts);
+  else c.innerHTML = viewSettle();
   // 넓은 표는 자체 가로 스크롤 (좁은 창에서 페이지 전체가 밀리는 것 방지)
   c.querySelectorAll('table').forEach((t) => {
     const p = t.parentElement;
@@ -285,6 +286,12 @@ function viewDeliver(accts) {
     <div class="filters"><div class="filterbar"><button class="fbtn best-f ${state.bestOnly ? 'active' : ''}">★ 베스트만 (${bestCount})</button></div></div>
     ${noPerf ? '<div class="note"><b>아직 조회수 데이터가 비어있어요.</b> 시트의 조회수·좋아요 칸을 채우면 여기 자동으로 집계돼요. 지금도 ★로 <b>SIRIAI 베스트 콘텐츠</b>는 미리 찍어둘 수 있어요.</div>' : ''}
     <table><thead><tr><th>★</th><th>계정</th>${th('v', '조회수')}${th('l', '좋아요')}${th('c', '댓글')}${th('sh', '공유')}<th>콘텐츠</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// ⑤ 정산 — 비용·마진 시뮬레이터(독립 계산기) 임베드
+function viewSettle() {
+  return `<div class="note" style="margin:0 0 14px">캠페인 <b>비용·매출·마진 시뮬레이터</b>. 슬라이더로 모집 인원·단가·가드닝을 조정하면 순마진이 실시간 계산돼요. (베이온 기준 · 마루 6천엔·시리아이 5천엔·매출 10만원/건)</div>
+    <iframe class="sim-frame" src="/beiyon_margin_simulator.html" title="정산 시뮬레이터"></iframe>`;
 }
 
 const emptyScan = () => `<div class="empty">아직 데이터가 없어요.<br><br><button class="btn primary" onclick="scan()">지금 스캔하기</button></div>`;
