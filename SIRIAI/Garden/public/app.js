@@ -23,11 +23,15 @@ const REVIEW = {
   21: { label: '해시태그', pass: '확인 완료', fail: '해시태그 누락' },
 };
 const revValOf = (a, col) => (col === 19 ? a.soundOk : col === 20 ? a.soundSection : a.hashtagOk);
-const NEXT_REV = { none: 'pass', pass: 'fail', fail: 'none' };
 // 검수 완료 = 업로드됨 + 음원·음원구간·해시태그 모두 판정됨(none 아님)
 const reviewed = (a) => uploaded(a) && [19, 20, 21].every((c) => revState(revValOf(a, c)) !== 'none');
+const reviewPending = (a) => uploaded(a) && !reviewed(a); // 업로드됐는데 검수 미완
+const noticeSent = (a) => has(a.notice); // 확정안내 발송여부 (col 16 진행안내여부)
 
-let state = { campaigns: [], campaign: null, krw: 1508.79, services: [], best: [], data: null, tab: 'recruit', sub: 'needs', fCo: 'all', fStatus: 'all' };
+let state = { campaigns: [], campaign: null, krw: 1508.79, services: [], best: [], data: null, tab: 'recruit', sub: 'needs', fCo: 'all', fStatus: 'all', fUp: 'all', fNotice: 'all', sortKey: 'v', sortDir: 'desc', bestOnly: false, pending: {} };
+// 편집 열 ↔ 계정 필드 매핑. 낙관적 저장·병합에 공용.
+const COL_FIELD = { 3: 'nick', 4: 'link', 16: 'notice', 17: 'contentLink', 19: 'soundOk', 20: 'soundSection', 21: 'hashtagOk' };
+const LOCK_COLS = [17, 19, 20, 21]; // 자동스캔이 건드리는 검수/콘텐츠 열 (서버 OVERRIDE_COLS 와 일치)
 
 const won = (usd) => (usd == null ? '—' : '₩' + Math.round(Number(usd) * state.krw).toLocaleString());
 const rateOf = () => Number(state.data?.config?.service?.rate || 0);
@@ -53,7 +57,19 @@ async function loadData() {
   state.data = await api(`/api/data?campaign=${state.campaign}`);
   if (state.data.config?.krwPerUsd) state.krw = state.data.config.krwPerUsd;
   state.best = state.data.best || [];
+  reapplyPending(); // 아직 시트에 안 박힌 낙관적 편집을 서버 응답 위에 다시 얹음 (동시 loadData가 되돌리는 것 방지)
   render();
+}
+// 미확정 낙관적 쓰기 재적용 — 서버값이 이미 일치하면 해제(자가 치유)
+function reapplyPending() {
+  const accts = state.data.accounts || [];
+  for (const k of Object.keys(state.pending)) {
+    const [row, col] = k.split(':').map(Number);
+    const a = accts.find((x) => Number(x.row) === row);
+    if (!a) { delete state.pending[k]; continue; }
+    if (String(a[COL_FIELD[col]] ?? '') === String(state.pending[k] ?? '')) { delete state.pending[k]; continue; }
+    applyLocalTo(a, col, state.pending[k]);
+  }
 }
 
 function renderCampaigns() {
@@ -76,7 +92,7 @@ function render() {
   $('#cnt-recruit').textContent = accts.length;
   $('#cnt-upload').textContent = accts.filter(uploaded).length;
   $('#cnt-garden').textContent = accts.filter((a) => a.status === 'needs').length;
-  $('#cnt-deliver').textContent = fmt(accts.reduce((s, a) => s + (num(a.views) || 0), 0));
+  $('#cnt-deliver').textContent = accts.filter(uploaded).length;
 
   $$('.tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === state.tab));
   const c = $('#content');
@@ -90,27 +106,37 @@ function render() {
 const chip = (s) => `<span class="chip ${s}">${STATUS[s] || s}</span>`;
 const link = (h) => `<a href="https://www.tiktok.com/@${h}" target="_blank">@${h}</a>`;
 const coChip = (c) => (c ? `<span class="co co-${c === 'MARU' ? 'maru' : c === 'SIRIAI' ? 'siriai' : 'x'}">${c}</span>` : '');
-// 검수 칩 (클릭 시 미확인→준수→미준수 순환). col=19 음원 / 20 음원구간 / 21 해시태그.
+// 검수 드롭다운. col=19 음원 / 20 음원구간 / 21 해시태그. 선택 즉시 저장(낙관적 반영).
 function revChip(a, col) {
   const st = revState(revValOf(a, col));
-  const txt = st === 'pass' ? '준수' : st === 'fail' ? '미준수' : '—';
   const manual = a.manualCols && a.manualCols.includes(String(col));
-  const title = manual ? '수동 지정됨 · 클릭해서 변경' : (col !== 20 && a.autoDetected ? '자동 판정됨 · 클릭해서 수동 변경' : '클릭: 미확인 → 준수 → 미준수');
-  return `<button class="rev rev-${st}" data-row="${a.row}" data-col="${col}" title="${title}">${txt}</button>`;
+  const title = manual ? '수동 지정됨' : (col !== 20 && a.autoDetected ? '자동 판정됨' : '');
+  const opts = [['none', '미확인'], ['pass', '준수'], ['fail', '미준수']];
+  return `<select class="rev-sel rev-${st}" data-row="${a.row}" data-col="${col}" title="${title}">${opts.map(([v, l]) => `<option value="${v}"${st === v ? ' selected' : ''}>${l}</option>`).join('')}</select>`;
 }
 
-// ── 필터 (진행사 / 상태) ──
+// ── 필터 (진행사 / 상태 / 업로드 / 확정안내) ──
 const applyCo = (accts) => (state.fCo === 'all' ? accts : accts.filter((a) => (a.company || '') === state.fCo));
 const applyFStatus = (accts) => (state.fStatus === 'all' ? accts : accts.filter((a) => a.status === state.fStatus));
-function coBar() {
-  const opts = [['all', '전체'], ['MARU', 'MARU'], ['SIRIAI', 'SIRIAI']];
-  return `<div class="filterbar"><span class="flab">진행사</span>${opts.map(([k, l]) => `<button class="fbtn co-f ${state.fCo === k ? 'active' : ''}" data-fco="${k}">${l}</button>`).join('')}</div>`;
+function applyFUp(accts) {
+  if (state.fUp === 'notup') return accts.filter((a) => !uploaded(a));
+  if (state.fUp === 'up') return accts.filter(uploaded);
+  if (state.fUp === 'pending') return accts.filter(reviewPending);
+  return accts;
 }
-function statusBar() {
-  const opts = [['all', '전체'], ['needs', '가드닝 필요'], ['filling', '채워지는 중'], ['ok', '충족'], ['error', '미확인']];
-  return `<div class="filterbar"><span class="flab">상태</span>${opts.map(([k, l]) => `<button class="fbtn st-f ${state.fStatus === k ? 'active' : ''}" data-fst="${k}">${l}</button>`).join('')}</div>`;
+const applyFNotice = (accts) => (state.fNotice === 'unsent' ? accts.filter((a) => !noticeSent(a)) : accts);
+function fbar(flab, cls, cur, opts) {
+  return `<div class="filterbar"><span class="flab">${flab}</span>${opts.map(([k, l]) => `<button class="fbtn ${cls} ${cur === k ? 'active' : ''}" data-k="${k}">${l}</button>`).join('')}</div>`;
 }
-const filterRow = (withStatus) => `<div class="filters">${coBar()}${withStatus ? statusBar() : ''}</div>`;
+const coBar = () => fbar('진행사', 'co-f', state.fCo, [['all', '전체'], ['MARU', 'MARU'], ['SIRIAI', 'SIRIAI']]);
+const statusBar = () => fbar('상태', 'st-f', state.fStatus, [['all', '전체'], ['needs', '가드닝 필요'], ['filling', '채워지는 중'], ['ok', '충족'], ['error', '미확인']]);
+const upBar = () => fbar('업로드', 'up-f', state.fUp, [['all', '전체'], ['notup', '미업로드'], ['up', '업로드'], ['pending', '검수대기']]);
+const noticeBar = () => fbar('확정안내', 'nt-f', state.fNotice, [['all', '전체'], ['unsent', '미발송만']]);
+const filterRow = (...bars) => `<div class="filters">${bars.join('')}</div>`;
+
+const showNotice = () => !!(state.data && state.data.config && state.data.config.confirmNotice);
+// 확정안내 칩 (발송 ↔ 미발송 토글). col 16.
+const noticeCell = (a) => `<td><button class="notice ${noticeSent(a) ? 'sent' : 'unsent'}" data-row="${a.row}" data-cur="${esc(a.notice || '')}">${noticeSent(a) ? '발송' : '미발송'}</button></td>`;
 
 // ① 모집
 function viewRecruit(accts) {
@@ -118,20 +144,24 @@ function viewRecruit(accts) {
   const maru = accts.filter((a) => a.company === 'MARU').length;
   const siriai = accts.filter((a) => a.company === 'SIRIAI').length;
   const over1k = accts.filter((a) => (a.current || 0) >= 1000).length;
-  const list = applyFStatus(applyCo(accts));
-  const rows = list.map((a) => `<tr>
+  const nt = showNotice();
+  let list = applyFStatus(applyCo(accts));
+  if (nt) list = applyFNotice(list);
+  const unsent = accts.filter((a) => !noticeSent(a)).length;
+  const rows = list.map((a) => `<tr${nt && !noticeSent(a) ? ' class="row-alert"' : ''}>
     <td>${coChip(a.company)}</td>
     <td>${a.nick ? esc(a.nick) : '<span class="muted">—</span>'} <button class="cell-edit" data-kind="nick" data-row="${a.row}" data-val="${esc(a.nick || '')}">${a.nick ? '✎' : '입력'}</button></td>
-    <td class="handle">${link(a.handle)}</td>
+    <td class="handle">${link(a.handle)} <button class="cell-edit" data-kind="link" data-row="${a.row}" data-val="${esc(a.link || ('https://www.tiktok.com/@' + a.handle))}">✎</button></td>
     <td class="num">${a.current == null ? '' : fmt(a.current)} <button class="cell-edit" data-kind="fol" data-row="${a.row}" data-val="${a.current ?? ''}">${a.current == null ? '입력' : '✎'}</button></td>
-    <td>${chip(a.status)}</td></tr>`).join('');
+    <td>${chip(a.status)}</td>${nt ? noticeCell(a) : ''}</tr>`).join('');
   return `<div class="cards">
       <div class="kpi"><div class="lab">모집 계정</div><div class="big">${accts.length}</div></div>
       <div class="kpi"><div class="lab">MARU / SIRIAI</div><div class="big">${maru} / ${siriai}</div></div>
       <div class="kpi"><div class="lab">팔로워 1,000+ 충족</div><div class="big">${over1k}<span style="font-size:16px;color:var(--muted)"> / ${accts.length}</span></div></div>
+      ${nt ? `<div class="kpi"><div class="lab">확정안내 미발송</div><div class="big" style="color:var(--needs)">${unsent}</div></div>` : ''}
     </div>
-    ${filterRow(true)}
-    <table><thead><tr><th>진행사</th><th>닉네임</th><th>계정</th><th class="num">팔로워</th><th>상태</th></tr></thead><tbody>${rows}</tbody></table>`;
+    ${filterRow(coBar(), statusBar(), nt ? noticeBar() : '')}
+    <table><thead><tr><th>진행사</th><th>닉네임</th><th>계정</th><th class="num">팔로워</th><th>상태</th>${nt ? '<th>확정안내</th>' : ''}</tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 // ② 업로드
@@ -139,11 +169,11 @@ function viewUpload(accts) {
   if (!accts.length) return emptyScan();
   const up = accts.filter(uploaded);
   const rev = accts.filter(reviewed);
-  const list = applyCo(accts);
-  const rows = list.map((a) => `<tr>
+  const list = applyFUp(applyCo(accts));
+  const rows = list.map((a) => `<tr${reviewPending(a) ? ' class="row-alert"' : ''}>
     <td>${coChip(a.company)}</td>
     <td class="handle">${link(a.handle)}</td>
-    <td>${uploaded(a) ? '<span class="chip ok">업로드</span>' : '<span class="chip error">대기</span>'}</td>
+    <td>${uploaded(a) ? (reviewPending(a) ? '<span class="chip needs">검수대기</span>' : '<span class="chip ok">업로드</span>') : '<span class="chip error">미업로드</span>'}</td>
     <td>${uploaded(a) ? `<a href="${esc(a.contentLink)}" target="_blank">영상 보기</a> <button class="cell-edit" data-kind="content" data-row="${a.row}" data-val="${esc(a.contentLink)}">✎</button>` : `<button class="cell-edit btn small" data-kind="content" data-row="${a.row}" data-val="">링크 달기</button>`}</td>
     <td>${revChip(a, 19)}</td>
     <td>${revChip(a, 20)}</td>
@@ -151,11 +181,11 @@ function viewUpload(accts) {
   return `<div class="cards">
       <div class="kpi"><div class="lab">업로드 완료</div><div class="big">${up.length}<span style="font-size:16px;color:var(--muted)"> / ${accts.length}</span></div></div>
       <div class="kpi"><div class="lab">검수 완료</div><div class="big">${rev.length}<span style="font-size:16px;color:var(--muted)"> / ${up.length || accts.length}</span></div></div>
-      <div class="kpi"><div class="lab">업로드 대기</div><div class="big">${accts.length - up.length}</div></div>
+      <div class="kpi"><div class="lab">검수 대기</div><div class="big" style="color:var(--needs)">${accts.filter(reviewPending).length}</div></div>
     </div>
-    ${filterRow(false)}
+    ${filterRow(coBar(), upBar())}
     <table><thead><tr><th>진행사</th><th>계정</th><th>업로드</th><th>콘텐츠</th><th>음원</th><th>음원구간</th><th>해시태그</th></tr></thead><tbody>${rows}</tbody></table>
-    <div class="note"><b>음원·해시태그</b>는 스캔이 자동 판정, <b>음원구간</b>은 사람이 영상 보고 판정해요. 칩 클릭 = <b>미확인 → 준수 → 미준수</b> 순환. 손으로 고치면 재스캔해도 그 값이 유지돼요(수동 우선).</div>`;
+    <div class="note"><b>음원·해시태그</b>는 스캔이 자동 판정, <b>음원구간</b>은 사람이 영상 보고 판정해요. 드롭다운에서 <b>준수·미준수</b>로 고치면 재스캔해도 유지(수동 우선), <b>미확인</b>으로 되돌리면 자동 판정에 다시 맡겨요.</div>`;
 }
 
 // ③ 가드닝 (하위 탭)
@@ -224,24 +254,32 @@ function viewDeliver(accts) {
   const withPerf = content.map((a) => ({ ...a, v: num(a.views), l: num(a.likes), c: num(a.comments), sh: num(a.shares) }));
   const totalViews = withPerf.reduce((s, a) => s + (a.v || 0), 0);
   const totalLikes = withPerf.reduce((s, a) => s + (a.l || 0), 0);
-  const sorted = [...withPerf].sort((a, b) => (b.v || 0) - (a.v || 0));
-  const hero = sorted[0] && sorted[0].v ? sorted[0] : null;
+  const hero = [...withPerf].sort((a, b) => (b.v || 0) - (a.v || 0))[0];
+  const heroOn = hero && hero.v ? hero : null;
   const noPerf = totalViews === 0 && totalLikes === 0;
   if (!content.length) return coBar() + `<div class="empty">아직 업로드된 콘텐츠가 없어요.<br>업로드가 되면 여기서 성과를 봐요.</div>`;
-  const rows = sorted.map((a) => `<tr>
+  // 베스트만 필터 → 정렬(헤더 클릭)
+  let list = state.bestOnly ? withPerf.filter((a) => state.best.includes(a.handle)) : withPerf;
+  const dir = state.sortDir === 'asc' ? 1 : -1;
+  list = [...list].sort((a, b) => ((a[state.sortKey] || 0) - (b[state.sortKey] || 0)) * dir);
+  const arrow = (k) => (state.sortKey === k ? (state.sortDir === 'asc' ? ' ▲' : ' ▼') : '');
+  const th = (k, l) => `<th class="num sortable${state.sortKey === k ? ' sorted' : ''}" data-sort="${k}">${l}${arrow(k)}</th>`;
+  const rows = list.map((a) => `<tr>
     <td><button class="star ${state.best.includes(a.handle) ? 'on' : ''}" data-h="${a.handle}" title="SIRIAI 베스트">★</button></td>
     <td class="handle">${link(a.handle)}</td>
     <td class="num">${a.v == null ? '—' : fmt(a.v)}</td><td class="num">${a.l == null ? '—' : fmt(a.l)}</td>
     <td class="num">${a.c == null ? '—' : fmt(a.c)}</td><td class="num">${a.sh == null ? '—' : fmt(a.sh)}</td>
     <td><a href="${esc(a.contentLink)}" target="_blank">영상</a></td></tr>`).join('');
+  const bestCount = withPerf.filter((a) => state.best.includes(a.handle)).length;
   return coBar() + `<div class="cards">
       <div class="kpi"><div class="lab">총 조회수</div><div class="big">${fmt(totalViews)}</div></div>
       <div class="kpi"><div class="lab">총 좋아요</div><div class="big">${fmt(totalLikes)}</div></div>
       <div class="kpi"><div class="lab">업로드 콘텐츠</div><div class="big">${content.length}</div></div>
-      ${hero ? `<div class="kpi wide"><div class="lab">🏆 히어로 콘텐츠 (최고 조회수)</div><div class="big" style="font-size:20px">@${hero.handle} · ${fmt(hero.v)} 조회</div><div class="sub"><a href="${esc(hero.contentLink)}" target="_blank">영상 보기</a></div></div>` : ''}
+      ${heroOn ? `<div class="kpi wide"><div class="lab">🏆 히어로 콘텐츠 (최고 조회수)</div><div class="big" style="font-size:20px">@${heroOn.handle} · ${fmt(heroOn.v)} 조회</div><div class="sub"><a href="${esc(heroOn.contentLink)}" target="_blank">영상 보기</a></div></div>` : ''}
     </div>
+    <div class="filters"><div class="filterbar"><button class="fbtn best-f ${state.bestOnly ? 'active' : ''}">★ 베스트만 (${bestCount})</button></div></div>
     ${noPerf ? '<div class="note"><b>아직 조회수 데이터가 비어있어요.</b> 시트의 조회수·좋아요 칸을 채우면 여기 자동으로 집계돼요. 지금도 ★로 <b>SIRIAI 베스트 콘텐츠</b>는 미리 찍어둘 수 있어요.</div>' : ''}
-    <table><thead><tr><th>★</th><th>계정</th><th class="num">조회수</th><th class="num">좋아요</th><th class="num">댓글</th><th class="num">공유</th><th>콘텐츠</th></tr></thead><tbody>${rows}</tbody></table>`;
+    <table><thead><tr><th>★</th><th>계정</th>${th('v', '조회수')}${th('l', '좋아요')}${th('c', '댓글')}${th('sh', '공유')}<th>콘텐츠</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 const emptyScan = () => `<div class="empty">아직 데이터가 없어요.<br><br><button class="btn primary" onclick="scan()">지금 스캔하기</button></div>`;
@@ -265,9 +303,19 @@ function wire() {
   $$('.close-order').forEach((b) => b.addEventListener('click', () => closeOrder(b.dataset.id)));
   $$('.star').forEach((b) => b.addEventListener('click', () => toggleBest(b.dataset.h)));
   $$('.cell-edit').forEach((b) => b.addEventListener('click', () => startCellEdit(b)));
-  $$('.rev').forEach((b) => b.addEventListener('click', () => cycleReview(Number(b.dataset.row), Number(b.dataset.col))));
-  $$('.co-f').forEach((b) => b.addEventListener('click', () => { state.fCo = b.dataset.fco; render(); }));
-  $$('.st-f').forEach((b) => b.addEventListener('click', () => { state.fStatus = b.dataset.fst; render(); }));
+  $$('.rev-sel').forEach((s) => s.addEventListener('change', () => setReview(Number(s.dataset.row), Number(s.dataset.col), s.value)));
+  $$('.notice').forEach((b) => b.addEventListener('click', () => toggleNotice(Number(b.dataset.row), b.classList.contains('sent'))));
+  $$('.co-f').forEach((b) => b.addEventListener('click', () => { state.fCo = b.dataset.k; render(); }));
+  $$('.st-f').forEach((b) => b.addEventListener('click', () => { state.fStatus = b.dataset.k; render(); }));
+  $$('.up-f').forEach((b) => b.addEventListener('click', () => { state.fUp = b.dataset.k; render(); }));
+  $$('.nt-f').forEach((b) => b.addEventListener('click', () => { state.fNotice = b.dataset.k; render(); }));
+  $$('.best-f').forEach((b) => b.addEventListener('click', () => { state.bestOnly = !state.bestOnly; render(); }));
+  $$('th.sortable').forEach((h) => h.addEventListener('click', () => {
+    const k = h.dataset.sort;
+    if (state.sortKey === k) state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+    else { state.sortKey = k; state.sortDir = 'desc'; }
+    render();
+  }));
   updateSel();
 }
 
@@ -278,6 +326,7 @@ function startCellEdit(btn) {
   const kind = btn.dataset.kind, row = Number(btn.dataset.row), value = btn.dataset.val || '';
   const cfg = {
     nick: { ph: '닉네임', save: (v) => saveCell(row, 3, v) },
+    link: { ph: '틱톡 계정 링크', validate: (v) => /@[A-Za-z0-9._]+/.test(v), verr: '계정 링크에 @사용자명이 있어야 해요 (예: tiktok.com/@user). 없으면 계정이 목록에서 사라져요.', save: (v) => saveCell(row, 4, v) },
     content: { ph: '영상 링크 붙여넣기', save: (v) => saveCell(row, 17, v) },
     fol: { ph: '팔로워 수', num: true, save: (v) => saveFollowers(row, v) },
   }[kind];
@@ -291,6 +340,7 @@ function startCellEdit(btn) {
     const v = inp.value.trim();
     if (v === String(value).trim()) return render(); // 변화 없음 → 원복
     if (cfg.num && v !== '' && num(v) == null) { toast('숫자를 입력하세요'); return render(); }
+    if (cfg.validate && !cfg.validate(v)) { toast(cfg.verr); return render(); } // 검증 실패 → 취소
     await cfg.save(v);
   };
   inp.addEventListener('keydown', (e) => {
@@ -299,32 +349,52 @@ function startCellEdit(btn) {
   });
   inp.addEventListener('blur', commit);
 }
-// 검수 칩 순환 (미확인 → 준수 → 미준수 → 미확인)
-async function cycleReview(row, col) {
-  const a = (state.data.accounts || []).find((x) => Number(x.row) === row);
-  if (!a || !REVIEW[col]) return;
-  const next = NEXT_REV[revState(revValOf(a, col))];
+// 검수 드롭다운 선택 → 저장
+function setReview(row, col, next) {
+  if (!REVIEW[col]) return;
   const value = next === 'pass' ? REVIEW[col].pass : next === 'fail' ? REVIEW[col].fail : '';
-  await saveCell(row, col, value, { quiet: true });
+  saveCell(row, col, value);
 }
-// 일반 셀 되쓰기 (/api/cell — 검수/콘텐츠 열은 수동 잠금 기록됨)
-async function saveCell(row, col, value, { quiet } = {}) {
-  if (!quiet) overlay(true, '시트에 기록 중…');
-  const r = await api(`/api/cell?campaign=${state.campaign}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ row, col, value }) });
-  if (!quiet) overlay(false);
-  if (r.error) { toast('실패: ' + r.error); return render(); }
-  if (!quiet) toast('시트에 기록됨');
-  await loadData();
+// 확정안내 발송 토글 (col 16)
+function toggleNotice(row, isSent) {
+  saveCell(row, 16, isSent ? '' : '안내완료');
 }
-// 팔로워 되쓰기 (/api/manual — 가드닝 대상여부도 같이 갱신)
+// 로컬 상태에 셀 값 즉시 반영 (낙관적 UI — 시트 응답 안 기다림)
+function applyLocalTo(a, col, value) {
+  if (COL_FIELD[col]) a[COL_FIELD[col]] = value;
+  if (LOCK_COLS.includes(col)) { // 수동 잠금 열 → manualCols 갱신
+    const set = new Set(a.manualCols || []);
+    if (value && String(value).trim()) set.add(String(col)); else set.delete(String(col));
+    a.manualCols = [...set];
+  }
+}
+function applyLocal(row, col, value) {
+  const a = (state.data.accounts || []).find((x) => Number(x.row) === Number(row));
+  if (a) applyLocalTo(a, col, value);
+}
+// 셀 되쓰기 (/api/cell) — 낙관적: 로컬 먼저 반영·렌더 후 백그라운드 저장.
+// 값 유지 필요한 쓰기(준수/미준수 등)는 pending 추적해 동시 loadData가 되돌리지 못하게 함.
+// 링크(col4)·검수 미확인(잠금열 공란=자동반환)은 서버 진실이 정답이라 저장 후 재조회.
+async function saveCell(row, col, value) {
+  applyLocal(row, col, value);
+  render();
+  const blank = !String(value).trim();
+  const reconcile = col === 4 || (LOCK_COLS.includes(col) && blank);
+  const key = row + ':' + col;
+  if (!reconcile) state.pending[key] = value;
+  const r = await api(`/api/cell?campaign=${state.campaign}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ row, col, value }) }).catch(() => ({ error: '네트워크 오류' }));
+  if (r.error) { delete state.pending[key]; toast('저장 실패: ' + r.error); await loadData(); return; }
+  if (reconcile) await loadData(); // 링크 재계산 / 미확인 자동반환 → 서버 진실 반영
+}
+// 팔로워 되쓰기 (/api/manual — 가드닝 대상여부·상태도 갱신되므로 저장 후 새로고침)
 async function saveFollowers(row, v) {
   const n = num(v);
   if (n == null) return render(); // 빈값/잘못된 값 → 취소
-  overlay(true, '시트에 기록 중…');
-  const r = await api(`/api/manual?campaign=${state.campaign}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ row, followers: n }) });
-  overlay(false);
-  if (r.error) { toast('실패: ' + r.error); return render(); }
-  toast('팔로워 시트에 기록됨'); await loadData();
+  const a = (state.data.accounts || []).find((x) => Number(x.row) === Number(row));
+  if (a) { a.current = n; a.sheetFollowers = n; render(); } // 즉시 숫자 반영
+  const r = await api(`/api/manual?campaign=${state.campaign}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ row, followers: n }) }).catch(() => ({ error: '네트워크 오류' }));
+  if (r.error) { toast('저장 실패: ' + r.error); await loadData(); return; }
+  loadData(); // 상태(가드닝 필요 등) 서버 재계산 반영 (백그라운드)
 }
 
 async function toggleBest(handle) {
@@ -374,13 +444,12 @@ async function doExecute(handles) {
   toast((r.placed || []).length ? `✅ ${r.placed.length}개 주문 완료` : '주문할 게 없었어요');
   state.tab = 'garden'; state.sub = 'orders'; await loadData();
 }
-async function scan(full) {
-  overlay(true, (full ? '전체 계정' : '미완료·가드닝 계정') + ' 팔로워 확인 중… (크롬 창 뜸 — 건드리지 마세요)');
-  const r = await api(`/api/scan?campaign=${state.campaign}${full ? '&full=1' : ''}`, { method: 'POST' });
+async function scan() {
+  overlay(true, '전체 계정 팔로워 확인 중… (크롬 창 뜸 — 건드리지 마세요)');
+  const r = await api(`/api/scan?campaign=${state.campaign}&full=1`, { method: 'POST' });
   overlay(false);
   if (r.error) return toast('스캔 실패: ' + r.error);
-  const n = r.scannedCount != null ? r.scannedCount : '';
-  toast((full ? '전체 스캔 완료' : `스캔 완료 (${n}개)`) + (r.nicksWritten ? ` · 닉네임 ${r.nicksWritten}개 채움` : '')); await loadData();
+  toast(`스캔 완료 (${r.scannedCount != null ? r.scannedCount : ''}개)` + (r.nicksWritten ? ` · 닉네임 ${r.nicksWritten}개 채움` : '')); await loadData();
 }
 
 async function contentScan(full) {
@@ -403,7 +472,7 @@ function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = fal
 function overlay(show, msg) { $('#overlay').hidden = !show; if (msg) $('#overlayMsg').textContent = msg; }
 
 $$('.tab').forEach((t) => t.addEventListener('click', () => { state.tab = t.dataset.tab; render(); }));
-$('#scanBtn').addEventListener('click', (e) => scan(e.shiftKey));
+$('#scanBtn').addEventListener('click', scan);
 $('#contentScanBtn').addEventListener('click', (e) => contentScan(e.shiftKey));
 $('#modalCancel').addEventListener('click', () => ($('#modal').hidden = true));
 window.scan = scan;

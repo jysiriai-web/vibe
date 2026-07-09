@@ -158,7 +158,7 @@ const server = createServer(async (req, res) => {
       const accounts = await buildAccounts(campaign, orders);
       return send(res, 200, {
         campaign: { id: campaign.id, name: campaign.name, group: campaign.group },
-        config: { target: campaign.target, min: campaign.min, krwPerUsd: await effectiveRate(), staleDays: getStaleDays(), hasKey: !!smm,
+        config: { target: campaign.target, min: campaign.min, krwPerUsd: await effectiveRate(), staleDays: getStaleDays(), hasKey: !!smm, confirmNotice: !!campaign.confirmNotice,
           service: svc ? { id: svc.service, name: svc.name, rate: svc.rate } : { id: campaign.serviceId, name: `#${campaign.serviceId}`, rate: 0 } },
         balance, scannedAt: scanLatest(campaign).ranAt, accounts, orders: markStale(orders), best: loadBest(campaign),
       });
@@ -184,7 +184,9 @@ const server = createServer(async (req, res) => {
       const row = Number(body.row);
       const col = Number(body.col);
       const value = body.value == null ? '' : String(body.value);
-      if (!row || !EDITABLE_COLS.includes(col)) return send(res, 400, { error: 'row/col(3·17·19·20·21) 필요' });
+      if (!row || !EDITABLE_COLS.includes(col)) return send(res, 400, { error: `row/col(${EDITABLE_COLS.join('·')}) 필요` });
+      // 계정 링크(4)는 @핸들이 있어야 함 — 없으면 시트 읽을 때 그 행이 통째로 사라짐(계정 소실 방지)
+      if (col === 4 && !/@[A-Za-z0-9._]+/.test(value)) return send(res, 400, { error: '계정 링크에 @사용자명이 필요합니다 (예: tiktok.com/@user)' });
       try {
         await pushCellsToSheet(campaign.sheet, [{ row, col, value }]);
         // 검수/콘텐츠 열: 값 있으면 수동 잠금, '미확인'(빈값)이면 잠금 해제(자동 관리에 반환). 닉3은 잠금 무관.

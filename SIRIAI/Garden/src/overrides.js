@@ -6,8 +6,9 @@ import { join } from 'node:path';
 
 // 자동 스캔이 건드리는 검수/콘텐츠 열 — 이 열들만 수동 우선 잠금 대상.
 export const OVERRIDE_COLS = [17, 19, 20, 21];
-// 대시보드에서 편집 허용하는 열 (닉3·콘텐츠17·음원19·음원구간20·해시태그21).
-export const EDITABLE_COLS = [3, 17, 19, 20, 21];
+// 대시보드에서 편집 허용하는 열 (닉3·계정4·확정안내16·콘텐츠17·음원19·음원구간20·해시태그21).
+// 4·16 은 자동스캔이 안 건드려서 잠금(OVERRIDE) 대상 아님, 편집만 허용.
+export const EDITABLE_COLS = [3, 4, 16, 17, 19, 20, 21];
 
 function file(dataDir) { return join(dataDir, 'overrides.json'); }
 

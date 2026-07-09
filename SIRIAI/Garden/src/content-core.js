@@ -13,7 +13,7 @@ function prevDetected(campaign) {
   try { return JSON.parse(readFileSync(p, 'utf8')).detected || {}; } catch { return {}; }
 }
 
-export async function runContentScan(campaign, { onProgress, full = false } = {}) {
+export async function runContentScan(campaign, { onProgress, full = false, concurrency = 5 } = {}) {
   const cfg = { hashtags: campaign.campaignHashtags || [], soundId: campaign.campaignSoundId || '' };
   const accounts = await getAccountsFromSheet(campaign.sheet);
   const prev = prevDetected(campaign);
@@ -25,8 +25,11 @@ export async function runContentScan(campaign, { onProgress, full = false } = {}
   const detected = { ...prev }; // 이미 업로드된 건 이전 결과 유지
   let done = 0;
   let newUp = 0;
-  try {
-    for (const a of targets) {
+  // 동시성 풀 — 한 브라우저 창에 여러 탭을 병렬로 열어 스캔 (300건 대비 5배↑ 속도)
+  let idx = 0;
+  const worker = async () => {
+    while (idx < targets.length) {
+      const a = targets[idx++];
       let videos = [];
       try { videos = await fetchVideos(ctx, a.handle); } catch {}
       const d = detectCampaign(videos, cfg);
@@ -35,6 +38,9 @@ export async function runContentScan(campaign, { onProgress, full = false } = {}
       done++;
       if (onProgress) onProgress({ done, total: targets.length, handle: a.handle, uploaded: !!d.uploaded });
     }
+  };
+  try {
+    await Promise.all(Array.from({ length: Math.min(concurrency, targets.length) || 1 }, worker));
   } finally {
     try { await browser.close(); } catch {}
   }

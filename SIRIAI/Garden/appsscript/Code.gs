@@ -11,7 +11,7 @@ const MIN_FOLLOWERS = 1000;
 // 컬럼 위치(1부터). 마스터 통합시트 헤더 기준.
 const COL = {
   company: 2, nick: 3, link: 4, followers: 5, gardening: 6,
-  language: 11,
+  language: 11, notice: 16,
   contentA: 17, reviewNote: 18, soundOk: 19, soundSection: 20, hashtagOk: 21,
   campaignDone: 23, paid: 24, paidDate: 25,
   contentB: 26, views: 27, likes: 28, comments: 29, shares: 30,
@@ -59,6 +59,7 @@ function readAccounts_() {
       link: String(row[COL.link - 1] || ''),
       sheetFollowers: row[COL.followers - 1],
       language: String(row[COL.language - 1] || ''),
+      notice: String(row[COL.notice - 1] || ''),
       contentLink: c,
       soundOk: String(row[COL.soundOk - 1] || ''),
       soundSection: String(row[COL.soundSection - 1] || ''),
