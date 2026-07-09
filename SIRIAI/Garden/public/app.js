@@ -51,7 +51,7 @@ async function init() {
   state.campaigns = c.campaigns || []; state.krw = c.krwPerUsd || state.krw; state.services = s.services || [];
   state.campaign = state.campaigns[0]?.id || null;
   renderCampaigns();
-  if (!state.campaign) { $('#content').innerHTML = '<div class="empty">등록된 캠페인이 없어요.<br>campaigns.json 에 캠페인을 추가하면 여기 나타나요.</div>'; return; }
+  if (!state.campaign) { $('#content').innerHTML = '<div class="empty">표시할 캠페인이 아직 없어요.<br>캠페인 설정을 추가하면 여기 나타나요.</div>'; return; }
   overlay(true, '불러오는 중…'); // 최초 로드: 시트 fetch(1~3초) 동안 빈 화면 대신 스피너
   try { await loadData(); } finally { overlay(false); }
 }
@@ -216,14 +216,14 @@ function viewUpload(accts) {
     <td>${coChip(a.company)}</td>
     <td class="handle">${link(a.handle)}</td>
     <td>${uploaded(a) ? (reviewPending(a) ? '<span class="chip needs">검수대기</span>' : '<span class="chip ok">업로드</span>') : '<span class="chip error">미업로드</span>'}</td>
-    <td>${uploaded(a) ? `<a href="${esc(a.contentLink)}" target="_blank">영상 보기</a> <button class="cell-edit" data-kind="content" data-row="${a.row}" data-val="${esc(a.contentLink)}">✎</button>` : `<button class="cell-edit btn small" data-kind="content" data-row="${a.row}" data-val="">링크 달기</button>`}</td>
+    <td>${uploaded(a) ? `<a href="${esc(a.contentLink)}" target="_blank">영상 보기</a> <button class="cell-edit" data-kind="content" data-row="${a.row}" data-val="${esc(a.contentLink)}">✎</button>` : `<button class="cell-edit prompt" data-kind="content" data-row="${a.row}" data-val="">링크 달기</button>`}</td>
     <td>${revChip(a, 19)}</td>
     <td>${revChip(a, 20)}</td>
     <td>${revChip(a, 21)}</td></tr>`).join('');
   return `<div class="cards">
       ${kpi('업로드 완료', ofTot(up.length, accts.length), { ic: IC.video })}
       ${kpi('검수 완료', ofTot(rev.length, up.length || accts.length), { ic: IC.check })}
-      ${kpi('검수 대기', accts.filter(reviewPending).length, { ic: IC.clock, accent: 'var(--needs)' })}
+      ${kpi('검수대기', accts.filter(reviewPending).length, { ic: IC.clock, accent: 'var(--needs)' })}
     </div>
     ${filterRow(coBar(), upBar())}
     <table><thead><tr><th>진행사</th><th>계정</th><th>업로드</th><th>콘텐츠</th><th>음원</th><th>음원구간</th><th>해시태그</th></tr></thead><tbody>${rows || emptyRow(7)}</tbody></table>
@@ -395,7 +395,7 @@ function startCellEdit(btn) {
     if (done) return; done = true;
     const v = inp.value.trim();
     if (v === String(value).trim()) return render(); // 변화 없음 → 원복
-    if (cfg.num && v !== '' && num(v) == null) { toast('숫자를 입력하세요'); return render(); }
+    if (cfg.num && v !== '' && num(v) == null) { toast('숫자만 넣을 수 있어요'); return render(); }
     if (cfg.validate && !cfg.validate(v)) { toast(cfg.verr); return render(); } // 검증 실패 → 취소
     await cfg.save(v);
   };
@@ -461,7 +461,7 @@ async function toggleBest(handle) {
 }
 async function recalibrate() {
   const v = num($('#rateInput').value);
-  if (!v || v <= 0) return toast('현재 smmkings 잔액(₩)을 숫자로 입력하세요');
+  if (!v || v <= 0) return toast('현재 smmkings 잔액(₩)을 숫자로 넣어주세요');
   const r = await api('/api/rate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ krwBalance: v }) });
   if (r.error) return toast('오류: ' + r.error);
   state.krw = r.krwPerUsd; toast(`환율 재보정 완료 (₩${Math.round(r.krwPerUsd).toLocaleString()}/$1)`); render();
@@ -478,7 +478,7 @@ async function closeOrder(id) {
   overlay(false);
   if (r.error) return toast('실패: ' + r.error);
   if (r.cancelled) toast('취소·환불 요청됨 · 종료 완료');
-  else toast('⚠️ 취소는 안 됐어요(패널 미지원) — 이 주문은 계속 배송될 수 있어 배송 끝나야 재가드닝돼요');
+  else toast('⚠️ 취소는 안 됐어요(이 서비스는 자동취소 미지원) — 이 주문은 계속 배송될 수 있어 배송 끝나야 재가드닝돼요');
   await loadData();
 }
 async function openExecute() {
