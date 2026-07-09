@@ -73,17 +73,17 @@ function reapplyPending() {
 }
 
 function renderCampaigns() {
+  const sel = $('#campaignSelect');
   const groups = {};
   state.campaigns.forEach((c) => { (groups[c.group] = groups[c.group] || []).push(c); });
-  const nav = $('#campaignNav');
-  nav.innerHTML = Object.entries(groups).map(([g, cs]) =>
-    `<div class="group">${g}</div>` + cs.map((c) => `<button class="camp ${c.id === state.campaign ? 'active' : ''}" data-c="${c.id}">${c.name}</button>`).join('')).join('');
-  $$('.camp', nav).forEach((b) => b.addEventListener('click', () => { state.campaign = b.dataset.c; state.tab = 'recruit'; state.pending = {}; renderCampaigns(); loadData(); }));
+  sel.innerHTML = Object.entries(groups).map(([g, cs]) =>
+    `<optgroup label="${g}">` + cs.map((c) => `<option value="${c.id}">${c.name}</option>`).join('') + '</optgroup>').join('');
+  sel.value = state.campaign || '';
 }
 
 function render() {
   const d = state.data; if (!d) return;
-  $('#campTitle').textContent = d.campaign?.name || '—';
+  if (d.campaign?.id) $('#campaignSelect').value = d.campaign.id;
   $('#balance').textContent = won(d.balance);
   $('#scannedAt').textContent = timeAgo(d.scannedAt);
   $('#service').textContent = d.config?.service ? `#${d.config.service.id}` : '—';
@@ -498,6 +498,7 @@ function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = fal
 function overlay(show, msg) { $('#overlay').hidden = !show; if (msg) $('#overlayMsg').textContent = msg; }
 
 $$('.tab').forEach((t) => t.addEventListener('click', () => { state.tab = t.dataset.tab; render(); }));
+$('#campaignSelect').addEventListener('change', (e) => { state.campaign = e.target.value; state.tab = 'recruit'; state.pending = {}; loadData(); });
 $('#scanBtn').addEventListener('click', scan);
 $('#contentScanBtn').addEventListener('click', (e) => contentScan(e.shiftKey));
 $('#modalCancel').addEventListener('click', () => ($('#modal').hidden = true));
