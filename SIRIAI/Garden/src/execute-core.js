@@ -5,13 +5,18 @@ import { orderQuantity } from './garden.js';
 import { inFlightFor } from './orders.js';
 
 // 계정 리스트 팔로워·닉네임 스크랩 — 실제 브라우저(Playwright headless:false)로 봇 차단 우회.
-// 직접 fetch 방식은 틱톡이 'Please wait'로 전부 차단해서 폐기(2026-07-09). onProgress(계정) 콜백 옵션.
-export async function scanAccounts(accounts, { delayMs = 400, onProgress } = {}) {
-  const out = [];
-  if (!accounts.length) return out;
+// 직접 fetch 방식은 틱톡이 'Please wait'로 전부 차단해서 폐기(2026-07-09).
+// 동시성 풀(기본 5) — 한 브라우저에 탭 여러 개 병렬로 열어 스캔 (콘텐츠 스캔과 동일 패턴, 300건 대비 ~5배↑).
+export async function scanAccounts(accounts, { delayMs = 200, onProgress, concurrency = 5 } = {}) {
+  if (!accounts.length) return [];
+  const out = new Array(accounts.length);
   const { browser, ctx } = await launchBrowser(); // Playwright 미설치면 여기서 throw
-  try {
-    for (const a of accounts) {
+  let idx = 0;
+  let done = 0;
+  const worker = async () => {
+    while (idx < accounts.length) {
+      const i = idx++;
+      const a = accounts[i];
       let current = null;
       let nickname = '';
       try {
@@ -22,10 +27,14 @@ export async function scanAccounts(accounts, { delayMs = 400, onProgress } = {})
         /* 실패 → current=null */
       }
       const row = { ...a, current, scrapedNick: nickname };
-      out.push(row);
-      if (onProgress) onProgress(row);
-      await sleep(delayMs);
+      out[i] = row; // 인덱스로 결과 순서 보존
+      done++;
+      if (onProgress) onProgress({ ...row, done, total: accounts.length });
+      if (delayMs) await sleep(delayMs);
     }
+  };
+  try {
+    await Promise.all(Array.from({ length: Math.min(concurrency, accounts.length) || 1 }, worker));
   } finally {
     try { await browser.close(); } catch {}
   }
