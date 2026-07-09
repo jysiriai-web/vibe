@@ -56,7 +56,7 @@
   </div>
 
   <div class="modal-bg" id="modal" hidden>
-    <div class="modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <h2 id="modalTitle">집행 확인</h2>
       <div id="modalBody"></div>
       <div class="modal-actions">
@@ -66,8 +66,8 @@
     </div>
   </div>
 
-  <div class="toast" id="toast" hidden></div>
-  <div class="overlay" id="overlay" hidden><div class="spinner"></div><div id="overlayMsg">처리 중…</div></div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <div class="overlay" id="overlay" role="status" aria-live="assertive" hidden><div class="spinner"></div><div id="overlayMsg">처리 중…</div></div>
 
   <script src="/app.js"></script>
 </body>

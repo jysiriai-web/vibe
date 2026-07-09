@@ -99,7 +99,7 @@ function render() {
   $('#cnt-garden').classList.toggle('warn', gardenN > 0); // 처리할 게 있을 때만 빨간 배지
   $('#cnt-deliver').textContent = accts.filter(uploaded).length;
 
-  $$('.tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === state.tab));
+  $$('.tab').forEach((t) => { const on = t.dataset.tab === state.tab; t.classList.toggle('active', on); if (on) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current'); });
   // 정산 탭은 독립 시뮬레이터 → 스캔 버튼·계정 통계 무의미하니 숨김 (딱 필요한 것만 노출)
   const isSettle = state.tab === 'settle';
   $('#scanBtn').hidden = isSettle;
@@ -128,7 +128,7 @@ function revChip(a, col) {
   const manual = a.manualCols && a.manualCols.includes(String(col));
   const title = manual ? '수동 지정됨' : (col !== 20 && a.autoDetected ? '자동 판정됨' : '');
   const opts = [['none', '미확인'], ['pass', '준수'], ['fail', '미준수']];
-  return `<select class="rev-sel rev-${st}" data-row="${a.row}" data-col="${col}" title="${title}">${opts.map(([v, l]) => `<option value="${v}"${st === v ? ' selected' : ''}>${l}</option>`).join('')}</select>`;
+  return `<select class="rev-sel rev-${st}" data-row="${a.row}" data-col="${col}" title="${title}" aria-label="${REVIEW[col] ? REVIEW[col].label : '검수'} 검수 @${a.handle}">${opts.map(([v, l]) => `<option value="${v}"${st === v ? ' selected' : ''}>${l}</option>`).join('')}</select>`;
 }
 
 // ── KPI 카드 (아이콘 + 라벨 + 큰 숫자 + 보조) ──
@@ -167,7 +167,7 @@ function applyFUp(accts) {
 }
 const applyFNotice = (accts) => (state.fNotice === 'unsent' ? accts.filter((a) => !noticeSent(a)) : accts);
 function fbar(flab, cls, cur, opts) {
-  return `<div class="filterbar"><span class="flab">${flab}</span>${opts.map(([k, l]) => `<button class="fbtn ${cls} ${cur === k ? 'active' : ''}" data-k="${k}">${l}</button>`).join('')}</div>`;
+  return `<div class="filterbar"><span class="flab">${flab}</span>${opts.map(([k, l]) => `<button class="fbtn ${cls} ${cur === k ? 'active' : ''}" data-k="${k}" aria-pressed="${cur === k}">${l}</button>`).join('')}</div>`;
 }
 const coBar = () => fbar('진행사', 'co-f', state.fCo, [['all', '전체'], ['MARU', 'MARU'], ['SIRIAI', 'SIRIAI']]);
 const statusBar = () => fbar('상태', 'st-f', state.fStatus, [['all', '전체'], ['needs', '가드닝 필요'], ['filling', '채워지는 중'], ['ok', '충족'], ['error', '미확인']]);
@@ -233,7 +233,7 @@ function viewUpload(accts) {
 // ③ 가드닝 (하위 탭)
 function viewGarden(accts, orders) {
   const subs = [['needs', '가드닝 필요'], ['orders', '집행 내역'], ['cost', '비용']];
-  const bar = `<div class="subtabs">${subs.map(([k, l]) => `<button class="subtab ${state.sub === k ? 'active' : ''}" data-sub="${k}">${l}</button>`).join('')}</div>`;
+  const bar = `<div class="subtabs">${subs.map(([k, l]) => `<button class="subtab ${state.sub === k ? 'active' : ''}" data-sub="${k}" aria-pressed="${state.sub === k}">${l}</button>`).join('')}</div>`;
   let body;
   if (state.sub === 'needs') body = viewNeeds(accts);
   else if (state.sub === 'orders') body = viewOrders(orders);
@@ -286,7 +286,7 @@ function viewCost(orders, balance) {
       ${kpi('현재 잔액', won(balance), { ic: IC.wallet })}
       <div class="kpi wide"><div class="lab">환율 · 실시간 시장환율 자동</div><div class="big">₩${Math.round(state.krw).toLocaleString()} / $1</div>
         <div class="rate-box" style="margin-top:10px"><span class="sub">smmkings 잔액과 다르면 →</span><input class="rate" id="rateInput" placeholder="현재 잔액 ₩"><button class="btn small" id="rateSave">재보정</button></div></div>
-      <div class="kpi wide"><div class="lab">가드닝 서비스</div><select class="svc" id="svcSelect">${svcOpts}</select><div class="sub">지난 주문은 각자 산 서비스로 기록(집행 내역 s번호).</div></div>
+      <div class="kpi wide"><div class="lab">가드닝 서비스</div><select class="svc" id="svcSelect" aria-label="가드닝 서비스 선택">${svcOpts}</select><div class="sub">지난 주문은 각자 산 서비스로 기록(집행 내역 s번호).</div></div>
     </div>
     ${rows.length ? `<table><thead><tr><th>계정</th><th class="num">넣은 팔로워</th><th class="num">주문</th><th class="num">비용</th></tr></thead><tbody>${rows.map((r) => `<tr><td class="handle">${link(r.handle)}</td><td class="num">${fmt(r.qty)}</td><td class="num">${r.n}회</td><td class="num">${won(r.cost)}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">아직 집행 내역이 없어요.</div>'}`;
 }
@@ -306,9 +306,9 @@ function viewDeliver(accts) {
   const dir = state.sortDir === 'asc' ? 1 : -1;
   list = [...list].sort((a, b) => ((a[state.sortKey] || 0) - (b[state.sortKey] || 0)) * dir);
   const arrow = (k) => (state.sortKey === k ? (state.sortDir === 'asc' ? ' ▲' : ' ▼') : '');
-  const th = (k, l) => `<th class="num sortable${state.sortKey === k ? ' sorted' : ''}" data-sort="${k}">${l}${arrow(k)}</th>`;
+  const th = (k, l) => `<th class="num sortable${state.sortKey === k ? ' sorted' : ''}" data-sort="${k}" tabindex="0" role="button" aria-sort="${state.sortKey === k ? (state.sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}" title="클릭하면 이 열로 정렬">${l}${arrow(k)}</th>`;
   const rows = list.map((a) => `<tr>
-    <td><button class="star ${state.best.includes(a.handle) ? 'on' : ''}" data-h="${a.handle}" title="SIRIAI 베스트">★</button></td>
+    <td><button class="star ${state.best.includes(a.handle) ? 'on' : ''}" data-h="${a.handle}" title="SIRIAI 베스트" aria-pressed="${state.best.includes(a.handle)}" aria-label="SIRIAI 베스트 @${a.handle}">★</button></td>
     <td class="handle">${link(a.handle)}</td>
     <td class="num">${a.v == null ? '—' : fmt(a.v)}</td><td class="num">${a.l == null ? '—' : fmt(a.l)}</td>
     <td class="num">${a.c == null ? '—' : fmt(a.c)}</td><td class="num">${a.sh == null ? '—' : fmt(a.sh)}</td>
@@ -320,7 +320,7 @@ function viewDeliver(accts) {
       ${kpi('업로드 콘텐츠', content.length, { ic: IC.video })}
       ${heroOn ? `<div class="kpi wide"><div class="kpi-top"><span class="kpi-ic">${IC.trophy}</span><span class="lab">히어로 콘텐츠 · 최고 조회수</span></div><div class="big" style="font-size:20px">@${heroOn.handle} · ${fmt(heroOn.v)} 조회</div><div class="sub"><a href="${esc(heroOn.contentLink)}" target="_blank">영상 보기</a></div></div>` : ''}
     </div>
-    <div class="filters"><div class="filterbar"><button class="fbtn best-f ${state.bestOnly ? 'active' : ''}">★ 베스트만 (${bestCount})</button></div></div>
+    <div class="filters"><div class="filterbar"><button class="fbtn best-f ${state.bestOnly ? 'active' : ''}" aria-pressed="${state.bestOnly}">★ 베스트만 (${bestCount})</button></div></div>
     ${noPerf ? '<div class="note"><b>아직 조회수 데이터가 비어있어요.</b> 시트의 조회수·좋아요 칸을 채우면 여기 자동으로 집계돼요. 지금도 ★로 <b>SIRIAI 베스트 콘텐츠</b>는 미리 찍어둘 수 있어요.</div>' : ''}
     <table><thead><tr><th>★</th><th>계정</th>${th('v', '조회수')}${th('l', '좋아요')}${th('c', '댓글')}${th('sh', '공유')}<th>콘텐츠</th></tr></thead><tbody>${rows || emptyRow(7, state.bestOnly ? '★ 베스트로 찍은 콘텐츠가 없어요.' : '조건에 맞는 콘텐츠가 없어요.')}</tbody></table>`;
 }
@@ -362,12 +362,16 @@ function wire() {
   $$('.up-f').forEach((b) => b.addEventListener('click', () => { state.fUp = b.dataset.k; render(); }));
   $$('.nt-f').forEach((b) => b.addEventListener('click', () => { state.fNotice = b.dataset.k; render(); }));
   $$('.best-f').forEach((b) => b.addEventListener('click', () => { state.bestOnly = !state.bestOnly; render(); }));
-  $$('th.sortable').forEach((h) => h.addEventListener('click', () => {
+  const doSort = (h) => {
     const k = h.dataset.sort;
     if (state.sortKey === k) state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
     else { state.sortKey = k; state.sortDir = 'desc'; }
     render();
-  }));
+  };
+  $$('th.sortable').forEach((h) => {
+    h.addEventListener('click', () => doSort(h));
+    h.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); doSort(h); } });
+  });
   updateSel();
 }
 
@@ -488,6 +492,7 @@ async function openExecute() {
   $('#modalBody').innerHTML = plan.toOrder.map((o) => `<div class="plan-row"><span>@${o.handle} <span style="color:var(--muted)">(현재 ${fmt(o.current)})</span></span><span class="mono">${fmt(o.qty)}명 · ${won(o.cost)}</span></div>`).join('') +
     `<div class="plan-total"><span>총 ${plan.toOrder.length}개 · ${fmt(plan.totalQty)}명</span><span>${won(plan.totalCost)}</span></div><div class="note">서비스 #${plan.service?.id} · 잔액 ${won(plan.balance)} · 집행 직전 최신 팔로워로 재확인 후 주문돼요.</div>`;
   $('#modal').hidden = false;
+  $('#modalCancel').focus(); // 열릴 때 안전한 기본(취소)로 포커스 이동 — 돈 나가는 다이얼로그
   $('#modalConfirm').onclick = () => doExecute(picked);
 }
 async function doExecute(handles) {
@@ -540,6 +545,10 @@ $$('.tab').forEach((t) => t.addEventListener('click', () => { state.tab = t.data
 $('#campaignSelect').addEventListener('change', (e) => { state.campaign = e.target.value; state.tab = 'recruit'; state.pending = {}; state.unpicked = new Set(); overlay(true, '불러오는 중…'); loadData().finally(() => overlay(false)); });
 $('#scanBtn').addEventListener('click', scan);
 $('#contentScanBtn').addEventListener('click', (e) => contentScan(e.shiftKey));
-$('#modalCancel').addEventListener('click', () => ($('#modal').hidden = true));
+function closeModal() { $('#modal').hidden = true; }
+$('#modalCancel').addEventListener('click', closeModal);
+// 돈 나가는 확정 다이얼로그 — Esc로 닫기(취소), 바깥 배경 클릭도 취소
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#modal').hidden) closeModal(); });
+$('#modal').addEventListener('click', (e) => { if (e.target.id === 'modal') closeModal(); });
 window.scan = scan;
 init();
