@@ -8,7 +8,7 @@ import { loadEnv } from './env.js';
 import { createSmm } from './smm.js';
 import { classify } from './garden.js';
 import { loadOrders, saveOrders, refreshOrders, inFlightFor } from './orders.js';
-import { getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet } from './sheet.js';
+import { getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet, syncRecruitToSheet } from './sheet.js';
 import { scanAccounts, buildPlan, placeOrders, findService } from './execute-core.js';
 import { runSync } from './sync-core.js';
 import { runContentScan } from './content-core.js';
@@ -220,6 +220,21 @@ const server = createServer(async (req, res) => {
       else { best = best.filter((h) => h !== body.handle); }
       saveBest(campaign, best);
       return send(res, 200, { ok: true, best });
+    }
+
+    // 모집시트(마루 등) → 마스터 자동 동기화: 계정 URL 추출·정리 후 새 계정만 마스터에 추가
+    if (path === '/api/sync-recruit' && req.method === 'POST') {
+      const sheets = campaign.recruitSheets || [];
+      if (!sheets.length) return send(res, 400, { error: '이 캠페인엔 모집시트 설정이 없어요 (campaigns.json recruitSheets)' });
+      let added = 0;
+      const handles = [];
+      for (const s of sheets) {
+        const r = await syncRecruitToSheet(campaign.sheet, s); // 실패 시 throw → 아래 catch가 500
+        if (r.added === undefined) return send(res, 400, { error: '브릿지에 동기화 기능이 없어요 — Apps Script(Code.gs) 재배포가 필요합니다' });
+        added += Number(r.added) || 0;
+        if (Array.isArray(r.handles)) handles.push(...r.handles);
+      }
+      return send(res, 200, { ok: true, added, handles });
     }
 
     if (path === '/api/scan' && req.method === 'POST') {

@@ -31,6 +31,20 @@ export async function pushFollowersToSheet(sheet, updates) {
   return data.updated || 0;
 }
 
+// 모집시트 → 마스터 자동 동기화 요청. sync = { sheetId, company, linkCol }.
+export async function syncRecruitToSheet(sheet, sync) {
+  ensure(sheet);
+  const res = await fetch(sheet.url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: sheet.token, sync }),
+    redirect: 'follow',
+  });
+  const data = await res.json();
+  if (data.error) throw new Error('시트 응답: ' + data.error);
+  return data;
+}
+
 // 임의 셀 쓰기: cells = [{ row, col, value }] — 콘텐츠 링크·검수·조회수 되쓰기용
 export async function pushCellsToSheet(sheet, cells) {
   ensure(sheet);

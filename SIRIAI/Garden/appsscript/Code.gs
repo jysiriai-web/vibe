@@ -21,6 +21,12 @@ function handleFrom_(link) {
   var m = String(link || '').match(/@([A-Za-z0-9._]+)/);
   return m ? m[1] : '';
 }
+// 모집시트 셀 → 깨끗한 @핸들. 전각＠·공백 정리 후 추출 (?_r=... 등 뒷부분은 정규식이 자동 제외).
+function cleanHandle_(s) {
+  s = String(s || '').replace(/＠/g, '@').replace(/\s+/g, '');
+  var m = s.match(/@([A-Za-z0-9._]+)/);
+  return m ? m[1] : '';
+}
 function json_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
@@ -82,10 +88,49 @@ function doGet(e) {
   return json_({ error: 'unknown action' });
 }
 
+// 모집시트 → 마스터 자동 동기화. 모집시트(sheetId)의 링크열에서 @핸들 추출·정리 →
+// 마스터에 없는 것만 해당 진행사(company) 블록의 빈 행에 깨끗한 URL로 채움. (openById = 전체 스프레드시트 접근 스코프 필요)
+function syncRecruit_(sheetId, company, linkCol) {
+  if (!sheetId || !company || !linkCol) return { error: 'sheetId/company/linkCol 필요' };
+  var src;
+  try { src = SpreadsheetApp.openById(sheetId); } catch (err) { return { error: '모집시트 열기 실패(접근권한/ID 확인): ' + err }; }
+  var ss = src.getSheets()[0];
+  var last = ss.getLastRow();
+  var rows = last >= 1 ? ss.getRange(1, 1, last, linkCol).getValues() : [];
+
+  var master = getSheet_();
+  var mLast = master.getLastRow();
+  var need = Math.max(COL.link, COL.company);
+  var mv = mLast >= 1 ? master.getRange(1, 1, mLast, need).getValues() : [];
+  var existing = {};
+  for (var i = 0; i < mv.length; i++) {
+    var h0 = handleFrom_(mv[i][COL.link - 1]);
+    if (h0) existing[h0.toLowerCase()] = true;
+  }
+  // 해당 company 블록의 빈 행(핸들 없음) 큐 — 새 계정을 여기부터 채움
+  var emptyRows = [];
+  for (var i = 0; i < mv.length; i++) {
+    if (String(mv[i][COL.company - 1] || '').trim() === company && !handleFrom_(mv[i][COL.link - 1])) emptyRows.push(i + 1);
+  }
+  var added = [];
+  for (var r = 0; r < rows.length; r++) {
+    // 링크열 우선, 없으면 바로 앞열(보통 TikTok ID열) 폴백 — 단축링크/전각＠ 대응
+    var h = cleanHandle_(rows[r][linkCol - 1]) || cleanHandle_(rows[r][linkCol - 2]);
+    if (!h || existing[h.toLowerCase()]) continue;
+    existing[h.toLowerCase()] = true;
+    var row = emptyRows.shift();
+    if (!row) { row = master.getLastRow() + 1; master.getRange(row, COL.company).setValue(company); }
+    master.getRange(row, COL.link).setValue('https://www.tiktok.com/@' + h);
+    added.push(h);
+  }
+  return { added: added.length, handles: added };
+}
+
 function doPost(e) {
   var body;
   try { body = JSON.parse(e.postData.contents); } catch (err) { return json_({ error: 'bad json' }); }
   if ((body.token || '') !== TOKEN) return json_({ error: 'unauthorized' });
+  if (body.sync) return json_(syncRecruit_(body.sync.sheetId, body.sync.company, body.sync.linkCol));
   var sh = getSheet_();
   var updates = body.updates || [];
   var n = 0;

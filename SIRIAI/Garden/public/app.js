@@ -167,6 +167,7 @@ function viewRecruit(accts) {
       ${nt ? `<div class="kpi"><div class="lab">확정안내 미발송</div><div class="big" style="color:var(--needs)">${unsent}</div></div>` : ''}
     </div>
     ${filterRow(coBar(), statusBar(), nt ? noticeBar() : '')}
+    <div class="bar"><button class="btn small" id="syncRecruitBtn">📥 모집시트 동기화</button><span class="sub" style="margin:0">모집시트(마루 등)의 새 계정 URL을 정리해서 마스터에 자동 추가</span></div>
     <table><thead><tr><th>진행사</th><th>닉네임</th><th>계정</th><th class="num">팔로워</th><th>상태</th>${nt ? '<th>확정안내</th>' : ''}</tr></thead><tbody>${rows}</tbody></table>`;
 }
 
@@ -312,6 +313,7 @@ function wire() {
   if ($('#execBtn')) $('#execBtn').addEventListener('click', openExecute);
   if ($('#rateSave')) $('#rateSave').addEventListener('click', recalibrate);
   if ($('#svcSelect')) $('#svcSelect').addEventListener('change', changeService);
+  if ($('#syncRecruitBtn')) $('#syncRecruitBtn').addEventListener('click', syncRecruit);
   $$('.close-order').forEach((b) => b.addEventListener('click', () => closeOrder(b.dataset.id)));
   $$('.star').forEach((b) => b.addEventListener('click', () => toggleBest(b.dataset.h)));
   $$('.cell-edit').forEach((b) => b.addEventListener('click', () => startCellEdit(b)));
@@ -455,6 +457,16 @@ async function doExecute(handles) {
   if (r.error) return toast('실패: ' + r.error);
   toast((r.placed || []).length ? `✅ ${r.placed.length}개 주문 완료` : '주문할 게 없었어요');
   state.tab = 'garden'; state.sub = 'orders'; await loadData();
+}
+async function syncRecruit() {
+  overlay(true, '모집시트에서 새 계정 가져오는 중…');
+  const r = await api(`/api/sync-recruit?campaign=${state.campaign}`, { method: 'POST' }).catch(() => ({ error: '네트워크 오류' }));
+  overlay(false);
+  if (r.error) return toast('동기화 실패: ' + r.error);
+  if (!r.added) return toast('새로 추가할 계정이 없어요 (이미 다 있음)');
+  const sample = (r.handles || []).slice(0, 3).map((h) => '@' + h).join(', ');
+  toast(`✅ 새 계정 ${r.added}개 추가${sample ? ' — ' + sample + (r.added > 3 ? ' 외' : '') : ''}`);
+  await loadData();
 }
 async function scan() {
   overlay(true, '전체 계정 팔로워 확인 중… (크롬 창 뜸 — 건드리지 마세요)');
