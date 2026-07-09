@@ -96,6 +96,8 @@ td.handle a:hover { color: var(--accent); text-decoration: underline; }
 .bar .summary b { color: var(--ink); font-variant-numeric: tabular-nums; }
 .spacer { flex: 1; }
 .empty { padding: 48px; text-align: center; color: var(--muted); font-size: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
+.empty-tr td { padding: 40px 16px; text-align: center; color: var(--muted); font-size: 15px; }
+.empty-tr:hover td { background: transparent; }
 .note { font-size: 14px; color: var(--faint); margin-top: 16px; line-height: 1.6; }
 .note b { color: var(--accent); }
 

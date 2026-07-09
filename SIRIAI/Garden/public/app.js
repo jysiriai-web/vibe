@@ -196,7 +196,7 @@ function viewRecruit(accts) {
     </div>
     ${filterRow(coBar(), statusBar(), nt ? noticeBar() : '')}
     <div class="bar"><button class="btn small" id="syncRecruitBtn">📥 모집시트 동기화</button><span class="sub" style="margin:0">모집시트(마루 등)의 새 계정 URL을 정리해서 마스터에 자동 추가</span></div>
-    <table><thead><tr><th>진행사</th><th>닉네임</th><th>계정</th><th class="num">팔로워</th><th>상태</th>${nt ? '<th>확정안내</th>' : ''}</tr></thead><tbody>${rows}</tbody></table>`;
+    <table><thead><tr><th>진행사</th><th>닉네임</th><th>계정</th><th class="num">팔로워</th><th>상태</th>${nt ? '<th>확정안내</th>' : ''}</tr></thead><tbody>${rows || emptyRow(nt ? 6 : 5)}</tbody></table>`;
 }
 
 // ② 업로드
@@ -219,7 +219,7 @@ function viewUpload(accts) {
       ${kpi('검수 대기', accts.filter(reviewPending).length, { ic: IC.clock, accent: 'var(--needs)' })}
     </div>
     ${filterRow(coBar(), upBar())}
-    <table><thead><tr><th>진행사</th><th>계정</th><th>업로드</th><th>콘텐츠</th><th>음원</th><th>음원구간</th><th>해시태그</th></tr></thead><tbody>${rows}</tbody></table>
+    <table><thead><tr><th>진행사</th><th>계정</th><th>업로드</th><th>콘텐츠</th><th>음원</th><th>음원구간</th><th>해시태그</th></tr></thead><tbody>${rows || emptyRow(7)}</tbody></table>
     <div class="note"><b>음원·해시태그</b>는 스캔이 자동 판정, <b>음원구간</b>은 사람이 영상 보고 판정해요. 드롭다운에서 <b>준수·미준수</b>로 고치면 재스캔해도 유지(수동 우선), <b>미확인</b>으로 되돌리면 자동 판정에 다시 맡겨요.</div>`;
 }
 
@@ -314,7 +314,7 @@ function viewDeliver(accts) {
     </div>
     <div class="filters"><div class="filterbar"><button class="fbtn best-f ${state.bestOnly ? 'active' : ''}">★ 베스트만 (${bestCount})</button></div></div>
     ${noPerf ? '<div class="note"><b>아직 조회수 데이터가 비어있어요.</b> 시트의 조회수·좋아요 칸을 채우면 여기 자동으로 집계돼요. 지금도 ★로 <b>SIRIAI 베스트 콘텐츠</b>는 미리 찍어둘 수 있어요.</div>' : ''}
-    <table><thead><tr><th>★</th><th>계정</th>${th('v', '조회수')}${th('l', '좋아요')}${th('c', '댓글')}${th('sh', '공유')}<th>콘텐츠</th></tr></thead><tbody>${rows}</tbody></table>`;
+    <table><thead><tr><th>★</th><th>계정</th>${th('v', '조회수')}${th('l', '좋아요')}${th('c', '댓글')}${th('sh', '공유')}<th>콘텐츠</th></tr></thead><tbody>${rows || emptyRow(7, state.bestOnly ? '★ 베스트로 찍은 콘텐츠가 없어요.' : '조건에 맞는 콘텐츠가 없어요.')}</tbody></table>`;
 }
 
 // ⑤ 정산 — 비용·마진 시뮬레이터. 테두리 없는 iframe을 내용 높이만큼 자동 확장(이중 스크롤·액자 제거).
@@ -324,6 +324,8 @@ function viewSettle() {
 }
 
 const emptyScan = () => `<div class="empty">아직 데이터가 없어요.<br><br><button class="btn primary" onclick="scan()">지금 스캔하기</button></div>`;
+// 필터 결과가 0행일 때 표 안에 넣는 빈 상태 (헤더만 남은 빈 표 방지). rows가 비면 이걸로 대체.
+const emptyRow = (cols, msg = '조건에 맞는 계정이 없어요.') => `<tr class="empty-tr"><td colspan="${cols}">${msg}</td></tr>`;
 
 function updateSel() {
   const needs = (state.data.accounts || []).filter((a) => a.status === 'needs');
