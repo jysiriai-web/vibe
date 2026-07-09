@@ -98,6 +98,11 @@ function render() {
   $('#cnt-deliver').textContent = accts.filter(uploaded).length;
 
   $$('.tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === state.tab));
+  // 정산 탭은 독립 시뮬레이터 → 스캔 버튼·계정 통계 무의미하니 숨김 (딱 필요한 것만 노출)
+  const isSettle = state.tab === 'settle';
+  $('#scanBtn').hidden = isSettle;
+  $('#contentScanBtn').hidden = isSettle;
+  const st = $('.stats'); if (st) st.hidden = isSettle;
   const c = $('#content');
   if (state.tab === 'recruit') c.innerHTML = viewRecruit(accts);
   else if (state.tab === 'upload') c.innerHTML = viewUpload(accts);
