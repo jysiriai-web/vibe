@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-cd /d "%~dp0"
+cd /d "%~dp0.."
 echo.
 echo ===== Installing Playwright (video scraper) =====
 echo This downloads a Chrome engine (~130MB). Takes a few minutes.

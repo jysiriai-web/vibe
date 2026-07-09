@@ -7,5 +7,3 @@ data/
 *.log
 .DS_Store
 _archive/
-cloudflared.exe
-web-demo.html
