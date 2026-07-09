@@ -78,7 +78,7 @@ function renderCampaigns() {
   const nav = $('#campaignNav');
   nav.innerHTML = Object.entries(groups).map(([g, cs]) =>
     `<div class="group">${g}</div>` + cs.map((c) => `<button class="camp ${c.id === state.campaign ? 'active' : ''}" data-c="${c.id}">${c.name}</button>`).join('')).join('');
-  $$('.camp', nav).forEach((b) => b.addEventListener('click', () => { state.campaign = b.dataset.c; state.tab = 'recruit'; renderCampaigns(); loadData(); }));
+  $$('.camp', nav).forEach((b) => b.addEventListener('click', () => { state.campaign = b.dataset.c; state.tab = 'recruit'; state.pending = {}; renderCampaigns(); loadData(); }));
 }
 
 function render() {
@@ -100,6 +100,11 @@ function render() {
   else if (state.tab === 'upload') c.innerHTML = viewUpload(accts);
   else if (state.tab === 'garden') c.innerHTML = viewGarden(accts, orders);
   else c.innerHTML = viewDeliver(accts);
+  // 넓은 표는 자체 가로 스크롤 (좁은 창에서 페이지 전체가 밀리는 것 방지)
+  c.querySelectorAll('table').forEach((t) => {
+    const p = t.parentElement;
+    if (p && !p.classList.contains('tscroll')) { const w = document.createElement('div'); w.className = 'tscroll'; p.insertBefore(w, t); w.appendChild(t); }
+  });
   wire();
 }
 

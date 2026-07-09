@@ -34,17 +34,24 @@ export async function refreshOrders(smm, orders) {
     const st = statuses[String(o.id)];
     if (!st || st.error) continue;
     o.status = st.status;
-    o.remains = Number(st.remains);
-    o.startCount = Number(st.start_count);
-    o.charge = st.charge;
-    o.done = TERMINAL.includes(st.status) || Number(st.remains) === 0;
+    // 유효한 숫자일 때만 갱신 — 응답에 remains 누락 시 NaN 으로 덮어써 진행중 수량을 0 으로 만드는 이중지출 방지
+    const r = Number(st.remains);
+    if (Number.isFinite(r)) o.remains = r;
+    const sc = Number(st.start_count);
+    if (Number.isFinite(sc)) o.startCount = sc;
+    if (st.charge != null && st.charge !== '') o.charge = st.charge;
+    o.done = TERMINAL.includes(st.status) || (Number.isFinite(r) && r === 0);
   }
   return orders;
 }
 
 // 핸들별 진행중(아직 안 들어온) 수량 합 — 중복주문 방지 핵심. 종료(closed)·완료(done)는 제외.
+// remains 가 불명(NaN)이면 0 이 아니라 주문 수량 전체를 진행중으로 간주(보수적) → 잘못된 재주문 차단.
 export function inFlightFor(orders, handle) {
   return orders
     .filter((o) => o.handle === handle && !o.closed && !o.done)
-    .reduce((s, o) => s + (Number(o.remains) || 0), 0);
+    .reduce((s, o) => {
+      const r = Number(o.remains);
+      return s + (Number.isFinite(r) ? r : (Number(o.quantity) || 0));
+    }, 0);
 }
