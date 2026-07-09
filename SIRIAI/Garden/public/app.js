@@ -51,7 +51,8 @@ async function init() {
   state.campaign = state.campaigns[0]?.id || null;
   renderCampaigns();
   if (!state.campaign) { $('#content').innerHTML = '<div class="empty">등록된 캠페인이 없어요.<br>campaigns.json 에 캠페인을 추가하면 여기 나타나요.</div>'; return; }
-  await loadData();
+  overlay(true, '불러오는 중…'); // 최초 로드: 시트 fetch(1~3초) 동안 빈 화면 대신 스피너
+  try { await loadData(); } finally { overlay(false); }
 }
 async function loadData() {
   if (!state.campaign) return;
@@ -533,7 +534,7 @@ function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = fal
 function overlay(show, msg) { $('#overlay').hidden = !show; if (msg) $('#overlayMsg').textContent = msg; }
 
 $$('.tab').forEach((t) => t.addEventListener('click', () => { state.tab = t.dataset.tab; render(); }));
-$('#campaignSelect').addEventListener('change', (e) => { state.campaign = e.target.value; state.tab = 'recruit'; state.pending = {}; loadData(); });
+$('#campaignSelect').addEventListener('change', (e) => { state.campaign = e.target.value; state.tab = 'recruit'; state.pending = {}; overlay(true, '불러오는 중…'); loadData().finally(() => overlay(false)); });
 $('#scanBtn').addEventListener('click', scan);
 $('#contentScanBtn').addEventListener('click', (e) => contentScan(e.shiftKey));
 $('#modalCancel').addEventListener('click', () => ($('#modal').hidden = true));
