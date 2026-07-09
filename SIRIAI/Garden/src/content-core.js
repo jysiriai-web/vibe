@@ -18,8 +18,9 @@ export async function runContentScan(campaign, { onProgress, full = false, concu
   const accounts = await getAccountsFromSheet(campaign.sheet);
   const prev = prevDetected(campaign);
 
-  // 스캔 대상: 아직 업로드 감지 안 된 계정만. full이면 전체.
-  const targets = full ? accounts : accounts.filter((a) => !(prev[a.handle] && prev[a.handle].uploaded));
+  // 스캔 대상: 전체. 이미 업로드된 계정도 성과(조회수 등)가 계속 자라니 다시 긁어야 함(납품 숫자 최신화).
+  // 단, 이미 업로드된 계정은 검수열(17/19/21)은 안 건드리고 성과(27~30)만 갱신(아래 write 루프). full이면 검수도 재판정.
+  const targets = accounts;
 
   const { browser, ctx } = await launchBrowser(); // Playwright 미설치면 throw
   const detected = { ...prev }; // 이미 업로드된 건 이전 결과 유지
@@ -59,10 +60,14 @@ export async function runContentScan(campaign, { onProgress, full = false, concu
     const d = detected[a.handle];
     if (!d || !d.uploaded || !a.row) continue;
     const r = a.row;
-    putIf(r, 17, d.contentLink);
-    putIf(r, 19, d.soundOk ? '사용 확인' : '음원 다름');
-    putIf(r, 21, d.hashtagOk ? '확인 완료' : '해시태그 누락');
-    // 성과 수치(27~30)는 잠금 대상 아님 — 항상 최신으로 갱신.
+    // 검수열(17콘텐츠·19음원·21해시태그)은 '이번에 새로 감지된 것' 또는 full일 때만 씀 — 기존 판정/수동값 보존.
+    const wasUploaded = prev[a.handle] && prev[a.handle].uploaded;
+    if (full || !wasUploaded) {
+      putIf(r, 17, d.contentLink);
+      putIf(r, 19, d.soundOk ? '사용 확인' : '음원 다름');
+      putIf(r, 21, d.hashtagOk ? '확인 완료' : '해시태그 누락');
+    }
+    // 성과 수치(27~30)는 항상 최신으로 갱신(이미 업로드된 계정도 조회수 증가 반영).
     cells.push({ row: r, col: 27, value: d.views });
     cells.push({ row: r, col: 28, value: d.likes });
     cells.push({ row: r, col: 29, value: d.comments });
