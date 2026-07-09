@@ -152,9 +152,11 @@ select.svc:focus { border-color: var(--accent); outline: none; }
 .fbtn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .fbtn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 /* 인라인 편집 (팝업 대체) */
-.cell-edit { font-size: 12px; cursor: pointer; background: none; border: 1px solid var(--line); border-radius: 7px; color: var(--muted); padding: 1px 7px; margin-left: 6px; transition: .12s; }
-.cell-edit:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
-.cell-edit.btn.small { font-size: 13px; padding: 7px 13px; margin-left: 0; }
+.cell-edit { font-size: 12px; cursor: pointer; background: none; border: 1px solid transparent; border-radius: 7px; color: var(--faint); padding: 1px 7px; margin-left: 6px; opacity: 0.35; transition: opacity .12s, color .12s, border-color .12s, background .12s; }
+tbody tr:hover .cell-edit, .cell-edit:focus { opacity: 1; }
+.cell-edit:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); opacity: 1; }
+.cell-edit.btn.small { font-size: 13px; padding: 7px 13px; margin-left: 0; opacity: 1; border-color: var(--line); color: var(--muted); }
+.cell-edit.prompt { opacity: 1; color: var(--accent); border-color: var(--accent-soft); font-weight: 700; }
 .inline-input { font-family: var(--sans); font-size: 15px; width: 100%; max-width: 260px; padding: 6px 9px; border: 2px solid var(--accent); border-radius: 8px; background: #fff; color: var(--ink); outline: none; }
 td.num .inline-input { width: 110px; text-align: right; font-variant-numeric: tabular-nums; }
 .muted { color: var(--muted); }

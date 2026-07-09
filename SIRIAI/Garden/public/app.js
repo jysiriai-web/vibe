@@ -181,9 +181,9 @@ function viewRecruit(accts) {
   const unsent = accts.filter((a) => !noticeSent(a)).length;
   const rows = list.map((a) => `<tr${nt && !noticeSent(a) ? ' class="row-alert"' : ''}>
     <td>${coChip(a.company)}</td>
-    <td>${a.nick ? esc(a.nick) : '<span class="muted">—</span>'} <button class="cell-edit" data-kind="nick" data-row="${a.row}" data-val="${esc(a.nick || '')}">${a.nick ? '✎' : '입력'}</button></td>
+    <td>${a.nick ? esc(a.nick) : '<span class="muted">—</span>'} <button class="cell-edit${a.nick ? '' : ' prompt'}" data-kind="nick" data-row="${a.row}" data-val="${esc(a.nick || '')}">${a.nick ? '✎' : '입력'}</button></td>
     <td class="handle">${link(a.handle)} <button class="cell-edit" data-kind="link" data-row="${a.row}" data-val="${esc(a.link || ('https://www.tiktok.com/@' + a.handle))}">✎</button></td>
-    <td class="num">${a.current == null ? '' : fmt(a.current)} <button class="cell-edit" data-kind="fol" data-row="${a.row}" data-val="${a.current ?? ''}">${a.current == null ? '입력' : '✎'}</button></td>
+    <td class="num">${a.current == null ? '' : fmt(a.current)} <button class="cell-edit${a.current == null ? ' prompt' : ''}" data-kind="fol" data-row="${a.row}" data-val="${a.current ?? ''}">${a.current == null ? '입력' : '✎'}</button></td>
     <td>${chip(a.status)}</td>${nt ? noticeCell(a) : ''}</tr>`).join('');
   return `<div class="cards">
       ${kpi('모집 계정', accts.length, { ic: IC.users })}
