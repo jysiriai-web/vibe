@@ -121,6 +121,31 @@ function revChip(a, col) {
   return `<select class="rev-sel rev-${st}" data-row="${a.row}" data-col="${col}" title="${title}">${opts.map(([v, l]) => `<option value="${v}"${st === v ? ' selected' : ''}>${l}</option>`).join('')}</select>`;
 }
 
+// ── KPI 카드 (아이콘 + 라벨 + 큰 숫자 + 보조) ──
+const svg = (p) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const IC = {
+  users: svg('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'),
+  split: svg('<path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/>'),
+  target: svg('<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>'),
+  mail: svg('<path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><polyline points="22,6 12,13 2,6"/>'),
+  video: svg('<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>'),
+  check: svg('<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'),
+  clock: svg('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'),
+  card: svg('<rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>'),
+  userplus: svg('<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>'),
+  wallet: svg('<path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/>'),
+  eye: svg('<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'),
+  heart: svg('<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>'),
+  trophy: svg('<circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>'),
+};
+function kpi(label, value, o = {}) {
+  return `<div class="kpi">
+    <div class="kpi-top">${o.ic ? `<span class="kpi-ic">${o.ic}</span>` : ''}<span class="lab">${label}</span></div>
+    <div class="big"${o.accent ? ` style="color:${o.accent}"` : ''}>${value}</div>${o.sub ? `<div class="sub">${o.sub}</div>` : ''}
+  </div>`;
+}
+const ofTot = (n, tot) => `${n}<span class="of"> / ${tot}</span>`;
+
 // ── 필터 (진행사 / 상태 / 업로드 / 확정안내) ──
 const applyCo = (accts) => (state.fCo === 'all' ? accts : accts.filter((a) => (a.company || '') === state.fCo));
 const applyFStatus = (accts) => (state.fStatus === 'all' ? accts : accts.filter((a) => a.status === state.fStatus));
@@ -161,10 +186,10 @@ function viewRecruit(accts) {
     <td class="num">${a.current == null ? '' : fmt(a.current)} <button class="cell-edit" data-kind="fol" data-row="${a.row}" data-val="${a.current ?? ''}">${a.current == null ? '입력' : '✎'}</button></td>
     <td>${chip(a.status)}</td>${nt ? noticeCell(a) : ''}</tr>`).join('');
   return `<div class="cards">
-      <div class="kpi"><div class="lab">모집 계정</div><div class="big">${accts.length}</div></div>
-      <div class="kpi"><div class="lab">MARU / SIRIAI</div><div class="big">${maru} / ${siriai}</div></div>
-      <div class="kpi"><div class="lab">팔로워 1,000+ 충족</div><div class="big">${over1k}<span style="font-size:16px;color:var(--muted)"> / ${accts.length}</span></div></div>
-      ${nt ? `<div class="kpi"><div class="lab">확정안내 미발송</div><div class="big" style="color:var(--needs)">${unsent}</div></div>` : ''}
+      ${kpi('모집 계정', accts.length, { ic: IC.users })}
+      ${kpi('MARU / SIRIAI', `${maru} / ${siriai}`, { ic: IC.split })}
+      ${kpi('팔로워 1,000+ 충족', ofTot(over1k, accts.length), { ic: IC.target })}
+      ${nt ? kpi('확정안내 미발송', unsent, { ic: IC.mail, accent: 'var(--needs)' }) : ''}
     </div>
     ${filterRow(coBar(), statusBar(), nt ? noticeBar() : '')}
     <div class="bar"><button class="btn small" id="syncRecruitBtn">📥 모집시트 동기화</button><span class="sub" style="margin:0">모집시트(마루 등)의 새 계정 URL을 정리해서 마스터에 자동 추가</span></div>
@@ -186,9 +211,9 @@ function viewUpload(accts) {
     <td>${revChip(a, 20)}</td>
     <td>${revChip(a, 21)}</td></tr>`).join('');
   return `<div class="cards">
-      <div class="kpi"><div class="lab">업로드 완료</div><div class="big">${up.length}<span style="font-size:16px;color:var(--muted)"> / ${accts.length}</span></div></div>
-      <div class="kpi"><div class="lab">검수 완료</div><div class="big">${rev.length}<span style="font-size:16px;color:var(--muted)"> / ${up.length || accts.length}</span></div></div>
-      <div class="kpi"><div class="lab">검수 대기</div><div class="big" style="color:var(--needs)">${accts.filter(reviewPending).length}</div></div>
+      ${kpi('업로드 완료', ofTot(up.length, accts.length), { ic: IC.video })}
+      ${kpi('검수 완료', ofTot(rev.length, up.length || accts.length), { ic: IC.check })}
+      ${kpi('검수 대기', accts.filter(reviewPending).length, { ic: IC.clock, accent: 'var(--needs)' })}
     </div>
     ${filterRow(coBar(), upBar())}
     <table><thead><tr><th>진행사</th><th>계정</th><th>업로드</th><th>콘텐츠</th><th>음원</th><th>음원구간</th><th>해시태그</th></tr></thead><tbody>${rows}</tbody></table>
@@ -245,9 +270,9 @@ function viewCost(orders, balance) {
   const curId = state.data.config?.service?.id;
   const svcOpts = state.services.map((s) => `<option value="${s.id}" ${s.id == curId ? 'selected' : ''}>#${s.id} · ${cleanName(s.name)} · ₩${Math.round(Number(s.rate) * state.krw).toLocaleString()}/1k</option>`).join('');
   return `<div class="cards">
-      <div class="kpi"><div class="lab">총 지출</div><div class="big">${won(rows.reduce((s, r) => s + r.cost, 0))}</div></div>
-      <div class="kpi"><div class="lab">넣은 팔로워 합계</div><div class="big">${fmt(rows.reduce((s, r) => s + r.qty, 0))}</div></div>
-      <div class="kpi"><div class="lab">현재 잔액</div><div class="big">${won(balance)}</div></div>
+      ${kpi('총 지출', won(rows.reduce((s, r) => s + r.cost, 0)), { ic: IC.card })}
+      ${kpi('넣은 팔로워 합계', fmt(rows.reduce((s, r) => s + r.qty, 0)), { ic: IC.userplus })}
+      ${kpi('현재 잔액', won(balance), { ic: IC.wallet })}
       <div class="kpi wide"><div class="lab">환율 · 실시간 시장환율 자동</div><div class="big">₩${Math.round(state.krw).toLocaleString()} / $1</div>
         <div class="rate-box" style="margin-top:10px"><span class="sub">smmkings 잔액과 다르면 →</span><input class="rate" id="rateInput" placeholder="현재 잔액 ₩"><button class="btn small" id="rateSave">재보정</button></div></div>
       <div class="kpi wide"><div class="lab">가드닝 서비스</div><select class="svc" id="svcSelect">${svcOpts}</select><div class="sub">지난 주문은 각자 산 서비스로 기록(집행 내역 s번호).</div></div>
@@ -279,10 +304,10 @@ function viewDeliver(accts) {
     <td><a href="${esc(a.contentLink)}" target="_blank">영상</a></td></tr>`).join('');
   const bestCount = withPerf.filter((a) => state.best.includes(a.handle)).length;
   return coBar() + `<div class="cards">
-      <div class="kpi"><div class="lab">총 조회수</div><div class="big">${fmt(totalViews)}</div></div>
-      <div class="kpi"><div class="lab">총 좋아요</div><div class="big">${fmt(totalLikes)}</div></div>
-      <div class="kpi"><div class="lab">업로드 콘텐츠</div><div class="big">${content.length}</div></div>
-      ${heroOn ? `<div class="kpi wide"><div class="lab">🏆 히어로 콘텐츠 (최고 조회수)</div><div class="big" style="font-size:20px">@${heroOn.handle} · ${fmt(heroOn.v)} 조회</div><div class="sub"><a href="${esc(heroOn.contentLink)}" target="_blank">영상 보기</a></div></div>` : ''}
+      ${kpi('총 조회수', fmt(totalViews), { ic: IC.eye })}
+      ${kpi('총 좋아요', fmt(totalLikes), { ic: IC.heart })}
+      ${kpi('업로드 콘텐츠', content.length, { ic: IC.video })}
+      ${heroOn ? `<div class="kpi wide"><div class="kpi-top"><span class="kpi-ic">${IC.trophy}</span><span class="lab">히어로 콘텐츠 · 최고 조회수</span></div><div class="big" style="font-size:20px">@${heroOn.handle} · ${fmt(heroOn.v)} 조회</div><div class="sub"><a href="${esc(heroOn.contentLink)}" target="_blank">영상 보기</a></div></div>` : ''}
     </div>
     <div class="filters"><div class="filterbar"><button class="fbtn best-f ${state.bestOnly ? 'active' : ''}">★ 베스트만 (${bestCount})</button></div></div>
     ${noPerf ? '<div class="note"><b>아직 조회수 데이터가 비어있어요.</b> 시트의 조회수·좋아요 칸을 채우면 여기 자동으로 집계돼요. 지금도 ★로 <b>SIRIAI 베스트 콘텐츠</b>는 미리 찍어둘 수 있어요.</div>' : ''}

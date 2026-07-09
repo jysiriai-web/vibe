@@ -108,10 +108,15 @@ select.svc:focus { border-color: var(--accent); outline: none; }
 .progress > span { display: block; height: 100%; background: var(--accent); }
 
 .cards { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
-.kpi { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px 22px; min-width: 190px; box-shadow: var(--shadow); }
-.kpi.wide { min-width: 380px; flex: 1; }
-.kpi .lab { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--faint); font-weight: 700; margin-bottom: 8px; }
-.kpi .big { font-size: 27px; font-weight: 800; letter-spacing: -0.02em; }
+.kpi { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; min-width: 190px; flex: 1; box-shadow: var(--shadow); }
+.kpi.wide { min-width: 340px; flex: 1.4; }
+.kpi-top { display: flex; align-items: center; gap: 9px; margin-bottom: 12px; }
+.kpi-ic { width: 30px; height: 30px; border-radius: 9px; background: var(--accent-soft); color: var(--accent-ink); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.kpi-ic svg { width: 16px; height: 16px; }
+.kpi .lab { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--faint); font-weight: 700; margin-bottom: 8px; }
+.kpi-top .lab { margin-bottom: 0; }
+.kpi .big { font-size: 27px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+.kpi .big .of { font-size: 16px; font-weight: 600; color: var(--faint); }
 .rate-box { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .sub { font-size: 13px; color: var(--muted); margin-top: 6px; }
 
