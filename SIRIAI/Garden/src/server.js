@@ -134,11 +134,18 @@ function readBody(req) {
   });
 }
 
+// 뷰어(팀 공유) 모드 — 쓰기/집행/스캔/편집 차단. VIEWER=1 로 켜고 터널로 공유하면 팀원이 실수로 돈 쓰거나 스캔 못 함.
+const VIEWER = process.env.VIEWER === '1';
+const VIEWER_BLOCK = new Set(['/api/scan', '/api/content-scan', '/api/execute', '/api/cell', '/api/manual', '/api/best', '/api/rate', '/api/service', '/api/order/close', '/api/sync-recruit']);
+
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
   const path = url.pathname;
   const campId = url.searchParams.get('campaign');
   try {
+    if (VIEWER && req.method === 'POST' && VIEWER_BLOCK.has(path)) {
+      return send(res, 403, { error: '팀 공유(보기 전용) 모드예요 — 스캔·집행·편집은 운영자 로컬에서만 돼요.' });
+    }
     if (path === '/api/campaigns' && req.method === 'GET') {
       return send(res, 200, { campaigns: listCampaigns().map((c) => ({ id: c.id, name: c.name, group: c.group })), krwPerUsd: await effectiveRate() });
     }
@@ -158,7 +165,7 @@ const server = createServer(async (req, res) => {
       const accounts = await buildAccounts(campaign, orders);
       return send(res, 200, {
         campaign: { id: campaign.id, name: campaign.name, group: campaign.group },
-        config: { target: campaign.target, min: campaign.min, krwPerUsd: await effectiveRate(), staleDays: getStaleDays(), hasKey: !!smm, confirmNotice: !!campaign.confirmNotice,
+        config: { target: campaign.target, min: campaign.min, krwPerUsd: await effectiveRate(), staleDays: getStaleDays(), hasKey: !!smm, confirmNotice: !!campaign.confirmNotice, viewer: VIEWER,
           service: svc ? { id: svc.service, name: svc.name, rate: svc.rate } : { id: campaign.serviceId, name: `#${campaign.serviceId}`, rate: 0 } },
         balance, scannedAt: scanLatest(campaign).ranAt, accounts, orders: markStale(orders), best: loadBest(campaign),
       });

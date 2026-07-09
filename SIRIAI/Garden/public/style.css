@@ -147,6 +147,7 @@ select.svc:focus { border-color: var(--accent); outline: none; }
 .inline-input { font-family: var(--sans); font-size: 15px; width: 100%; max-width: 260px; padding: 6px 9px; border: 2px solid var(--accent); border-radius: 8px; background: #fff; color: var(--ink); outline: none; }
 td.num .inline-input { width: 110px; text-align: right; font-variant-numeric: tabular-nums; }
 .muted { color: var(--muted); }
+.viewer-banner { background: var(--accent-soft); color: var(--accent-ink); font-size: 14px; font-weight: 700; padding: 10px 16px; border-radius: 10px; margin-bottom: 16px; border: 1px solid #d9d4ff; }
 
 /* 3단계 검수 드롭다운 (미확인 / 준수 / 미준수) */
 .rev-sel { font-size: 13px; font-weight: 700; cursor: pointer; padding: 5px 9px; border-radius: 9px; border: 1.5px solid var(--line); background: var(--card); color: var(--ink); }

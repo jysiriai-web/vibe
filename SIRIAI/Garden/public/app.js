@@ -106,6 +106,7 @@ function render() {
     const p = t.parentElement;
     if (p && !p.classList.contains('tscroll')) { const w = document.createElement('div'); w.className = 'tscroll'; p.insertBefore(w, t); w.appendChild(t); }
   });
+  if (d.config?.viewer) c.insertAdjacentHTML('afterbegin', '<div class="viewer-banner">👀 팀 공유 · <b>보기 전용</b> — 실제 스캔·집행·편집은 운영자 로컬에서만 동작해요</div>');
   wire();
 }
 
