@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUN8 마진 시뮬레이터</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<style>
+  :root{
+    --bg:#f5f6f8; --card:#ffffff; --ink:#15171a; --muted:#697180; --faint:#9aa1ad;
+    --line:#e9ebef; --line2:#f1f3f6;
+    --accent:#5b4ff5; --accent-soft:#efedff;
+    --good:#0ca678; --good-soft:#e6f7f1;
+    --cost:#e5484d; --cost-soft:#fdecec;
+    --gold:#e8940c; --blue:#0b93e0;
+    --shadow:0 1px 2px rgba(20,20,35,.05),0 10px 30px rgba(20,20,35,.05);
+    --sans:'Pretendard','Helvetica Neue',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;font-size:16px}
+  body{padding:32px 20px 100px;max-width:1180px;margin:0 auto;line-height:1.55}
+  .num{font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+
+  header{margin-bottom:26px}
+  .kicker{font-size:13px;letter-spacing:.16em;color:var(--accent);font-weight:800;text-transform:uppercase}
+  h1{font-size:32px;font-weight:800;letter-spacing:-.025em;margin-top:6px}
+  .sub{color:var(--muted);font-size:15.5px;margin-top:8px;max-width:760px}
+
+  .hero{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px 30px;margin-bottom:34px;box-shadow:var(--shadow)}
+  .hero-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:26px;align-items:end}
+  .hero-label{font-size:13px;color:var(--muted);letter-spacing:.04em;font-weight:600;margin-bottom:8px}
+  .hero-main .val{font-size:46px;font-weight:800;letter-spacing:-.03em;line-height:1}
+  .hero-main .sub2{font-size:15px;color:var(--muted);margin-top:10px;font-weight:500}
+  .kpi{padding-left:22px;border-left:1px solid var(--line)}
+  .kpi .val{font-size:27px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+  .kpi .cap{font-size:13px;color:var(--faint);margin-top:6px}
+  .pos{color:var(--good)} .neg{color:var(--cost)}
+
+  section{margin-bottom:40px}
+  .sec-head{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+  .sec-no{width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent);font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center}
+  .sec-title{font-size:22px;font-weight:800;letter-spacing:-.02em}
+  .sec-desc{font-size:14px;color:var(--muted);margin-left:auto;text-align:right}
+
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px;box-shadow:var(--shadow)}
+  .card-title{font-size:14px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:22px}
+
+  .grp{margin-bottom:26px}
+  .grp:last-child{margin-bottom:0}
+  .grp-t{font-size:14px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+  .grp-t::before{content:"";width:4px;height:16px;border-radius:2px;background:var(--accent)}
+  .grp-t.maru::before{background:var(--blue)} .grp-t.gold::before{background:var(--gold)}
+  .grp-t.maru{color:var(--blue)} .grp-t.gold{color:#b56d00}
+
+  .ctl{margin-bottom:18px}
+  .ctl:last-child{margin-bottom:0}
+  .ctl-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:12px}
+  .ctl-label{font-size:15.5px;color:var(--ink);font-weight:500}
+  .ctl-label small{color:var(--faint);font-size:13px;margin-left:5px;font-weight:400}
+  .num-in{width:110px;background:var(--card);border:1.5px solid var(--line);color:var(--ink);font-family:var(--sans);font-size:15px;font-weight:600;text-align:right;padding:8px 11px;border-radius:9px;outline:none;font-variant-numeric:tabular-nums}
+  .num-in:focus{border-color:var(--accent);background:#fff}
+  .unit{font-size:13px;color:var(--faint);margin-left:8px;min-width:26px;display:inline-block}
+
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:6px;background:var(--line);outline:none;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:var(--accent);border:3px solid #fff;box-shadow:0 1px 4px rgba(91,79,245,.4);cursor:pointer}
+  input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--accent);border:3px solid #fff;box-shadow:0 1px 4px rgba(91,79,245,.4);cursor:pointer}
+
+  .divider{height:1px;background:var(--line);margin:24px 0}
+
+  .toggle{display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none;padding:4px 0}
+  .switch{width:46px;height:27px;border-radius:14px;background:var(--line);position:relative;transition:.16s;flex-shrink:0}
+  .switch::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:.16s}
+  .toggle.on .switch{background:var(--accent)}
+  .toggle.on .switch::after{left:22px}
+
+  .preset-group{background:var(--card);border:1.5px solid var(--line);border-left:4px solid var(--accent);border-radius:14px;padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow)}
+  .preset-group:last-of-type{margin-bottom:24px}
+  .preset-group.alt{border-left-color:var(--blue)}
+  .pg-head{font-size:13px;font-weight:800;color:var(--ink);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .pg-badge{width:22px;height:22px;border-radius:6px;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .preset-group.alt .pg-badge{background:#e3f2fd;color:var(--blue)}
+  .pg-head small{color:var(--faint);font-weight:500;font-size:12px;margin-left:2px}
+  .pg-btns{display:flex;gap:10px;flex-wrap:wrap}
+  .pg-btns button{background:var(--card);border:1.5px solid var(--line);color:var(--muted);font-family:var(--sans);font-size:14px;font-weight:700;padding:10px 18px;border-radius:10px;cursor:pointer;transition:.12s}
+  .pg-btns button:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+  .preset-group.alt .pg-btns button:hover{border-color:var(--blue);color:var(--blue);background:#eef7fe}
+
+  .rrow{display:flex;justify-content:space-between;align-items:baseline;padding:13px 0;border-bottom:1px solid var(--line2)}
+  .rrow:last-child{border-bottom:none}
+  .rrow .k{font-size:15.5px;color:var(--muted);font-weight:500}
+  .rrow .k.strong{color:var(--ink);font-weight:700}
+  .rrow .k .hint{color:var(--faint);font-size:13px;margin-left:4px}
+  .rrow .v{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+  .rrow.sub .k{padding-left:16px;font-size:14.5px}
+  .rrow.sub .v{font-weight:600;color:var(--muted)}
+  .rrow.big{padding:16px 0}
+  .rrow.big .v{font-size:20px;font-weight:800}
+  .rrow.total{border-top:2px solid var(--line);margin-top:6px}
+
+  .quota{margin-bottom:20px}
+  .quota:last-child{margin-bottom:0}
+  .quota-top{display:flex;justify-content:space-between;align-items:baseline;font-size:15px;margin-bottom:9px}
+  .quota-top .lbl{color:var(--muted);font-weight:600}
+  .quota-top .cnt{font-weight:800;font-variant-numeric:tabular-nums;font-size:16px}
+  .quota-top .st{font-size:13px;font-weight:600;margin-left:8px}
+  .track{height:11px;background:var(--line2);border-radius:7px;overflow:hidden;position:relative}
+  .fill{height:100%;border-radius:7px;transition:width .25s,background .25s}
+  .marker{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--faint);opacity:.55}
+  .marker::after{content:attr(data-l);position:absolute;top:-19px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--faint);font-weight:700;white-space:nowrap}
+
+  .stack{height:32px;border-radius:10px;overflow:hidden;display:flex;margin:10px 0 18px}
+  .stack span{height:100%;transition:width .25s}
+  .legend{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px}
+  .legend .li{display:flex;align-items:center;gap:8px;font-size:14.5px;color:var(--muted)}
+  .legend .sw{width:12px;height:12px;border-radius:4px;flex-shrink:0}
+  .legend .amt{font-weight:700;color:var(--ink);margin-left:auto;font-variant-numeric:tabular-nums}
+
+  .note{font-size:13.5px;color:var(--faint);margin-top:18px;line-height:1.7}
+  .warn{color:var(--gold);font-weight:700}
+  .bad{color:var(--cost);font-weight:700}
+  .ok{color:var(--good);font-weight:700}
+
+  @media(max-width:840px){
+    body{font-size:15px}
+    .cols{grid-template-columns:1fr}
+    .hero-grid{grid-template-columns:1fr 1fr;gap:22px}
+    .hero-main{grid-column:1/-1}
+    .kpi{padding-left:0;border-left:none;border-top:1px solid var(--line);padding-top:18px}
+    .legend{grid-template-columns:1fr}
+    h1{font-size:27px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="kicker">SIRIAI · Internal</div>
+  <h1>LUN8 음원 챌린지 — 마진 시뮬레이터</h1>
+  <div class="sub">마루·시리아이 모집 인원과 인센티브를 조정하면 매출·비용·순마진이 실시간 계산됩니다. 목표 300건 / 오버부킹 허용 최대 315건(5%).</div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-grid">
+    <div class="hero-main">
+      <div class="hero-label">순마진 (NET MARGIN)</div>
+      <div class="val num" id="h-margin">–</div>
+      <div class="sub2 num" id="h-marginpct">–</div>
+    </div>
+    <div class="kpi">
+      <div class="hero-label">총 매출</div>
+      <div class="val pos num" id="h-rev">–</div>
+      <div class="cap num" id="h-rev-sub">–</div>
+    </div>
+    <div class="kpi">
+      <div class="hero-label">총 비용</div>
+      <div class="val neg num" id="h-cost">–</div>
+      <div class="cap num" id="h-cost-sub">–</div>
+    </div>
+    <div class="kpi">
+      <div class="hero-label">총 업로드</div>
+      <div class="val num" id="h-uploads">–</div>
+      <div class="cap num" id="h-uploads-sub">TT – / IG –</div>
+    </div>
+  </div>
+</div>
+
+<!-- CAMPAIGN -->
+<section>
+  <div class="sec-head">
+    <div class="sec-no">1</div>
+    <div class="sec-title">캠페인 마진 시뮬레이터</div>
+    <div class="sec-desc">모집 인원 · 인센티브 조정 → 전체 손익</div>
+  </div>
+
+  <div class="preset-group">
+    <div class="pg-head"><span class="pg-badge">A</span>마루 100/100 고정 <small>인스타 쿼터 마루가 전량 충당 · 미러링 없음</small></div>
+    <div class="pg-btns">
+      <button data-p="f_min">최소 마진</button>
+      <button data-p="f_mid">균형</button>
+      <button data-p="f_max">최대 마진</button>
+    </div>
+  </div>
+  <div class="preset-group alt">
+    <div class="pg-head"><span class="pg-badge">B</span>원래안 <small>마루 변동 + 시리아이 미러링 활용</small></div>
+    <div class="pg-btns">
+      <button data-p="o_min">최소 마진</button>
+      <button data-p="o_mid">균형</button>
+      <button data-p="o_max">최대 마진</button>
+    </div>
+  </div>
+
+  <div class="cols">
+    <!-- LEFT: controls -->
+    <div class="card">
+      <div class="card-title">모집 · 비용 설정</div>
+
+      <div class="grp">
+        <div class="grp-t">공통 단가</div>
+        <div class="ctl">
+          <div class="ctl-top"><span class="ctl-label">업로드당 매출 <small>PI 정산</small></span>
+            <span><input type="number" class="num-in" id="rev" value="150000" step="1000"><span class="unit">원</span></span></div>
+          <input type="range" id="rev-r" min="100000" max="250000" step="5000" value="150000">
+        </div>
+        <div class="ctl">
+          <div class="ctl-top"><span class="ctl-label">환율 <small>1엔 = ? 원</small></span>
+            <span><input type="number" class="num-in" id="fx" value="9.3" step="0.1"><span class="unit">원</span></span></div>
+          <input type="range" id="fx-r" min="8" max="11" step="0.05" value="9.3">
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="grp">
+        <div class="grp-t maru">마루 모집 (실행 파트너 · 픽스 100/100)</div>
+        <div class="ctl">
+          <div class="ctl-top"><span class="ctl-label">틱톡 모집</span>
+            <span><input type="number" class="num-in" id="m-tt-n" value="100" min="0" max="220"><span class="unit">명</span></span></div>
+          <input type="range" id="m-tt" min="0" max="220" value="100">
+        </div>
+        <div class="ctl">
+          <div class="ctl-top"><span class="ctl-label">인스타 모집</span>
+            <span><input type="number" class="num-in" id="m-ig-n" value="100" min="0" max="150"><span class="unit">명</span></span></div>
+          <input type="range" id="m-ig" min="0" max="150" value="100">
+        </div>
+        <div class="ctl">
+          <div class="ctl-top"><span class="ctl-label">마루 단가 <small>업로드당</small></span>
+            <span><input type="number" class="num-in" id="m-cost" value="6000" step="500"><span class="unit">엔</span></span></div>
+          <input type="range" id="m-cost-r" min="3000" max="10000" step="500" value="6000">
+        </div>
+        <div class="ctl">
+          <label class="toggle on" id="m-bonus"><span class="switch"></span>
+            <span class="ctl-label">러닝 개런티 <small>목표 달성 시 업로드당 +2,000엔</small></span></label>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="grp">
+        <div class="grp-t">시리아이 자체 모집</div>
+        <div class="ctl">
+          <div class="ctl-top"><span class="ctl-label">틱톡 업로드 <small>시리아이가 채우는 TT 건수</small></span>
+            <span><input type="number" class="num-in" id="s-tt-n" value="100" min="0" max="220"><span class="unit">건</span></span></div>
+          <input type="range" id="s-tt" min="0" max="220" value="100">
+        </div>
+        <div class="ctl">
+          <div class="ctl-top"><span class="ctl-label">인스타 업로드 <small>시리아이가 채우는 IG 건수</small></span>
+            <span><input type="number" class="num-in" id="s-ig-n" value="0" min="0" max="150"><span class="unit">건</span></span></div>
+          <input type="range" id="s-ig" min="0" max="150" value="0">
+        </div>
+        <div class="ctl">
+          <div class="ctl-top"><span class="ctl-label">미러링 <small>위 업로드 중 같은 사람이 양쪽 다</small></span>
+            <span><input type="number" class="num-in" id="s-mir-n" value="0" min="0" max="150"><span class="unit">명</span></span></div>
+          <input type="range" id="s-mir" min="0" max="150" value="0">
+        </div>
+        <div id="s-subtotal" style="background:var(--accent-soft);border-radius:10px;padding:13px 15px;font-size:14px;color:var(--ink);font-weight:600;margin:2px 0 6px;line-height:1.6"></div>
+        <div class="ctl">
+          <div class="ctl-top"><span class="ctl-label">지인 추천 총합 <small>1건당 +3,000엔</small></span>
+            <span><input type="number" class="num-in" id="s-ref-n" value="20" min="0" max="300"><span class="unit">건</span></span></div>
+          <input type="range" id="s-ref" min="0" max="300" value="20">
+        </div>
+        <div class="ctl">
+          <div class="ctl-top"><span class="ctl-label">우수 콘텐츠 선정 <small>1명당 +10,000엔</small></span>
+            <span><input type="number" class="num-in" id="s-win-n" value="10" min="0" max="50"><span class="unit">명</span></span></div>
+          <input type="range" id="s-win" min="0" max="50" value="10">
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="grp">
+        <div class="grp-t gold">부대 비용</div>
+        <div class="ctl">
+          <div class="ctl-top"><span class="ctl-label">가드닝 비용 <small>이전 시뮬 값 입력</small></span>
+            <span><input type="number" class="num-in" id="garden" value="1000000" step="50000"><span class="unit">원</span></span></div>
+          <input type="range" id="garden-r" min="0" max="3000000" step="50000" value="1000000">
+        </div>
+        <div class="ctl">
+          <div class="ctl-top"><span class="ctl-label">알바 인원 <small>1개월 기준</small></span>
+            <span><input type="number" class="num-in" id="lab-n" value="1" min="0" max="6"><span class="unit">명</span></span></div>
+          <input type="range" id="lab" min="0" max="6" value="1">
+        </div>
+        <div class="ctl">
+          <div class="ctl-top"><span class="ctl-label">알바 1인 월급</span>
+            <span><input type="number" class="num-in" id="lab-wage" value="1000000" step="100000"><span class="unit">원</span></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: results -->
+    <div class="card">
+      <div class="card-title">결과</div>
+
+      <div class="grp">
+        <div class="grp-t">업로드 달성</div>
+        <div class="quota">
+          <div class="quota-top"><span class="lbl">틱톡</span><span><span class="cnt num" id="q-tt">–</span><span class="st" style="color:var(--faint)">/ 200</span></span></div>
+          <div class="track"><div class="fill" id="q-tt-f" style="background:var(--blue)"></div></div>
+        </div>
+        <div class="quota">
+          <div class="quota-top"><span class="lbl">인스타</span><span><span class="cnt num" id="q-ig">–</span><span class="st" style="color:var(--faint)">/ 100</span></span></div>
+          <div class="track"><div class="fill" id="q-ig-f" style="background:var(--accent)"></div></div>
+        </div>
+        <div class="quota">
+          <div class="quota-top"><span class="lbl">전체 <small style="color:var(--faint);font-weight:400">필요 300 · 허용 315</small></span>
+            <span><span class="cnt num" id="q-tot">–</span><span class="st" id="q-tot-st"></span></span></div>
+          <div class="track" style="margin-top:22px">
+            <div class="fill" id="q-tot-f" style="background:var(--good)"></div>
+            <div class="marker" data-l="300" style="left:95.24%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="grp">
+        <div class="rrow big"><span class="k strong">총 매출</span><span class="v pos num" id="r-rev">–</span></div>
+        <div class="rrow sub"><span class="k">마루 <span class="hint num" id="r-mu-u"></span></span><span class="v num" id="r-mu">–</span></div>
+        <div class="rrow sub"><span class="k">시리아이 <span class="hint num" id="r-si-u"></span></span><span class="v num" id="r-si">–</span></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="grp">
+        <div class="grp-t">비용 구성</div>
+        <div class="stack" id="stack"></div>
+        <div class="legend">
+          <div class="li"><span class="sw" style="background:var(--blue)"></span>마루<span class="amt num" id="l-maru">–</span></div>
+          <div class="li"><span class="sw" style="background:var(--accent)"></span>크리에이터<span class="amt num" id="l-cre">–</span></div>
+          <div class="li"><span class="sw" style="background:var(--gold)"></span>인건비<span class="amt num" id="l-lab">–</span></div>
+          <div class="li"><span class="sw" style="background:var(--cost)"></span>가드닝<span class="amt num" id="l-gar">–</span></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="grp">
+        <div class="rrow"><span class="k strong">마루 비용 <span class="hint num" id="r-mbonus"></span></span><span class="v neg num" id="r-maruc">–</span></div>
+        <div class="rrow"><span class="k strong">크리에이터 지급</span><span class="v neg num" id="r-crec">–</span></div>
+        <div class="rrow sub"><span class="k">기본 참여</span><span class="v num" id="r-cbase">–</span></div>
+        <div class="rrow sub"><span class="k">지인 추천</span><span class="v num" id="r-cref">–</span></div>
+        <div class="rrow sub"><span class="k">우수 콘텐츠</span><span class="v num" id="r-ctop">–</span></div>
+        <div class="rrow"><span class="k strong">인건비 <span class="hint">1개월</span></span><span class="v neg num" id="r-labc">–</span></div>
+        <div class="rrow"><span class="k strong">가드닝</span><span class="v neg num" id="r-garc">–</span></div>
+        <div class="rrow total big"><span class="k strong">총 비용</span><span class="v neg num" id="r-costtot">–</span></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="grp">
+        <div class="rrow total big"><span class="k strong">순마진</span><span class="v num" id="r-net">–</span></div>
+        <div class="rrow"><span class="k">마진율</span><span class="v num" id="r-pct">–</span></div>
+        <div class="rrow"><span class="k">업로드당 순이익</span><span class="v num" id="r-netper">–</span></div>
+      </div>
+
+      <div class="note" id="r-note"></div>
+    </div>
+  </div>
+</section>
+
+<script>
+const $=id=>document.getElementById(id);
+const won=n=>Math.round(n).toLocaleString('ko-KR')+'원';
+const man=n=>{const m=n/10000;return (Math.round(m*10)/10).toLocaleString('ko-KR')+'만원';};
+const v=id=>parseFloat($(id).value)||0;
+
+function link(rangeId,numId){
+  const r=$(rangeId),n=$(numId);
+  r.addEventListener('input',()=>{n.value=r.value;calc();});
+  n.addEventListener('input',()=>{ if(n.value!=='') r.value=n.value; calc();});
+}
+[['rev-r','rev'],['fx-r','fx'],['m-tt','m-tt-n'],['m-ig','m-ig-n'],['m-cost-r','m-cost'],
+ ['s-tt','s-tt-n'],['s-ig','s-ig-n'],['s-mir','s-mir-n'],['s-ref','s-ref-n'],['s-win','s-win-n'],
+ ['garden-r','garden'],['lab','lab-n']
+].forEach(p=>link(p[0],p[1]));
+$('lab-wage').addEventListener('input',calc);
+
+$('m-bonus').addEventListener('click',()=>{$('m-bonus').classList.toggle('on');calc();});
+
+const PRESETS={
+  // A. 마루 100/100 고정 (러닝개런티 ON). 시리아이는 남은 틱톡 위주, 미러링 0.
+  f_min:{'m-tt':100,'m-ig':100,'s-tt':100,'s-ig':0,'s-mir':0,'s-ref':50,'s-win':10,'garden':1500000,'lab':2,bonus:true},
+  f_mid:{'m-tt':100,'m-ig':100,'s-tt':100,'s-ig':0,'s-mir':0,'s-ref':20,'s-win':10,'garden':1000000,'lab':1,bonus:true},
+  f_max:{'m-tt':100,'m-ig':100,'s-tt':115,'s-ig':0,'s-mir':0,'s-ref':10,'s-win':10,'garden':500000,'lab':1,bonus:true},
+  // B. 원래안 - 마루 변동 + 시리아이 미러링 활용.
+  o_min:{'m-tt':100,'m-ig':100,'s-tt':100,'s-ig':0,'s-mir':0,'s-ref':50,'s-win':10,'garden':1500000,'lab':2,bonus:true},
+  o_mid:{'m-tt':70,'m-ig':70,'s-tt':130,'s-ig':30,'s-mir':30,'s-ref':20,'s-win':10,'garden':1000000,'lab':1,bonus:false},
+  o_max:{'m-tt':50,'m-ig':50,'s-tt':160,'s-ig':55,'s-mir':30,'s-ref':10,'s-win':10,'garden':500000,'lab':1,bonus:false},
+};
+document.querySelectorAll('button[data-p]').forEach(b=>{
+  b.addEventListener('click',()=>{
+    const p=PRESETS[b.dataset.p];
+    for(const k in p){
+      if(k==='bonus'){$('m-bonus').classList.toggle('on',p.bonus);continue;}
+      if(k==='garden'){$('garden').value=p[k];$('garden-r').value=p[k];continue;}
+      $(k).value=p[k];$(k+'-n').value=p[k];
+    }
+    calc();
+  });
+});
+
+function calc(){
+  const rev=v('rev'), fx=v('fx');
+  const mTT=v('m-tt-n'), mIG=v('m-ig-n'), mCost=v('m-cost'), mBonus=$('m-bonus').classList.contains('on');
+  const sTT=v('s-tt-n'), sIG=v('s-ig-n'), sRef=v('s-ref-n'), sWin=v('s-win-n');
+  // 미러링 = 위 TT·IG 업로드 중 같은 사람이 양쪽 다 올린 건수 → 최대 = min(TT,IG)
+  let sMir=v('s-mir-n');
+  const mirMax=Math.min(sTT,sIG);
+  if(sMir>mirMax){ sMir=mirMax; $('s-mir-n').value=sMir; $('s-mir').value=sMir; }
+  const garden=v('garden'), labN=v('lab-n'), labWage=v('lab-wage');
+
+  // 플랫폼 총합 직접 입력. 미러링은 인원(비용)에만 영향, 업로드 수는 TT+IG 그대로.
+  const ttU=mTT+sTT, igU=mIG+sIG;
+  const maruU=mTT+mIG, siU=sTT+sIG, totU=maruU+siU;
+  const siCreators=sTT+sIG-sMir;  // 미러링 인원은 1명으로 카운트
+
+  const rMaru=maruU*rev, rSi=siU*rev, totRev=rMaru+rSi;
+
+  // 마루도 엔 기준: 업로드당 mCost엔 × 환율
+  const maruBase=maruU*mCost*fx, maruBonusAmt=mBonus?maruU*2000*fx:0, maruCost=maruBase+maruBonusAmt;
+
+  // 단독 TT = sTT-sMir(5천엔), 단독 IG = sIG-sMir(5천엔), 미러링(1.2만엔)
+  const baseJPY=(sTT-sMir)*5000+(sIG-sMir)*5000+sMir*12000, refJPY=sRef*3000, topJPY=sWin*10000;
+  const cBaseKRW=baseJPY*fx, cRefKRW=refJPY*fx, cTopKRW=topJPY*fx, creCost=cBaseKRW+cRefKRW+cTopKRW;
+
+  const labCost=labN*labWage, gardCost=garden;  // 알바 1개월 고정
+  const totCost=maruCost+creCost+labCost+gardCost;
+  const net=totRev-totCost, pct=totRev>0?net/totRev*100:0, netPer=totU>0?net/totU:0;
+
+  $('h-margin').textContent=won(net); $('h-margin').className='val num '+(net>=0?'pos':'neg');
+  $('h-marginpct').textContent='마진율 '+pct.toFixed(1)+'%  ·  '+man(net);
+  $('h-rev').textContent=man(totRev); $('h-rev-sub').textContent=won(totRev);
+  $('h-cost').textContent=man(totCost); $('h-cost-sub').textContent=won(totCost);
+  $('h-uploads').textContent=totU+'건'; $('h-uploads-sub').textContent='TT '+ttU+' / IG '+igU;
+
+  // 시리아이 합계 실시간 표시
+  $('s-subtotal').innerHTML='시리아이 합계 <b style="color:var(--accent)">'+siU+'건</b> '
+    +'<span style="color:var(--muted);font-weight:500">(틱톡 '+sTT+' + 인스타 '+sIG+')</span><br>'
+    +'<span style="color:var(--muted);font-weight:500">모집 인원 '+siCreators+'명 · 미러링 '+sMir+'명(양쪽 다) · 최대 '+mirMax+'명</span>';
+
+  const bar=(el,cnt,tgt,txt,col)=>{
+    $(el).style.width=Math.min(cnt/tgt*100,100)+'%';
+    $(el).style.background=cnt>=tgt?'var(--good)':col;
+    $(txt).textContent=cnt; $(txt).style.color=cnt>=tgt?'var(--good)':'var(--ink)';
+  };
+  bar('q-tt-f',ttU,200,'q-tt','var(--blue)');
+  bar('q-ig-f',igU,100,'q-ig','var(--accent)');
+
+  $('q-tot').textContent=totU;
+  const totPct=Math.min(totU/315*100,100);
+  $('q-tot-f').style.width=totPct+'%';
+  let st='',stc='',fillc='';
+  if(totU<300){ st='부족 '+(300-totU)+'건'; stc='var(--gold)'; fillc='var(--gold)'; }
+  else if(totU<=315){ st='적정 (오버 '+(totU-300)+'건)'; stc='var(--good)'; fillc='var(--good)'; }
+  else { st='허용초과 '+(totU-315)+'건'; stc='var(--cost)'; fillc='var(--cost)'; }
+  $('q-tot-st').textContent=st; $('q-tot-st').style.color=stc;
+  $('q-tot').style.color=stc; $('q-tot-f').style.background=fillc;
+
+  $('r-rev').textContent=won(totRev);
+  $('r-mu').textContent=won(rMaru); $('r-mu-u').textContent='('+maruU+'건)';
+  $('r-si').textContent=won(rSi); $('r-si-u').textContent='('+siU+'건)';
+
+  const segs=[['l-maru',maruCost,'var(--blue)'],['l-cre',creCost,'var(--accent)'],['l-lab',labCost,'var(--gold)'],['l-gar',gardCost,'var(--cost)']];
+  let html=''; segs.forEach(s=>{ const w=totCost>0?s[1]/totCost*100:0; html+='<span style="width:'+w+'%;background:'+s[2]+'"></span>'; $(s[0]).textContent=man(s[1]); });
+  $('stack').innerHTML=html;
+
+  $('r-maruc').textContent=won(maruCost);
+  $('r-mbonus').textContent=mBonus?'(러닝개런티 +'+won(maruBonusAmt)+')':'';
+  $('r-crec').textContent=won(creCost);
+  $('r-cbase').textContent=won(cBaseKRW); $('r-cref').textContent=won(cRefKRW); $('r-ctop').textContent=won(cTopKRW);
+  $('r-labc').textContent=won(labCost); $('r-garc').textContent=won(gardCost);
+  $('r-costtot').textContent=won(totCost);
+
+  $('r-net').textContent=won(net); $('r-net').className='v num '+(net>=0?'pos':'neg');
+  $('r-pct').textContent=pct.toFixed(1)+'%'; $('r-pct').className='v num '+(pct>=0?'pos':'neg');
+  $('r-netper').textContent=won(netPer);
+
+  let notes=[];
+  if(ttU<200) notes.push('<span class="warn">틱톡 '+(200-ttU)+'건 부족</span>');
+  if(igU<100) notes.push('<span class="warn">인스타 '+(100-igU)+'건 부족</span>');
+  if(totU>315) notes.push('<span class="bad">허용치 315건 초과</span>');
+  else if(totU>=300) notes.push('<span class="ok">목표 충족</span>');
+  notes.push('환율 1엔='+fx+'원 기준 · 마루/크리에이터 단가 모두 엔화 × 환율로 계산');
+  $('r-note').innerHTML=notes.join(' · ');
+}
+
+calc();
+</script>
+</body>
+</html>

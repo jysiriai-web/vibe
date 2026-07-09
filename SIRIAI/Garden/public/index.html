@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>일본 댄스챌린지 대시보드</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="side-brand"><span class="leaf">🌱</span> 일본 댄스챌린지</div>
+      <nav id="campaignNav" class="campaign-nav"></nav>
+    </aside>
+
+    <div class="mainwrap">
+      <header class="topbar">
+        <div class="camp-title" id="campTitle">—</div>
+        <div class="stats">
+          <div class="stat"><span class="k">잔액</span><span class="v" id="balance">—</span></div>
+          <div class="stat"><span class="k">마지막 스캔</span><span class="v" id="scannedAt">—</span></div>
+          <div class="stat"><span class="k">서비스</span><span class="v mono" id="service">—</span></div>
+        </div>
+        <button class="btn" id="contentScanBtn" title="아직 업로드 안 된 계정만 확인 (빠름). Shift+클릭 = 전체 재스캔(조회수 갱신)">업로드 스캔</button>
+        <button class="btn primary" id="scanBtn" title="팔로워 없는 계정 + 가드닝된 계정만 확인 (빠름). Shift+클릭 = 전체 재스캔">모집 스캔</button>
+      </header>
+
+      <nav class="tabs">
+        <button class="tab active" data-tab="recruit">① 모집 <span class="cnt" id="cnt-recruit">0</span></button>
+        <button class="tab" data-tab="upload">② 업로드 <span class="cnt" id="cnt-upload">0</span></button>
+        <button class="tab" data-tab="garden">③ 가드닝 <span class="cnt warn" id="cnt-garden">0</span></button>
+        <button class="tab" data-tab="deliver">④ 납품 <span class="cnt" id="cnt-deliver">0</span></button>
+      </nav>
+
+      <main id="content"></main>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="modal" hidden>
+    <div class="modal">
+      <h2 id="modalTitle">집행 확인</h2>
+      <div id="modalBody"></div>
+      <div class="modal-actions">
+        <button class="btn" id="modalCancel">취소</button>
+        <button class="btn danger" id="modalConfirm">집행 확정 (돈 나감)</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+  <div class="overlay" id="overlay" hidden><div class="spinner"></div><div id="overlayMsg">처리 중…</div></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

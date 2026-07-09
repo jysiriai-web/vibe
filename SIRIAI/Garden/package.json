@@ -1,0 +1,18 @@
+{
+  "name": "siriai-garden",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "SIRIAI 가드닝 모니터링·자동화 대시보드 (팔로워 보충 반자동)",
+  "scripts": {
+    "verify:smm": "node scripts/verify-smm.js",
+    "test:tiktok": "node scripts/test-tiktok.js",
+    "sync": "node scripts/sync.js",
+    "execute": "node scripts/execute.js",
+    "orders": "node scripts/orders.js",
+    "dashboard": "node src/server.js"
+  },
+  "dependencies": {
+    "playwright": "^1.61.1"
+  }
+}
