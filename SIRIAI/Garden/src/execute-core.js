@@ -49,8 +49,11 @@ export function buildPlan(scanned, orders, { target, min, service }) {
   const toOrder = [];
   const filling = [];
   const errored = [];
+  const seen = new Set(); // 같은 배치에 동일 핸들이 두 행(예: 시트 중복 등록)으로 오면 한 번만 주문 → 이중지출 방지
   for (const a of scanned) {
     if (a.current == null) { errored.push(a); continue; }
+    if (seen.has(a.handle)) continue;
+    seen.add(a.handle);
     const inFlight = inFlightFor(orders, a.handle);
     if (inFlight > 0) { filling.push({ ...a, inFlight, projected: a.current + inFlight }); continue; } // 진행중 → 대기(재주문 안 함)
     if (a.current >= min) continue; // 이미 충족(1000+)
@@ -65,7 +68,8 @@ export function buildPlan(scanned, orders, { target, min, service }) {
 }
 
 // 주문 실행. orders 배열에 기록 push. placed[] 반환. onEach 콜백 옵션.
-export async function placeOrders(smm, orders, toOrder, service, { onEach } = {}) {
+// persist: 각 주문 성공 직후 호출(즉시 디스크 저장) — 배치 도중 중단돼도 과금된 주문 기록 유실 방지(이중지출 방지).
+export async function placeOrders(smm, orders, toOrder, service, { onEach, persist } = {}) {
   const placed = [];
   const svcId = Number(service.service);
   for (const o of toOrder) {
@@ -90,6 +94,7 @@ export async function placeOrders(smm, orders, toOrder, service, { onEach } = {}
       };
       orders.push(rec);
       placed.push(rec);
+      if (persist) { try { await persist(); } catch {} } // 과금 직후 즉시 저장
       if (onEach) onEach({ ok: true, handle: o.handle, id: res.order, qty: o.qty });
     } catch (e) {
       if (onEach) onEach({ ok: false, handle: o.handle, error: e.message });

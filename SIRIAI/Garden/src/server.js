@@ -52,6 +52,16 @@ function scanLatest(campaign) {
   const p = join(campaign.dataDir, 'scan-latest.json');
   return existsSync(p) ? JSON.parse(readFileSync(p, 'utf8')) : { accounts: [], ranAt: null };
 }
+// 수기 팔로워 입력 시 scan-latest 의 해당 계정 current 도 갱신 → buildAccounts 가 stale 스캔값으로 되돌리는 것 방지.
+function setScanLatestFollowers(campaign, row, followers) {
+  const p = join(campaign.dataDir, 'scan-latest.json');
+  if (!existsSync(p)) return;
+  try {
+    const d = JSON.parse(readFileSync(p, 'utf8'));
+    const a = (d.accounts || []).find((x) => Number(x.row) === Number(row));
+    if (a) { a.current = followers; writeFileSync(p, JSON.stringify(d, null, 2)); }
+  } catch {}
+}
 const parseNum = (n) => { if (n == null || n === '') return null; const v = Number(String(n).replace(/[,\s]/g, '')); return Number.isFinite(v) ? v : null; };
 
 function decorate(accounts, orders, campaign) {
@@ -179,6 +189,7 @@ const server = createServer(async (req, res) => {
       if (!row || !Number.isFinite(followers)) return send(res, 400, { error: 'row/followers 필요' });
       try {
         const updated = await pushFollowersToSheet(campaign.sheet, [{ row, followers }]);
+        setScanLatestFollowers(campaign, row, followers); // 스캔값에 되돌려지지 않게 scan-latest 도 갱신
         return send(res, 200, { ok: true, updated });
       } catch (e) {
         return send(res, 500, { error: '시트 쓰기 실패: ' + e.message });
@@ -278,7 +289,7 @@ const server = createServer(async (req, res) => {
       const plan = buildPlan(scanned, orders, { target: campaign.target, min: campaign.min, service: svc });
       const balance = Number((await smm.balance()).balance);
       if (plan.totalCost > balance) return send(res, 400, { error: `잔액 부족: 필요 $${plan.totalCost.toFixed(2)} > 잔액 $${balance}` });
-      const placed = await placeOrders(smm, orders, plan.toOrder, svc);
+      const placed = await placeOrders(smm, orders, plan.toOrder, svc, { persist: () => saveOrders(campaign.dataDir, orders) });
       saveOrders(campaign.dataDir, orders);
       return send(res, 200, { ok: true, placed, filling: plan.filling, orders: markStale(orders) });
     }
@@ -312,14 +323,22 @@ const server = createServer(async (req, res) => {
       let orders = loadOrders(campaign.dataDir);
       const o = orders.find((x) => String(x.id) === String(body.orderId));
       if (!o) return send(res, 404, { error: '주문 없음' });
-      // 현재 배송 상태 스냅샷 (실제 배송량·과금 보존 — remains=0 으로 덮지 않음)
+      // 현재 배송 상태 스냅샷 (실제 배송량·과금 보존 — null/빈값을 0 으로 덮지 않음)
       try {
         const st = (await smm.multiStatus([o.id]))[String(o.id)];
-        if (st && !st.error) { o.remains = Number(st.remains); o.startCount = Number(st.start_count); o.charge = st.charge; o.status = st.status; }
+        if (st && !st.error) {
+          const r = (st.remains == null || String(st.remains).trim() === '') ? NaN : Number(st.remains);
+          if (Number.isFinite(r)) o.remains = r;
+          const sc = (st.start_count == null || String(st.start_count).trim() === '') ? NaN : Number(st.start_count);
+          if (Number.isFinite(sc)) o.startCount = sc;
+          if (st.charge != null && st.charge !== '') o.charge = st.charge;
+          o.status = st.status;
+        }
       } catch {}
       let cancelled = false;
       try { await smm.cancel([o.id]); cancelled = true; } catch {}
-      o.closed = true; // 재가드닝 가능(inFlight 제외). done 은 SMM 상태로 자연 갱신.
+      o.closed = true;
+      o.cancelled = cancelled; // 취소 성공 여부. 실패(false)면 inFlightFor 가 계속 진행중으로 카운트(재주문 차단).
       o.closedAt = new Date().toISOString();
       saveOrders(campaign.dataDir, orders);
       return send(res, 200, { ok: true, cancelled });

@@ -436,7 +436,9 @@ async function closeOrder(id) {
   const r = await api(`/api/order/close?campaign=${state.campaign}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: id }) });
   overlay(false);
   if (r.error) return toast('실패: ' + r.error);
-  toast(r.cancelled ? '취소·환불 요청됨 · 종료 완료' : '종료 처리 완료'); await loadData();
+  if (r.cancelled) toast('취소·환불 요청됨 · 종료 완료');
+  else toast('⚠️ 취소는 안 됐어요(패널 미지원) — 이 주문은 계속 배송될 수 있어 배송 끝나야 재가드닝돼요');
+  await loadData();
 }
 async function openExecute() {
   const picked = $$('.pick:checked').map((c) => c.dataset.h);

@@ -72,6 +72,7 @@ if (ans.toLowerCase() !== 'yes') { console.log('\n취소했어.\n'); process.exi
 
 console.log('\n▶ 주문 전송 중...');
 await placeOrders(smm, orders, toOrder, svc, {
+  persist: () => saveOrders(campaign.dataDir, orders), // 과금 직후 즉시 저장(중단 시 유실 방지)
   onEach: (r) => console.log(r.ok ? `  ✅ @${r.handle}  주문 #${r.id} (${r.qty}명)` : `  ❌ @${r.handle}  실패: ${r.error}`),
 });
 saveOrders(campaign.dataDir, orders);
