@@ -135,20 +135,20 @@ select.svc:focus { border-color: var(--accent); outline: none; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* 가드닝 하위 탭 */
-.subtabs { display: flex; gap: 6px; margin-bottom: 18px; }
-.subtab { font-family: var(--sans); font-size: 15px; font-weight: 700; cursor: pointer; padding: 8px 16px; border: 1.5px solid var(--line); background: var(--card); color: var(--muted); border-radius: 20px; box-shadow: var(--shadow); }
-.subtab:hover { border-color: var(--accent); color: var(--accent); }
-.subtab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.subtabs { display: flex; gap: 24px; margin-bottom: 22px; border-bottom: 1px solid var(--line); }
+.subtab { font-family: var(--sans); font-size: 15px; font-weight: 700; cursor: pointer; padding: 9px 2px; border: none; background: none; color: var(--muted); border-bottom: 2.5px solid transparent; margin-bottom: -1px; transition: color .12s; }
+.subtab:hover { color: var(--ink); }
+.subtab.active { color: var(--accent); border-bottom-color: var(--accent); }
 /* SIRIAI 베스트 별표 */
 .star { font-size: 20px; line-height: 1; cursor: pointer; background: none; border: none; color: var(--line); padding: 2px 4px; }
 .star.on { color: var(--warn); }
 .star:hover { color: var(--warn); }
 
 /* 필터 바 */
-.filters { display: flex; gap: 22px; flex-wrap: wrap; margin-bottom: 16px; }
+.filters { display: flex; gap: 18px 26px; flex-wrap: wrap; margin-bottom: 18px; align-items: center; }
 .filterbar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.filterbar .flab { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--faint); font-weight: 700; margin-right: 4px; }
-.fbtn { font-family: var(--sans); font-size: 13px; font-weight: 700; cursor: pointer; padding: 6px 13px; border: 1.5px solid var(--line); background: var(--card); color: var(--muted); border-radius: 20px; transition: .12s; }
+.filterbar .flab { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--faint); font-weight: 700; margin-right: 6px; }
+.fbtn { font-family: var(--sans); font-size: 13px; font-weight: 600; cursor: pointer; padding: 5px 12px; border: 1px solid var(--line); background: var(--card); color: var(--muted); border-radius: 8px; transition: .12s; }
 .fbtn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .fbtn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 /* 인라인 편집 (팝업 대체) */
