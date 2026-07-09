@@ -28,7 +28,8 @@ const reviewed = (a) => uploaded(a) && [19, 20, 21].every((c) => revState(revVal
 const reviewPending = (a) => uploaded(a) && !reviewed(a); // 업로드됐는데 검수 미완
 const noticeSent = (a) => has(a.notice); // 확정안내 발송여부 (col 16 진행안내여부)
 
-let state = { campaigns: [], campaign: null, krw: 1508.79, services: [], best: [], data: null, tab: 'recruit', sub: 'needs', fCo: 'all', fStatus: 'all', fUp: 'all', fNotice: 'all', sortKey: 'v', sortDir: 'desc', bestOnly: false, pending: {} };
+let state = { campaigns: [], campaign: null, krw: 1508.79, services: [], best: [], data: null, tab: 'recruit', sub: 'needs', fCo: 'all', fStatus: 'all', fUp: 'all', fNotice: 'all', sortKey: 'v', sortDir: 'desc', bestOnly: false, pending: {}, unpicked: new Set() };
+// unpicked: 가드닝 집행에서 사용자가 명시적으로 체크 해제한 handle. 재렌더(백그라운드 폴링)가 선택을 되돌려 해제한 계정까지 집행하는 것 방지.
 // 편집 열 ↔ 계정 필드 매핑. 낙관적 저장·병합에 공용.
 const COL_FIELD = { 3: 'nick', 4: 'link', 16: 'notice', 17: 'contentLink', 19: 'soundOk', 20: 'soundSection', 21: 'hashtagOk' };
 const LOCK_COLS = [17, 19, 20, 21]; // 자동스캔이 건드리는 검수/콘텐츠 열 (서버 OVERRIDE_COLS 와 일치)
@@ -176,7 +177,7 @@ const filterRow = (...bars) => `<div class="filters">${bars.join('')}</div>`;
 
 const showNotice = () => !!(state.data && state.data.config && state.data.config.confirmNotice);
 // 확정안내 칩 (발송 ↔ 미발송 토글). col 16.
-const noticeCell = (a) => `<td><button class="notice ${noticeSent(a) ? 'sent' : 'unsent'}" data-row="${a.row}" data-cur="${esc(a.notice || '')}">${noticeSent(a) ? '발송' : '미발송'}</button></td>`;
+const noticeCell = (a) => `<td><button class="notice ${noticeSent(a) ? 'sent' : 'unsent'}" data-row="${a.row}" aria-pressed="${noticeSent(a)}">${noticeSent(a) ? '발송' : '미발송'}</button></td>`;
 
 // ① 모집
 function viewRecruit(accts) {
@@ -245,11 +246,12 @@ function viewNeeds(accts) {
   const filling = fa.filter((a) => a.status === 'filling');
   if (!needs.length) return coBar() + `<div class="empty">✅ 지금 가드닝 필요한 계정이 없어요.</div>${filling.length ? fillingNote(filling) : ''}`;
   const rate = rateOf();
+  const allPicked = needs.every((a) => !state.unpicked.has(a.handle));
   const rows = needs.map((a) => `<tr>
-    <td><input type="checkbox" class="pick" data-h="${a.handle}" checked></td>
+    <td><input type="checkbox" class="pick" data-h="${a.handle}" aria-label="집행 선택 @${a.handle}"${state.unpicked.has(a.handle) ? '' : ' checked'}></td>
     <td class="handle">${link(a.handle)}</td><td class="num">${fmt(a.current)}</td><td class="num">${fmt(a.order)}</td><td class="num">${won((a.order / 1000) * rate)}</td></tr>`).join('');
   return coBar() + `<div class="bar"><div class="summary">가드닝 필요 <b>${needs.length}</b>개 · 선택 <b id="selQty">0</b>명 · 예상 <b id="selCost">₩0</b></div><div class="spacer"></div><button class="btn danger" id="execBtn">선택 집행</button></div>
-    <table><thead><tr><th><input type="checkbox" id="pickAll" checked></th><th>계정</th><th class="num">현재</th><th class="num">충전량</th><th class="num">예상비용</th></tr></thead><tbody>${rows}</tbody></table>${filling.length ? fillingNote(filling) : ''}`;
+    <table><thead><tr><th><input type="checkbox" id="pickAll" aria-label="전체 선택"${allPicked ? ' checked' : ''}></th><th>계정</th><th class="num">현재</th><th class="num">충전량</th><th class="num">예상비용</th></tr></thead><tbody>${rows}</tbody></table>${filling.length ? fillingNote(filling) : ''}`;
 }
 const fillingNote = (filling) => `<div class="note"><b>⏳ 채워지는 중 (재주문 안 함):</b> ${filling.map((f) => `@${f.handle} (현재 ${fmt(f.current)}+진행중 ${fmt(f.inFlight)}=${fmt(f.projected)})`).join(', ')}</div>`;
 function viewOrders(orders) {
@@ -344,8 +346,8 @@ function updateSel() {
 }
 function wire() {
   $$('.subtab').forEach((b) => b.addEventListener('click', () => { state.sub = b.dataset.sub; render(); }));
-  $$('.pick').forEach((c) => c.addEventListener('change', updateSel));
-  if ($('#pickAll')) $('#pickAll').addEventListener('change', (e) => { $$('.pick').forEach((c) => (c.checked = e.target.checked)); updateSel(); });
+  $$('.pick').forEach((c) => c.addEventListener('change', () => { state.unpicked[c.checked ? 'delete' : 'add'](c.dataset.h); updateSel(); }));
+  if ($('#pickAll')) $('#pickAll').addEventListener('change', (e) => { $$('.pick').forEach((c) => { c.checked = e.target.checked; state.unpicked[e.target.checked ? 'delete' : 'add'](c.dataset.h); }); updateSel(); });
   if ($('#execBtn')) $('#execBtn').addEventListener('click', openExecute);
   if ($('#rateSave')) $('#rateSave').addEventListener('click', recalibrate);
   if ($('#svcSelect')) $('#svcSelect').addEventListener('change', changeService);
@@ -468,7 +470,7 @@ async function changeService(e) {
 async function closeOrder(id) {
   if (!confirm(`주문 #${id} 을 종료 처리할까요?\nsmmkings 취소를 시도하고 완료 처리해요. 이후 이 계정은 다시 가드닝할 수 있어요.`)) return;
   overlay(true, '종료 처리 중…');
-  const r = await api(`/api/order/close?campaign=${state.campaign}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: id }) });
+  const r = await api(`/api/order/close?campaign=${state.campaign}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: id }) }).catch(() => ({ error: '네트워크 오류' }));
   overlay(false);
   if (r.error) return toast('실패: ' + r.error);
   if (r.cancelled) toast('취소·환불 요청됨 · 종료 완료');
@@ -479,7 +481,7 @@ async function openExecute() {
   const picked = $$('.pick:checked').map((c) => c.dataset.h);
   if (!picked.length) return;
   overlay(true, '계획 확인 중…');
-  const plan = await api(`/api/plan?campaign=${state.campaign}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ handles: picked }) });
+  const plan = await api(`/api/plan?campaign=${state.campaign}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ handles: picked }) }).catch(() => ({ error: '네트워크 오류' }));
   overlay(false);
   if (plan.error) return toast('오류: ' + plan.error);
   if (!plan.toOrder || !plan.toOrder.length) return toast('주문할 게 없어요');
@@ -490,7 +492,7 @@ async function openExecute() {
 }
 async function doExecute(handles) {
   $('#modal').hidden = true; overlay(true, '주문 넣는 중…');
-  const r = await api(`/api/execute?campaign=${state.campaign}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ handles, confirm: true }) });
+  const r = await api(`/api/execute?campaign=${state.campaign}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ handles, confirm: true }) }).catch(() => ({ error: '네트워크 오류' }));
   overlay(false);
   if (r.error) return toast('실패: ' + r.error);
   toast((r.placed || []).length ? `✅ ${r.placed.length}개 주문 완료` : '주문할 게 없었어요');
@@ -507,8 +509,8 @@ async function syncRecruit() {
   await loadData();
 }
 async function scan() {
-  overlay(true, '전체 계정 팔로워 확인 중… (크롬 창 뜸 — 건드리지 마세요)');
-  const r = await api(`/api/scan?campaign=${state.campaign}&full=1`, { method: 'POST' });
+  overlay(true, '전체 계정 팔로워 확인 중… (크롬 창이 떠요 — 그대로 두세요)');
+  const r = await api(`/api/scan?campaign=${state.campaign}&full=1`, { method: 'POST' }).catch(() => ({ error: '네트워크 오류' }));
   overlay(false);
   if (r.error) return toast('스캔 실패: ' + r.error);
   toast(`스캔 완료 (${r.scannedCount != null ? r.scannedCount : ''}개)` + (r.nicksWritten ? ` · 닉네임 ${r.nicksWritten}개 채움` : '')); await loadData();
@@ -516,10 +518,11 @@ async function scan() {
 
 async function contentScan(full) {
   const btn = $('#contentScanBtn');
-  const r = await api(`/api/content-scan?campaign=${state.campaign}${full ? '&full=1' : ''}`, { method: 'POST' });
-  if (r.error) return toast('오류: ' + r.error);
-  toast('콘텐츠 스캔 시작 — 크롬 창이 떠요. 건드리지 말고 두세요 (~4분)');
-  btn.disabled = true;
+  if (btn.disabled) return; // 이미 스캔 중이면 재진입 막기 (중복 스캔·중복 폴링 방지)
+  btn.disabled = true; // 느린 초기 왕복 동안 더블클릭 방지 — await 전에 잠금
+  const r = await api(`/api/content-scan?campaign=${state.campaign}${full ? '&full=1' : ''}`, { method: 'POST' }).catch(() => ({ error: '네트워크 오류' }));
+  if (r.error) { btn.disabled = false; return toast('오류: ' + r.error); }
+  toast('콘텐츠 스캔 시작 — 크롬 창이 떠요. 그대로 두세요 (~4분)');
   const poll = setInterval(async () => {
     let s;
     try { s = await api('/api/content-scan/status'); } catch { return; }
@@ -534,7 +537,7 @@ function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = fal
 function overlay(show, msg) { $('#overlay').hidden = !show; if (msg) $('#overlayMsg').textContent = msg; }
 
 $$('.tab').forEach((t) => t.addEventListener('click', () => { state.tab = t.dataset.tab; render(); }));
-$('#campaignSelect').addEventListener('change', (e) => { state.campaign = e.target.value; state.tab = 'recruit'; state.pending = {}; overlay(true, '불러오는 중…'); loadData().finally(() => overlay(false)); });
+$('#campaignSelect').addEventListener('change', (e) => { state.campaign = e.target.value; state.tab = 'recruit'; state.pending = {}; state.unpicked = new Set(); overlay(true, '불러오는 중…'); loadData().finally(() => overlay(false)); });
 $('#scanBtn').addEventListener('click', scan);
 $('#contentScanBtn').addEventListener('click', (e) => contentScan(e.shiftKey));
 $('#modalCancel').addEventListener('click', () => ($('#modal').hidden = true));
