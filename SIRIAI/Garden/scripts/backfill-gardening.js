@@ -53,9 +53,12 @@ for (const a of accounts) {
   if (cur === TARGET) continue; // 이미 대상 — 절대 안 건드림
 
   if (!cur) {
-    // 빈칸 → 지금 값으로 최초 기록
-    const v = ordered || (followers != null && followers < MIN) ? TARGET : NOT_TARGET;
-    fixes.push({ row: a.row, handle: a.handle, from: '(빈칸)', to: v, why: ordered ? '주문 이력 있음' : `팔로워 ${followers ?? '?'}` });
+    // 빈칸 → 판단 근거가 있을 때만 기록한다.
+    // 팔로워를 아직 모르는 계정(스캔 전)을 '가드닝 불필요'로 단정하면 안 된다.
+    // 그런 칸은 그대로 비워두면 다음 스캔이 팔로워와 함께 올바르게 채운다(브릿지가 빈칸일 때만 씀).
+    if (!ordered && followers == null) continue;
+    const v = ordered || followers < MIN ? TARGET : NOT_TARGET;
+    fixes.push({ row: a.row, handle: a.handle, from: '(빈칸)', to: v, why: ordered ? '주문 이력 있음' : `팔로워 ${followers}` });
   } else if (cur === NOT_TARGET && ordered) {
     // 덮어써진 기록 복원 — 주문했다면 그때 분명 대상이었다
     fixes.push({ row: a.row, handle: a.handle, from: NOT_TARGET, to: TARGET, why: `주문 이력 있음 (현재 팔로워 ${followers ?? '?'})` });
