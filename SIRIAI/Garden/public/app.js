@@ -200,7 +200,14 @@ const ofTot = (n, tot) => `${n}<span class="of"> / ${tot}</span>`;
 
 // ── 필터 (진행사 / 상태 / 업로드 / 확정안내) ──
 const applyCo = (accts) => (state.fCo === 'all' ? accts : accts.filter((a) => (a.company || '') === state.fCo));
-const applyFStatus = (accts) => (state.fStatus === 'all' ? accts : accts.filter((a) => a.status === state.fStatus));
+// 모집탭 '가드닝 필요' = 아직 1,000명이 안 된 계정 전부.
+// 주문을 넣어 채워지는 중이든(filling), 팔로워를 아직 모르든(error) 손이 더 가야 하는 건 똑같다.
+// (가드닝탭의 집행 대상은 이것과 별개로 status==='needs' 만 쓴다 — 진행중 계정 재주문 방지)
+const unfilled = (a) => a.status !== 'ok';
+const applyFStatus = (accts) =>
+  state.fStatus === 'all' ? accts
+    : state.fStatus === 'needs' ? accts.filter(unfilled)
+      : accts.filter((a) => a.status === state.fStatus);
 function applyFUp(accts) {
   if (state.fUp === 'notup') return accts.filter((a) => !uploaded(a));
   if (state.fUp === 'up') return accts.filter(uploaded);
@@ -219,7 +226,7 @@ const noticeBar = (c) => fbar('확정안내', 'nt-f', state.fNotice, [['all', '�
 // 필터 옵션별 개수 (특정 리스트 기준). faceted = 다른 필터 적용된 리스트를 넘기면 됨.
 const coCounts = (l) => ({ all: l.length, MARU: l.filter((a) => a.company === 'MARU').length, SIRIAI: l.filter((a) => a.company === 'SIRIAI').length });
 const upCounts = (l) => ({ all: l.length, notup: l.filter((a) => !uploaded(a)).length, up: l.filter(uploaded).length, pending: l.filter(reviewPending).length });
-const statusCounts = (l) => ({ all: l.length, needs: l.filter((a) => a.status === 'needs').length, filling: l.filter((a) => a.status === 'filling').length, ok: l.filter((a) => a.status === 'ok').length, error: l.filter((a) => a.status === 'error').length });
+const statusCounts = (l) => ({ all: l.length, needs: l.filter(unfilled).length, filling: l.filter((a) => a.status === 'filling').length, ok: l.filter((a) => a.status === 'ok').length, error: l.filter((a) => a.status === 'error').length });
 const noticeCounts = (l) => ({ all: l.length, unsent: l.filter((a) => !noticeSent(a)).length });
 const filterRow = (...bars) => `<div class="filters">${bars.join('')}</div>`;
 
