@@ -28,7 +28,7 @@ const reviewed = (a) => uploaded(a) && [19, 20, 21].every((c) => revState(revVal
 const reviewPending = (a) => uploaded(a) && !reviewed(a); // 업로드됐는데 검수 미완
 const noticeSent = (a) => has(a.notice); // 확정안내 발송여부 (col 16 진행안내여부)
 
-let state = { campaigns: [], campaign: null, krw: 1508.79, services: [], best: [], data: null, tab: 'recruit', sub: 'needs', fCo: 'all', fStatus: 'all', fUp: 'all', fNotice: 'all', sortKey: 'v', sortDir: 'desc', bestOnly: false, pending: {}, unpicked: new Set() };
+let state = { campaigns: [], campaign: null, krw: 1508.79, services: [], best: [], data: null, tab: 'recruit', sub: 'needs', fCo: 'all', fStatus: 'all', fUp: 'all', fNotice: 'all', fOrder: 'all', sortKey: 'v', sortDir: 'desc', bestOnly: false, pending: {}, unpicked: new Set() };
 // unpicked: 가드닝 집행에서 사용자가 명시적으로 체크 해제한 handle. 재렌더(백그라운드 폴링)가 선택을 되돌려 해제한 계정까지 집행하는 것 방지.
 // 편집 열 ↔ 계정 필드 매핑. 낙관적 저장·병합에 공용.
 const COL_FIELD = { 3: 'nick', 4: 'link', 16: 'notice', 17: 'contentLink', 19: 'soundOk', 20: 'soundSection', 21: 'hashtagOk' };
@@ -260,28 +260,43 @@ function viewNeeds(accts) {
     <table><thead><tr><th><input type="checkbox" id="pickAll" aria-label="전체 선택"${allPicked ? ' checked' : ''}></th><th>계정</th><th class="num">현재</th><th class="num">충전량</th><th class="num">예상비용</th></tr></thead><tbody>${rows}</tbody></table>${filling.length ? fillingNote(filling) : ''}`;
 }
 const fillingNote = (filling) => `<div class="note"><b>⏳ 채워지는 중 (재주문 안 함):</b> ${filling.map((f) => `@${f.handle} (현재 ${fmt(f.current)}+진행중 ${fmt(f.inFlight)}=${fmt(f.projected)})`).join(', ')}</div>`;
+const CANCEL_ST = ['Canceled', 'Cancelled', 'Refunded'];
+// 주문 상태 분류 (필터·요약·칩 공용). active 진행중 / done 완료 / canceled 취소·종료 / stuck 오류
+function orderClass(o) {
+  if (o.cancelStuck) return 'stuck';
+  if (o.done && CANCEL_ST.includes(o.status)) return 'canceled';
+  if (o.closed) return 'canceled';
+  if (o.done) return 'done';
+  return 'active';
+}
 function viewOrders(orders) {
   if (!orders.length) return `<div class="empty">아직 집행 내역이 없어요.</div>`;
-  const rows = [...orders].reverse().map((o) => {
+  const cnt = { all: orders.length, active: 0, done: 0, canceled: 0, stuck: 0 };
+  orders.forEach((o) => cnt[orderClass(o)]++);
+  const shown = state.fOrder === 'all' ? orders : orders.filter((o) => orderClass(o) === state.fOrder);
+  const rows = [...shown].reverse().map((o) => {
     const delivered = o.quantity - (Number(o.remains) || 0), pct = o.quantity ? Math.round((delivered / o.quantity) * 100) : 0;
     let st;
-    if (o.closed) st = '<span class="chip stale">종료·취소요청</span>';
-    else if (o.status === 'Partial') st = '<span class="chip stale">부분완료</span>';
+    if (o.cancelStuck) st = '<span class="chip needs">⚠️ 오류</span>';
+    else if (o.done && CANCEL_ST.includes(o.status)) st = '<span class="chip stale">취소됨</span>';
+    else if (o.done && o.status === 'Partial') st = '<span class="chip ok">부분완료</span>';
     else if (o.done) st = '<span class="chip ok">완료</span>';
-    else if (o.cancelReverted) st = '<span class="chip needs">⚠️ 취소 취소됨</span>';
+    else if (o.closed) st = '<span class="chip stale">종료·취소요청</span>';
     else if (o.stale) st = '<span class="chip stale">정체 의심</span>';
-    else st = `<span class="chip filling">${o.status || '진행중'}</span>`;
+    else st = '<span class="chip filling">진행중</span>';
+    const canClose = (!o.done && !o.closed) || o.cancelStuck;
     return `<tr><td class="company">#${o.id}${o.service ? ` · s${o.service}` : ''}</td><td class="handle">${link(o.handle)}</td><td class="num">${fmt(o.quantity)}</td>
       <td><div class="progress"><span style="width:${pct}%"></span></div></td><td class="num">${delivered}/${o.quantity}</td><td>${st}</td>
       <td class="num">${won(o.charge != null ? Number(o.charge) : o.cost)}</td><td class="company">${timeAgo(o.placedAt)}</td>
-      <td>${(!o.done && !o.closed) ? `<button class="btn small close-order" data-id="${o.id}">${o.cancelReverted ? '다시 종료' : '종료 처리'}</button>` : ''}</td></tr>`;
+      <td>${canClose ? `<button class="btn small close-order" data-id="${o.id}">${o.cancelStuck ? '다시 종료' : '종료 처리'}</button>` : ''}</td></tr>`;
   }).join('');
-  const staleN = orders.filter((o) => o.stale).length;
-  const revertedN = orders.filter((o) => o.cancelReverted && !o.done).length;
-  return `<div class="bar"><div class="summary">총 <b>${orders.length}</b>건 · 진행중 <b>${orders.filter((o) => !o.done && !o.closed).length}</b>건${revertedN ? ` · <b style="color:var(--needs)">취소 취소됨 ${revertedN}</b>` : ''}${staleN ? ` · <b style="color:var(--warn)">정체 의심 ${staleN}</b>` : ''}</div></div>
-  <table><thead><tr><th>주문#</th><th>계정</th><th class="num">수량</th><th>배송</th><th class="num">진행</th><th>상태</th><th class="num">비용</th><th>시각</th><th></th></tr></thead><tbody>${rows}</tbody></table>
-  ${revertedN ? `<div class="note"><b style="color:var(--needs)">⚠️ 취소 취소됨</b> = 종료 처리했는데 smmkings에서 취소가 안 되고 계속 배송 중인 주문이에요. <b>다시 종료</b>로 취소를 재시도할 수 있고, 그 사이 이 주문은 진행중으로 잡혀 재가드닝을 막아요.</div>` : ''}
-  ${staleN ? `<div class="note"><b style="color:var(--warn)">⚠️ 정체 의심</b> = ${state.data.config.staleDays}일 넘게 안 끝난 주문. 멈춰있으면 <b>종료 처리</b>로 취소·완료하고, 그 계정을 다시 가드닝하면 돼요.</div>` : ''}`;
+  const staleN = orders.filter((o) => o.stale && orderClass(o) === 'active').length;
+  const bar = filterRow(fbar('상태', 'ord-f', state.fOrder, [['all', '전체'], ['active', '진행중'], ['done', '완료'], ['canceled', '취소·종료'], ['stuck', '오류']], cnt));
+  return `<div class="bar"><div class="summary">총 <b>${orders.length}</b>건 · 진행중 <b>${cnt.active}</b>${cnt.stuck ? ` · <b style="color:var(--needs)">오류 ${cnt.stuck}</b>` : ''}${staleN ? ` · <b style="color:var(--warn)">정체 의심 ${staleN}</b>` : ''}</div></div>
+  ${bar}
+  <table><thead><tr><th>주문#</th><th>계정</th><th class="num">수량</th><th>배송</th><th class="num">진행</th><th>상태</th><th class="num">비용</th><th>시각</th><th></th></tr></thead><tbody>${rows || emptyRow(9, '이 상태의 주문이 없어요.')}</tbody></table>
+  ${cnt.stuck ? `<div class="note"><b style="color:var(--needs)">⚠️ 오류</b> = 종료 처리했는데 smmkings에서 취소가 안 먹히고 계속 배송 중인 주문이에요(종료 후 1시간 지나도 배송 중). <b>다시 종료</b>로 재시도할 수 있고, 그 사이 진행중으로 잡혀 재가드닝을 막아요.</div>` : ''}
+  ${staleN ? `<div class="note"><b style="color:var(--warn)">⚠️ 정체 의심</b> = ${state.data.config.staleDays}일 넘게 안 끝난 주문. 멈춰있으면 <b>종료 처리</b>로 취소하고, 그 계정을 다시 가드닝하면 돼요.</div>` : ''}`;
 }
 function viewCost(orders, balance) {
   const byH = {};
@@ -371,6 +386,7 @@ function wire() {
   $$('.st-f').forEach((b) => b.addEventListener('click', () => { state.fStatus = b.dataset.k; render(); }));
   $$('.up-f').forEach((b) => b.addEventListener('click', () => { state.fUp = b.dataset.k; render(); }));
   $$('.nt-f').forEach((b) => b.addEventListener('click', () => { state.fNotice = b.dataset.k; render(); }));
+  $$('.ord-f').forEach((b) => b.addEventListener('click', () => { state.fOrder = b.dataset.k; render(); }));
   $$('.best-f').forEach((b) => b.addEventListener('click', () => { state.bestOnly = !state.bestOnly; render(); }));
   const doSort = (h) => {
     const k = h.dataset.sort;

@@ -4,6 +4,7 @@ import { join } from 'node:path';
 
 const TERMINAL = ['Completed', 'Canceled', 'Cancelled', 'Refunded', 'Partial'];
 const CANCEL_STATES = ['Canceled', 'Cancelled', 'Refunded']; // smm 상에서 '취소됨'으로 볼 상태
+const CANCEL_GRACE_MS = 60 * 60 * 1000; // 종료 누른 뒤 이 시간 지나도 배송 중이면 '오류'(취소 안 먹힘) 표기
 const fileOf = (dataDir) => join(dataDir, 'orders.json');
 
 export function loadOrders(dataDir) {
@@ -43,12 +44,13 @@ export async function refreshOrders(smm, orders) {
     if (Number.isFinite(sc)) o.startCount = sc;
     if (st.charge != null && st.charge !== '') o.charge = st.charge;
     o.done = TERMINAL.includes(st.status) || (Number.isFinite(r) && r === 0);
-    // 종료 처리(취소)했는데 smm은 아직 배송 중 → 취소가 안 됐거나 취소가 뒤집힘.
-    // 활성 흐름으로 되살려(진행중 카운트·종료버튼 재노출) 다시 종료할 수 있게 하고, 대시보드에 표기.
+    // 종료(취소) 요청했는데 smm은 아직 배송 중 → 취소가 실제로 안 먹힘.
+    // 방금 눌렀을 수 있으니 유예(1시간) 지난 뒤에만 '오류'로 표기(재취소 가능). closed 는 유지.
     if (o.closed && !o.done && Number.isFinite(r) && r > 0 && !CANCEL_STATES.includes(st.status)) {
-      o.cancelReverted = true;
-      o.closed = false;
-      o.cancelled = false;
+      const since = o.closedAt ? Date.now() - new Date(o.closedAt).getTime() : Infinity;
+      o.cancelStuck = since > CANCEL_GRACE_MS;
+    } else {
+      o.cancelStuck = false; // 취소 성공/완료되면 해제
     }
   }
   return orders;
@@ -57,12 +59,11 @@ export async function refreshOrders(smm, orders) {
 function toNum(v) { return (v == null || String(v).trim() === '') ? NaN : Number(v); }
 
 // 핸들별 진행중(아직 안 들어온) 수량 합 — 중복주문 방지 핵심.
-// 완료(done)는 제외. 종료(closed)는 '실제로 취소 성공'한 경우만 제외 —
-// 취소 실패(cancelled===false)면 주문이 계속 배송될 수 있으니 보수적으로 진행중으로 카운트.
-// remains 불명(NaN)이면 0 대신 주문 수량 전체를 진행중으로 간주.
+// done(완료·취소·remains0) 아니면 전부 진행중으로 카운트 = 배송 중이면 무조건 재주문 차단(종료여부 무관).
+// remains 불명(NaN)이면 0 대신 주문 수량 전체를 진행중으로 간주(보수).
 export function inFlightFor(orders, handle) {
   return orders
-    .filter((o) => o.handle === handle && !o.done && !(o.closed && o.cancelled !== false))
+    .filter((o) => o.handle === handle && !o.done)
     .reduce((s, o) => {
       const r = Number(o.remains);
       return s + (Number.isFinite(r) ? r : (Number(o.quantity) || 0));
