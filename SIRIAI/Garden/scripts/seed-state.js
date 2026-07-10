@@ -10,6 +10,7 @@ import { join } from 'node:path';
 import { loadEnv } from '../src/env.js';
 import { listCampaigns, getCampaign } from '../src/campaigns.js';
 import { getOrders, putOrders, getState, putOverrides, putBest } from '../src/state.js';
+import { eq, diffOrders } from '../src/state-diff.js';
 
 loadEnv();
 const DRY = process.argv.includes('--dry');
@@ -18,38 +19,6 @@ const campaign = id ? getCampaign(id) : listCampaigns()[0];
 if (!campaign) { console.error('캠페인 없음'); process.exit(1); }
 
 const readJson = (f, dflt) => (existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : dflt);
-
-// 키 순서·타입까지 비교하기 위한 정규화(재귀적 키 정렬). undefined 는 JSON 에 없는 것과 동일 취급.
-function canon(v) {
-  if (Array.isArray(v)) return v.map(canon);
-  if (v && typeof v === 'object') {
-    const out = {};
-    for (const k of Object.keys(v).sort()) { if (v[k] !== undefined) out[k] = canon(v[k]); }
-    return out;
-  }
-  return v;
-}
-const eq = (a, b) => JSON.stringify(canon(a)) === JSON.stringify(canon(b));
-
-// 주문 배열을 id 기준 맵으로 (순서 무관 비교)
-const byId = (arr) => Object.fromEntries((arr || []).map((o) => [String(o.id), o]));
-
-function diffOrders(local, remote) {
-  const L = byId(local), R = byId(remote);
-  const problems = [];
-  for (const k of Object.keys(L)) {
-    if (!(k in R)) { problems.push(`#${k} 시트에 없음(유실!)`); continue; }
-    if (!eq(L[k], R[k])) {
-      const fields = new Set([...Object.keys(L[k]), ...Object.keys(R[k])]);
-      for (const f of fields) {
-        if (!eq(L[k][f], R[k][f])) {
-          problems.push(`#${k}.${f}: 로컬=${JSON.stringify(L[k][f])}(${typeof L[k][f]}) ≠ 시트=${JSON.stringify(R[k][f])}(${typeof R[k][f]})`);
-        }
-      }
-    }
-  }
-  return problems;
-}
 
 const dir = campaign.dataDir;
 const localOrders = readJson(join(dir, 'orders.json'), []);
@@ -61,22 +30,31 @@ console.log(`로컬: 주문 ${localOrders.length}건 · overrides ${Object.keys(
 console.log(DRY ? '모드: --dry (밀어넣지 않고 대조만)\n' : '');
 
 let fail = false;
+let ordersVerified = false; // 주문(돈) 왕복이 실제로 검증됐는가
 try {
   if (!DRY) {
     console.log('── 시드(밀어넣기) ──');
-    console.log('  주문 upsert:', await putOrders(campaign.sheet, localOrders), '건');
+    // state 를 먼저, 주문(돈)을 나중에 — 중간 실패 시 돈 로그가 안 써진 상태로 남아 재실행이 깔끔하다.
+    // upsert 는 id 유일키라 재실행해도 중복되지 않는다(멱등).
     console.log('  overrides 쓰기:', await putOverrides(campaign.sheet, localOverrides));
     console.log('  best 쓰기:', await putBest(campaign.sheet, localBest));
+    console.log('  주문 upsert:', await putOrders(campaign.sheet, localOrders), '건');
   }
 
   console.log('\n── 되읽어 대조 ──');
   const remoteOrders = await getOrders(campaign.sheet);
   const remoteState = await getState(campaign.sheet);
 
-  // 1) 주문: 유실·타입 변환 검사 (charge 문자열, remains 빈값이 0 으로 바뀌지 않아야 함)
+  // 1) 주문: 유실·유령·타입 변환 검사 (charge 문자열, remains 빈값이 0 으로 바뀌지 않아야 함)
   const problems = diffOrders(localOrders, remoteOrders);
   if (problems.length) { fail = true; console.log('  ✗ 주문 불일치:'); problems.forEach((p) => console.log('     -', p)); }
-  else console.log(`  ✓ 주문 ${localOrders.length}건 전부 글자단위 일치 (charge 문자열·remains 빈값 보존)`);
+  else if (!localOrders.length && !remoteOrders.length) {
+    // 주문이 0건이면 돈 왕복 경로(upsert→_json→되읽기)가 한 번도 실행되지 않는다 → 통과로 간주 금지
+    console.log('  ⚠ 주문 0건 — 돈 왕복 경로가 검증되지 않았습니다(공허한 통과).');
+  } else {
+    ordersVerified = true;
+    console.log(`  ✓ 주문 ${localOrders.length}건 양방향 일치 (유실·유령 없음, charge 문자열·remains 빈값 보존)`);
+  }
 
   // 2) overrides / best
   if (!eq(localOverrides, remoteState.overrides)) { fail = true; console.log('  ✗ overrides 불일치'); }
@@ -100,7 +78,10 @@ try {
   fail = true;
   console.error('\n오류:', err.message);
   console.error('→ 브릿지(Code.gs)를 최신본으로 재배포했는지 확인하세요 (배포 관리 → 편집 → 새 버전).');
+  console.error('→ 로컬 파일은 읽기만 했으므로 안전합니다. upsert 는 멱등이라 이 스크립트를 그대로 다시 실행해도 됩니다.');
 }
 
-console.log('\n' + (fail ? '❌ 검증 실패 — 2단계로 넘어가지 마세요.' : '✅ 검증 통과 — 시트가 로컬과 1:1. 로컬 대시보드는 그대로 동작합니다.'));
-process.exit(fail ? 1 : 0);
+if (fail) console.log('\n❌ 검증 실패 — 2단계로 넘어가지 마세요.');
+else if (!ordersVerified) console.log('\n⚠️ 부분 통과 — overrides/best 는 일치하나 주문(돈) 왕복이 미검증입니다. 주문이 생긴 뒤 다시 실행하세요.');
+else console.log('\n✅ 검증 통과 — 시트가 로컬과 양방향 1:1. 로컬 대시보드는 그대로 동작합니다.');
+process.exit(fail || !ordersVerified ? 1 : 0);

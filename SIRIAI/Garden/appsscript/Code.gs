@@ -95,7 +95,17 @@ var STATE_SHEET = '_state';
 var ORDER_COLS = ['id', 'handle', 'row', 'service', 'quantity', 'startCount', 'remains', 'charge',
   'status', 'done', 'closed', 'cancelled', 'cancelStuck', 'abandoned', 'placedAt', 'closedAt', '_json'];
 var JSON_COL = ORDER_COLS.length; // 마지막 열 = 무손실 원본
-var TEXT_COLS = [8, 15, 16, 17];  // charge·placedAt·closedAt·_json 은 순수 텍스트로 고정
+// 순수 텍스트로 고정할 열: id(유일키) · charge · placedAt · closedAt · _json
+// id 를 텍스트로 두는 이유 — 숫자로 두면 앞자리0/큰수(2^53 초과)에서 String 왕복이 어긋나
+// 같은 주문이 새 행으로 append 되거나(중복) 서로 다른 id 가 뭉개져 덮어써질 수 있다.
+var TEXT_COLS = [1, 8, 15, 16, 17];
+
+// 텍스트 열 포맷을 현재 그리드 전체에 (재적용 안전·멱등). 행이 늘어난 뒤에도 반드시 다시 부를 것.
+function applyTextFormat_(sh) {
+  for (var i = 0; i < TEXT_COLS.length; i++) {
+    sh.getRange(1, TEXT_COLS[i], sh.getMaxRows(), 1).setNumberFormat('@');
+  }
+}
 
 // 탭이 없으면 맨 뒤에 생성(데이터 탭 자동탐지 getSheet_ 를 방해하지 않도록 끝에 추가)
 function getOrCreateSheet_(name, hidden) {
@@ -111,18 +121,16 @@ function getOrCreateSheet_(name, hidden) {
 function ordersSheet_() {
   var sh = getOrCreateSheet_(ORDERS_SHEET, false);
   if (sh.getLastRow() < 1) {
+    applyTextFormat_(sh);
     sh.getRange(1, 1, 1, ORDER_COLS.length).setValues([ORDER_COLS]).setFontWeight('bold');
     sh.setFrozenRows(1);
-    for (var i = 0; i < TEXT_COLS.length; i++) {
-      sh.getRange(1, TEXT_COLS[i], sh.getMaxRows(), 1).setNumberFormat('@');
-    }
   }
   return sh;
 }
 
 function orderRow_(o) {
   return [
-    o.id,
+    String(o.id), // 유일키는 항상 문자열로 (정밀도·앞자리0 무관하게 매칭 안정)
     o.handle || '',
     o.row == null ? '' : o.row,
     o.service == null ? '' : o.service,
@@ -149,6 +157,19 @@ function upsertOrders_(orders) {
     if (lastRow >= 2) {
       var ids = sh.getRange(2, 1, lastRow - 1, 1).getValues();
       for (var i = 0; i < ids.length; i++) idx[String(ids[i][0])] = i + 2;
+    }
+    // 새로 추가될 행 수를 먼저 세어 그리드를 확장하고 텍스트 포맷을 다시 입힌다.
+    // (기본 1000행을 넘어 auto-expand 되면 새 행은 자동포맷이라 charge/id 가 숫자로 강제변환됨)
+    var newCount = 0, seen = {};
+    for (var p = 0; p < orders.length; p++) {
+      var k = String(orders[p].id);
+      if (orders[p].id == null || orders[p].id === '' || idx[k] || seen[k]) continue;
+      seen[k] = true; newCount++;
+    }
+    if (newCount > 0) {
+      var need = (lastRow + newCount) - sh.getMaxRows();
+      if (need > 0) sh.insertRowsAfter(sh.getMaxRows(), need);
+      applyTextFormat_(sh);
     }
     var n = 0;
     for (var j = 0; j < orders.length; j++) {
@@ -227,9 +248,14 @@ function writeState_(state) {
     for (var j = 0; j < keys.length; j++) {
       var k = keys[j];
       if (state[k] === undefined) continue;
+      var payload = JSON.stringify(state[k]);
+      // 구글시트 셀 한 칸 한도 50,000자. 넘으면 setValue 가 예외 → 여기서 명확히 알린다.
+      if (payload.length > 45000) {
+        throw new Error('_state ' + k + ' JSON 이 너무 큼(' + payload.length + '자, 셀 한도 50000). 분할 저장 필요.');
+      }
       var row = idx[k];
       if (!row) { lastRow += 1; row = lastRow; idx[k] = row; sh.getRange(row, 1).setValue(k); }
-      sh.getRange(row, 2).setNumberFormat('@').setValue(JSON.stringify(state[k]));
+      sh.getRange(row, 2).setNumberFormat('@').setValue(payload);
       n++;
     }
     SpreadsheetApp.flush();
@@ -300,8 +326,10 @@ function doPost(e) {
     try { body = JSON.parse(e.postData.contents); } catch (err) { return json_({ error: 'bad json' }); }
     if ((body.token || '') !== TOKEN) return json_({ error: 'unauthorized' });
     if (body.sync) return json_(syncRecruit_(body.sync.sheetId, body.sync.company, body.sync.linkCol));
-    if (body.orders) return json_(upsertOrders_(body.orders)); // 주문(돈) 로그 upsert
-    if (body.state) return json_(writeState_(body.state));     // overrides / best
+    // 내용이 있을 때만 분기 — 빈 배열 []/빈 객체 {} 는 truthy 라, 그냥 두면
+    // {updates:[...], orders:[]} 같은 요청이 updates 를 조용히 건너뛴다.
+    if (Array.isArray(body.orders) && body.orders.length) return json_(upsertOrders_(body.orders)); // 주문(돈) 로그 upsert
+    if (body.state && Object.keys(body.state).length) return json_(writeState_(body.state));        // overrides / best
     var sh = getSheet_();
     var updates = body.updates || [];
     var n = 0;
