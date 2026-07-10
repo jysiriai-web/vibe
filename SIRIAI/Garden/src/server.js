@@ -17,7 +17,7 @@ import { listCampaigns, getCampaign, getFx, setCalibration, setFallbackRate, get
 import { getMarketUsdKrw } from './fx.js';
 import { EDITABLE_COLS, OVERRIDE_COLS } from './overrides.js';
 // 상태 계층 — GARDEN_STATE=sheet 면 시트가 진실, 기본(local)은 지금까지처럼 로컬 파일.
-import { mode as stateMode, readOrders, writeOrders, readOverrides, setOverrideStore, clearOverrideStore, readBest, writeBest, readAll } from './store.js';
+import { mode as stateMode, readOrders, writeOrders, readOverrides, setOverrideStore, clearOverrideStore, readBest, toggleBest, readAll, pendingState } from './store.js';
 
 loadEnv();
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -175,7 +175,7 @@ const server = createServer(async (req, res) => {
         try {
           const before = JSON.stringify(orders);
           orders = await refreshOrders(smm, orders);
-          if (JSON.stringify(orders) !== before) await writeOrders(campaign, orders);
+          if (JSON.stringify(orders) !== before) { const w = await writeOrders(campaign, orders); if (w.sheet === 'fail') console.error("[상태폴링] 시트 기록 실패(로컬엔 저장됨):", w.sheetError); }
         } catch {}
       }
       let balance = null;
@@ -217,9 +217,13 @@ const server = createServer(async (req, res) => {
       try {
         await pushCellsToSheet(campaign.sheet, [{ row, col, value }]);
         // 검수/콘텐츠 열: 값 있으면 수동 잠금, '미확인'(빈값)이면 잠금 해제(자동 관리에 반환). 닉3은 잠금 무관.
-        if (OVERRIDE_COLS.includes(col) && !value.trim()) await clearOverrideStore(campaign, row, col);
-        else await setOverrideStore(campaign, row, col, value);
-        return send(res, 200, { ok: true });
+        const w = (OVERRIDE_COLS.includes(col) && !value.trim())
+          ? await clearOverrideStore(campaign, row, col)
+          : await setOverrideStore(campaign, row, col, value);
+        // 잠금이 어디에도 안 남으면 스캔이 이 셀을 덮어쓸 수 있다 → 조용히 넘기지 않는다.
+        if (w && w.durable === false) { console.error('[검수잠금] 기록 실패:', w.localError || w.sheetError); return send(res, 500, { error: '수정은 됐지만 잠금 기록에 실패했어요. 다음 스캔이 이 칸을 덮어쓸 수 있어요.' }); }
+        if (w && w.sheet === 'fail') console.error('[검수잠금] 시트 기록 실패(로컬엔 저장됨):', w.sheetError);
+        return send(res, 200, { ok: true, sheetWarn: w && w.sheet === 'fail' ? '잠금이 시트에 아직 안 올라갔어요(로컬엔 저장됨)' : undefined });
       } catch (e) {
         return send(res, 500, { error: '시트 쓰기 실패: ' + e.message });
       }
@@ -242,11 +246,10 @@ const server = createServer(async (req, res) => {
     // SIRIAI 베스트 콘텐츠 토글
     if (path === '/api/best' && req.method === 'POST') {
       const body = await readBody(req);
-      let best = await readBest(campaign);
-      if (body.on) { if (!best.includes(body.handle)) best.push(body.handle); }
-      else { best = best.filter((h) => h !== body.handle); }
-      await writeBest(campaign, best);
-      return send(res, 200, { ok: true, best });
+      // read-modify-write 직렬화 (동시 토글이 서로 덮어쓰지 않게)
+      const { best, w } = await toggleBest(campaign, body.handle, !!body.on);
+      if (w.sheet === 'fail') console.error('[베스트] 시트 기록 실패(로컬엔 저장됨):', w.sheetError);
+      return send(res, 200, { ok: true, best, sheetWarn: w.sheet === 'fail' ? '시트에 아직 안 올라갔어요(로컬엔 저장됨)' : undefined });
     }
 
     // 모집시트(마루 등) → 마스터 자동 동기화: 계정 URL 추출·정리 후 새 계정만 마스터에 추가
@@ -299,9 +302,28 @@ const server = createServer(async (req, res) => {
       const plan = buildPlan(scanned, orders, { target: campaign.target, min: campaign.min, service: svc });
       const balance = Number((await smm.balance()).balance);
       if (plan.totalCost > balance) return send(res, 400, { error: `잔액 부족: 필요 $${plan.totalCost.toFixed(2)} > 잔액 $${balance}` });
-      const placed = await placeOrders(smm, orders, plan.toOrder, svc, { persist: async () => { const w = await writeOrders(campaign, orders); if (w.sheet === 'fail') console.error("[집행] 시트 기록 실패(로컬엔 저장됨):", w.error); } });
-      await writeOrders(campaign, orders);
-      return send(res, 200, { ok: true, placed, filling: plan.filling, orders: markStale(orders) });
+      let sheetWarn = null;
+      let placed;
+      try {
+        placed = await placeOrders(smm, orders, plan.toOrder, svc, {
+          // 과금 직후 즉시 기록. writeOrders 는 throw 하지 않고 durable 로 알린다.
+          persist: async () => {
+            const w = await writeOrders(campaign, orders);
+            if (w.sheet === 'fail') { sheetWarn = w.sheetError; console.error('[집행] 시트 기록 실패(로컬엔 저장됨):', w.sheetError); }
+            if (w.local === 'fail') console.error('[집행] 로컬 기록 실패:', w.localError);
+            return w;
+          },
+        });
+      } catch (e) {
+        // 과금됐는데 어디에도 기록 못 함 → 마지막으로 한 번 더 저장 시도하고, 반드시 사용자에게 알린다.
+        const w = await writeOrders(campaign, orders);
+        console.error('[집행] 기록 실패로 배치 중단:', e.message);
+        return send(res, 500, { error: e.message, placed: e.placed || [], recorded: w.durable, orders: markStale(orders) });
+      }
+      const w = await writeOrders(campaign, orders);
+      if (!w.durable) return send(res, 500, { error: '주문은 나갔는데 기록에 실패했습니다. smmkings 패널에서 확인하세요.', placed, orders: markStale(orders) });
+      if (w.sheet === 'fail') sheetWarn = w.sheetError;
+      return send(res, 200, { ok: true, placed, filling: plan.filling, orders: markStale(orders), sheetWarn: sheetWarn ? '시트 기록 실패(로컬엔 저장됨) — 다음 새로고침 때 자동 재시도해요' : undefined });
     }
 
     // 환율 재보정 — 현재 smmkings 잔액(₩) 입력 → 보정계수 재계산
@@ -351,8 +373,10 @@ const server = createServer(async (req, res) => {
       o.cancelled = cancelled; // 취소 성공 여부. 실패(false)면 inFlightFor 가 계속 진행중으로 카운트(재주문 차단).
       o.cancelStuck = false; // 새 종료 시도 → 오류표시 초기화(유예 지나도 배송 계속하면 스캔이 재표기).
       o.closedAt = new Date().toISOString();
-      await writeOrders(campaign, orders);
-      return send(res, 200, { ok: true, cancelled });
+      const w = await writeOrders(campaign, orders);
+      if (!w.durable) return send(res, 500, { error: '종료 처리 기록에 실패했어요. 다시 시도해 주세요.' });
+      if (w.sheet === 'fail') console.error("[종료] 시트 기록 실패(로컬엔 저장됨):", w.sheetError);
+      return send(res, 200, { ok: true, cancelled, sheetWarn: w.sheet === 'fail' ? '시트에 아직 안 올라갔어요(로컬엔 저장됨)' : undefined });
     }
 
     // 주문 포기 — 배송 중이라 취소가 안 먹혀도, 이 주문을 접고 계정을 재가드닝 가능하게(inFlightFor 제외).
@@ -366,8 +390,10 @@ const server = createServer(async (req, res) => {
       o.abandoned = true;
       o.abandonedAt = new Date().toISOString();
       o.cancelStuck = false;
-      await writeOrders(campaign, orders);
-      return send(res, 200, { ok: true });
+      const w = await writeOrders(campaign, orders);
+      if (!w.durable) return send(res, 500, { error: '포기 기록에 실패했어요. 다시 시도해 주세요.' });
+      if (w.sheet === 'fail') console.error("[포기] 시트 기록 실패(로컬엔 저장됨):", w.sheetError);
+      return send(res, 200, { ok: true, sheetWarn: w.sheet === 'fail' ? '시트에 아직 안 올라갔어요(로컬엔 저장됨)' : undefined });
     }
 
     // 정적 파일

@@ -4,7 +4,7 @@ import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet } from './sheet.js';
 import { scanAccounts } from './execute-core.js';
-import { loadOrders } from './orders.js';
+import { readOrders, localOrders } from './store.js';
 
 function prevCurrents(campaign) {
   const p = join(campaign.dataDir, 'scan-latest.json');
@@ -20,7 +20,9 @@ function prevCurrents(campaign) {
 export async function runSync(campaign, { onProgress, full = false } = {}) {
   const accounts = await getAccountsFromSheet(campaign.sheet);
   const prev = prevCurrents(campaign);
-  const gardened = new Set(loadOrders(campaign.dataDir).map((o) => o.handle));
+  // 시트 모드면 시트 주문 기준(로컬만 보면 대상이 어긋남). 시트를 못 읽으면 로컬로 폴백.
+  let _ords; try { _ords = await readOrders(campaign); } catch { _ords = localOrders(campaign); }
+  const gardened = new Set(_ords.map((o) => o.handle));
 
   // 스캔 대상: 팔로워 없음 + 가드닝 집행됨(드롭 예상) + 닉네임 빈 계정(자동채움용). full이면 전체.
   // 닉 빈 계정은 한 번 스캔→시트에 닉 채워지면 다음부턴 자동 제외(셀프 해소).

@@ -1,110 +1,209 @@
 // 상태 계층 (호스팅 2단계) — 주문(돈)·검수잠금·베스트를 '로컬 파일' 또는 '시트'에서 읽고 쓴다.
 // GARDEN_STATE=sheet 로 켜면 시트가 진실, 기본(local)은 지금까지처럼 로컬 파일.
 //
-// 돈 안전 3원칙 (이 파일의 존재 이유):
-//  ① 쓰기는 로컬 파일 먼저(동기·거의 안 깨짐) → 시트 나중(네트워크·실패 가능).
-//     smmkings 과금 직후 호출되므로, 시트가 실패해도 주문 기록은 절대 유실되지 않는다.
-//  ② 읽기는 시트가 진실이되, '로컬에만 있는 주문'(=이전 시트 쓰기 실패분)을 반드시 합쳐서 돌려준다.
-//     안 그러면 그 주문이 진행중으로 안 잡혀 같은 계정을 또 사게 된다(이중지출).
-//  ③ 시트 읽기 실패는 삼키지 않고 throw. 오래된 데이터로 집행하는 것을 막는다.
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
+// 돈 안전 원칙
+//  ① writeOrders 는 절대 throw 하지 않는다. 로컬·시트 쓰기를 각각 독립 try/catch 로 감싸,
+//     한쪽이 죽어도 다른 쪽은 반드시 시도한다. 어디에도 못 남기면 durable=false 로 알린다
+//     (호출부가 배치를 중단시켜 '기록 없는 과금'이 더 늘지 않게 한다).
+//  ② 시트 쓰기가 실패하면 pending 표시를 남긴다. 다음 읽기에서 '로컬이 더 최신'으로 보고
+//     로컬을 우선 병합해 되올린다(read-repair). 없으면 abandoned/closed 같은 변경분이
+//     다음 읽기에 시트값으로 조용히 되돌아간다.
+//  ③ 주문(돈) 시트 읽기 실패는 삼키지 않고 throw — 낡은 데이터로 집행하는 것을 막는다.
+//  ④ 검수잠금(overrides)은 반대로 '잠금을 잃지 않는 쪽'이 안전하다. 시트를 못 읽으면 로컬
+//     잠금을 쓰고, 병합은 합집합으로 한다(잠금이 남으면 스캔 워커가 덮어쓰지 않는다).
+import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { loadOrders as fileLoadOrders, saveOrders as fileSaveOrders } from './orders.js';
 import { loadOverrides as fileLoadOverrides, OVERRIDE_COLS } from './overrides.js';
 import { getAccountsFromSheet } from './sheet.js';
 import { getOrders, putOrders, getState, putOverrides, putBest, getBundle } from './state.js';
+import { eq } from './state-diff.js';
 
 export function mode() {
   return (process.env.GARDEN_STATE || 'local').toLowerCase() === 'sheet' ? 'sheet' : 'local';
 }
 export const isSheet = () => mode() === 'sheet';
 
-// ── 로컬 파일 헬퍼 ────────────────────────────────────────
-const ovFile = (dataDir) => join(dataDir, 'overrides.json');
-const bestFile = (dataDir) => join(dataDir, 'best.json');
+// ── 로컬 파일 ────────────────────────────────────────────
+const ovFile = (d) => join(d, 'overrides.json');
+const bestFile = (d) => join(d, 'best.json');
+const pendFile = (d) => join(d, 'pending-sync.json');
 const readJson = (f, dflt) => { if (!existsSync(f)) return dflt; try { return JSON.parse(readFileSync(f, 'utf8')) ?? dflt; } catch { return dflt; } };
-const writeJson = (dataDir, f, v) => { mkdirSync(dataDir, { recursive: true }); writeFileSync(f, JSON.stringify(v, null, 2)); };
+const writeJson = (dir, f, v) => { mkdirSync(dir, { recursive: true }); writeFileSync(f, JSON.stringify(v, null, 2)); };
 
-export const localOrders = (campaign) => fileLoadOrders(campaign.dataDir);
-export const localOverrides = (campaign) => fileLoadOverrides(campaign.dataDir);
-export const localBest = (campaign) => readJson(bestFile(campaign.dataDir), []);
+export const localOrders = (c) => fileLoadOrders(c.dataDir);
+export const localOverrides = (c) => fileLoadOverrides(c.dataDir);
+export const localBest = (c) => readJson(bestFile(c.dataDir), []);
+
+// ── pending: '시트에 아직 못 올린 변경이 있다' 표시 ──────────
+const readPending = (c) => readJson(pendFile(c.dataDir), {});
+function markPending(c, key, why) {
+  try { const p = readPending(c); p[key] = { at: new Date().toISOString(), why: String(why || '') }; writeJson(c.dataDir, pendFile(c.dataDir), p); } catch {}
+}
+function clearPending(c, key) {
+  try {
+    const p = readPending(c);
+    if (!(key in p)) return;
+    delete p[key];
+    if (Object.keys(p).length) writeJson(c.dataDir, pendFile(c.dataDir), p);
+    else if (existsSync(pendFile(c.dataDir))) rmSync(pendFile(c.dataDir));
+  } catch {}
+}
+export const pendingState = (c) => readPending(c);
+
+// ── 캠페인·자원별 직렬화 (read-modify-write 경쟁 방지) ────────
+const chains = new Map();
+function withLock(key, fn) {
+  const prev = chains.get(key) || Promise.resolve();
+  const next = prev.then(fn, fn);
+  chains.set(key, next.then(() => {}, () => {}));
+  return next;
+}
 
 // ── 주문 (돈) ────────────────────────────────────────────
-// 시트 목록에 없고 로컬에만 있는 주문 = 과거 시트 쓰기 실패분. 합쳐서 돌려주고 되올림 시도.
-function mergeMissing(remote, local) {
-  const rIds = new Set(remote.map((o) => String(o.id)));
-  return local.filter((o) => !rIds.has(String(o.id)));
+const idsOf = (arr) => new Set(arr.map((o) => String(o.id)));
+
+// 시트 결과 + 로컬을 합쳐 '과금된 주문이 절대 빠지지 않는' 배열을 만든다.
+// pending 이면 로컬이 더 최신(변경분 포함) → 로컬 우선. 아니면 시트 우선 + 로컬에만 있는 것 추가.
+export function reconcileOrders(campaign, remote) {
+  const local = localOrders(campaign);
+  if (readPending(campaign).orders) {
+    const lIds = idsOf(local);
+    return { merged: local.concat(remote.filter((o) => !lIds.has(String(o.id)))), needPush: true };
+  }
+  const rIds = idsOf(remote);
+  const missing = local.filter((o) => !rIds.has(String(o.id)));
+  return { merged: missing.length ? remote.concat(missing) : remote, needPush: missing.length > 0 };
+}
+async function repairOrders(campaign, r) {
+  if (r.needPush) {
+    try { await putOrders(campaign.sheet, r.merged); clearPending(campaign, 'orders'); } catch {}
+  }
+  return r.merged;
 }
 
 export async function readOrders(campaign) {
   if (!isSheet()) return localOrders(campaign);
-  const remote = await getOrders(campaign.sheet); // 실패하면 throw (원칙 ③)
-  const missing = mergeMissing(remote, localOrders(campaign));
-  if (missing.length) {
-    try { await putOrders(campaign.sheet, missing); } catch { /* 되올림 실패해도 아래서 합쳐 반환 */ }
-    return remote.concat(missing); // 원칙 ②: 과금된 주문을 절대 빠뜨리지 않는다
-  }
-  return remote;
+  const remote = await getOrders(campaign.sheet); // 원칙 ③: 실패하면 throw
+  return repairOrders(campaign, reconcileOrders(campaign, remote));
 }
 
-// 원칙 ①: 로컬 먼저, 시트 나중. 절대 throw 하지 않는다(과금 직후 호출되므로).
+// 원칙 ①: 절대 throw 하지 않는다. 로컬·시트를 각각 독립 시도.
+// durable=false → 어디에도 기록 못 함(과금됐다면 즉시 배치를 멈춰야 하는 상황).
 export async function writeOrders(campaign, orders) {
-  fileSaveOrders(campaign.dataDir, orders); // 동기·durable
-  if (!isSheet()) return { sheet: 'skip' };
-  try { await putOrders(campaign.sheet, orders); return { sheet: 'ok' }; }
-  catch (e) { return { sheet: 'fail', error: String(e.message || e) }; }
+  const out = { local: 'fail', sheet: 'skip', durable: false };
+  try { fileSaveOrders(campaign.dataDir, orders); out.local = 'ok'; }
+  catch (e) { out.localError = String((e && e.message) || e); }
+  if (isSheet()) {
+    try { await putOrders(campaign.sheet, orders); out.sheet = 'ok'; clearPending(campaign, 'orders'); }
+    catch (e) { out.sheet = 'fail'; out.sheetError = String((e && e.message) || e); markPending(campaign, 'orders', out.sheetError); }
+  }
+  out.durable = out.local === 'ok' || out.sheet === 'ok';
+  return out;
 }
 
-// ── 검수잠금(overrides) ──────────────────────────────────
+// ── 검수잠금(overrides) — 원칙 ④: 잠금을 잃지 않는 쪽이 안전 ──
+function unionOverrides(base, extra) {
+  const out = {};
+  for (const r of Object.keys(base || {})) out[r] = { ...base[r] };
+  for (const r of Object.keys(extra || {})) {
+    out[r] = out[r] || {};
+    for (const c of Object.keys(extra[r])) if (!(c in out[r])) out[r][c] = extra[r][c];
+  }
+  return out;
+}
+
 export async function readOverrides(campaign) {
   if (!isSheet()) return localOverrides(campaign);
-  return (await getState(campaign.sheet)).overrides;
-}
-async function writeOverrides(campaign, ov) {
-  writeJson(campaign.dataDir, ovFile(campaign.dataDir), ov);
-  if (!isSheet()) return { sheet: 'skip' };
-  try { await putOverrides(campaign.sheet, ov); return { sheet: 'ok' }; }
-  catch (e) { return { sheet: 'fail', error: String(e.message || e) }; }
-}
-export async function setOverrideStore(campaign, row, col, value) {
-  if (!OVERRIDE_COLS.includes(Number(col))) return { sheet: 'skip' }; // 닉 등은 잠금 대상 아님
-  const ov = await readOverrides(campaign);
-  const r = String(row);
-  ov[r] = ov[r] || {};
-  ov[r][String(col)] = value;
-  return writeOverrides(campaign, ov);
-}
-export async function clearOverrideStore(campaign, row, col) {
-  const ov = await readOverrides(campaign);
-  const r = String(row), c = String(col);
-  if (!ov[r] || !(c in ov[r])) return { sheet: 'skip' };
-  delete ov[r][c];
-  if (!Object.keys(ov[r]).length) delete ov[r];
-  return writeOverrides(campaign, ov);
+  const local = localOverrides(campaign);
+  let sheetOv;
+  try { sheetOv = (await getState(campaign.sheet)).overrides || {}; }
+  catch { return local; } // 시트를 못 읽어도 로컬 잠금은 지킨다(워커가 덮어쓰지 않게)
+  const pend = !!readPending(campaign).overrides;
+  const merged = pend ? unionOverrides(local, sheetOv) : unionOverrides(sheetOv, local);
+  if (!eq(merged, sheetOv)) {
+    try { await putOverrides(campaign.sheet, merged); clearPending(campaign, 'overrides'); } catch {}
+  }
+  return merged;
 }
 
-// ── 베스트 ──────────────────────────────────────────────
+async function writeOverrides(campaign, ov) {
+  const out = { local: 'fail', sheet: 'skip', durable: false };
+  try { writeJson(campaign.dataDir, ovFile(campaign.dataDir), ov); out.local = 'ok'; }
+  catch (e) { out.localError = String((e && e.message) || e); }
+  if (isSheet()) {
+    try { await putOverrides(campaign.sheet, ov); out.sheet = 'ok'; clearPending(campaign, 'overrides'); }
+    catch (e) { out.sheet = 'fail'; out.sheetError = String((e && e.message) || e); markPending(campaign, 'overrides', out.sheetError); }
+  }
+  out.durable = out.local === 'ok' || out.sheet === 'ok';
+  return out;
+}
+
+export function setOverrideStore(campaign, row, col, value) {
+  if (!OVERRIDE_COLS.includes(Number(col))) return Promise.resolve({ sheet: 'skip', durable: true });
+  return withLock(`${campaign.id}:ov`, async () => {
+    const ov = await readOverrides(campaign);
+    const r = String(row);
+    ov[r] = ov[r] || {};
+    ov[r][String(col)] = value;
+    return writeOverrides(campaign, ov);
+  });
+}
+export function clearOverrideStore(campaign, row, col) {
+  return withLock(`${campaign.id}:ov`, async () => {
+    const ov = await readOverrides(campaign);
+    const r = String(row), c = String(col);
+    if (!ov[r] || !(c in ov[r])) return { sheet: 'skip', durable: true };
+    delete ov[r][c];
+    if (!Object.keys(ov[r]).length) delete ov[r];
+    return writeOverrides(campaign, ov);
+  });
+}
+
+// ── 베스트 (표시용 — 잠금과 달리 합집합하지 않는다: 해제가 되살아나면 안 됨) ──
 export async function readBest(campaign) {
   if (!isSheet()) return localBest(campaign);
-  return (await getState(campaign.sheet)).best;
+  try { return (await getState(campaign.sheet)).best || []; }
+  catch { return localBest(campaign); }
 }
 export async function writeBest(campaign, arr) {
-  writeJson(campaign.dataDir, bestFile(campaign.dataDir), arr);
-  if (!isSheet()) return { sheet: 'skip' };
-  try { await putBest(campaign.sheet, arr); return { sheet: 'ok' }; }
-  catch (e) { return { sheet: 'fail', error: String(e.message || e) }; }
+  const out = { local: 'fail', sheet: 'skip', durable: false };
+  try { writeJson(campaign.dataDir, bestFile(campaign.dataDir), arr); out.local = 'ok'; }
+  catch (e) { out.localError = String((e && e.message) || e); }
+  if (isSheet()) {
+    try { await putBest(campaign.sheet, arr); out.sheet = 'ok'; }
+    catch (e) { out.sheet = 'fail'; out.sheetError = String((e && e.message) || e); markPending(campaign, 'best', out.sheetError); }
+  }
+  out.durable = out.local === 'ok' || out.sheet === 'ok';
+  return out;
+}
+// read-modify-write 를 직렬화해 동시 토글이 서로를 덮어쓰지 않게 한다.
+export function toggleBest(campaign, handle, on) {
+  return withLock(`${campaign.id}:best`, async () => {
+    let best = await readBest(campaign);
+    if (on) { if (!best.includes(handle)) best.push(handle); }
+    else best = best.filter((h) => h !== handle);
+    const w = await writeBest(campaign, best);
+    return { best, w };
+  });
 }
 
-// ── 한 번에 (대시보드 로드용 — 시트 모드에서 왕복 1회) ────────
+// ── 대시보드 로드 (시트 모드에서 왕복 1회) ────────────────────
 export async function readAll(campaign) {
   if (!isSheet()) {
-    return { accounts: await getAccountsFromSheet(campaign.sheet), orders: localOrders(campaign), overrides: localOverrides(campaign), best: localBest(campaign) };
+    // 로컬 모드는 시트가 잠깐 안 되더라도 대시보드가 죽으면 안 된다.
+    // accounts 를 못 읽으면 undefined 로 넘겨 buildAccounts 의 기존 폴백(scan-latest)이 작동하게 한다.
+    let accounts;
+    try { accounts = await getAccountsFromSheet(campaign.sheet); } catch { accounts = undefined; }
+    return { accounts, orders: localOrders(campaign), overrides: localOverrides(campaign), best: localBest(campaign) };
   }
-  const b = await getBundle(campaign.sheet); // accounts+orders+overrides+best 를 한 번에
-  const missing = mergeMissing(b.orders, localOrders(campaign));
-  if (missing.length) {
-    try { await putOrders(campaign.sheet, missing); } catch {}
-    b.orders = b.orders.concat(missing); // 원칙 ②
-  }
-  return b;
+  const b = await getBundle(campaign.sheet); // 원칙 ③: 실패하면 throw
+  const orders = await repairOrders(campaign, reconcileOrders(campaign, b.orders || []));
+  // 잠금은 합집합(원칙 ④)
+  const local = localOverrides(campaign);
+  const pend = !!readPending(campaign).overrides;
+  const sheetOv = b.overrides || {};
+  const overrides = pend ? unionOverrides(local, sheetOv) : unionOverrides(sheetOv, local);
+  if (!eq(overrides, sheetOv)) { try { await putOverrides(campaign.sheet, overrides); clearPending(campaign, 'overrides'); } catch {} }
+  return { accounts: b.accounts, orders, overrides, best: b.best || [] };
 }

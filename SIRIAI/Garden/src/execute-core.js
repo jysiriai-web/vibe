@@ -73,13 +73,15 @@ export async function placeOrders(smm, orders, toOrder, service, { onEach, persi
   const placed = [];
   const svcId = Number(service.service);
   for (const o of toOrder) {
+    let rec = null;
+    // 1) 과금 시도 — 여기서 실패한 건 돈이 안 나갔으므로 다음 계정으로 넘어간다.
     try {
       const res = await smm.addOrder({
         service: svcId,
         link: `https://www.tiktok.com/@${o.handle}`,
         quantity: o.qty,
       });
-      const rec = {
+      rec = {
         id: res.order,
         handle: o.handle,
         row: o.row,
@@ -94,11 +96,25 @@ export async function placeOrders(smm, orders, toOrder, service, { onEach, persi
       };
       orders.push(rec);
       placed.push(rec);
-      if (persist) { try { await persist(); } catch {} } // 과금 직후 즉시 저장
-      if (onEach) onEach({ ok: true, handle: o.handle, id: res.order, qty: o.qty });
     } catch (e) {
       if (onEach) onEach({ ok: false, handle: o.handle, error: e.message });
+      await sleep(800);
+      continue;
     }
+    // 2) 과금 성공 → 즉시 기록. 로컬·시트 어디에도 못 남기면(durable=false) 더 이상 과금하지 않고
+    //    배치를 중단한다. '기록 없는 과금'이 쌓이면 다음 집행에서 진행중=0 으로 보여 이중지출된다.
+    if (persist) {
+      let p;
+      try { p = await persist(); } catch (e) { p = { durable: false, sheetError: e.message }; }
+      if (p && p.durable === false) {
+        if (onEach) onEach({ ok: true, handle: o.handle, id: rec.id, qty: o.qty, recordFailed: true });
+        const err = new Error('주문은 과금됐는데 기록에 실패해 배치를 중단했습니다. smmkings 패널에서 실제 주문을 확인하세요.');
+        err.placed = placed;
+        err.recordFailed = rec;
+        throw err;
+      }
+    }
+    if (onEach) onEach({ ok: true, handle: o.handle, id: rec.id, qty: o.qty });
     await sleep(800);
   }
   return placed;
