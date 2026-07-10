@@ -23,9 +23,12 @@ const REVIEW = {
   21: { label: '해시태그', pass: '확인 완료', fail: '해시태그 누락' },
 };
 const revValOf = (a, col) => (col === 19 ? a.soundOk : col === 20 ? a.soundSection : a.hashtagOk);
-// 검수 완료 = 업로드됨 + 음원·음원구간·해시태그 모두 판정됨(none 아님)
-const reviewed = (a) => uploaded(a) && [19, 20, 21].every((c) => revState(revValOf(a, c)) !== 'none');
-const reviewPending = (a) => uploaded(a) && !reviewed(a); // 업로드됐는데 검수 미완
+// 그 칸의 값이 '시트에 저장된 것'이 아니라 스캔의 추정값인가 (검수로 세면 안 됨)
+const isAuto = (a, col) => !!(a.autoCols && a.autoCols.includes(String(col)));
+// ⚠️ 검수 = '사람이 영상 보고 판정해야 하는' 음원구간(20)만.
+//    음원(19)·해시태그(21)는 스캔이 자동으로 채우므로, 그걸 세면 사람이 아무것도 안 봐도 검수 완료가 된다.
+const reviewed = (a) => uploaded(a) && revState(a.soundSection) !== 'none';
+const reviewPending = (a) => uploaded(a) && !reviewed(a); // 업로드됐는데 사람 검수(음원구간) 미완
 const noticeSent = (a) => has(a.notice); // 확정안내 발송여부 (col 16 진행안내여부)
 
 let state = { campaigns: [], campaign: null, krw: 1508.79, services: [], best: [], data: null, tab: 'recruit', sub: 'needs', fCo: 'all', fStatus: 'all', fUp: 'all', fNotice: 'all', fOrder: 'all', sortKey: 'v', sortDir: 'desc', bestOnly: false, pending: {}, unpicked: new Set() };
@@ -164,9 +167,10 @@ const coChip = (c) => (c ? `<span class="co co-${c === 'MARU' ? 'maru' : c === '
 function revChip(a, col) {
   const st = revState(revValOf(a, col));
   const manual = a.manualCols && a.manualCols.includes(String(col));
-  const title = manual ? '수동 지정됨' : (col !== 20 && a.autoDetected ? '자동 판정됨' : '');
+  const auto = !manual && isAuto(a, col); // 스캔 추정값 — 시트에 저장돼 있지 않음
+  const title = manual ? '수동 지정됨' : auto ? '스캔이 자동 판정한 값 (시트에 저장 안 됨)' : '';
   const opts = [['none', '미확인'], ['pass', '준수'], ['fail', '미준수']];
-  return `<select class="rev-sel rev-${st}" data-row="${a.row}" data-col="${col}" title="${title}" aria-label="${REVIEW[col] ? REVIEW[col].label : '검수'} 검수 @${a.handle}">${opts.map(([v, l]) => `<option value="${v}"${st === v ? ' selected' : ''}>${l}</option>`).join('')}</select>`;
+  return `<select class="rev-sel rev-${st}${auto ? ' rev-auto' : ''}" data-row="${a.row}" data-col="${col}" title="${title}" aria-label="${REVIEW[col] ? REVIEW[col].label : '검수'} 검수 @${a.handle}">${opts.map(([v, l]) => `<option value="${v}"${st === v ? ' selected' : ''}>${l}</option>`).join('')}</select>`;
 }
 
 // ── KPI 카드 (아이콘 + 라벨 + 큰 숫자 + 보조) ──
@@ -266,12 +270,12 @@ function viewUpload(accts) {
     <td>${revChip(a, 21)}</td></tr>`).join('');
   return `<div class="cards">
       ${kpi('업로드 완료', ofTot(up.length, accts.length), { ic: IC.video })}
-      ${kpi('검수 완료', ofTot(rev.length, up.length || accts.length), { ic: IC.check })}
+      ${kpi('검수 완료', ofTot(rev.length, up.length || accts.length), { ic: IC.check, sub: '음원구간 판정 기준' })}
       ${kpi('검수대기', accts.filter(reviewPending).length, { ic: IC.clock, accent: 'var(--needs)' })}
     </div>
     ${filterRow(coBar(coCounts(applyFUp(accts))), upBar(upCounts(applyCo(accts))))}
     <table><thead><tr><th>진행사</th><th>계정</th><th>업로드</th><th>콘텐츠</th><th>음원</th><th>음원구간</th><th>해시태그</th></tr></thead><tbody>${rows || emptyRow(7)}</tbody></table>
-    <div class="note"><b>음원·해시태그</b>는 스캔이 자동 판정, <b>음원구간</b>은 사람이 영상 보고 판정해요. 드롭다운에서 <b>준수·미준수</b>로 고치면 재스캔해도 유지(수동 우선), <b>미확인</b>으로 되돌리면 자동 판정에 다시 맡겨요.</div>`;
+    <div class="note"><b>음원·해시태그</b>는 스캔이 자동 판정해서 <u>검수로 세지 않아요</u>. <b>음원구간</b>을 사람이 영상 보고 판정해야 <b>검수 완료</b>가 됩니다. 드롭다운에서 <b>준수·미준수</b>로 고치면 재스캔해도 유지(수동 우선), <b>미확인</b>으로 되돌리면 자동 판정에 다시 맡겨요. 점선 테두리는 <b>시트에 저장되지 않은 자동 추정값</b>이에요.</div>`;
 }
 
 // ③ 가드닝 (하위 탭)

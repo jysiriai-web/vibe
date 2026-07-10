@@ -185,6 +185,8 @@ td.num .inline-input { width: 110px; text-align: right; font-variant-numeric: ta
 .rev-sel.rev-pass { background: var(--ok-bg); color: var(--ok-ink); border-color: var(--ok-bg); }
 .rev-sel.rev-fail { background: var(--needs-bg); color: var(--needs-ink); border-color: var(--needs-bg); }
 .rev-sel.rev-none { background: var(--gray-bg); color: var(--gray-ink); border-color: var(--gray-bg); }
+/* 스캔 추정값 — 시트에 저장 안 된 값. 사람이 판정한 값과 눈으로 구분되게 */
+.rev-sel.rev-auto { border-style: dashed; border-color: var(--gray-ink); }
 
 /* 확정안내 발송/미발송 */
 .notice { font-size: 12px; font-weight: 700; cursor: pointer; padding: 4px 12px; border-radius: 20px; border: 1.5px solid transparent; }

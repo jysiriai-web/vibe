@@ -105,11 +105,14 @@ async function buildAccounts(campaign, orders, pre = {}) {
     const d = det[a.handle];
     if (d && d.uploaded) {
       // 시트값이 비었을 때만 자동감지로 채움 (content-scan이 시트에 이미 썼다면 시트값 유지).
+      // autoCols = '시트에 저장된 값이 아니라 스캔의 추정값'인 열. 프론트가 검수로 세지 않도록 구분용.
+      const autoCols = [];
       if (!hasV(m.contentLink)) m.contentLink = d.contentLink;
-      if (!hasV(m.soundOk)) m.soundOk = d.soundOk ? '사용 확인' : '음원 다름';
-      if (!hasV(m.hashtagOk)) m.hashtagOk = d.hashtagOk ? '확인 완료' : '해시태그 누락';
+      if (!hasV(m.soundOk)) { m.soundOk = d.soundOk ? '사용 확인' : '음원 다름'; autoCols.push('19'); }
+      if (!hasV(m.hashtagOk)) { m.hashtagOk = d.hashtagOk ? '확인 완료' : '해시태그 누락'; autoCols.push('21'); }
       if (!hasV(m.views)) { m.views = d.views; m.likes = d.likes; m.comments = d.comments; m.shares = d.shares; }
       m.autoDetected = true;
+      if (autoCols.length) m.autoCols = autoCols;
     }
     // 수동 잠금값 최우선 (닉 제외 검수/콘텐츠 열). 로컬 저장이라 시트 재배포 전에도 즉시 반영.
     const rowOv = ov[String(a.row)];
