@@ -49,11 +49,10 @@ function timeAgo(iso) {
   if (diff < 1440) return `${Math.floor(diff / 60)}시간 전`;
   return `${Math.floor(diff / 1440)}일 전`;
 }
-// 팀 접속 비번이 켜져 있고(클라우드) 로그인 안 됐으면 서버가 401 → 로그인 화면.
+// 팀 URL 은 비번 없이 열린다. 남은 게이트는 배포 설정 누락(503)뿐.
 async function api(path, opts) {
   const r = await fetch(path, opts);
-  if (r.status === 401) { showLogin(); throw new Error('__login__'); }
-  if (r.status === 503) { const b = await r.json().catch(() => ({})); if (b.configError) { showSetup(b.error); throw new Error('__login__'); } }
+  if (r.status === 503) { const b = await r.json().catch(() => ({})); if (b.configError) { showSetup(b.error); throw new Error('__setup__'); } }
   return r.json();
 }
 
@@ -66,23 +65,6 @@ function showSetup(msg) {
     </div></div>`;
 }
 
-function showLogin(msg) {
-  document.body.innerHTML = `<div class="login-wrap"><form class="login-card" id="loginForm">
-      <div class="login-brand"><span class="leaf">🌱</span> SIRIAI <span>댄스 챌린지</span></div>
-      <p class="login-msg">${msg || '팀 비밀번호를 입력해 주세요'}</p>
-      <input type="password" id="loginPw" placeholder="비밀번호" autocomplete="current-password">
-      <button class="btn primary" type="submit">들어가기</button>
-    </form></div>`;
-  const inp = document.querySelector('#loginPw');
-  inp.focus();
-  document.querySelector('#loginForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const r = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: inp.value }) });
-    if (r.ok) location.reload();
-    else showLogin('비밀번호가 틀렸어요. 다시 입력해 주세요.');
-  });
-}
-
 async function init() {
   const [c, s] = await Promise.all([api('/api/campaigns'), api('/api/services')]);
   state.campaigns = c.campaigns || []; state.krw = c.krwPerUsd || state.krw; state.services = s.services || [];
@@ -92,8 +74,8 @@ async function init() {
   overlay(true, '불러오는 중…'); // 최초 로드: 시트 fetch(1~3초) 동안 빈 화면 대신 스피너
   try { await loadData(); } finally { overlay(false); }
 }
-// 로그인 화면으로 빠지는 경우 조용히 종료 (api() 가 __login__ 을 던짐)
-const bootstrap = () => init().catch((e) => { if (e && e.message !== '__login__') console.error(e); });
+// 설정 안내 화면으로 빠지는 경우 조용히 종료 (api() 가 __setup__ 을 던짐)
+const bootstrap = () => init().catch((e) => { if (e && e.message !== '__setup__') console.error(e); });
 async function loadData() {
   if (!state.campaign) return;
   state.data = await api(`/api/data?campaign=${state.campaign}`);

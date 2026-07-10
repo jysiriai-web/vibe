@@ -17,7 +17,7 @@ import { listCampaigns, getCampaign, getFx, setCalibration, setFallbackRate, get
 import { getMarketUsdKrw } from './fx.js';
 import { EDITABLE_COLS, OVERRIDE_COLS } from './overrides.js';
 // 상태 계층 — GARDEN_STATE=sheet 면 시트가 진실, 기본(local)은 지금까지처럼 로컬 파일.
-import { CLOUD, isLocalOnly, authed, authRequired, passwordMatches, makeToken, cookieHeader, cloudConfigError, tokenValid } from './cloud.js';
+import { CLOUD, isLocalOnly, cloudConfigError } from './cloud.js';
 import { mode as stateMode, readOrders, writeOrders, readOverrides, setOverrideStore, clearOverrideStore, readBest, toggleBest, readAll, pendingState } from './store.js';
 
 loadEnv();
@@ -174,8 +174,6 @@ export async function handler(req, res) {
         commitMsg: process.env.VERCEL_GIT_COMMIT_MESSAGE || null,
         env: {
           GARDEN_STATE: process.env.GARDEN_STATE || null, // 비밀 아님
-          TEAM_PASSWORD: !!process.env.TEAM_PASSWORD,
-          SESSION_SECRET: !!process.env.SESSION_SECRET,
           CAMPAIGNS_JSON: !!process.env.CAMPAIGNS_JSON,
           CAMPAIGNS_JSON_parsed: (() => { try { return !!JSON.parse(process.env.CAMPAIGNS_JSON || 'null'); } catch { return 'JSON 형식 오류'; } })(),
           SMMKINGS_API_KEY: !!process.env.SMMKINGS_API_KEY, // 클라우드엔 없어야 정상
@@ -183,54 +181,14 @@ export async function handler(req, res) {
         configError: cloudConfigError(),
       });
     }
-    // ── 안전장치: 클라우드에서 필수 환경변수가 빠지면 아무것도 열지 않는다. ──
-    //    (TEAM_PASSWORD 없이 열리면 시트 데이터가 인터넷에 공개됨)
+    // ── 안전장치: 필수 환경변수가 빠지면 텅 빈 화면 대신 뭐가 빠졌는지 보여준다. ──
     if (CLOUD) {
       const ce = cloudConfigError();
       if (ce) return send(res, 503, { error: ce, configError: true });
     }
 
-    // ── 팀 초대 링크: /api/enter?t=<서명토큰> → 쿠키 심고 대시보드로. 비번 입력 화면을 안 봐도 됨.
-    //    토큰은 SESSION_SECRET 으로 서명돼 있어 위조 불가. 링크를 가진 사람만 들어온다.
-    if (path === '/api/enter' && req.method === 'GET') {
-      const t = url.searchParams.get('t') || '';
-      if (!tokenValid(t)) return send(res, 401, { error: '초대 링크가 유효하지 않거나 만료됐어요.' });
-      res.setHeader('Set-Cookie', cookieHeader(t));
-      res.writeHead(302, { Location: '/' });
-      return res.end();
-    }
-
-    // ── 팀 접속 비번 (TEAM_PASSWORD 설정 시에만 켜짐. 로컬은 미설정 → 그대로 열림) ──
-    if (path === '/api/login' && req.method === 'POST') {
-      const b = await readBody(req);
-      if (!passwordMatches(b.password)) return send(res, 401, { error: '비번이 틀렸어요' });
-      res.setHeader('Set-Cookie', cookieHeader(makeToken()));
-      return send(res, 200, { ok: true });
-    }
-    if (path.startsWith('/api/') && !authed(req)) {
-      return send(res, 401, { error: '로그인이 필요해요', login: true });
-    }
-
-    // ── 팀 초대 링크 발급 (로그인한 사람만). 서버가 SESSION_SECRET 으로 직접 서명하므로
-    //    비밀값을 밖에서 알 필요가 없다. 이 링크를 팀원에게 주면 비번 없이 들어온다.
-    if (path === '/api/invite' && req.method === 'GET') {
-      const proto = String(req.headers['x-forwarded-proto'] || 'https').split(',')[0];
-      const host = req.headers['x-forwarded-host'] || req.headers.host;
-      const link = `${proto}://${host}/api/enter?t=${makeToken()}`;
-      const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
-      return send(res, 200, `<!doctype html><meta charset="utf-8"><title>팀 초대 링크</title>
-<style>body{font-family:'Pretendard',-apple-system,Arial,sans-serif;background:#f5f6f8;color:#15171a;display:flex;min-height:100vh;align-items:center;justify-content:center;padding:24px}
-.c{background:#fff;border:1px solid #e9ebef;border-radius:18px;padding:32px;max-width:640px;width:100%;box-shadow:0 10px 30px rgba(20,20,35,.06)}
-h1{font-size:19px;margin:0 0 6px}p{color:#697180;font-size:14px;margin:0 0 18px;line-height:1.6}
-input{width:100%;font-size:13px;padding:12px 14px;border:1.5px solid #e9ebef;border-radius:10px;background:#f7f8fa;color:#15171a}
-button{margin-top:12px;font-size:15px;font-weight:700;padding:11px 18px;border-radius:10px;border:none;background:#5b4ff5;color:#fff;cursor:pointer}
-small{display:block;margin-top:16px;color:#8a4f06;background:#fdf2e0;padding:10px 12px;border-radius:8px;font-size:12.5px;line-height:1.6}</style>
-<div class="c"><h1>🌱 팀 초대 링크</h1>
-<p>이 링크를 팀원에게 보내세요. 누르면 <b>비밀번호 없이 바로</b> 대시보드로 들어갑니다. (1년 유지)</p>
-<input id="l" value="${esc(link)}" readonly onclick="this.select()">
-<button onclick="navigator.clipboard.writeText(document.getElementById('l').value);this.textContent='복사됨 ✓'">링크 복사</button>
-<small>이 링크를 가진 사람은 누구나 들어올 수 있어요. 외부에 공개된 곳(공개 문서·SNS)엔 올리지 마세요.<br>유출되면 Vercel 에서 <b>SESSION_SECRET</b> 값만 바꾸면 기존 링크가 전부 무효가 됩니다.</small></div>`, 'text/html');
-    }
+    // 팀 URL 은 비번 없이 열린다. 돈·스캔은 아래 LOCAL_ONLY 로 막혀 있고,
+    // smmkings API 키가 클라우드에 없어서 URL 을 아는 누구도 지출을 일으킬 수 없다.
 
     // ── 클라우드에서 못 하는 것: 스캔·집행 등은 대표님 PC 대시보드 전용 ──
     if (isLocalOnly(path)) {
