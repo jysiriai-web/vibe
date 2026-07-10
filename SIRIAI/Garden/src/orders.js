@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 const TERMINAL = ['Completed', 'Canceled', 'Cancelled', 'Refunded', 'Partial'];
+const CANCEL_STATES = ['Canceled', 'Cancelled', 'Refunded']; // smm 상에서 '취소됨'으로 볼 상태
 const fileOf = (dataDir) => join(dataDir, 'orders.json');
 
 export function loadOrders(dataDir) {
@@ -42,6 +43,13 @@ export async function refreshOrders(smm, orders) {
     if (Number.isFinite(sc)) o.startCount = sc;
     if (st.charge != null && st.charge !== '') o.charge = st.charge;
     o.done = TERMINAL.includes(st.status) || (Number.isFinite(r) && r === 0);
+    // 종료 처리(취소)했는데 smm은 아직 배송 중 → 취소가 안 됐거나 취소가 뒤집힘.
+    // 활성 흐름으로 되살려(진행중 카운트·종료버튼 재노출) 다시 종료할 수 있게 하고, 대시보드에 표기.
+    if (o.closed && !o.done && Number.isFinite(r) && r > 0 && !CANCEL_STATES.includes(st.status)) {
+      o.cancelReverted = true;
+      o.closed = false;
+      o.cancelled = false;
+    }
   }
   return orders;
 }

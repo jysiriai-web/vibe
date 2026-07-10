@@ -262,16 +262,19 @@ function viewOrders(orders) {
     if (o.closed) st = '<span class="chip stale">종료·취소요청</span>';
     else if (o.status === 'Partial') st = '<span class="chip stale">부분완료</span>';
     else if (o.done) st = '<span class="chip ok">완료</span>';
+    else if (o.cancelReverted) st = '<span class="chip needs">⚠️ 취소 취소됨</span>';
     else if (o.stale) st = '<span class="chip stale">정체 의심</span>';
     else st = `<span class="chip filling">${o.status || '진행중'}</span>`;
     return `<tr><td class="company">#${o.id}${o.service ? ` · s${o.service}` : ''}</td><td class="handle">${link(o.handle)}</td><td class="num">${fmt(o.quantity)}</td>
       <td><div class="progress"><span style="width:${pct}%"></span></div></td><td class="num">${delivered}/${o.quantity}</td><td>${st}</td>
       <td class="num">${won(o.charge != null ? Number(o.charge) : o.cost)}</td><td class="company">${timeAgo(o.placedAt)}</td>
-      <td>${(!o.done && !o.closed) ? `<button class="btn small close-order" data-id="${o.id}">종료 처리</button>` : ''}</td></tr>`;
+      <td>${(!o.done && !o.closed) ? `<button class="btn small close-order" data-id="${o.id}">${o.cancelReverted ? '다시 종료' : '종료 처리'}</button>` : ''}</td></tr>`;
   }).join('');
   const staleN = orders.filter((o) => o.stale).length;
-  return `<div class="bar"><div class="summary">총 <b>${orders.length}</b>건 · 진행중 <b>${orders.filter((o) => !o.done && !o.closed).length}</b>건${staleN ? ` · <b style="color:var(--warn)">정체 의심 ${staleN}</b>` : ''}</div></div>
+  const revertedN = orders.filter((o) => o.cancelReverted && !o.done).length;
+  return `<div class="bar"><div class="summary">총 <b>${orders.length}</b>건 · 진행중 <b>${orders.filter((o) => !o.done && !o.closed).length}</b>건${revertedN ? ` · <b style="color:var(--needs)">취소 취소됨 ${revertedN}</b>` : ''}${staleN ? ` · <b style="color:var(--warn)">정체 의심 ${staleN}</b>` : ''}</div></div>
   <table><thead><tr><th>주문#</th><th>계정</th><th class="num">수량</th><th>배송</th><th class="num">진행</th><th>상태</th><th class="num">비용</th><th>시각</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+  ${revertedN ? `<div class="note"><b style="color:var(--needs)">⚠️ 취소 취소됨</b> = 종료 처리했는데 smmkings에서 취소가 안 되고 계속 배송 중인 주문이에요. <b>다시 종료</b>로 취소를 재시도할 수 있고, 그 사이 이 주문은 진행중으로 잡혀 재가드닝을 막아요.</div>` : ''}
   ${staleN ? `<div class="note"><b style="color:var(--warn)">⚠️ 정체 의심</b> = ${state.data.config.staleDays}일 넘게 안 끝난 주문. 멈춰있으면 <b>종료 처리</b>로 취소·완료하고, 그 계정을 다시 가드닝하면 돼요.</div>` : ''}`;
 }
 function viewCost(orders, balance) {

@@ -332,6 +332,7 @@ const server = createServer(async (req, res) => {
       try { await smm.cancel([o.id]); cancelled = true; } catch {}
       o.closed = true;
       o.cancelled = cancelled; // 취소 성공 여부. 실패(false)면 inFlightFor 가 계속 진행중으로 카운트(재주문 차단).
+      o.cancelReverted = false; // 새 종료 시도 → 뒤집힘 표시 초기화(smm이 또 배송 계속하면 스캔이 재감지).
       o.closedAt = new Date().toISOString();
       saveOrders(campaign.dataDir, orders);
       return send(res, 200, { ok: true, cancelled });
