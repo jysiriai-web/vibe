@@ -64,6 +64,7 @@ function readAccounts_() {
       handle: handle,
       link: String(row[COL.link - 1] || ''),
       sheetFollowers: row[COL.followers - 1],
+      gardening: String(row[COL.gardening - 1] || ''), // 가드닝 대상여부 — 최초 기록 후 불변(읽기 전용)
       language: String(row[COL.language - 1] || ''),
       notice: String(row[COL.notice - 1] || ''),
       contentLink: c,
@@ -337,7 +338,13 @@ function doPost(e) {
       var u = updates[i];
       if (!u.row || u.followers == null) continue;
       sh.getRange(u.row, COL.followers).setValue(u.followers).setNumberFormat('#,##0');
-      sh.getRange(u.row, COL.gardening).setValue(u.followers < MIN_FOLLOWERS ? '가드닝 대상' : '가드닝 불필요');
+      // 가드닝 대상여부(F열)는 '비어 있을 때 한 번'만 기록하고, 값이 있으면 절대 덮어쓰지 않는다.
+      // 팔로워 1명 → 가드닝으로 1,001명이 되어도 '원래 대상이었다'는 기록이 남아야 하기 때문.
+      // (사람이 손으로 고친 값도 그대로 보존)
+      var g = sh.getRange(u.row, COL.gardening);
+      if (!String(g.getValue() || '').trim()) {
+        g.setValue(u.followers < MIN_FOLLOWERS ? '가드닝 대상' : '가드닝 불필요');
+      }
       n++;
     }
     // 임의 셀 쓰기 [{row, col, value}] — 콘텐츠 링크·검수·조회수 되쓰기용
