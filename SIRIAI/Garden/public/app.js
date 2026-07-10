@@ -350,6 +350,7 @@ function wire() {
   if ($('#pickAll')) $('#pickAll').addEventListener('change', (e) => { $$('.pick').forEach((c) => { c.checked = e.target.checked; state.unpicked[e.target.checked ? 'delete' : 'add'](c.dataset.h); }); updateSel(); });
   if ($('#execBtn')) $('#execBtn').addEventListener('click', openExecute);
   if ($('#rateSave')) $('#rateSave').addEventListener('click', recalibrate);
+  if ($('#rateInput')) $('#rateInput').addEventListener('blur', (e) => { const x = num(e.target.value); e.target.value = x == null ? '' : fmt(x); }); // 잔액 입력칸: 벗어나면 천단위 콤마
   if ($('#svcSelect')) $('#svcSelect').addEventListener('change', changeService);
   if ($('#syncRecruitBtn')) $('#syncRecruitBtn').addEventListener('click', syncRecruit);
   $$('.close-order').forEach((b) => b.addEventListener('click', () => closeOrder(b.dataset.id)));
@@ -387,14 +388,16 @@ function startCellEdit(btn) {
     fol: { ph: '팔로워 수', num: true, save: (v) => saveFollowers(row, v) },
   }[kind];
   if (!cfg) return;
-  td.innerHTML = `<input class="inline-input" type="text" value="${esc(value)}" placeholder="${cfg.ph}">`;
+  const shown = (cfg.num && num(value) != null) ? fmt(num(value)) : value; // 숫자칸은 콤마 붙여 보여줌
+  td.innerHTML = `<input class="inline-input" type="text" value="${esc(shown)}" placeholder="${cfg.ph}">`;
   const inp = td.querySelector('input');
   inp.focus(); inp.select();
   let done = false;
   const commit = async () => {
     if (done) return; done = true;
     const v = inp.value.trim();
-    if (v === String(value).trim()) return render(); // 변화 없음 → 원복
+    const unchanged = cfg.num ? (num(v) === num(String(value))) : (v === String(value).trim());
+    if (unchanged) return render(); // 변화 없음 → 원복 (숫자칸은 콤마 무시하고 비교)
     if (cfg.num && v !== '' && num(v) == null) { toast('숫자만 넣을 수 있어요'); return render(); }
     if (cfg.validate && !cfg.validate(v)) { toast(cfg.verr); return render(); } // 검증 실패 → 취소
     await cfg.save(v);
