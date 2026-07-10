@@ -1,6 +1,6 @@
 // 주문 현황 보기(CLI) — SMM 상태 갱신 후 출력. 돈 안 나감.
 //   node scripts/orders.js            (기본 캠페인)
-//   CAMPAIGN=beiyon node scripts/orders.js
+//   CAMPAIGN=bayonn node scripts/orders.js
 import { loadEnv } from '../src/env.js';
 import { createSmm } from '../src/smm.js';
 import { loadOrders, saveOrders, refreshOrders } from '../src/orders.js';

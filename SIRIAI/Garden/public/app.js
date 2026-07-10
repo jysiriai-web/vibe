@@ -327,7 +327,7 @@ function viewDeliver(accts) {
 
 // ⑤ 정산 — 비용·마진 시뮬레이터. 테두리 없는 iframe을 내용 높이만큼 자동 확장(이중 스크롤·액자 제거).
 function viewSettle() {
-  return `<iframe class="sim-frame" src="/beiyon_margin_simulator.html" title="정산 시뮬레이터"
+  return `<iframe class="sim-frame" src="/bayonn_margin_simulator.html" title="정산 시뮬레이터"
     onload="try{var d=this.contentWindow.document;var fit=()=>{this.style.height=(d.documentElement.scrollHeight+24)+'px';};fit();setTimeout(fit,500);setTimeout(fit,1500);}catch(e){this.style.height='1600px';}"></iframe>`;
 }
 

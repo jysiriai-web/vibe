@@ -1,7 +1,7 @@
 // 집행(CLI) — 캠페인의 가드닝 필요 계정에 팔로워 주문. 중복방지 + 'yes' 확인.
 //   node scripts/execute.js                    (기본 캠페인, 필요 계정 전부)
 //   node scripts/execute.js @ruto__39          (특정 계정만)
-//   CAMPAIGN=beiyon node scripts/execute.js     (캠페인 지정)
+//   CAMPAIGN=bayonn node scripts/execute.js     (캠페인 지정)
 import { createInterface } from 'node:readline';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
