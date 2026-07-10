@@ -8,14 +8,16 @@ import { fileURLToPath } from 'node:url';
 import { loadEnv } from './env.js';
 import { createSmm } from './smm.js';
 import { classify } from './garden.js';
-import { loadOrders, saveOrders, refreshOrders, inFlightFor } from './orders.js';
+import { refreshOrders, inFlightFor } from './orders.js';
 import { getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet, syncRecruitToSheet } from './sheet.js';
 import { scanAccounts, buildPlan, placeOrders, findService } from './execute-core.js';
 import { runSync } from './sync-core.js';
 import { runContentScan } from './content-core.js';
 import { listCampaigns, getCampaign, getFx, setCalibration, setFallbackRate, getStaleDays, setService } from './campaigns.js';
 import { getMarketUsdKrw } from './fx.js';
-import { loadOverrides, setOverride, clearOverride, EDITABLE_COLS, OVERRIDE_COLS } from './overrides.js';
+import { EDITABLE_COLS, OVERRIDE_COLS } from './overrides.js';
+// 상태 계층 — GARDEN_STATE=sheet 면 시트가 진실, 기본(local)은 지금까지처럼 로컬 파일.
+import { mode as stateMode, readOrders, writeOrders, readOverrides, setOverrideStore, clearOverrideStore, readBest, writeBest, readAll } from './store.js';
 
 loadEnv();
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -79,13 +81,14 @@ function decorate(accounts, orders, campaign) {
   });
 }
 // 시트 라이브 목록(라이프사이클 컬럼 포함) + scan-latest 현재값 병합
-async function buildAccounts(campaign, orders) {
+// pre = { accounts?, overrides? } — 이미 읽어둔 값이 있으면 재조회하지 않는다(시트 왕복 절약).
+async function buildAccounts(campaign, orders, pre = {}) {
   const latest = scanLatest(campaign);
   const cur = {};
   (latest.accounts || latest.results || []).forEach((a) => { cur[a.handle] = a.current; });
   let list;
   try {
-    const live = await getAccountsFromSheet(campaign.sheet);
+    const live = pre.accounts || (await getAccountsFromSheet(campaign.sheet));
     // current = 스크랩값 우선, 없으면 시트 팔로워값(스캔 전에도 모집 뷰에 보이게)
     list = live.map((a) => ({ ...a, current: (a.handle in cur ? cur[a.handle] : null) ?? parseNum(a.sheetFollowers) }));
   } catch {
@@ -94,7 +97,7 @@ async function buildAccounts(campaign, orders) {
   // 콘텐츠·검수·성과 병합 — 우선순위: 수동잠금(overrides) > 시트값 > 자동감지(detected).
   // 시트는 텍스트 상태("사용 확인"/"음원 다름" 등)를 그대로 보존(프론트가 판정).
   const det = loadDetected(campaign);
-  const ov = loadOverrides(campaign.dataDir);
+  const ov = pre.overrides || (await readOverrides(campaign));
   const hasV = (v) => !!(v != null && String(v).trim());
   list = list.map((a) => {
     const m = { ...a };
@@ -121,10 +124,7 @@ async function buildAccounts(campaign, orders) {
   return decorate(list, orders, campaign);
 }
 
-// SIRIAI 베스트 콘텐츠 마킹 (캠페인별 로컬 저장)
-function bestFile(campaign) { return join(campaign.dataDir, 'best.json'); }
-function loadBest(campaign) { const f = bestFile(campaign); if (!existsSync(f)) return []; try { return JSON.parse(readFileSync(f, 'utf8')); } catch { return []; } }
-function saveBest(campaign, arr) { mkdirSync(campaign.dataDir, { recursive: true }); writeFileSync(bestFile(campaign), JSON.stringify(arr)); }
+// SIRIAI 베스트 콘텐츠 마킹 — store.js 가 로컬/시트를 알아서 처리(readBest/writeBest)
 // 자동 감지 결과 로드 (scan-content.js 가 저장)
 function loadDetected(campaign) {
   const p = join(campaign.dataDir, 'detected.json');
@@ -167,17 +167,26 @@ const server = createServer(async (req, res) => {
     if (!campaign) return send(res, 404, { error: '캠페인 없음' });
 
     if (path === '/api/data' && req.method === 'GET') {
-      let orders = loadOrders(campaign.dataDir);
-      if (smm) { try { orders = await refreshOrders(smm, orders); saveOrders(campaign.dataDir, orders); } catch {} }
+      // 시트 모드면 계정+주문+검수잠금+베스트를 한 번에 (왕복 1회)
+      const all = await readAll(campaign);
+      let orders = all.orders;
+      // 상태 폴링이 실제로 값을 바꿨을 때만 저장 — 매 페이지로드마다 시트에 쓰지 않도록.
+      if (smm) {
+        try {
+          const before = JSON.stringify(orders);
+          orders = await refreshOrders(smm, orders);
+          if (JSON.stringify(orders) !== before) await writeOrders(campaign, orders);
+        } catch {}
+      }
       let balance = null;
       if (smm) { try { balance = Number((await smm.balance()).balance); } catch {} }
       const svc = serviceOf(campaign);
-      const accounts = await buildAccounts(campaign, orders);
+      const accounts = await buildAccounts(campaign, orders, { accounts: all.accounts, overrides: all.overrides });
       return send(res, 200, {
         campaign: { id: campaign.id, name: campaign.name, group: campaign.group },
-        config: { target: campaign.target, min: campaign.min, krwPerUsd: await effectiveRate(), staleDays: getStaleDays(), hasKey: !!smm, confirmNotice: !!campaign.confirmNotice, execPwRequired: !!EXEC_PW,
+        config: { target: campaign.target, min: campaign.min, krwPerUsd: await effectiveRate(), staleDays: getStaleDays(), hasKey: !!smm, confirmNotice: !!campaign.confirmNotice, execPwRequired: !!EXEC_PW, stateMode: stateMode(),
           service: svc ? { id: svc.service, name: svc.name, rate: svc.rate } : { id: campaign.serviceId, name: `#${campaign.serviceId}`, rate: 0 } },
-        balance, scannedAt: scanLatest(campaign).ranAt, accounts, orders: markStale(orders), best: loadBest(campaign),
+        balance, scannedAt: scanLatest(campaign).ranAt, accounts, orders: markStale(orders), best: all.best,
       });
     }
 
@@ -208,8 +217,8 @@ const server = createServer(async (req, res) => {
       try {
         await pushCellsToSheet(campaign.sheet, [{ row, col, value }]);
         // 검수/콘텐츠 열: 값 있으면 수동 잠금, '미확인'(빈값)이면 잠금 해제(자동 관리에 반환). 닉3은 잠금 무관.
-        if (OVERRIDE_COLS.includes(col) && !value.trim()) clearOverride(campaign.dataDir, row, col);
-        else setOverride(campaign.dataDir, row, col, value);
+        if (OVERRIDE_COLS.includes(col) && !value.trim()) await clearOverrideStore(campaign, row, col);
+        else await setOverrideStore(campaign, row, col, value);
         return send(res, 200, { ok: true });
       } catch (e) {
         return send(res, 500, { error: '시트 쓰기 실패: ' + e.message });
@@ -233,10 +242,10 @@ const server = createServer(async (req, res) => {
     // SIRIAI 베스트 콘텐츠 토글
     if (path === '/api/best' && req.method === 'POST') {
       const body = await readBody(req);
-      let best = loadBest(campaign);
+      let best = await readBest(campaign);
       if (body.on) { if (!best.includes(body.handle)) best.push(body.handle); }
       else { best = best.filter((h) => h !== body.handle); }
-      saveBest(campaign, best);
+      await writeBest(campaign, best);
       return send(res, 200, { ok: true, best });
     }
 
@@ -257,14 +266,14 @@ const server = createServer(async (req, res) => {
 
     if (path === '/api/scan' && req.method === 'POST') {
       const sync = await runSync(campaign, { full: url.searchParams.get('full') === '1' });
-      let orders = loadOrders(campaign.dataDir);
+      let orders = await readOrders(campaign);
       if (smm) { try { orders = await refreshOrders(smm, orders); } catch {} }
       return send(res, 200, { ok: true, scannedAt: scanLatest(campaign).ranAt, scannedCount: sync.scannedCount, nicksWritten: sync.nicksWritten, accounts: await buildAccounts(campaign, orders), orders: markStale(orders) });
     }
 
     if (path === '/api/plan' && req.method === 'POST') {
       const svc = serviceOf(campaign);
-      let orders = loadOrders(campaign.dataDir);
+      let orders = await readOrders(campaign);
       if (smm) { try { orders = await refreshOrders(smm, orders); } catch {} }
       const body = await readBody(req);
       let accs = (scanLatest(campaign).accounts || scanLatest(campaign).results || []);
@@ -282,7 +291,7 @@ const server = createServer(async (req, res) => {
       if (EXEC_PW && !pwMatch(body.password)) return send(res, 403, { error: '집행 비번이 틀렸어요' });
       const svc = serviceOf(campaign);
       if (!svc) return send(res, 400, { error: '서비스 정보 없음' });
-      let orders = loadOrders(campaign.dataDir);
+      let orders = await readOrders(campaign);
       orders = await refreshOrders(smm, orders);
       let accounts = await getAccountsFromSheet(campaign.sheet);
       if (Array.isArray(body.handles)) accounts = accounts.filter((a) => body.handles.includes(a.handle));
@@ -290,8 +299,8 @@ const server = createServer(async (req, res) => {
       const plan = buildPlan(scanned, orders, { target: campaign.target, min: campaign.min, service: svc });
       const balance = Number((await smm.balance()).balance);
       if (plan.totalCost > balance) return send(res, 400, { error: `잔액 부족: 필요 $${plan.totalCost.toFixed(2)} > 잔액 $${balance}` });
-      const placed = await placeOrders(smm, orders, plan.toOrder, svc, { persist: () => saveOrders(campaign.dataDir, orders) });
-      saveOrders(campaign.dataDir, orders);
+      const placed = await placeOrders(smm, orders, plan.toOrder, svc, { persist: async () => { const w = await writeOrders(campaign, orders); if (w.sheet === 'fail') console.error("[집행] 시트 기록 실패(로컬엔 저장됨):", w.error); } });
+      await writeOrders(campaign, orders);
       return send(res, 200, { ok: true, placed, filling: plan.filling, orders: markStale(orders) });
     }
 
@@ -321,7 +330,7 @@ const server = createServer(async (req, res) => {
     if (path === '/api/order/close' && req.method === 'POST') {
       if (!smm) return send(res, 400, { error: 'SMM 키 없음' });
       const body = await readBody(req);
-      let orders = loadOrders(campaign.dataDir);
+      let orders = await readOrders(campaign);
       const o = orders.find((x) => String(x.id) === String(body.orderId));
       if (!o) return send(res, 404, { error: '주문 없음' });
       // 현재 배송 상태 스냅샷 (실제 배송량·과금 보존 — null/빈값을 0 으로 덮지 않음)
@@ -342,7 +351,7 @@ const server = createServer(async (req, res) => {
       o.cancelled = cancelled; // 취소 성공 여부. 실패(false)면 inFlightFor 가 계속 진행중으로 카운트(재주문 차단).
       o.cancelStuck = false; // 새 종료 시도 → 오류표시 초기화(유예 지나도 배송 계속하면 스캔이 재표기).
       o.closedAt = new Date().toISOString();
-      saveOrders(campaign.dataDir, orders);
+      await writeOrders(campaign, orders);
       return send(res, 200, { ok: true, cancelled });
     }
 
@@ -350,14 +359,14 @@ const server = createServer(async (req, res) => {
     // 돈 안 나감(재주문은 별도 집행+비번). smm 취소를 마지막으로 한 번 더 시도(환불 여지)하되 결과와 무관하게 포기 처리.
     if (path === '/api/order/abandon' && req.method === 'POST') {
       const body = await readBody(req);
-      let orders = loadOrders(campaign.dataDir);
+      let orders = await readOrders(campaign);
       const o = orders.find((x) => String(x.id) === String(body.orderId));
       if (!o) return send(res, 404, { error: '주문 없음' });
       if (smm) { try { await smm.cancel([o.id]); } catch {} } // 마지막 취소 시도(환불 가능하면)
       o.abandoned = true;
       o.abandonedAt = new Date().toISOString();
       o.cancelStuck = false;
-      saveOrders(campaign.dataDir, orders);
+      await writeOrders(campaign, orders);
       return send(res, 200, { ok: true });
     }
 

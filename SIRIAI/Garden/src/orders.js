@@ -61,12 +61,14 @@ function toNum(v) { return (v == null || String(v).trim() === '') ? NaN : Number
 // 핸들별 진행중(아직 안 들어온) 수량 합 — 중복주문 방지 핵심.
 // done(완료·취소·remains0) 아니면 전부 진행중으로 카운트 = 배송 중이면 무조건 재주문 차단(종료여부 무관).
 // 단 '포기(abandoned)'한 주문은 제외 — 사용자가 급해서 접고 재주문하기로 명시 결정한 경우(탈출구).
-// remains 불명(NaN)이면 0 대신 주문 수량 전체를 진행중으로 간주(보수).
+// remains 불명이면 0 대신 주문 수량 전체를 진행중으로 간주(보수).
+// ⚠️ 반드시 toNum 을 쓸 것 — Number(null)=Number('')=0 이고 isFinite(0)=true 라,
+//    '남은 수량 불명'을 '다 들어옴(0)'으로 오판해 같은 계정을 또 사게 된다(이중지출).
 export function inFlightFor(orders, handle) {
   return orders
     .filter((o) => o.handle === handle && !o.done && !o.abandoned)
     .reduce((s, o) => {
-      const r = Number(o.remains);
+      const r = toNum(o.remains);
       return s + (Number.isFinite(r) ? r : (Number(o.quantity) || 0));
     }, 0);
 }

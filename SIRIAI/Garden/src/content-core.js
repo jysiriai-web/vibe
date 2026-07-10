@@ -5,7 +5,8 @@ import { join } from 'node:path';
 import { getAccountsFromSheet, pushCellsToSheet } from './sheet.js';
 import { detectCampaign } from './content-detect.js';
 import { launchBrowser, fetchVideos } from './tiktok-videos.js';
-import { loadOverrides, isLocked } from './overrides.js';
+import { isLocked } from './overrides.js';
+import { readOverrides } from './store.js';
 
 function prevDetected(campaign) {
   const p = join(campaign.dataDir, 'detected.json');
@@ -53,7 +54,7 @@ export async function runContentScan(campaign, { onProgress, full = false, concu
 
   // 감지 결과 → 시트 되쓰기: 이번에 스캔한 대상 중 업로드된 것만 (17콘텐츠·19음원·21해시태그·27~30성과)
   // 수동 잠금(overrides)된 검수/콘텐츠 셀(17·19·20·21)은 덮어쓰지 않음 = '수동 우선'.
-  const overrides = loadOverrides(campaign.dataDir);
+  const overrides = await readOverrides(campaign); // 시트 모드면 브릿지에서 — 팀이 잠근 셀을 워커가 덮어쓰지 않게
   const cells = [];
   const putIf = (r, col, value) => { if (!isLocked(overrides, r, col)) cells.push({ row: r, col, value }); };
   for (const a of targets) {
