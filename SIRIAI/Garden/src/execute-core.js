@@ -7,10 +7,11 @@ import { inFlightFor } from './orders.js';
 // 계정 리스트 팔로워·닉네임 스크랩 — 실제 브라우저(Playwright headless:false)로 봇 차단 우회.
 // 직접 fetch 방식은 틱톡이 'Please wait'로 전부 차단해서 폐기(2026-07-09).
 // 동시성 풀(기본 5) — 한 브라우저에 탭 여러 개 병렬로 열어 스캔 (콘텐츠 스캔과 동일 패턴, 300건 대비 ~5배↑).
-export async function scanAccounts(accounts, { delayMs = 200, onProgress, concurrency = 5 } = {}) {
+export async function scanAccounts(accounts, { delayMs = 200, onProgress, onWait, concurrency = 5 } = {}) {
   if (!accounts.length) return [];
   const out = new Array(accounts.length);
-  const { browser, ctx } = await launchBrowser(); // Playwright 미설치면 여기서 throw
+  // 창 하나 먼저 띄워 로봇 인증을 사람이 끝낼 때까지 대기 (인증 실패면 throw — 빈 결과로 진행하지 않는다)
+  const { browser, ctx } = await launchBrowser({ onWait }); // Playwright 미설치면 여기서 throw
   let idx = 0;
   let done = 0;
   const worker = async () => {

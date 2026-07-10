@@ -623,7 +623,7 @@ async function syncRecruit() {
   await loadData();
 }
 async function scan() {
-  overlay(true, '전체 계정 팔로워 확인 중… (크롬 창이 떠요 — 그대로 두세요)');
+  overlay(true, '크롬 창이 떴어요. 로봇 인증이 보이면 통과시켜 주세요 — 그다음 팔로워를 확인합니다');
   const r = await api(`/api/scan?campaign=${state.campaign}&full=1`, { method: 'POST' }).catch(() => ({ error: '네트워크 오류' }));
   overlay(false);
   if (r.error) return toast('스캔 실패: ' + r.error);
@@ -636,12 +636,15 @@ async function contentScan(full) {
   btn.disabled = true; // 느린 초기 왕복 동안 더블클릭 방지 — await 전에 잠금
   const r = await api(`/api/content-scan?campaign=${state.campaign}${full ? '&full=1' : ''}`, { method: 'POST' }).catch(() => ({ error: '네트워크 오류' }));
   if (r.error) { btn.disabled = false; return toast('오류: ' + r.error); }
-  toast('콘텐츠 스캔 시작 — 크롬 창이 떠요. 그대로 두세요 (~4분)');
+  toast('크롬 창이 떠요 — 로봇 인증이 뜨면 먼저 통과시켜 주세요. 그다음 스캔이 시작됩니다');
   const poll = setInterval(async () => {
     let s;
     try { s = await api('/api/content-scan/status'); } catch { return; }
     if (s.error) { clearInterval(poll); btn.disabled = false; btn.textContent = '업로드 스캔'; return toast('스캔 실패: ' + s.error); }
-    if (s.running) { btn.textContent = `스캔 중… ${s.done}/${s.total || '?'}`; return; }
+    if (s.running) {
+      btn.textContent = s.phase === 'warmup' ? `인증 대기… ${s.waitSeconds || 0}초` : `스캔 중… ${s.done}/${s.total || '?'}`;
+      return;
+    }
     clearInterval(poll); btn.disabled = false; btn.textContent = '업로드 스캔';
     // 못 본 계정이 있으면 반드시 알린다. 조용히 넘어가면 '전부 확인했다'로 읽힌다.
     toast(s.failed

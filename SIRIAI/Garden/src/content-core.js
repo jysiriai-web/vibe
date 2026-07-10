@@ -3,8 +3,8 @@
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { getAccountsFromSheet, pushCellsToSheet } from './sheet.js';
-import { detectCampaign } from './content-detect.js';
-import { launchBrowser, fetchVideos } from './tiktok-videos.js';
+import { detectCampaign, videoIdFromLink } from './content-detect.js';
+import { launchBrowser, fetchVideos, fetchVideoByLink } from './tiktok-videos.js';
 import { isLocked } from './overrides.js';
 import { readOverrides } from './store.js';
 
@@ -14,7 +14,8 @@ function prevDetected(campaign) {
   try { return JSON.parse(readFileSync(p, 'utf8')).detected || {}; } catch { return {}; }
 }
 
-export async function runContentScan(campaign, { onProgress, full = false, concurrency = 5 } = {}) {
+// onWait: 로봇 인증을 사람이 끝낼 때까지 기다리는 동안 호출됨(초 단위). 스캔은 그 뒤에 시작한다.
+export async function runContentScan(campaign, { onProgress, onWait, full = false, concurrency = 5 } = {}) {
   const cfg = { hashtags: campaign.campaignHashtags || [], soundId: campaign.campaignSoundId || '' };
   const accounts = await getAccountsFromSheet(campaign.sheet);
   const prev = prevDetected(campaign);
@@ -23,7 +24,8 @@ export async function runContentScan(campaign, { onProgress, full = false, concu
   // 단, 이미 업로드된 계정은 검수열(17/19/21)은 안 건드리고 성과(27~30)만 갱신(아래 write 루프). full이면 검수도 재판정.
   const targets = accounts;
 
-  const { browser, ctx } = await launchBrowser(); // Playwright 미설치면 throw
+  // 창 하나를 먼저 띄워 사람이 로봇 인증을 끝낼 때까지 기다린다(인증 실패면 여기서 throw).
+  const { browser, ctx } = await launchBrowser({ onWait }); // Playwright 미설치면 throw
   const detected = { ...prev }; // 이미 업로드된 건 이전 결과 유지
   let done = 0;
   let newUp = 0;
@@ -35,6 +37,16 @@ export async function runContentScan(campaign, { onProgress, full = false, concu
       const a = targets[idx++];
       let r = { videos: [], ok: false, error: '' };
       try { r = await fetchVideos(ctx, a.handle); } catch (e) { r.error = String((e && e.message) || e); }
+
+      // 시트에 사람이 찍어준 링크가 있는데 그 영상이 목록에 없으면, 영상 페이지를 직접 연다.
+      // 게시물이 아주 많은 계정은 프로필 목록이 안 오는 경우가 있다(@mnrdance: 1,597개).
+      const wantId = videoIdFromLink(a.contentLink);
+      if (wantId && !r.videos.some((v) => String(v.id || '') === wantId)) {
+        try {
+          const one = await fetchVideoByLink(ctx, a.contentLink);
+          if (one.ok) { r = { ...r, videos: [one.video, ...r.videos], ok: true, error: '' }; }
+        } catch {}
+      }
 
       if (!r.ok) {
         // 못 봤다 ≠ 안 올렸다.
