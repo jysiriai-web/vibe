@@ -12,6 +12,20 @@ const MAX_AGE = 60 * 60 * 24 * 14; // 2주
 // 팀 비번이 설정돼 있을 때만 게이트가 켜진다(로컬은 미설정 → 그대로 열림).
 export const authRequired = () => !!TEAM_PW;
 
+// 클라우드 설정 안전장치 — 하나라도 빠지면 열지 않는다.
+//  · TEAM_PASSWORD 없이 열면 시트 데이터가 인터넷에 공개된다.
+//  · SESSION_SECRET 없이 비번만 켜면 쿠키 검증이 항상 실패해 로그인 무한루프가 된다.
+export function cloudConfigError() {
+  if (!CLOUD) return null;
+  const missing = [];
+  if (!TEAM_PW) missing.push('TEAM_PASSWORD');
+  if (!SECRET) missing.push('SESSION_SECRET');
+  if (!process.env.CAMPAIGNS_JSON) missing.push('CAMPAIGNS_JSON');
+  if ((process.env.GARDEN_STATE || '').toLowerCase() !== 'sheet') missing.push('GARDEN_STATE=sheet');
+  if (!missing.length) return null;
+  return `Vercel 환경변수가 빠졌어요: ${missing.join(', ')}\nSettings → Environment Variables 에서 넣고, Deployments 에서 Redeploy 하세요.`;
+}
+
 // 클라우드에서 실행 불가한 것들 — 대표님 PC 대시보드 전용.
 // (틱톡 스캔은 집 IP+실제 크롬 필요, 집행/종료/포기는 돈, 환율·서비스는 설정 파일 쓰기)
 export const LOCAL_ONLY = new Set([

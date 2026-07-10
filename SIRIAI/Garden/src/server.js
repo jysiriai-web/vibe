@@ -17,7 +17,7 @@ import { listCampaigns, getCampaign, getFx, setCalibration, setFallbackRate, get
 import { getMarketUsdKrw } from './fx.js';
 import { EDITABLE_COLS, OVERRIDE_COLS } from './overrides.js';
 // 상태 계층 — GARDEN_STATE=sheet 면 시트가 진실, 기본(local)은 지금까지처럼 로컬 파일.
-import { CLOUD, isLocalOnly, authed, authRequired, passwordMatches, makeToken, cookieHeader } from './cloud.js';
+import { CLOUD, isLocalOnly, authed, authRequired, passwordMatches, makeToken, cookieHeader, cloudConfigError } from './cloud.js';
 import { mode as stateMode, readOrders, writeOrders, readOverrides, setOverrideStore, clearOverrideStore, readBest, toggleBest, readAll, pendingState } from './store.js';
 
 loadEnv();
@@ -159,6 +159,31 @@ export async function handler(req, res) {
   const path = url.pathname;
   const campId = url.searchParams.get('campaign');
   try {
+    // ── 진단: 환경변수가 '들어왔는지'만 알려준다(값은 절대 노출 안 함). 배포 문제 해결용. ──
+    if (path === '/api/health') {
+      return send(res, 200, {
+        ok: true,
+        cloud: CLOUD,
+        stateMode: stateMode(),
+        campaigns: listCampaigns().length,
+        env: {
+          GARDEN_STATE: process.env.GARDEN_STATE || null, // 비밀 아님
+          TEAM_PASSWORD: !!process.env.TEAM_PASSWORD,
+          SESSION_SECRET: !!process.env.SESSION_SECRET,
+          CAMPAIGNS_JSON: !!process.env.CAMPAIGNS_JSON,
+          CAMPAIGNS_JSON_parsed: (() => { try { return !!JSON.parse(process.env.CAMPAIGNS_JSON || 'null'); } catch { return 'JSON 형식 오류'; } })(),
+          SMMKINGS_API_KEY: !!process.env.SMMKINGS_API_KEY, // 클라우드엔 없어야 정상
+        },
+        configError: cloudConfigError(),
+      });
+    }
+    // ── 안전장치: 클라우드에서 필수 환경변수가 빠지면 아무것도 열지 않는다. ──
+    //    (TEAM_PASSWORD 없이 열리면 시트 데이터가 인터넷에 공개됨)
+    if (CLOUD) {
+      const ce = cloudConfigError();
+      if (ce) return send(res, 503, { error: ce, configError: true });
+    }
+
     // ── 팀 접속 비번 (TEAM_PASSWORD 설정 시에만 켜짐. 로컬은 미설정 → 그대로 열림) ──
     if (path === '/api/login' && req.method === 'POST') {
       const b = await readBody(req);

@@ -226,3 +226,4 @@ th.sortable.sorted { color: var(--accent); }
 .login-msg { font-size: 14px; color: var(--muted); margin: 2px 0 6px; }
 .login-card input { font-family: var(--sans); font-size: 16px; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--card); color: var(--ink); letter-spacing: 2px; }
 .login-card input:focus { border-color: var(--accent); outline: none; }
+.setup-msg { font-size: 13px; color: var(--needs-ink); background: var(--needs-bg); border-radius: 10px; padding: 12px 14px; white-space: pre-wrap; line-height: 1.6; font-family: var(--sans); }

@@ -48,7 +48,17 @@ function timeAgo(iso) {
 async function api(path, opts) {
   const r = await fetch(path, opts);
   if (r.status === 401) { showLogin(); throw new Error('__login__'); }
+  if (r.status === 503) { const b = await r.json().catch(() => ({})); if (b.configError) { showSetup(b.error); throw new Error('__login__'); } }
   return r.json();
+}
+
+// 배포 설정이 덜 된 경우 (Vercel 환경변수 누락) — 뭐가 빠졌는지 그대로 보여준다.
+function showSetup(msg) {
+  document.body.innerHTML = `<div class="login-wrap"><div class="login-card">
+      <div class="login-brand"><span class="leaf">🌱</span> SIRIAI <span>댄스 챌린지</span></div>
+      <p class="login-msg">배포 설정이 아직 덜 됐어요.</p>
+      <pre class="setup-msg">${String(msg || '').replace(/</g, '&lt;')}</pre>
+    </div></div>`;
 }
 
 function showLogin(msg) {
