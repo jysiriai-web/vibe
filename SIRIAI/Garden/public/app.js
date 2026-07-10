@@ -44,7 +44,29 @@ function timeAgo(iso) {
   if (diff < 1440) return `${Math.floor(diff / 60)}시간 전`;
   return `${Math.floor(diff / 1440)}일 전`;
 }
-async function api(path, opts) { return (await fetch(path, opts)).json(); }
+// 팀 접속 비번이 켜져 있고(클라우드) 로그인 안 됐으면 서버가 401 → 로그인 화면.
+async function api(path, opts) {
+  const r = await fetch(path, opts);
+  if (r.status === 401) { showLogin(); throw new Error('__login__'); }
+  return r.json();
+}
+
+function showLogin(msg) {
+  document.body.innerHTML = `<div class="login-wrap"><form class="login-card" id="loginForm">
+      <div class="login-brand"><span class="leaf">🌱</span> SIRIAI <span>댄스 챌린지</span></div>
+      <p class="login-msg">${msg || '팀 비밀번호를 입력해 주세요'}</p>
+      <input type="password" id="loginPw" placeholder="비밀번호" autocomplete="current-password">
+      <button class="btn primary" type="submit">들어가기</button>
+    </form></div>`;
+  const inp = document.querySelector('#loginPw');
+  inp.focus();
+  document.querySelector('#loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const r = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: inp.value }) });
+    if (r.ok) location.reload();
+    else showLogin('비밀번호가 틀렸어요. 다시 입력해 주세요.');
+  });
+}
 
 async function init() {
   const [c, s] = await Promise.all([api('/api/campaigns'), api('/api/services')]);
@@ -55,6 +77,8 @@ async function init() {
   overlay(true, '불러오는 중…'); // 최초 로드: 시트 fetch(1~3초) 동안 빈 화면 대신 스피너
   try { await loadData(); } finally { overlay(false); }
 }
+// 로그인 화면으로 빠지는 경우 조용히 종료 (api() 가 __login__ 을 던짐)
+const bootstrap = () => init().catch((e) => { if (e && e.message !== '__login__') console.error(e); });
 async function loadData() {
   if (!state.campaign) return;
   state.data = await api(`/api/data?campaign=${state.campaign}`);
@@ -100,11 +124,16 @@ function render() {
   $('#cnt-deliver').textContent = accts.filter(uploaded).length;
 
   $$('.tab').forEach((t) => { const on = t.dataset.tab === state.tab; t.classList.toggle('active', on); if (on) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current'); });
+  // 클라우드(팀 공유)에서는 스캔·가드닝(돈)이 불가 → 아예 숨긴다. 대표님 PC 대시보드 전용.
+  const cloud = !!d.config?.cloud;
+  const gardenTab = $('.tab[data-tab="garden"]');
+  if (gardenTab) gardenTab.hidden = cloud;
+  if (cloud && state.tab === 'garden') state.tab = 'recruit';
   // 정산 탭은 독립 시뮬레이터 → 스캔 버튼·계정 통계 무의미하니 숨김 (딱 필요한 것만 노출)
   const isSettle = state.tab === 'settle';
-  $('#scanBtn').hidden = isSettle;
-  $('#contentScanBtn').hidden = isSettle;
-  const st = $('.stats'); if (st) st.hidden = isSettle;
+  $('#scanBtn').hidden = isSettle || cloud;
+  $('#contentScanBtn').hidden = isSettle || cloud;
+  const st = $('.stats'); if (st) st.hidden = isSettle || cloud; // 클라우드엔 잔액·스캔시각이 없음
   const c = $('#content');
   if (state.tab === 'recruit') c.innerHTML = viewRecruit(accts);
   else if (state.tab === 'upload') c.innerHTML = viewUpload(accts);
@@ -606,4 +635,4 @@ $('#modalCancel').addEventListener('click', closeModal);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#modal').hidden) closeModal(); });
 $('#modal').addEventListener('click', (e) => { if (e.target.id === 'modal') closeModal(); });
 window.scan = scan;
-init();
+bootstrap();

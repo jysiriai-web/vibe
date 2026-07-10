@@ -6,17 +6,22 @@ import { fileURLToPath } from 'node:url';
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const FILE = join(root, 'campaigns.json');
 
+// 클라우드(Vercel)에는 campaigns.json 이 없다(gitignore·비밀) → 환경변수 CAMPAIGNS_JSON 으로 넘긴다.
 function readCfg() {
+  const env = process.env.CAMPAIGNS_JSON;
+  if (env) { try { return JSON.parse(env); } catch { /* 파싱 실패 시 아래 파일 폴백 */ } }
   if (!existsSync(FILE)) return { fx: { calibration: 1, fallbackRate: 1500 }, staleDays: 2, campaigns: [] };
   return JSON.parse(readFileSync(FILE, 'utf8'));
 }
+// 클라우드는 파일시스템이 읽기전용 → 설정 변경은 대표님 PC에서만.
 function writeCfg(cfg) {
+  if (process.env.CAMPAIGNS_JSON) throw new Error('클라우드에서는 설정을 바꿀 수 없어요. 대표님 PC 대시보드에서 바꿔주세요.');
   writeFileSync(FILE, JSON.stringify(cfg, null, 2));
 }
 
 function decorate(c) {
   const dataDir = join(root, 'data', 'c', c.id);
-  mkdirSync(dataDir, { recursive: true });
+  try { mkdirSync(dataDir, { recursive: true }); } catch { /* 클라우드는 읽기전용 — 상태는 시트에 있으니 무해 */ }
   return { ...c, dataDir };
 }
 

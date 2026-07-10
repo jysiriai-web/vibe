@@ -17,13 +17,14 @@ import { listCampaigns, getCampaign, getFx, setCalibration, setFallbackRate, get
 import { getMarketUsdKrw } from './fx.js';
 import { EDITABLE_COLS, OVERRIDE_COLS } from './overrides.js';
 // 상태 계층 — GARDEN_STATE=sheet 면 시트가 진실, 기본(local)은 지금까지처럼 로컬 파일.
+import { CLOUD, isLocalOnly, authed, authRequired, passwordMatches, makeToken, cookieHeader } from './cloud.js';
 import { mode as stateMode, readOrders, writeOrders, readOverrides, setOverrideStore, clearOverrideStore, readBest, toggleBest, readAll, pendingState } from './store.js';
 
 loadEnv();
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const PUB = join(root, 'public');
 const PORT = Number(process.env.DASHBOARD_PORT || 3737);
-const key = process.env.SMMKINGS_API_KEY;
+const key = CLOUD ? null : process.env.SMMKINGS_API_KEY; // 클라우드엔 키를 두지 않는다(돈 라우트 차단)
 const smm = key ? createSmm(key) : null;
 // 집행(돈) 비번 — .env EXECUTE_PASSWORD 에만 둠(코드·git 노출 X). 비어있으면 게이트 미적용.
 const EXEC_PW = process.env.EXECUTE_PASSWORD || '';
@@ -144,6 +145,7 @@ function send(res, code, body, type = 'application/json') {
   res.end(typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body));
 }
 function readBody(req) {
+  if (req.body !== undefined && req.body !== null) return Promise.resolve(typeof req.body === 'string' ? (()=>{try{return JSON.parse(req.body)}catch{return {}}})() : req.body);
   return new Promise((resolve) => {
     let d = '';
     req.on('data', (c) => (d += c));
@@ -151,11 +153,27 @@ function readBody(req) {
   });
 }
 
-const server = createServer(async (req, res) => {
+// 요청 핸들러 — 로컬(http 서버)과 Vercel(서버리스 함수)이 같은 함수를 쓴다.
+export async function handler(req, res) {
   const url = new URL(req.url, 'http://localhost');
   const path = url.pathname;
   const campId = url.searchParams.get('campaign');
   try {
+    // ── 팀 접속 비번 (TEAM_PASSWORD 설정 시에만 켜짐. 로컬은 미설정 → 그대로 열림) ──
+    if (path === '/api/login' && req.method === 'POST') {
+      const b = await readBody(req);
+      if (!passwordMatches(b.password)) return send(res, 401, { error: '비번이 틀렸어요' });
+      res.setHeader('Set-Cookie', cookieHeader(makeToken()));
+      return send(res, 200, { ok: true });
+    }
+    if (path.startsWith('/api/') && !authed(req)) {
+      return send(res, 401, { error: '로그인이 필요해요', login: true });
+    }
+    // ── 클라우드에서 못 하는 것: 스캔·집행 등은 대표님 PC 대시보드 전용 ──
+    if (isLocalOnly(path)) {
+      return send(res, 501, { error: '이 기능은 대표님 PC의 대시보드에서만 할 수 있어요.', localOnly: true });
+    }
+
     if (path === '/api/campaigns' && req.method === 'GET') {
       return send(res, 200, { campaigns: listCampaigns().map((c) => ({ id: c.id, name: c.name, group: c.group })), krwPerUsd: await effectiveRate() });
     }
@@ -184,7 +202,7 @@ const server = createServer(async (req, res) => {
       const accounts = await buildAccounts(campaign, orders, { accounts: all.accounts, overrides: all.overrides });
       return send(res, 200, {
         campaign: { id: campaign.id, name: campaign.name, group: campaign.group },
-        config: { target: campaign.target, min: campaign.min, krwPerUsd: await effectiveRate(), staleDays: getStaleDays(), hasKey: !!smm, confirmNotice: !!campaign.confirmNotice, execPwRequired: !!EXEC_PW, stateMode: stateMode(),
+        config: { target: campaign.target, min: campaign.min, krwPerUsd: await effectiveRate(), staleDays: getStaleDays(), hasKey: !!smm, confirmNotice: !!campaign.confirmNotice, execPwRequired: !!EXEC_PW, stateMode: stateMode(), cloud: CLOUD,
           service: svc ? { id: svc.service, name: svc.name, rate: svc.rate } : { id: campaign.serviceId, name: `#${campaign.serviceId}`, rate: 0 } },
         balance, scannedAt: scanLatest(campaign).ranAt, accounts, orders: markStale(orders), best: all.best,
       });
@@ -406,15 +424,19 @@ const server = createServer(async (req, res) => {
   } catch (e) {
     send(res, 500, { error: e.message });
   }
-});
+}
 
-server.on('error', (e) => {
-  if (e.code === 'EADDRINUSE') console.error(`\n❌ 포트 ${PORT} 가 이미 사용 중이에요. 대시보드가 이미 켜져 있는지 확인하세요.\n`);
-  else console.error('\n❌ 서버 오류:', e.message, '\n');
-  process.exit(1);
-});
-server.listen(PORT, '127.0.0.1', () => {
-  console.log(`\n🌱 가드닝 대시보드 실행 중: http://localhost:${PORT}`);
-  console.log(`   (이 창을 닫으면 대시보드가 꺼져요. 종료: Ctrl+C)\n`);
-  if (process.platform === 'win32' && !process.env.NO_OPEN) exec(`start "" "http://localhost:${PORT}"`);
-});
+// 로컬(대표님 PC)에서만 포트를 잡는다. 클라우드는 api/index.js 가 handler 를 직접 호출.
+if (!CLOUD) {
+  const server = createServer(handler);
+  server.on('error', (e) => {
+    if (e.code === 'EADDRINUSE') console.error(`\n❌ 포트 ${PORT} 가 이미 사용 중이에요. 대시보드가 이미 켜져 있는지 확인하세요.\n`);
+    else console.error('\n❌ 서버 오류:', e.message, '\n');
+    process.exit(1);
+  });
+  server.listen(PORT, '127.0.0.1', () => {
+    console.log(`\n🌱 가드닝 대시보드 실행 중: http://localhost:${PORT}`);
+    console.log(`   (이 창을 닫으면 대시보드가 꺼져요. 종료: Ctrl+C)\n`);
+    if (process.platform === 'win32' && !process.env.NO_OPEN) exec(`start "" "http://localhost:${PORT}"`);
+  });
+}

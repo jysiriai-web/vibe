@@ -12,7 +12,7 @@
     "orders": "node scripts/orders.js",
     "dashboard": "node src/server.js"
   },
-  "dependencies": {
+  "optionalDependencies": {
     "playwright": "^1.61.1"
   }
 }

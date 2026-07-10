@@ -217,3 +217,12 @@ th.sortable.sorted { color: var(--accent); }
 @media (hover: none) {
   .cell-edit { opacity: 0.75; }
 }
+
+/* 팀 접속 로그인 (클라우드 전용) */
+.login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; background: var(--bg); }
+.login-card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); padding: 34px 30px; width: min(380px, 100%); display: flex; flex-direction: column; gap: 14px; }
+.login-brand { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; }
+.login-brand span:last-child { font-size: 13px; font-weight: 600; color: var(--faint); }
+.login-msg { font-size: 14px; color: var(--muted); margin: 2px 0 6px; }
+.login-card input { font-family: var(--sans); font-size: 16px; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--card); color: var(--ink); letter-spacing: 2px; }
+.login-card input:focus { border-color: var(--accent); outline: none; }
