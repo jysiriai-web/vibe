@@ -27,14 +27,28 @@ export async function runContentScan(campaign, { onProgress, full = false, concu
   const detected = { ...prev }; // 이미 업로드된 건 이전 결과 유지
   let done = 0;
   let newUp = 0;
+  const failedHandles = new Set(); // 틱톡이 막아서 '못 본' 계정 — '영상 없음'과 절대 섞지 않는다
   // 동시성 풀 — 한 브라우저 창에 여러 탭을 병렬로 열어 스캔 (300건 대비 5배↑ 속도)
   let idx = 0;
   const worker = async () => {
     while (idx < targets.length) {
       const a = targets[idx++];
-      let videos = [];
-      try { videos = await fetchVideos(ctx, a.handle); } catch {}
-      const d = detectCampaign(videos, cfg);
+      let r = { videos: [], ok: false, error: '' };
+      try { r = await fetchVideos(ctx, a.handle); } catch (e) { r.error = String((e && e.message) || e); }
+
+      if (!r.ok) {
+        // 못 봤다 ≠ 안 올렸다.
+        // 예전엔 여기서 {uploaded:false} 로 덮어써서, 봇월 한 번에 이미 감지된 기록이 통째로 날아갔다.
+        // 이제는 이전 판정을 그대로 두고 실패로만 센다. 시트에도 아무것도 안 쓴다(아래 write 루프).
+        failedHandles.add(a.handle);
+        detected[a.handle] = prev[a.handle] || { uploaded: false, scanFailed: true, error: r.error };
+        done++;
+        if (onProgress) onProgress({ done, total: targets.length, handle: a.handle, uploaded: false, failed: true });
+        continue;
+      }
+
+      // 시트 17열에 사람이 적어둔 링크가 있으면 그 영상을 우선 판정한다.
+      const d = detectCampaign(r.videos, cfg, { knownLink: a.contentLink });
       detected[a.handle] = d;
       if (d.uploaded && !(prev[a.handle] && prev[a.handle].uploaded)) newUp++;
       done++;
@@ -60,14 +74,15 @@ export async function runContentScan(campaign, { onProgress, full = false, concu
   for (const a of targets) {
     const d = detected[a.handle];
     if (!d || !d.uploaded || !a.row) continue;
+    if (failedHandles.has(a.handle)) continue; // 이번에 못 본 계정 — 옛 수치를 다시 쓰지 않는다
     const r = a.row;
-    // 검수열(17콘텐츠·19음원·21해시태그)은 '이번에 새로 감지된 것' 또는 full일 때만 씀 — 기존 판정/수동값 보존.
-    const wasUploaded = prev[a.handle] && prev[a.handle].uploaded;
-    if (full || !wasUploaded) {
-      putIf(r, 17, d.contentLink);
-      putIf(r, 19, d.soundOk ? '사용 확인' : '음원 다름');
-      putIf(r, 21, d.hashtagOk ? '확인 완료' : '해시태그 누락');
-    }
+    // 검수열(17콘텐츠·19음원·21해시태그)은 '시트가 빈칸일 때만' 채운다. 값이 있으면 사람 것으로 보고 건드리지 않는다.
+    // (예전 기준이던 '이번에 새로 감지된 것'은 detected.json 이 스캔 실패로 초기화되면 곧장 덮어쓰기로 변했다.
+    //  full=true 면 사람이 명시적으로 재판정을 요청한 것이므로 그때만 덮어쓴다.)
+    const blank = (v) => !(v != null && String(v).trim());
+    if (full || blank(a.contentLink)) putIf(r, 17, d.contentLink);
+    if (full || blank(a.soundOk)) putIf(r, 19, d.soundOk ? '사용 확인' : '음원 다름');
+    if (full || blank(a.hashtagOk)) putIf(r, 21, d.hashtagOk ? '확인 완료' : '해시태그 누락');
     // 성과 수치(27~30)는 항상 최신으로 갱신(이미 업로드된 계정도 조회수 증가 반영).
     cells.push({ row: r, col: 27, value: d.views });
     cells.push({ row: r, col: 28, value: d.likes });
@@ -78,5 +93,14 @@ export async function runContentScan(campaign, { onProgress, full = false, concu
   if (cells.length) {
     try { written = await pushCellsToSheet(campaign.sheet, cells); } catch {}
   }
-  return { total: targets.length, scanned: targets.length, up: totalUp, newUp, written };
+  // failed = 틱톡이 막아서 못 본 계정. 0이 아니면 그 결과는 '완전'하지 않다 — 화면에 그대로 알린다.
+  return {
+    total: targets.length,
+    scanned: targets.length - failedHandles.size,
+    up: totalUp,
+    newUp,
+    written,
+    failed: failedHandles.size,
+    failedHandles: [...failedHandles].slice(0, 8),
+  };
 }

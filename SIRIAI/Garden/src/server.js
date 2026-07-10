@@ -311,10 +311,10 @@ small{display:block;margin-top:16px;color:#8a4f06;background:#fdf2e0;padding:10p
     if (path === '/api/content-scan' && req.method === 'POST') {
       if (contentScanState.running) return send(res, 200, { running: true });
       const full = url.searchParams.get('full') === '1';
-      contentScanState = { running: true, done: 0, total: 0, up: 0, written: 0, error: null, ranAt: null };
+      contentScanState = { running: true, done: 0, total: 0, up: 0, written: 0, failed: 0, error: null, ranAt: null };
       runContentScan(campaign, { full, onProgress: (p) => { contentScanState.done = p.done; contentScanState.total = p.total; } })
-        .then((r) => { contentScanState = { running: false, done: r.total, total: r.total, up: r.up, written: r.written, error: null, ranAt: new Date().toISOString() }; })
-        .catch((e) => { contentScanState = { running: false, done: 0, total: 0, up: 0, written: 0, error: e.message, ranAt: null }; });
+        .then((r) => { contentScanState = { running: false, done: r.total, total: r.total, up: r.up, written: r.written, failed: r.failed, failedHandles: r.failedHandles, error: null, ranAt: new Date().toISOString() }; })
+        .catch((e) => { contentScanState = { running: false, done: 0, total: 0, up: 0, written: 0, failed: 0, error: e.message, ranAt: null }; });
       return send(res, 200, { started: true });
     }
     if (path === '/api/content-scan/status' && req.method === 'GET') {

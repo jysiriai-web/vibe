@@ -12,9 +12,9 @@ const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;'
 function revState(v) {
   const s = String(v == null ? '' : v).trim();
   if (!s) return 'none';
-  if (/다름|누락|미준수|미사용|불가|없음|✗|✘/i.test(s)) return 'fail';
+  if (/다름|누락|미준수|미사용|불가|없음|이슈|문제|✗|✘/i.test(s)) return 'fail';
   if (/확인|준수|사용|완료|ok|pass|✓|✔|^[oy]$/i.test(s)) return 'pass';
-  return 'pass'; // 값은 있는데 애매 → 판정된 것으로 간주
+  return 'none'; // 모르는 글자를 '준수'로 단정하면 안 된다 ('이슈' 가 통과로 뒤집혔던 적 있음)
 }
 // 검수 열별 카노니컬 값 (수동 편집 시 시트에 쓰는 문자열, 자동값 포맷과 통일)
 const REVIEW = {
@@ -263,7 +263,7 @@ function viewUpload(accts) {
   const rows = list.map((a) => `<tr${reviewPending(a) ? ' class="row-alert"' : ''}>
     <td>${coChip(a.company)}</td>
     <td class="handle">${link(a.handle)}</td>
-    <td>${uploaded(a) ? (reviewPending(a) ? '<span class="chip needs">검수대기</span>' : '<span class="chip ok">업로드</span>') : '<span class="chip error">미업로드</span>'}</td>
+    <td>${uploaded(a) ? (reviewPending(a) ? '<span class="chip needs">검수대기</span>' : '<span class="chip ok">검수완료</span>') : '<span class="chip error">미업로드</span>'}</td>
     <td>${uploaded(a) ? `<a href="${esc(a.contentLink)}" target="_blank">영상 보기</a> <button class="cell-edit" data-kind="content" data-row="${a.row}" data-val="${esc(a.contentLink)}">✎</button>` : `<button class="cell-edit prompt" data-kind="content" data-row="${a.row}" data-val="">링크 달기</button>`}</td>
     <td>${revChip(a, 19)}</td>
     <td>${revChip(a, 20)}</td>
@@ -274,7 +274,7 @@ function viewUpload(accts) {
       ${kpi('검수대기', accts.filter(reviewPending).length, { ic: IC.clock, accent: 'var(--needs)' })}
     </div>
     ${filterRow(coBar(coCounts(applyFUp(accts))), upBar(upCounts(applyCo(accts))))}
-    <table><thead><tr><th>진행사</th><th>계정</th><th>업로드</th><th>콘텐츠</th><th>음원</th><th>음원구간</th><th>해시태그</th></tr></thead><tbody>${rows || emptyRow(7)}</tbody></table>
+    <table><thead><tr><th>진행사</th><th>계정</th><th>상태</th><th>콘텐츠</th><th>음원</th><th>음원구간</th><th>해시태그</th></tr></thead><tbody>${rows || emptyRow(7)}</tbody></table>
     <div class="note"><b>음원·해시태그</b>는 스캔이 자동 판정해서 <u>검수로 세지 않아요</u>. <b>음원구간</b>을 사람이 영상 보고 판정해야 <b>검수 완료</b>가 됩니다. 드롭다운에서 <b>준수·미준수</b>로 고치면 재스캔해도 유지(수동 우선), <b>미확인</b>으로 되돌리면 자동 판정에 다시 맡겨요. 점선 테두리는 <b>시트에 저장되지 않은 자동 추정값</b>이에요.</div>`;
 }
 
@@ -643,7 +643,10 @@ async function contentScan(full) {
     if (s.error) { clearInterval(poll); btn.disabled = false; btn.textContent = '업로드 스캔'; return toast('스캔 실패: ' + s.error); }
     if (s.running) { btn.textContent = `스캔 중… ${s.done}/${s.total || '?'}`; return; }
     clearInterval(poll); btn.disabled = false; btn.textContent = '업로드 스캔';
-    toast(`콘텐츠 스캔 완료 — 업로드 ${s.up}개 · 시트 ${s.written}칸 반영`);
+    // 못 본 계정이 있으면 반드시 알린다. 조용히 넘어가면 '전부 확인했다'로 읽힌다.
+    toast(s.failed
+      ? `콘텐츠 스캔 완료 — 업로드 ${s.up}개 · 시트 ${s.written}칸 · ⚠️ ${s.failed}개는 틱톡이 막아서 못 봤어요 (다시 스캔하세요)`
+      : `콘텐츠 스캔 완료 — 업로드 ${s.up}개 · 시트 ${s.written}칸 반영`);
     await loadData();
   }, 3000);
 }
