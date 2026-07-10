@@ -166,13 +166,19 @@ function applyFUp(accts) {
   return accts;
 }
 const applyFNotice = (accts) => (state.fNotice === 'unsent' ? accts.filter((a) => !noticeSent(a)) : accts);
-function fbar(flab, cls, cur, opts) {
-  return `<div class="filterbar"><span class="flab">${flab}</span>${opts.map(([k, l]) => `<button class="fbtn ${cls} ${cur === k ? 'active' : ''}" data-k="${k}" aria-pressed="${cur === k}">${l}</button>`).join('')}</div>`;
+// counts(선택): {옵션키: 개수} — 각 칩에 개수 표시. 다른 활성필터를 반영한 faceted 카운트.
+function fbar(flab, cls, cur, opts, counts) {
+  return `<div class="filterbar"><span class="flab">${flab}</span>${opts.map(([k, l]) => `<button class="fbtn ${cls} ${cur === k ? 'active' : ''}" data-k="${k}" aria-pressed="${cur === k}">${l}${counts && counts[k] != null ? ` <span class="fct">${counts[k]}</span>` : ''}</button>`).join('')}</div>`;
 }
-const coBar = () => fbar('진행사', 'co-f', state.fCo, [['all', '전체'], ['MARU', 'MARU'], ['SIRIAI', 'SIRIAI']]);
-const statusBar = () => fbar('상태', 'st-f', state.fStatus, [['all', '전체'], ['needs', '가드닝 필요'], ['filling', '채워지는 중'], ['ok', '충족'], ['error', '미확인']]);
-const upBar = () => fbar('업로드', 'up-f', state.fUp, [['all', '전체'], ['notup', '미업로드'], ['up', '업로드'], ['pending', '검수대기']]);
-const noticeBar = () => fbar('확정안내', 'nt-f', state.fNotice, [['all', '전체'], ['unsent', '미발송만']]);
+const coBar = (c) => fbar('진행사', 'co-f', state.fCo, [['all', '전체'], ['MARU', 'MARU'], ['SIRIAI', 'SIRIAI']], c);
+const statusBar = (c) => fbar('상태', 'st-f', state.fStatus, [['all', '전체'], ['needs', '가드닝 필요'], ['filling', '채워지는 중'], ['ok', '충족'], ['error', '미확인']], c);
+const upBar = (c) => fbar('업로드', 'up-f', state.fUp, [['all', '전체'], ['notup', '미업로드'], ['up', '업로드'], ['pending', '검수대기']], c);
+const noticeBar = (c) => fbar('확정안내', 'nt-f', state.fNotice, [['all', '전체'], ['unsent', '미발송만']], c);
+// 필터 옵션별 개수 (특정 리스트 기준). faceted = 다른 필터 적용된 리스트를 넘기면 됨.
+const coCounts = (l) => ({ all: l.length, MARU: l.filter((a) => a.company === 'MARU').length, SIRIAI: l.filter((a) => a.company === 'SIRIAI').length });
+const upCounts = (l) => ({ all: l.length, notup: l.filter((a) => !uploaded(a)).length, up: l.filter(uploaded).length, pending: l.filter(reviewPending).length });
+const statusCounts = (l) => ({ all: l.length, needs: l.filter((a) => a.status === 'needs').length, filling: l.filter((a) => a.status === 'filling').length, ok: l.filter((a) => a.status === 'ok').length, error: l.filter((a) => a.status === 'error').length });
+const noticeCounts = (l) => ({ all: l.length, unsent: l.filter((a) => !noticeSent(a)).length });
 const filterRow = (...bars) => `<div class="filters">${bars.join('')}</div>`;
 
 const showNotice = () => !!(state.data && state.data.config && state.data.config.confirmNotice);
@@ -201,7 +207,7 @@ function viewRecruit(accts) {
       ${kpi('팔로워 1,000+ 충족', ofTot(over1k, accts.length), { ic: IC.target })}
       ${nt ? kpi('확정안내 미발송', unsent, { ic: IC.mail, accent: 'var(--needs)' }) : ''}
     </div>
-    ${filterRow(coBar(), statusBar(), nt ? noticeBar() : '')}
+    ${filterRow(coBar(coCounts((nt ? applyFNotice : (x) => x)(applyFStatus(accts)))), statusBar(statusCounts((nt ? applyFNotice : (x) => x)(applyCo(accts)))), nt ? noticeBar(noticeCounts(applyFStatus(applyCo(accts)))) : '')}
     <div class="bar"><button class="btn small" id="syncRecruitBtn">📥 모집시트 동기화</button><span class="sub" style="margin:0">모집시트(마루 등)의 새 계정 URL을 정리해서 마스터에 자동 추가</span></div>
     <table><thead><tr><th>진행사</th><th>닉네임</th><th>계정</th><th class="num">팔로워</th><th>상태</th>${nt ? '<th>확정안내</th>' : ''}</tr></thead><tbody>${rows || emptyRow(nt ? 6 : 5)}</tbody></table>`;
 }
@@ -225,7 +231,7 @@ function viewUpload(accts) {
       ${kpi('검수 완료', ofTot(rev.length, up.length || accts.length), { ic: IC.check })}
       ${kpi('검수대기', accts.filter(reviewPending).length, { ic: IC.clock, accent: 'var(--needs)' })}
     </div>
-    ${filterRow(coBar(), upBar())}
+    ${filterRow(coBar(coCounts(applyFUp(accts))), upBar(upCounts(applyCo(accts))))}
     <table><thead><tr><th>진행사</th><th>계정</th><th>업로드</th><th>콘텐츠</th><th>음원</th><th>음원구간</th><th>해시태그</th></tr></thead><tbody>${rows || emptyRow(7)}</tbody></table>
     <div class="note"><b>음원·해시태그</b>는 스캔이 자동 판정, <b>음원구간</b>은 사람이 영상 보고 판정해요. 드롭다운에서 <b>준수·미준수</b>로 고치면 재스캔해도 유지(수동 우선), <b>미확인</b>으로 되돌리면 자동 판정에 다시 맡겨요.</div>`;
 }
@@ -244,13 +250,13 @@ function viewNeeds(accts) {
   const fa = applyCo(accts);
   const needs = fa.filter((a) => a.status === 'needs');
   const filling = fa.filter((a) => a.status === 'filling');
-  if (!needs.length) return coBar() + `<div class="empty">✅ 지금 가드닝 필요한 계정이 없어요.</div>${filling.length ? fillingNote(filling) : ''}`;
+  if (!needs.length) return coBar(coCounts(accts.filter((a) => a.status === 'needs'))) + `<div class="empty">✅ 지금 가드닝 필요한 계정이 없어요.</div>${filling.length ? fillingNote(filling) : ''}`;
   const rate = rateOf();
   const allPicked = needs.every((a) => !state.unpicked.has(a.handle));
   const rows = needs.map((a) => `<tr>
     <td><input type="checkbox" class="pick" data-h="${a.handle}" aria-label="집행 선택 @${a.handle}"${state.unpicked.has(a.handle) ? '' : ' checked'}></td>
     <td class="handle">${link(a.handle)}</td><td class="num">${fmt(a.current)}</td><td class="num">${fmt(a.order)}</td><td class="num">${won((a.order / 1000) * rate)}</td></tr>`).join('');
-  return coBar() + `<div class="bar"><div class="summary">가드닝 필요 <b>${needs.length}</b>개 · 선택 <b id="selQty">0</b>명 · 예상 <b id="selCost">₩0</b></div><div class="spacer"></div><button class="btn danger" id="execBtn">선택 집행</button></div>
+  return coBar(coCounts(accts.filter((a) => a.status === 'needs'))) + `<div class="bar"><div class="summary">가드닝 필요 <b>${needs.length}</b>개 · 선택 <b id="selQty">0</b>명 · 예상 <b id="selCost">₩0</b></div><div class="spacer"></div><button class="btn danger" id="execBtn">선택 집행</button></div>
     <table><thead><tr><th><input type="checkbox" id="pickAll" aria-label="전체 선택"${allPicked ? ' checked' : ''}></th><th>계정</th><th class="num">현재</th><th class="num">충전량</th><th class="num">예상비용</th></tr></thead><tbody>${rows}</tbody></table>${filling.length ? fillingNote(filling) : ''}`;
 }
 const fillingNote = (filling) => `<div class="note"><b>⏳ 채워지는 중 (재주문 안 함):</b> ${filling.map((f) => `@${f.handle} (현재 ${fmt(f.current)}+진행중 ${fmt(f.inFlight)}=${fmt(f.projected)})`).join(', ')}</div>`;
@@ -303,7 +309,7 @@ function viewDeliver(accts) {
   const hero = [...withPerf].sort((a, b) => (b.v || 0) - (a.v || 0))[0];
   const heroOn = hero && hero.v ? hero : null;
   const noPerf = totalViews === 0 && totalLikes === 0;
-  if (!content.length) return coBar() + `<div class="empty">아직 업로드된 콘텐츠가 없어요.<br>업로드가 되면 여기서 성과를 봐요.</div>`;
+  if (!content.length) return coBar(coCounts(accts.filter(uploaded))) + `<div class="empty">아직 업로드된 콘텐츠가 없어요.<br>업로드가 되면 여기서 성과를 봐요.</div>`;
   // 베스트만 필터 → 정렬(헤더 클릭)
   let list = state.bestOnly ? withPerf.filter((a) => state.best.includes(a.handle)) : withPerf;
   const dir = state.sortDir === 'asc' ? 1 : -1;
@@ -317,7 +323,7 @@ function viewDeliver(accts) {
     <td class="num">${a.c == null ? '—' : fmt(a.c)}</td><td class="num">${a.sh == null ? '—' : fmt(a.sh)}</td>
     <td><a href="${esc(a.contentLink)}" target="_blank">영상</a></td></tr>`).join('');
   const bestCount = withPerf.filter((a) => state.best.includes(a.handle)).length;
-  return coBar() + `<div class="cards">
+  return coBar(coCounts(accts.filter(uploaded))) + `<div class="cards">
       ${kpi('총 조회수', fmt(totalViews), { ic: IC.eye })}
       ${kpi('총 좋아요', fmt(totalLikes), { ic: IC.heart })}
       ${kpi('업로드 콘텐츠', content.length, { ic: IC.video })}
