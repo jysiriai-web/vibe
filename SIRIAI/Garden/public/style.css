@@ -135,6 +135,10 @@ select.svc:focus { border-color: var(--accent); outline: none; }
 .plan-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px dashed var(--line); font-size: 15px; }
 .plan-row .mono { font-variant-numeric: tabular-nums; }
 .plan-total { display: flex; justify-content: space-between; margin-top: 14px; font-weight: 800; font-size: 19px; }
+.pw-row { display: flex; align-items: center; gap: 10px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+.pw-row label { font-size: 14px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+.pw-row input { flex: 1; font-size: 16px; padding: 9px 12px; border: 1.5px solid var(--line); border-radius: 9px; background: var(--card); color: var(--ink); letter-spacing: 3px; }
+.pw-row input:focus { border-color: var(--accent); outline: none; }
 
 .toast { position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 13px 24px; border-radius: 12px; font-size: 15px; font-weight: 600; z-index: 50; box-shadow: 0 10px 30px rgba(20,20,35,.3); max-width: min(90vw, 420px); text-align: center; }
 .overlay { position: fixed; inset: 0; background: rgba(245,246,248,.82); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 45; }

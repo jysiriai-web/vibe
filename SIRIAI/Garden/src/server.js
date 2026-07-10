@@ -1,6 +1,7 @@
 // 가드닝 대시보드 서버 — 캠페인 기반. Node 내장 http (의존성 0). 127.0.0.1 만.
 import { createServer } from 'node:http';
 import { exec } from 'node:child_process';
+import { timingSafeEqual } from 'node:crypto';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join, dirname, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -22,6 +23,12 @@ const PUB = join(root, 'public');
 const PORT = Number(process.env.DASHBOARD_PORT || 3737);
 const key = process.env.SMMKINGS_API_KEY;
 const smm = key ? createSmm(key) : null;
+// 집행(돈) 비번 — .env EXECUTE_PASSWORD 에만 둠(코드·git 노출 X). 비어있으면 게이트 미적용.
+const EXEC_PW = process.env.EXECUTE_PASSWORD || '';
+function pwMatch(input) {
+  const a = Buffer.from(String(input ?? '')), b = Buffer.from(EXEC_PW);
+  return a.length === b.length && timingSafeEqual(a, b); // 상수시간 비교(길이 다르면 즉시 false)
+}
 let contentScanState = { running: false, done: 0, total: 0, up: 0, written: 0, error: null, ranAt: null };
 
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml' };
@@ -168,7 +175,7 @@ const server = createServer(async (req, res) => {
       const accounts = await buildAccounts(campaign, orders);
       return send(res, 200, {
         campaign: { id: campaign.id, name: campaign.name, group: campaign.group },
-        config: { target: campaign.target, min: campaign.min, krwPerUsd: await effectiveRate(), staleDays: getStaleDays(), hasKey: !!smm, confirmNotice: !!campaign.confirmNotice,
+        config: { target: campaign.target, min: campaign.min, krwPerUsd: await effectiveRate(), staleDays: getStaleDays(), hasKey: !!smm, confirmNotice: !!campaign.confirmNotice, execPwRequired: !!EXEC_PW,
           service: svc ? { id: svc.service, name: svc.name, rate: svc.rate } : { id: campaign.serviceId, name: `#${campaign.serviceId}`, rate: 0 } },
         balance, scannedAt: scanLatest(campaign).ranAt, accounts, orders: markStale(orders), best: loadBest(campaign),
       });
@@ -272,6 +279,7 @@ const server = createServer(async (req, res) => {
       if (!smm) return send(res, 400, { error: 'SMM 키가 .env 에 없습니다.' });
       const body = await readBody(req);
       if (body.confirm !== true) return send(res, 400, { error: 'confirm=true 필요' });
+      if (EXEC_PW && !pwMatch(body.password)) return send(res, 403, { error: '집행 비번이 틀렸어요' });
       const svc = serviceOf(campaign);
       if (!svc) return send(res, 400, { error: '서비스 정보 없음' });
       let orders = loadOrders(campaign.dataDir);

@@ -501,15 +501,20 @@ async function openExecute() {
   overlay(false);
   if (plan.error) return toast('오류: ' + plan.error);
   if (!plan.toOrder || !plan.toOrder.length) return toast('주문할 게 없어요');
+  const pwReq = !!state.data.config?.execPwRequired;
   $('#modalBody').innerHTML = plan.toOrder.map((o) => `<div class="plan-row"><span>@${o.handle} <span style="color:var(--muted)">(현재 ${fmt(o.current)})</span></span><span class="mono">${fmt(o.qty)}명 · ${won(o.cost)}</span></div>`).join('') +
-    `<div class="plan-total"><span>총 ${plan.toOrder.length}개 · ${fmt(plan.totalQty)}명</span><span>${won(plan.totalCost)}</span></div><div class="note">서비스 #${plan.service?.id} · 잔액 ${won(plan.balance)} · 집행 직전 최신 팔로워로 재확인 후 주문돼요.</div>`;
+    `<div class="plan-total"><span>총 ${plan.toOrder.length}개 · ${fmt(plan.totalQty)}명</span><span>${won(plan.totalCost)}</span></div><div class="note">서비스 #${plan.service?.id} · 잔액 ${won(plan.balance)} · 집행 직전 최신 팔로워로 재확인 후 주문돼요.</div>` +
+    (pwReq ? `<div class="pw-row"><label for="execPw">집행 비번</label><input type="password" id="execPw" inputmode="numeric" autocomplete="off" placeholder="돈 나가는 확정 — 비번 입력"></div>` : '');
   $('#modal').hidden = false;
-  $('#modalCancel').focus(); // 열릴 때 안전한 기본(취소)로 포커스 이동 — 돈 나가는 다이얼로그
+  (pwReq ? $('#execPw') : $('#modalCancel')).focus(); // 비번 필요하면 비번칸, 아니면 취소로 포커스
   $('#modalConfirm').onclick = () => doExecute(picked);
+  if (pwReq) $('#execPw').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); doExecute(picked); } });
 }
 async function doExecute(handles) {
+  const password = $('#execPw') ? $('#execPw').value : '';
+  if (state.data.config?.execPwRequired && !password) { toast('집행 비번을 입력해 주세요'); $('#execPw') && $('#execPw').focus(); return; } // 모달 유지
   $('#modal').hidden = true; overlay(true, '주문 넣는 중…');
-  const r = await api(`/api/execute?campaign=${state.campaign}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ handles, confirm: true }) }).catch(() => ({ error: '네트워크 오류' }));
+  const r = await api(`/api/execute?campaign=${state.campaign}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ handles, confirm: true, password }) }).catch(() => ({ error: '네트워크 오류' }));
   overlay(false);
   if (r.error) return toast('실패: ' + r.error);
   toast((r.placed || []).length ? `✅ ${r.placed.length}개 주문 완료` : '주문할 게 없었어요');
