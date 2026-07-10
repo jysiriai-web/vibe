@@ -36,6 +36,8 @@ const LOCK_COLS = [17, 19, 20, 21]; // 자동스캔이 건드리는 검수/콘�
 
 const won = (usd) => (usd == null ? '—' : '₩' + Math.round(Number(usd) * state.krw).toLocaleString());
 const rateOf = () => Number(state.data?.config?.service?.rate || 0);
+// 팀 공유(클라우드) 화면인가 — 돈·스캔 조작은 숨기고 보기만 허용. 서버도 501 로 막고 있음(이중 방어).
+const isCloud = () => !!state.data?.config?.cloud;
 
 function timeAgo(iso) {
   if (!iso) return '아직 스캔 안 함';
@@ -134,11 +136,8 @@ function render() {
   $('#cnt-deliver').textContent = accts.filter(uploaded).length;
 
   $$('.tab').forEach((t) => { const on = t.dataset.tab === state.tab; t.classList.toggle('active', on); if (on) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current'); });
-  // 클라우드(팀 공유)에서는 스캔·가드닝(돈)이 불가 → 아예 숨긴다. 대표님 PC 대시보드 전용.
+  // 클라우드(팀 공유)에서는 스캔·집행 '버튼'만 숨긴다. 가드닝 탭 자체는 보여줌(보기 전용).
   const cloud = !!d.config?.cloud;
-  const gardenTab = $('.tab[data-tab="garden"]');
-  if (gardenTab) gardenTab.hidden = cloud;
-  if (cloud && state.tab === 'garden') state.tab = 'recruit';
   // 정산 탭은 독립 시뮬레이터 → 스캔 버튼·계정 통계 무의미하니 숨김 (딱 필요한 것만 노출)
   const isSettle = state.tab === 'settle';
   $('#scanBtn').hidden = isSettle || cloud;
@@ -291,13 +290,19 @@ function viewNeeds(accts) {
   const filling = fa.filter((a) => a.status === 'filling');
   if (!needs.length) return coBar(coCounts(accts.filter((a) => a.status === 'needs'))) + `<div class="empty">✅ 지금 가드닝 필요한 계정이 없어요.</div>${filling.length ? fillingNote(filling) : ''}`;
   const rate = rateOf();
+  const cost = (a) => (rate > 0 ? won((a.order / 1000) * rate) : '—'); // 클라우드엔 단가표가 없어 ₩0 대신 —
   const allPicked = needs.every((a) => !state.unpicked.has(a.handle));
   const rows = needs.map((a) => `<tr>
-    <td><input type="checkbox" class="pick" data-h="${a.handle}" aria-label="집행 선택 @${a.handle}"${state.unpicked.has(a.handle) ? '' : ' checked'}></td>
-    <td class="handle">${link(a.handle)}</td><td class="num">${fmt(a.current)}</td><td class="num">${fmt(a.order)}</td><td class="num">${won((a.order / 1000) * rate)}</td></tr>`).join('');
-  return coBar(coCounts(accts.filter((a) => a.status === 'needs'))) + `<div class="bar"><div class="summary">가드닝 필요 <b>${needs.length}</b>개 · 선택 <b id="selQty">0</b>명 · 예상 <b id="selCost">₩0</b></div><div class="spacer"></div><button class="btn danger" id="execBtn">선택 집행</button></div>
-    <table><thead><tr><th><input type="checkbox" id="pickAll" aria-label="전체 선택"${allPicked ? ' checked' : ''}></th><th>계정</th><th class="num">현재</th><th class="num">충전량</th><th class="num">예상비용</th></tr></thead><tbody>${rows}</tbody></table>${filling.length ? fillingNote(filling) : ''}`;
+    ${isCloud() ? '' : `<td><input type="checkbox" class="pick" data-h="${a.handle}" aria-label="집행 선택 @${a.handle}"${state.unpicked.has(a.handle) ? '' : ' checked'}></td>`}
+    <td class="handle">${link(a.handle)}</td><td class="num">${fmt(a.current)}</td><td class="num">${fmt(a.order)}</td><td class="num">${cost(a)}</td></tr>`).join('');
+  const bar = isCloud()
+    ? `<div class="bar"><div class="summary">가드닝 필요 <b>${needs.length}</b>개</div></div>`
+    : `<div class="bar"><div class="summary">가드닝 필요 <b>${needs.length}</b>개 · 선택 <b id="selQty">0</b>명 · 예상 <b id="selCost">₩0</b></div><div class="spacer"></div><button class="btn danger" id="execBtn">선택 집행</button></div>`;
+  return coBar(coCounts(accts.filter((a) => a.status === 'needs'))) + bar +
+    `<table><thead><tr>${isCloud() ? '' : `<th><input type="checkbox" id="pickAll" aria-label="전체 선택"${allPicked ? ' checked' : ''}></th>`}<th>계정</th><th class="num">현재</th><th class="num">충전량</th><th class="num">예상비용</th></tr></thead><tbody>${rows}</tbody></table>${filling.length ? fillingNote(filling) : ''}${localOnlyNote('팔로워를 실제로 사는 <b>집행</b>')}`;
 }
+// 팀원 화면(클라우드)에서 돈·스캔이 왜 없는지 알려주는 안내
+const localOnlyNote = (what) => (isCloud() ? `<div class="note">🔒 ${what}은 대표님 PC의 대시보드에서만 할 수 있어요. 여기서는 <b>보기만</b> 됩니다.</div>` : '');
 const fillingNote = (filling) => `<div class="note"><b>⏳ 채워지는 중 (재주문 안 함):</b> ${filling.map((f) => `@${f.handle} (현재 ${fmt(f.current)}+진행중 ${fmt(f.inFlight)}=${fmt(f.projected)})`).join(', ')}</div>`;
 const CANCEL_ST = ['Canceled', 'Cancelled', 'Refunded'];
 // 주문 상태 분류 (필터·요약·칩 공용). active 진행중 / done 완료 / canceled 취소·종료 / stuck 오류
@@ -326,8 +331,9 @@ function viewOrders(orders) {
     else if (o.stale) st = '<span class="chip stale">정체 의심</span>';
     else st = '<span class="chip filling">진행중</span>';
     // 버튼: 활성=종료 처리 / 종료했는데 아직 배송중(유예·오류)=[다시 종료]+[포기(재주문 허용)] / 포기·완료=없음
+    // 클라우드(팀 화면)에서는 아무 버튼도 안 보인다 — 보기 전용.
     let btns = '';
-    if (!o.abandoned && !o.done) {
+    if (!isCloud() && !o.abandoned && !o.done) {
       if (!o.closed) btns = `<button class="btn small close-order" data-id="${o.id}">종료 처리</button>`;
       else btns = `${o.cancelStuck ? `<button class="btn small close-order" data-id="${o.id}">다시 종료</button>` : ''}<button class="btn small ghost abandon-order" data-id="${o.id}" title="이 주문을 접고 이 계정을 다시 가드닝할 수 있게 해요">포기</button>`;
     }
@@ -346,7 +352,8 @@ function viewOrders(orders) {
   ${cnt.stuck ? `<div class="note"><b style="color:var(--needs)">⚠️ 오류</b> = 종료했는데 smmkings에서 취소가 안 먹히고 계속 배송 중이에요(종료 후 1시간 지나도). <b>다시 종료</b>로 재시도하거나, 급하면 <b>포기</b>로 이 주문을 접고 그 계정을 바로 다시 가드닝할 수 있어요.</div>` : ''}
   ${closedActiveN && !cnt.stuck ? `<div class="note"><b>종료·취소요청</b> = 종료를 눌러 취소 요청한 주문이에요. 급해서 바로 다른 서비스로 재주문하려면 <b>포기</b>를 누르면 이 계정을 다시 가드닝할 수 있어요(포기한 주문의 팔로워는 들어올 수도 있어요).</div>` : ''}
   ${abandonedN ? `<div class="note"><b>포기함</b> = 접은 주문이에요(비용은 기록에 남음). 이 계정은 다시 가드닝할 수 있어요 — <b>비용 탭</b>에서 서비스를 바꾼 뒤 가드닝하면 다른 서비스로 새로 주문돼요.</div>` : ''}
-  ${staleN ? `<div class="note"><b style="color:var(--warn)">⚠️ 정체 의심</b> = ${state.data.config.staleDays}일 넘게 안 끝난 주문. 멈춰있으면 <b>종료 처리</b>로 취소하고, 그 계정을 다시 가드닝하면 돼요.</div>` : ''}`;
+  ${staleN ? `<div class="note"><b style="color:var(--warn)">⚠️ 정체 의심</b> = ${state.data.config.staleDays}일 넘게 안 끝난 주문. 멈춰있으면 <b>종료 처리</b>로 취소하고, 그 계정을 다시 가드닝하면 돼요.</div>` : ''}
+  ${localOnlyNote('주문 <b>종료·포기</b>')}`;
 }
 function viewCost(orders, balance) {
   const byH = {};
@@ -354,15 +361,19 @@ function viewCost(orders, balance) {
   const rows = Object.values(byH).sort((a, b) => b.cost - a.cost);
   const curId = state.data.config?.service?.id;
   const svcOpts = state.services.map((s) => `<option value="${s.id}" ${s.id == curId ? 'selected' : ''}>#${s.id} · ${cleanName(s.name)} · ₩${Math.round(Number(s.rate) * state.krw).toLocaleString()}/1k</option>`).join('');
-  return `<div class="cards">
-      ${kpi('총 지출', won(rows.reduce((s, r) => s + r.cost, 0)), { ic: IC.card })}
-      ${kpi('넣은 팔로워 합계', fmt(rows.reduce((s, r) => s + r.qty, 0)), { ic: IC.userplus })}
-      ${kpi('현재 잔액', won(balance), { ic: IC.wallet })}
-      <div class="kpi wide"><div class="lab">환율 · 실시간 시장환율 자동</div><div class="big">₩${Math.round(state.krw).toLocaleString()} / $1</div>
-        <div class="rate-box" style="margin-top:10px"><span class="sub">smmkings 잔액과 다르면 →</span><input class="rate" id="rateInput" placeholder="현재 잔액 ₩"><button class="btn small" id="rateSave">재보정</button></div></div>
-      <div class="kpi wide"><div class="lab">가드닝 서비스</div><select class="svc" id="svcSelect" aria-label="가드닝 서비스 선택">${svcOpts}</select><div class="sub">지난 주문은 각자 산 서비스로 기록(집행 내역 s번호).</div></div>
-    </div>
-    ${rows.length ? `<table><thead><tr><th>계정</th><th class="num">넣은 팔로워</th><th class="num">주문</th><th class="num">비용</th></tr></thead><tbody>${rows.map((r) => `<tr><td class="handle">${link(r.handle)}</td><td class="num">${fmt(r.qty)}</td><td class="num">${r.n}회</td><td class="num">${won(r.cost)}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">아직 집행 내역이 없어요.</div>'}`;
+  // 클라우드(팀 화면): 잔액·환율 재보정·서비스 변경은 대표님 PC 전용 → 총지출·팔로워 합계만 보여준다.
+  const cards = isCloud()
+    ? `${kpi('총 지출', won(rows.reduce((s, r) => s + r.cost, 0)), { ic: IC.card })}
+       ${kpi('넣은 팔로워 합계', fmt(rows.reduce((s, r) => s + r.qty, 0)), { ic: IC.userplus })}`
+    : `${kpi('총 지출', won(rows.reduce((s, r) => s + r.cost, 0)), { ic: IC.card })}
+       ${kpi('넣은 팔로워 합계', fmt(rows.reduce((s, r) => s + r.qty, 0)), { ic: IC.userplus })}
+       ${kpi('현재 잔액', won(balance), { ic: IC.wallet })}
+       <div class="kpi wide"><div class="lab">환율 · 실시간 시장환율 자동</div><div class="big">₩${Math.round(state.krw).toLocaleString()} / $1</div>
+         <div class="rate-box" style="margin-top:10px"><span class="sub">smmkings 잔액과 다르면 →</span><input class="rate" id="rateInput" placeholder="현재 잔액 ₩"><button class="btn small" id="rateSave">재보정</button></div></div>
+       <div class="kpi wide"><div class="lab">가드닝 서비스</div><select class="svc" id="svcSelect" aria-label="가드닝 서비스 선택">${svcOpts}</select><div class="sub">지난 주문은 각자 산 서비스로 기록(집행 내역 s번호).</div></div>`;
+  return `<div class="cards">${cards}</div>
+    ${rows.length ? `<table><thead><tr><th>계정</th><th class="num">넣은 팔로워</th><th class="num">주문</th><th class="num">비용</th></tr></thead><tbody>${rows.map((r) => `<tr><td class="handle">${link(r.handle)}</td><td class="num">${fmt(r.qty)}</td><td class="num">${r.n}회</td><td class="num">${won(r.cost)}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">아직 집행 내역이 없어요.</div>'}
+    ${localOnlyNote('<b>환율 재보정</b>·<b>서비스 변경</b>')}`;
 }
 
 // ④ 납품 (성과)
