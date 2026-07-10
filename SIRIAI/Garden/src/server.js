@@ -17,7 +17,7 @@ import { listCampaigns, getCampaign, getFx, setCalibration, setFallbackRate, get
 import { getMarketUsdKrw } from './fx.js';
 import { EDITABLE_COLS, OVERRIDE_COLS } from './overrides.js';
 // 상태 계층 — GARDEN_STATE=sheet 면 시트가 진실, 기본(local)은 지금까지처럼 로컬 파일.
-import { CLOUD, isLocalOnly, authed, authRequired, passwordMatches, makeToken, cookieHeader, cloudConfigError } from './cloud.js';
+import { CLOUD, isLocalOnly, authed, authRequired, passwordMatches, makeToken, cookieHeader, cloudConfigError, tokenValid } from './cloud.js';
 import { mode as stateMode, readOrders, writeOrders, readOverrides, setOverrideStore, clearOverrideStore, readBest, toggleBest, readAll, pendingState } from './store.js';
 
 loadEnv();
@@ -182,6 +182,16 @@ export async function handler(req, res) {
     if (CLOUD) {
       const ce = cloudConfigError();
       if (ce) return send(res, 503, { error: ce, configError: true });
+    }
+
+    // ── 팀 초대 링크: /api/enter?t=<서명토큰> → 쿠키 심고 대시보드로. 비번 입력 화면을 안 봐도 됨.
+    //    토큰은 SESSION_SECRET 으로 서명돼 있어 위조 불가. 링크를 가진 사람만 들어온다.
+    if (path === '/api/enter' && req.method === 'GET') {
+      const t = url.searchParams.get('t') || '';
+      if (!tokenValid(t)) return send(res, 401, { error: '초대 링크가 유효하지 않거나 만료됐어요.' });
+      res.setHeader('Set-Cookie', cookieHeader(t));
+      res.writeHead(302, { Location: '/' });
+      return res.end();
     }
 
     // ── 팀 접속 비번 (TEAM_PASSWORD 설정 시에만 켜짐. 로컬은 미설정 → 그대로 열림) ──

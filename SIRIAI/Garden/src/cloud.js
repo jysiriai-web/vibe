@@ -7,7 +7,7 @@ export const CLOUD = !!(process.env.GARDEN_CLOUD || process.env.VERCEL);
 const TEAM_PW = process.env.TEAM_PASSWORD || '';
 const SECRET = process.env.SESSION_SECRET || (CLOUD ? '' : randomBytes(32).toString('hex'));
 const COOKIE = 'garden_team';
-const MAX_AGE = 60 * 60 * 24 * 14; // 2주
+const MAX_AGE = 60 * 60 * 24 * 365; // 1년 — 팀원이 링크 한 번 누르면 계속 유지
 
 // 팀 비번이 설정돼 있을 때만 게이트가 켜진다(로컬은 미설정 → 그대로 열림).
 export const authRequired = () => !!TEAM_PW;
