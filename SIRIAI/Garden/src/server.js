@@ -169,6 +169,9 @@ export async function handler(req, res) {
         cloud: CLOUD,
         stateMode: stateMode(),
         campaigns: listCampaigns().length,
+        // 지금 돌고 있는 배포가 어느 커밋인지 — '배포가 됐나?'를 눈으로 확인하려고 (비밀 아님)
+        commit: (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 7) || null,
+        commitMsg: process.env.VERCEL_GIT_COMMIT_MESSAGE || null,
         env: {
           GARDEN_STATE: process.env.GARDEN_STATE || null, // 비밀 아님
           TEAM_PASSWORD: !!process.env.TEAM_PASSWORD,
