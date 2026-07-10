@@ -346,6 +346,21 @@ const server = createServer(async (req, res) => {
       return send(res, 200, { ok: true, cancelled });
     }
 
+    // 주문 포기 — 배송 중이라 취소가 안 먹혀도, 이 주문을 접고 계정을 재가드닝 가능하게(inFlightFor 제외).
+    // 돈 안 나감(재주문은 별도 집행+비번). smm 취소를 마지막으로 한 번 더 시도(환불 여지)하되 결과와 무관하게 포기 처리.
+    if (path === '/api/order/abandon' && req.method === 'POST') {
+      const body = await readBody(req);
+      let orders = loadOrders(campaign.dataDir);
+      const o = orders.find((x) => String(x.id) === String(body.orderId));
+      if (!o) return send(res, 404, { error: '주문 없음' });
+      if (smm) { try { await smm.cancel([o.id]); } catch {} } // 마지막 취소 시도(환불 가능하면)
+      o.abandoned = true;
+      o.abandonedAt = new Date().toISOString();
+      o.cancelStuck = false;
+      saveOrders(campaign.dataDir, orders);
+      return send(res, 200, { ok: true });
+    }
+
     // 정적 파일
     const file = (path === '/' ? '/index.html' : path).replace(/^\/+/, '');
     const fp = join(PUB, file);

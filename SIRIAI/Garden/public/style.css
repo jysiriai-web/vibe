@@ -63,6 +63,9 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 .btn.danger:hover { background: #d33b40; color: #fff; }
 .btn:disabled { opacity: .5; cursor: default; }
 .btn.small { font-size: 13px; padding: 7px 13px; box-shadow: none; }
+.btn.ghost { background: transparent; border-color: var(--line); color: var(--muted); box-shadow: none; }
+.btn.ghost:hover { border-color: var(--needs); color: var(--needs); background: transparent; }
+.ord-btns { display: flex; gap: 6px; justify-content: flex-end; white-space: nowrap; }
 
 .cnt { font-size: 12px; font-weight: 700; background: var(--line2); color: var(--muted); padding: 1px 8px; border-radius: 20px; font-variant-numeric: tabular-nums; }
 .nav .tab.active .cnt { background: #fff; color: var(--accent-ink); }

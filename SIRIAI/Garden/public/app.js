@@ -263,6 +263,7 @@ const fillingNote = (filling) => `<div class="note"><b>⏳ 채워지는 중 (재
 const CANCEL_ST = ['Canceled', 'Cancelled', 'Refunded'];
 // 주문 상태 분류 (필터·요약·칩 공용). active 진행중 / done 완료 / canceled 취소·종료 / stuck 오류
 function orderClass(o) {
+  if (o.abandoned) return 'canceled'; // 포기함 = 취소·종료 카테고리(더 이상 진행중 아님)
   if (o.cancelStuck) return 'stuck';
   if (o.done && CANCEL_ST.includes(o.status)) return 'canceled';
   if (o.closed) return 'canceled';
@@ -277,25 +278,35 @@ function viewOrders(orders) {
   const rows = [...shown].reverse().map((o) => {
     const delivered = o.quantity - (Number(o.remains) || 0), pct = o.quantity ? Math.round((delivered / o.quantity) * 100) : 0;
     let st;
-    if (o.cancelStuck) st = '<span class="chip needs">⚠️ 오류</span>';
+    if (o.abandoned) st = '<span class="chip stale">포기함</span>';
+    else if (o.cancelStuck) st = '<span class="chip needs">⚠️ 오류</span>';
     else if (o.done && CANCEL_ST.includes(o.status)) st = '<span class="chip stale">취소됨</span>';
     else if (o.done && o.status === 'Partial') st = '<span class="chip ok">부분완료</span>';
     else if (o.done) st = '<span class="chip ok">완료</span>';
     else if (o.closed) st = '<span class="chip stale">종료·취소요청</span>';
     else if (o.stale) st = '<span class="chip stale">정체 의심</span>';
     else st = '<span class="chip filling">진행중</span>';
-    const canClose = (!o.done && !o.closed) || o.cancelStuck;
+    // 버튼: 활성=종료 처리 / 종료했는데 아직 배송중(유예·오류)=[다시 종료]+[포기(재주문 허용)] / 포기·완료=없음
+    let btns = '';
+    if (!o.abandoned && !o.done) {
+      if (!o.closed) btns = `<button class="btn small close-order" data-id="${o.id}">종료 처리</button>`;
+      else btns = `${o.cancelStuck ? `<button class="btn small close-order" data-id="${o.id}">다시 종료</button>` : ''}<button class="btn small ghost abandon-order" data-id="${o.id}" title="이 주문을 접고 이 계정을 다시 가드닝할 수 있게 해요">포기</button>`;
+    }
     return `<tr><td class="company">#${o.id}${o.service ? ` · s${o.service}` : ''}</td><td class="handle">${link(o.handle)}</td><td class="num">${fmt(o.quantity)}</td>
       <td><div class="progress"><span style="width:${pct}%"></span></div></td><td class="num">${delivered}/${o.quantity}</td><td>${st}</td>
       <td class="num">${won(o.charge != null ? Number(o.charge) : o.cost)}</td><td class="company">${timeAgo(o.placedAt)}</td>
-      <td>${canClose ? `<button class="btn small close-order" data-id="${o.id}">${o.cancelStuck ? '다시 종료' : '종료 처리'}</button>` : ''}</td></tr>`;
+      <td class="ord-btns">${btns}</td></tr>`;
   }).join('');
   const staleN = orders.filter((o) => o.stale && orderClass(o) === 'active').length;
+  const abandonedN = orders.filter((o) => o.abandoned).length;
+  const closedActiveN = orders.filter((o) => o.closed && !o.done && !o.abandoned).length;
   const bar = filterRow(fbar('상태', 'ord-f', state.fOrder, [['all', '전체'], ['active', '진행중'], ['done', '완료'], ['canceled', '취소·종료'], ['stuck', '오류']], cnt));
   return `<div class="bar"><div class="summary">총 <b>${orders.length}</b>건 · 진행중 <b>${cnt.active}</b>${cnt.stuck ? ` · <b style="color:var(--needs)">오류 ${cnt.stuck}</b>` : ''}${staleN ? ` · <b style="color:var(--warn)">정체 의심 ${staleN}</b>` : ''}</div></div>
   ${bar}
   <table><thead><tr><th>주문#</th><th>계정</th><th class="num">수량</th><th>배송</th><th class="num">진행</th><th>상태</th><th class="num">비용</th><th>시각</th><th></th></tr></thead><tbody>${rows || emptyRow(9, '이 상태의 주문이 없어요.')}</tbody></table>
-  ${cnt.stuck ? `<div class="note"><b style="color:var(--needs)">⚠️ 오류</b> = 종료 처리했는데 smmkings에서 취소가 안 먹히고 계속 배송 중인 주문이에요(종료 후 1시간 지나도 배송 중). <b>다시 종료</b>로 재시도할 수 있고, 그 사이 진행중으로 잡혀 재가드닝을 막아요.</div>` : ''}
+  ${cnt.stuck ? `<div class="note"><b style="color:var(--needs)">⚠️ 오류</b> = 종료했는데 smmkings에서 취소가 안 먹히고 계속 배송 중이에요(종료 후 1시간 지나도). <b>다시 종료</b>로 재시도하거나, 급하면 <b>포기</b>로 이 주문을 접고 그 계정을 바로 다시 가드닝할 수 있어요.</div>` : ''}
+  ${closedActiveN && !cnt.stuck ? `<div class="note"><b>종료·취소요청</b> = 종료를 눌러 취소 요청한 주문이에요. 급해서 바로 다른 서비스로 재주문하려면 <b>포기</b>를 누르면 이 계정을 다시 가드닝할 수 있어요(포기한 주문의 팔로워는 들어올 수도 있어요).</div>` : ''}
+  ${abandonedN ? `<div class="note"><b>포기함</b> = 접은 주문이에요(비용은 기록에 남음). 이 계정은 다시 가드닝할 수 있어요 — <b>비용 탭</b>에서 서비스를 바꾼 뒤 가드닝하면 다른 서비스로 새로 주문돼요.</div>` : ''}
   ${staleN ? `<div class="note"><b style="color:var(--warn)">⚠️ 정체 의심</b> = ${state.data.config.staleDays}일 넘게 안 끝난 주문. 멈춰있으면 <b>종료 처리</b>로 취소하고, 그 계정을 다시 가드닝하면 돼요.</div>` : ''}`;
 }
 function viewCost(orders, balance) {
@@ -378,6 +389,7 @@ function wire() {
   if ($('#svcSelect')) $('#svcSelect').addEventListener('change', changeService);
   if ($('#syncRecruitBtn')) $('#syncRecruitBtn').addEventListener('click', syncRecruit);
   $$('.close-order').forEach((b) => b.addEventListener('click', () => closeOrder(b.dataset.id)));
+  $$('.abandon-order').forEach((b) => b.addEventListener('click', () => abandonOrder(b.dataset.id)));
   $$('.star').forEach((b) => b.addEventListener('click', () => toggleBest(b.dataset.h)));
   $$('.cell-edit').forEach((b) => b.addEventListener('click', () => startCellEdit(b)));
   $$('.rev-sel').forEach((s) => s.addEventListener('change', () => setReview(Number(s.dataset.row), Number(s.dataset.col), s.value)));
@@ -506,7 +518,17 @@ async function closeOrder(id) {
   overlay(false);
   if (r.error) return toast('실패: ' + r.error);
   if (r.cancelled) toast('취소·환불 요청됨 · 종료 완료');
-  else toast('⚠️ 취소는 안 됐어요(이 서비스는 자동취소 미지원) — 이 주문은 계속 배송될 수 있어 배송 끝나야 재가드닝돼요');
+  else toast('⚠️ 취소는 안 됐어요(이미 배송 중) — 급하면 [포기]로 접고 다른 서비스로 재주문할 수 있어요');
+  await loadData();
+}
+// 주문 포기 — 취소가 안 먹혀도 이 주문을 접고 계정을 재가드닝 가능하게(돈 안 나감, 재주문은 별도).
+async function abandonOrder(id) {
+  if (!confirm(`주문 #${id} 을 포기할까요?\n이 주문을 접고 이 계정을 다시 가드닝할 수 있게 해요.\n\n· 이미 주문한 팔로워는 계속 들어올 수 있어요(환불 안 될 수 있음).\n· 급하면 비용 탭에서 서비스를 바꾼 뒤 새로 주문하세요.`)) return;
+  overlay(true, '포기 처리 중…');
+  const r = await api(`/api/order/abandon?campaign=${state.campaign}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: id }) }).catch(() => ({ error: '네트워크 오류' }));
+  overlay(false);
+  if (r.error) return toast('실패: ' + r.error);
+  toast('포기 완료 · 이 계정을 다시 가드닝할 수 있어요');
   await loadData();
 }
 async function openExecute() {
