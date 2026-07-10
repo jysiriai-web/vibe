@@ -54,6 +54,20 @@ export function createSmm(key, apiUrl) {
     status: (order) => req({ action: 'status', order: String(order) }),
     multiStatus: (orders) =>
       req({ action: 'status', orders: orders.join(',') }),
-    cancel: (orders) => req({ action: 'cancel', orders: orders.join(',') }),
+
+    // ⚠️ 취소 실패는 최상위 error 가 아니라 배열 안에 들어온다. HTTP 200 이고 json.error 도 없다.
+    //      [{"order":1,"cancel":{"error":"error.incorrect_order_id"}}]   ← 실패
+    //      [{"order":1,"cancel":1}]                                      ← 성공
+    //    예전엔 req() 가 안 던진다는 이유로 전부 '취소됨'으로 기록했다. 그래서 배송이 계속되는데도
+    //    대시보드는 취소된 줄 알았다. 이제 건별로 성공/실패를 돌려준다.
+    cancel: async (orders) => {
+      const r = await req({ action: 'cancel', orders: orders.join(',') });
+      const arr = Array.isArray(r) ? r : [r];
+      return arr.map((x) => {
+        const c = x && x.cancel;
+        const err = c && typeof c === 'object' && c.error ? String(c.error) : '';
+        return { order: x && x.order, ok: !!c && !err, error: err };
+      });
+    },
   };
 }

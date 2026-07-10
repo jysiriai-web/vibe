@@ -411,16 +411,23 @@ export async function handler(req, res) {
           o.status = st.status;
         }
       } catch {}
+      // 패널이 취소를 '실제로' 받아줬는지 건별 응답으로 확인한다. HTTP 200 이라고 취소된 게 아니다.
       let cancelled = false;
-      try { await smm.cancel([o.id]); cancelled = true; } catch {}
+      let cancelError = '';
+      try {
+        const [c] = await smm.cancel([o.id]);
+        cancelled = !!(c && c.ok);
+        if (c && !c.ok) cancelError = c.error || '패널이 취소를 거절했어요';
+      } catch (e) { cancelError = String((e && e.message) || e); }
       o.closed = true;
       o.cancelled = cancelled; // 취소 성공 여부. 실패(false)면 inFlightFor 가 계속 진행중으로 카운트(재주문 차단).
+      o.cancelError = cancelError || undefined;
       o.cancelStuck = false; // 새 종료 시도 → 오류표시 초기화(유예 지나도 배송 계속하면 스캔이 재표기).
       o.closedAt = new Date().toISOString();
       const w = await writeOrders(campaign, orders);
       if (!w.durable) return send(res, 500, { error: '종료 처리 기록에 실패했어요. 다시 시도해 주세요.' });
       if (w.sheet === 'fail') console.error("[종료] 시트 기록 실패(로컬엔 저장됨):", w.sheetError);
-      return send(res, 200, { ok: true, cancelled, sheetWarn: w.sheet === 'fail' ? '시트에 아직 안 올라갔어요(로컬엔 저장됨)' : undefined });
+      return send(res, 200, { ok: true, cancelled, cancelError: cancelError || undefined, sheetWarn: w.sheet === 'fail' ? '시트에 아직 안 올라갔어요(로컬엔 저장됨)' : undefined });
     }
 
     // 주문 포기 — 배송 중이라 취소가 안 먹혀도, 이 주문을 접고 계정을 재가드닝 가능하게(inFlightFor 제외).

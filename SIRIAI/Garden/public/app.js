@@ -560,8 +560,8 @@ async function closeOrder(id) {
   const r = await api(`/api/order/close?campaign=${state.campaign}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: id }) }).catch(() => ({ error: '네트워크 오류' }));
   overlay(false);
   if (r.error) return toast('실패: ' + r.error);
-  if (r.cancelled) toast('취소·환불 요청됨 · 종료 완료');
-  else toast('⚠️ 취소는 안 됐어요(이미 배송 중) — 급하면 [포기]로 접고 다른 서비스로 재주문할 수 있어요');
+  if (r.cancelled) toast('패널이 취소를 받아줬어요 · 종료 완료');
+  else toast(`⚠️ 취소가 안 됐어요${r.cancelError ? ` (${r.cancelError})` : ''} — 배송은 계속됩니다. 급하면 [포기]로 접고 다른 서비스로 재주문하세요`);
   await loadData();
 }
 // 주문 포기 — 취소가 안 먹혀도 이 주문을 접고 계정을 재가드닝 가능하게(돈 안 나감, 재주문은 별도).
