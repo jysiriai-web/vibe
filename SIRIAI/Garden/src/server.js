@@ -13,7 +13,7 @@ import { runAutoRefill, refillServiceIds, REFILL_WINDOW_DAYS } from './refill.js
 import { getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet, syncRecruitToSheet } from './sheet.js';
 import { scanAccounts, buildPlan, placeOrders, findService } from './execute-core.js';
 import { runSync } from './sync-core.js';
-import { runContentScan } from './content-core.js';
+import { runContentScan, judgeOneLink } from './content-core.js';
 import { listCampaigns, getCampaign, getFx, setCalibration, setFallbackRate, getStaleDays, setService } from './campaigns.js';
 import { getMarketUsdKrw } from './fx.js';
 import { EDITABLE_COLS, OVERRIDE_COLS } from './overrides.js';
@@ -322,6 +322,16 @@ export async function handler(req, res) {
     }
     if (path === '/api/content-scan/status' && req.method === 'GET') {
       return send(res, 200, contentScanState);
+    }
+    // 수기 대체 — 링크 한 장만 열어 판정(스캔이 막힐 때). 창 하나 잠깐 뜸.
+    if (path === '/api/judge-link' && req.method === 'POST') {
+      const body = await readBody(req);
+      const row = Number(body.row);
+      if (!row || !body.link) return send(res, 400, { error: 'row·link 가 필요해요' });
+      try {
+        const r = await judgeOneLink(campaign, { row, handle: body.handle, link: String(body.link) });
+        return send(res, 200, { ok: true, ...r, accounts: await buildAccounts(campaign, await readOrders(campaign)) });
+      } catch (e) { return send(res, 200, { ok: false, error: (e && e.message) || String(e) }); }
     }
 
     // SIRIAI 베스트 콘텐츠 토글

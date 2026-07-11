@@ -22,6 +22,7 @@ export const LOCAL_ONLY = new Set([
   '/api/content-scan',
   '/api/content-scan/status',
   '/api/content-scan/confirm',
+  '/api/judge-link',
   '/api/plan',
   '/api/execute',
   '/api/order/close',

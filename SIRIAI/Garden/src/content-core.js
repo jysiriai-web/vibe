@@ -14,6 +14,43 @@ function prevDetected(campaign) {
   try { return JSON.parse(readFileSync(p, 'utf8')).detected || {}; } catch { return {}; }
 }
 
+// 수기 대체 — 틱톡이 프로필 목록을 막을 때, 사람이 붙여넣은 '영상 링크 한 장'만 열어 판정한다.
+// 프로필 그리드(잘 막힘) 대신 영상 페이지 한 장이라 훨씬 안 막힌다. 저장된 세션으로 인증 게이트 없이 시도.
+export async function judgeOneLink(campaign, { row, handle, link }) {
+  if (!videoIdFromLink(link)) throw new Error('틱톡 영상 링크가 아니에요 (…/video/숫자 형태여야 해요).');
+  const cfg = { hashtags: campaign.campaignHashtags || [], soundId: campaign.campaignSoundId || '' };
+  const { browser, ctx } = await launchBrowser({ warmup: false }); // 영상 한 장 → 인증 게이트 생략
+  let one;
+  try { one = await fetchVideoByLink(ctx, link); }
+  finally { try { await browser.close(); } catch {} }
+  if (!one || !one.ok) throw new Error((one && one.error) || '영상을 못 열었어요 (틱톡이 막았을 수 있어요). 잠시 후 다시 해주세요.');
+
+  const d = detectCampaign([one.video], cfg, { knownLink: link });
+  // 시트 되쓰기 — 수동 잠금(overrides)된 칸은 안 건드림. 캠페인 기준 없으면 음원/해시태그는 안 씀.
+  const overrides = await readOverrides(campaign);
+  const cells = [];
+  const putIf = (col, value) => { if (!isLocked(overrides, row, col)) cells.push({ row, col, value }); };
+  putIf(17, d.contentLink || link);
+  if (cfg.soundId) putIf(19, d.soundOk ? '사용 확인' : '음원 다름');
+  if (cfg.hashtags.length) putIf(21, d.hashtagOk ? '확인 완료' : '해시태그 누락');
+  cells.push({ row, col: 27, value: d.views }, { row, col: 28, value: d.likes }, { row, col: 29, value: d.comments }, { row, col: 30, value: d.shares });
+  let written = 0;
+  try { written = await pushCellsToSheet(campaign.sheet, cells); } catch {}
+
+  // detected.json 갱신 → 다음 업로드 스캔이 이 계정을 '미업로드'로 다시 안 봄.
+  try {
+    const p = join(campaign.dataDir, 'detected.json');
+    const cur = existsSync(p) ? JSON.parse(readFileSync(p, 'utf8')) : { detected: {} };
+    cur.detected = cur.detected || {};
+    cur.detected[handle] = d;
+    cur.ranAt = new Date().toISOString();
+    mkdirSync(campaign.dataDir, { recursive: true });
+    writeFileSync(p, JSON.stringify(cur, null, 2));
+  } catch {}
+
+  return { uploaded: d.uploaded, soundOk: d.soundOk, hashtagOk: d.hashtagOk, views: d.views, written };
+}
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // onWarmup: 인증 창이 떠서 '스캔 시작' 대기 중일 때 1회 호출. waitForGo: 사람이 '스캔 시작' 누르면 resolve.

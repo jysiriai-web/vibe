@@ -321,7 +321,9 @@ function viewUpload(accts) {
     <td>${coChip(a.company)}</td>
     <td class="handle">${link(a.handle)}${isFail ? ' <span class="chip warn scanfail-tag">스캔 실패</span>' : ''}</td>
     <td>${uploaded(a) ? (reviewPending(a) ? '<span class="chip needs">검수대기</span>' : '<span class="chip ok">검수완료</span>') : '<span class="chip error">미업로드</span>'}</td>
-    <td>${uploaded(a) ? `<a href="${esc(a.contentLink)}" target="_blank">영상 보기</a> <button class="cell-edit" data-kind="content" data-row="${a.row}" data-val="${esc(a.contentLink)}">✎</button>` : `<button class="cell-edit prompt" data-kind="content" data-row="${a.row}" data-val="">링크 달기</button>`}</td>
+    <td>${uploaded(a)
+      ? `<a href="${esc(a.contentLink)}" target="_blank">영상 보기</a> <button class="cell-edit" data-kind="content" data-row="${a.row}" data-val="${esc(a.contentLink)}">✎</button>${isCloud() ? '' : ` <button class="btn small judge-link" data-row="${a.row}" data-h="${esc(a.handle)}" data-link="${esc(a.contentLink)}" title="이 영상 한 장만 열어 음원·해시태그·조회수 판정 (스캔이 막힐 때 대체)">🔍 판정</button>`}`
+      : `<button class="cell-edit prompt" data-kind="content" data-row="${a.row}" data-val="">링크 달기</button>`}</td>
     <td>${revChip(a, 19)}</td>
     <td>${revChip(a, 20)}</td>
     <td>${revChip(a, 21)}</td></tr>`;
@@ -551,6 +553,7 @@ function wire() {
   $$('.copy-refund').forEach((b) => b.addEventListener('click', () => copyText(b.dataset.ids, `주문번호 ${b.dataset.ids.split(',').length}개 복사됨`)));
   $$('.star').forEach((b) => b.addEventListener('click', () => toggleBest(b.dataset.h)));
   $$('.cell-edit').forEach((b) => b.addEventListener('click', () => startCellEdit(b)));
+  $$('.judge-link').forEach((b) => b.addEventListener('click', () => judgeLink(b.dataset.row, b.dataset.h, b.dataset.link)));
   $$('.rev-sel').forEach((s) => s.addEventListener('change', () => setReview(Number(s.dataset.row), Number(s.dataset.col), s.value)));
   // 스캔 실패 하이라이트: 그 줄을 클릭하면(검수 드롭다운·편집 버튼 제외) 표시가 사라진다.
   $$('tr[data-failh]').forEach((tr) => tr.addEventListener('click', (e) => { if (e.target.closest('select, .cell-edit')) return; dismissFail(tr.dataset.failh); }));
@@ -793,6 +796,16 @@ async function contentScan(full) {
       : `업로드 스캔 완료 — 업로드 ${s.up}개 · 시트 ${s.written}칸 반영`);
     await loadData();
   }, 2500);
+}
+// 수기 대체 — 링크 한 장만 열어 판정 (스캔이 막힐 때). 프로필 목록 대신 영상 페이지 하나라 훨씬 안 막힘.
+async function judgeLink(row, handle, link) {
+  if (!link || !/\/video\/\d+/.test(link)) return toast('영상 링크가 필요해요 (…/video/숫자). 먼저 링크를 달아주세요.');
+  overlay(true, '이 영상 하나만 열어 판정 중… (크롬 창이 잠깐 떠요)');
+  const r = await api(`/api/judge-link?campaign=${state.campaign}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ row: Number(row), handle, link }) }).catch(() => ({ error: '네트워크 오류' }));
+  overlay(false);
+  if (!r.ok) return toast('판정 실패: ' + (r.error || ''));
+  toast(`✅ 판정 완료 — 음원 ${r.soundOk ? '준수' : '미준수'} · 해시태그 ${r.hashtagOk ? '준수' : '미준수'} · 조회수 ${fmt(r.views || 0)}`);
+  await loadData();
 }
 // 로봇 인증 확인 패널 — 크롬 창에서 인증 끝낸 뒤 [스캔 시작]을 눌러야 착수한다.
 function scanConfirmPanel(show) {
