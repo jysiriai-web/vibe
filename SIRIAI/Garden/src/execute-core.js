@@ -6,8 +6,8 @@ import { inFlightFor } from './orders.js';
 
 // 계정 리스트 팔로워·닉네임 스크랩 — 실제 브라우저(Playwright headless:false)로 봇 차단 우회.
 // 직접 fetch 방식은 틱톡이 'Please wait'로 전부 차단해서 폐기(2026-07-09).
-// 동시성 풀(기본 5) — 한 브라우저에 탭 여러 개 병렬로 열어 스캔 (콘텐츠 스캔과 동일 패턴, 300건 대비 ~5배↑).
-export async function scanAccounts(accounts, { delayMs = 200, onProgress, onWait, concurrency = 5 } = {}) {
+// 동시성 3 + 계정 간 랜덤 간격 — 탭을 많이 열면 틱톡이 막아서 차단을 줄이려 낮췄다(5→3).
+export async function scanAccounts(accounts, { delayMs = 500, onProgress, onWait, concurrency = 3 } = {}) {
   if (!accounts.length) return [];
   const out = new Array(accounts.length);
   // 창 하나 먼저 띄워 로봇 인증을 사람이 끝낼 때까지 대기 (인증 실패면 throw — 빈 결과로 진행하지 않는다)
@@ -31,7 +31,7 @@ export async function scanAccounts(accounts, { delayMs = 200, onProgress, onWait
       out[i] = row; // 인덱스로 결과 순서 보존
       done++;
       if (onProgress) onProgress({ ...row, done, total: accounts.length });
-      if (delayMs) await sleep(delayMs);
+      if (delayMs) await sleep(delayMs + Math.floor(Math.random() * delayMs)); // 사람처럼 간격 랜덤화
     }
   };
   try {

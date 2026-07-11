@@ -17,8 +17,10 @@ function prevDetected(campaign) {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // onWarmup: 인증 창이 떠서 '스캔 시작' 대기 중일 때 1회 호출. waitForGo: 사람이 '스캔 시작' 누르면 resolve.
-// concurrency 는 낮게(기본 2) — 탭을 많이 열면 틱톡이 막아서 업로드된 계정도 '못 봄'으로 잡힌다(사용자 지적).
-export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo, full = false, concurrency = 2 } = {}) {
+// concurrency=1(순차)이 기본 — 탭을 여럿 열면 틱톡이 봇으로 보고 콘텐츠를 잠근다(사용자 반복 지적).
+//   느리지만(업로드 스캔은 미업로드 계정만 = 소량) 훨씬 안 막힌다. 아래 jitter+백오프와 함께.
+const jitter = () => 900 + Math.floor(Math.random() * 1700); // 계정 간 0.9~2.6초 랜덤(사람처럼)
+export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo, full = false, concurrency = 1 } = {}) {
   const cfg = { hashtags: campaign.campaignHashtags || [], soundId: campaign.campaignSoundId || '' };
   const accounts = await getAccountsFromSheet(campaign.sheet);
   const prev = prevDetected(campaign);
@@ -34,11 +36,13 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
   let done = 0;
   let newUp = 0;
   const failedHandles = new Set(); // 틱톡이 막아서 '못 본' 계정 — '영상 없음'과 절대 섞지 않는다
-  // 동시성 풀 — 한 브라우저 창에 여러 탭을 병렬로 열어 스캔 (300건 대비 5배↑ 속도)
+  let consecFail = 0; // 연속 실패 = 틱톡이 막는 중 → 한 템포 쉬어 rate-limit 이 풀리게
+  // 순차 처리(concurrency=1) + 계정 간 랜덤 간격 — 사람처럼 보이게 해서 봇 차단을 피한다.
   let idx = 0;
   const worker = async () => {
     while (idx < targets.length) {
       const a = targets[idx++];
+      await sleep(jitter()); // 사람처럼 뜸 들이기
       let r = { videos: [], ok: false, error: '' };
       try { r = await fetchVideos(ctx, a.handle); } catch (e) { r.error = String((e && e.message) || e); }
 
@@ -59,9 +63,13 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
         failedHandles.add(a.handle);
         detected[a.handle] = prev[a.handle] || { uploaded: false, scanFailed: true, error: r.error };
         done++;
+        consecFail++;
+        // 연속으로 막히면(3번) 30초 쉬어 틱톡 rate-limit 이 풀리게 한 뒤 계속한다.
+        if (consecFail >= 3) { if (onProgress) onProgress({ done, total: targets.length, handle: a.handle, uploaded: false, cooldown: true }); await sleep(30000); consecFail = 0; }
         if (onProgress) onProgress({ done, total: targets.length, handle: a.handle, uploaded: false, failed: true });
         continue;
       }
+      consecFail = 0; // 성공하면 리셋
 
       // 시트 17열에 사람이 적어둔 링크가 있으면 그 영상을 우선 판정한다.
       const d = detectCampaign(r.videos, cfg, { knownLink: a.contentLink });
