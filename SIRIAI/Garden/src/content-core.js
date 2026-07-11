@@ -173,6 +173,21 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
     cells.push({ row: r, col: 29, value: d.comments });
     cells.push({ row: r, col: 30, value: d.shares });
   }
+
+  // 재조정: 예전 스캔이 '업로드'로 감지했는데(detected) 시트 되쓰기가 실패해 링크가 빈 계정을 메운다.
+  // 한 번 detected 에 박히면 증분 스캔이 그 계정을 건너뛰어(위 targets 제외) 시트에 영영 안 써졌다
+  //  → 대시보드는 detected 에서 채워 30, 시트는 29 로 갈라졌다(@ae_yyee 사례). 매 스캔 이걸 맞춘다.
+  const blankV = (v) => !(v != null && String(v).trim());
+  const scanned = new Set(targets.map((t) => t.handle));
+  for (const a of accounts) {
+    if (scanned.has(a.handle) || !a.row) continue; // 이번에 스캔한 건 위에서 처리됨
+    const d = detected[a.handle];
+    if (!d || !d.uploaded) continue;
+    if (blankV(a.contentLink)) putIf(a.row, 17, d.contentLink);
+    if (cfg.soundId && blankV(a.soundOk)) putIf(a.row, 19, d.soundOk ? '사용 확인' : '음원 다름');
+    if (cfg.hashtags.length && blankV(a.hashtagOk)) putIf(a.row, 21, d.hashtagOk ? '확인 완료' : '해시태그 누락');
+  }
+
   let written = 0;
   if (cells.length) {
     try { written = await pushCellsToSheet(campaign.sheet, cells); } catch {}
