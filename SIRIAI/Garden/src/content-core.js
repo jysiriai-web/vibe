@@ -123,8 +123,10 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
     //  full=true 면 사람이 명시적으로 재판정을 요청한 것이므로 그때만 덮어쓴다.)
     const blank = (v) => !(v != null && String(v).trim());
     if (full || blank(a.contentLink)) putIf(r, 17, d.contentLink);
-    if (full || blank(a.soundOk)) putIf(r, 19, d.soundOk ? '사용 확인' : '음원 다름');
-    if (full || blank(a.hashtagOk)) putIf(r, 21, d.hashtagOk ? '확인 완료' : '해시태그 누락');
+    // 캠페인에 음원/해시태그 기준이 설정된 경우에만 판정을 쓴다.
+    // (기준이 없으면 d.soundOk/hashtagOk 가 무조건 false → '음원 다름'·'해시태그 누락'을 잘못 기록하게 됨)
+    if (cfg.soundId && (full || blank(a.soundOk))) putIf(r, 19, d.soundOk ? '사용 확인' : '음원 다름');
+    if (cfg.hashtags.length && (full || blank(a.hashtagOk))) putIf(r, 21, d.hashtagOk ? '확인 완료' : '해시태그 누락');
     // 성과 수치(27~30)는 항상 최신으로 갱신(이미 업로드된 계정도 조회수 증가 반영).
     cells.push({ row: r, col: 27, value: d.views });
     cells.push({ row: r, col: 28, value: d.likes });

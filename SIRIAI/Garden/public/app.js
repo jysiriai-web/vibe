@@ -143,7 +143,8 @@ function render() {
 }
 
 const chip = (s) => `<span class="chip ${s}">${STATUS[s] || s}</span>`;
-const link = (h) => `<a href="https://www.tiktok.com/@${h}" target="_blank">@${h}</a>`;
+// 핸들은 시트에서 오므로 이스케이프한다(속성 인젝션 방지). 정상 핸들엔 변화 없음.
+const link = (h) => `<a href="https://www.tiktok.com/@${encodeURIComponent(String(h ?? ''))}" target="_blank">@${esc(h)}</a>`;
 const coChip = (c) => (c ? `<span class="co co-${c === 'MARU' ? 'maru' : c === 'SIRIAI' ? 'siriai' : 'x'}">${c}</span>` : '');
 // 검수 드롭다운. col=19 음원 / 20 음원구간 / 21 해시태그. 선택 즉시 저장(낙관적 반영).
 function revChip(a, col) {
@@ -224,12 +225,20 @@ function sortTh(tableId, key, label, { num = false, defKey } = {}) {
   return `<th class="sortable${num ? ' num' : ''}${active ? ' sorted' : ''}" data-sort="${key}" data-table="${tableId}" tabindex="0" role="button" aria-sort="${active ? (s.dir === 'asc' ? 'ascending' : 'descending') : 'none'}" title="클릭하면 이 열로 정렬 (다시 누르면 반대로)">${label}${arrow}</th>`;
 }
 // 리스트 정렬. accessors: { key: (row)=>비교값 }. 헤더보다 먼저 호출해 기본 정렬을 확정한다.
+// 빈값(null·''·NaN)은 방향과 무관하게 항상 뒤로 — dir 을 곱하지 않는다(예전 *dir 이 null 을 위로 뒤집었음).
 function sortList(tableId, list, accessors, defKey, defDir = 'desc') {
   const s = sortOf(tableId, defKey, defDir);
   const get = accessors[s.key] || accessors[defKey];
   if (!get) return list;
   const dir = s.dir === 'asc' ? 1 : -1;
-  return [...list].sort((a, b) => cmpVals(get(a), get(b)) * dir);
+  return [...list].sort((a, b) => {
+    const va = get(a), vb = get(b);
+    const na = sortNull(va), nb = sortNull(vb);
+    if (na && nb) return 0;
+    if (na) return 1;  // 빈값은 항상 아래로
+    if (nb) return -1;
+    return cmpVals(va, vb) * dir; // 실제 값만 방향 적용
+  });
 }
 const statusRank = (s) => ({ needs: 0, filling: 1, error: 2, ok: 3 }[s] ?? 9); // 상태 정렬 순서
 const coBar = (c) => fbar('진행사', 'co-f', state.fCo, [['all', '전체'], ['MARU', 'MARU'], ['SIRIAI', 'SIRIAI']], c);
@@ -404,7 +413,10 @@ function viewOrders(orders) {
     placedAt: (o) => (o.placedAt ? new Date(o.placedAt).getTime() : 0),
   }, 'placedAt', 'desc');
   const rows = sortedOrders.map((o) => {
-    const delivered = o.quantity - (Number(o.remains) || 0), pct = o.quantity ? Math.round((delivered / o.quantity) * 100) : 0;
+    // remains 를 모르면(패널이 누락) 전달량을 0으로 오인해 '100% 완료'로 보이지 않게 — 서버의 null-안전 값 사용.
+    const known = o.delivered != null; // markStale 가 remains 불명이면 delivered=null 로 내려줌
+    const delivered = known ? o.delivered : null;
+    const pct = known && o.quantity ? Math.round((delivered / o.quantity) * 100) : 0;
     let st;
     if (o.abandoned) st = '<span class="chip stale">포기함</span>';
     else if (o.cancelStuck) st = '<span class="chip needs">⚠️ 오류</span>';
@@ -429,7 +441,7 @@ function viewOrders(orders) {
       if (o.refillable) btns += `<button class="btn small refill-order" data-id="${o.id}" title="빠진 팔로워를 지금 리필 요청해요 (30일 리필 서비스)">♻️ 리필</button>`;
     }
     return `<tr><td class="company">#${o.id}${o.service ? ` · s${o.service}` : ''}</td><td class="handle">${link(o.handle)}</td><td class="num">${fmt(o.quantity)}</td>
-      <td><div class="progress"><span style="width:${pct}%"></span></div></td><td class="num">${delivered}/${o.quantity}</td><td>${st}</td>
+      <td><div class="progress"><span style="width:${pct}%"></span></div></td><td class="num">${known ? fmt(delivered) : '?'}/${fmt(o.quantity)}</td><td>${st}</td>
       <td class="num">${won(o.charge != null ? Number(o.charge) : o.cost)}</td><td class="company">${timeAgo(o.placedAt)}</td>
       <td class="ord-btns">${btns}</td></tr>`;
   }).join('');

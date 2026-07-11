@@ -60,9 +60,10 @@ export async function runAutoRefill({ orders, followersByHandle, smm, services, 
   let res = [];
   try { res = await smm.refill(due.map((d) => d.order.id)); }
   catch (e) {
-    // 요청 자체가 실패(네트워크 등) — 기록만 남기고 다음 스캔에 재시도.
+    // 요청 자체가 실패(네트워크 등) — 패널에 닿지도 못했으므로 refillAt 를 찍지 않는다(쿨다운 X).
+    // 그래야 다음 스캔에서 바로 재시도된다. (refillAt 를 찍으면 12h 쿨다운에 걸려 재시도가 막혔음)
     const msg = String((e && e.message) || e);
-    for (const d of due) { d.order.refillAt = new Date(now).toISOString(); d.order.refillError = msg; }
+    for (const d of due) { d.order.refillError = msg; }
     return { requested: due.length, ok: 0, error: msg, results: due.map((d) => ({ handle: d.order.handle, orderId: d.order.id, dropped: d.dropped, ok: false, error: msg })) };
   }
 
