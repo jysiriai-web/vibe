@@ -299,12 +299,13 @@ export async function handler(req, res) {
     if (path === '/api/content-scan' && req.method === 'POST') {
       if (contentScanState.running) return send(res, 200, { running: true });
       const full = url.searchParams.get('full') === '1';
+      const perf = url.searchParams.get('perf') === '1'; // 조회수 스캔(납품 탭) — 업로드된 계정만 갱신
       // phase: 'confirm' = 크롬 창 떠서 로봇 인증 후 '스캔 시작' 대기 중, 'scan' = 실제로 긁는 중
-      contentScanState = { running: true, phase: 'starting', done: 0, total: 0, up: 0, written: 0, failed: 0, pauseRequested: false, error: null, ranAt: null };
+      contentScanState = { running: true, phase: 'starting', mode: perf ? 'perf' : full ? 'full' : 'upload', done: 0, total: 0, up: 0, written: 0, failed: 0, pauseRequested: false, error: null, ranAt: null };
       // 확인 게이트: onWarmup 이 오면 phase=confirm, 사람이 /confirm 누르면 goPromise resolve → 스캔 착수
       const goPromise = new Promise((resolve) => { scanConfirmResolve = resolve; });
       runContentScan(campaign, {
-        full,
+        full, perf,
         onWarmup: () => { contentScanState.phase = 'confirm'; },
         waitForGo: () => goPromise,
         onProgress: (p) => { if (contentScanState.phase !== 'blocked') contentScanState.phase = 'scan'; contentScanState.done = p.done; contentScanState.total = p.total; },
@@ -322,7 +323,7 @@ export async function handler(req, res) {
           return action; // 'resume' | 'stop'
         },
       })
-        .then((r) => { contentScanState = { running: false, done: r.total, total: r.total, up: r.up, written: r.written, failed: r.failed, failedHandles: r.failedHandles, stopped: r.stopped, error: null, ranAt: new Date().toISOString() }; })
+        .then((r) => { contentScanState = { running: false, mode: perf ? 'perf' : full ? 'full' : 'upload', done: r.total, total: r.total, up: r.up, written: r.written, failed: r.failed, failedHandles: r.failedHandles, stopped: r.stopped, error: null, ranAt: new Date().toISOString() }; })
         .catch((e) => { contentScanState = { running: false, done: 0, total: 0, up: 0, written: 0, failed: 0, error: e.message, ranAt: null }; })
         .finally(() => { scanConfirmResolve = null; scanResumeResolve = null; });
       return send(res, 200, { started: true });

@@ -515,7 +515,8 @@ function viewDeliver(accts) {
       ${heroOn ? `<div class="kpi wide"><div class="kpi-top"><span class="kpi-ic">${IC.trophy}</span><span class="lab">히어로 콘텐츠 · 최고 조회수</span></div><div class="big" style="font-size:20px">@${heroOn.handle} · ${fmt(heroOn.v)} 조회</div><div class="sub"><a href="${esc(heroOn.contentLink)}" target="_blank">영상 보기</a></div></div>` : ''}
     </div>
     <div class="filters"><div class="filterbar"><button class="fbtn best-f ${state.bestOnly ? 'active' : ''}" aria-pressed="${state.bestOnly}">★ 베스트만 (${bestCount})</button></div></div>
-    ${noPerf ? '<div class="note"><b>아직 조회수 데이터가 비어있어요.</b> 시트의 조회수·좋아요 칸을 채우면 여기 자동으로 집계돼요. 지금도 ★로 <b>SIRIAI 베스트 콘텐츠</b>는 미리 찍어둘 수 있어요.</div>' : ''}
+    ${isCloud() ? '' : `<div class="bar"><button class="btn small" id="perfScanBtn">📊 조회수 스캔</button><span class="sub" style="margin:0">업로드된 계정 영상을 열어 조회수·좋아요를 한 번에 갱신해요 (막히면 멈춤 → VPN 바꾸고 재개)</span></div>`}
+    ${noPerf ? '<div class="note"><b>아직 조회수 데이터가 비어있어요.</b> 위 <b>📊 조회수 스캔</b>을 누르면 업로드된 영상들을 열어 조회수를 채워요. ★로 <b>SIRIAI 베스트 콘텐츠</b>도 찍어둘 수 있어요.</div>' : ''}
     <table><thead><tr><th>★</th>${sortTh('deliver', 'handle', '계정', { defKey: 'v' })}${sortTh('deliver', 'v', '조회수', { num: true, defKey: 'v' })}${sortTh('deliver', 'l', '좋아요', { num: true, defKey: 'v' })}${sortTh('deliver', 'c', '댓글', { num: true, defKey: 'v' })}${sortTh('deliver', 'sh', '공유', { num: true, defKey: 'v' })}<th>콘텐츠</th></tr></thead><tbody>${rows || emptyRow(7, state.bestOnly ? '★ 베스트로 찍은 콘텐츠가 없어요.' : '조건에 맞는 콘텐츠가 없어요.')}</tbody></table>`;
 }
 
@@ -547,6 +548,7 @@ function wire() {
   if ($('#rateInput')) $('#rateInput').addEventListener('blur', (e) => { const x = num(e.target.value); e.target.value = x == null ? '' : fmt(x); }); // 잔액 입력칸: 벗어나면 천단위 콤마
   if ($('#svcSelect')) $('#svcSelect').addEventListener('change', changeService);
   if ($('#syncRecruitBtn')) $('#syncRecruitBtn').addEventListener('click', syncRecruit);
+  if ($('#perfScanBtn')) $('#perfScanBtn').addEventListener('click', () => contentScan(false, true)); // 납품 탭 조회수 스캔
   $$('.close-order').forEach((b) => b.addEventListener('click', () => closeOrder(b.dataset.id)));
   $$('.abandon-order').forEach((b) => b.addEventListener('click', () => abandonOrder(b.dataset.id)));
   $$('.refill-order').forEach((b) => b.addEventListener('click', () => refillOrder(b.dataset.id)));
@@ -772,11 +774,12 @@ async function scan() {
   await loadData();
 }
 
-async function contentScan(full) {
+async function contentScan(full, perf) {
   const btn = $('#contentScanBtn');
   if (btn.disabled) return; // 이미 스캔 중이면 재진입 막기 (중복 스캔·중복 폴링 방지)
   btn.disabled = true; // 느린 초기 왕복 동안 더블클릭 방지 — await 전에 잠금
-  const r = await api(`/api/content-scan?campaign=${state.campaign}${full ? '&full=1' : ''}`, { method: 'POST' }).catch(() => ({ error: '네트워크 오류' }));
+  const q = perf ? '&perf=1' : full ? '&full=1' : '';
+  const r = await api(`/api/content-scan?campaign=${state.campaign}${q}`, { method: 'POST' }).catch(() => ({ error: '네트워크 오류' }));
   if (r.error) { btn.disabled = false; return toast('오류: ' + r.error); }
   toast('크롬 창이 하나 떠요 — 로봇 인증을 끝낸 뒤 [스캔 시작]을 눌러 주세요');
   const poll = setInterval(async () => {
@@ -790,11 +793,14 @@ async function contentScan(full) {
       return;
     }
     clearInterval(poll); scanPanel(null); btn.disabled = false; btn.textContent = '업로드 스캔';
+    const isPerf = s.mode === 'perf';
     toast(s.stopped
-      ? `⏹ 스캔 중지됨 — 여기까지 업로드 ${s.up || 0}개 반영 (다시 스캔하면 남은 계정부터)`
+      ? `⏹ 스캔 중지됨 — 여기까지 ${s.written || 0}칸 반영 (다시 누르면 남은 계정부터)`
       : s.failed
-        ? `업로드 스캔 완료 — 업로드 ${s.up}개 · ⚠️ ${s.failed}개는 못 봤어요 (업로드 탭에 표시됨)`
-        : `업로드 스캔 완료 — 업로드 ${s.up}개 · 시트 ${s.written}칸 반영`);
+        ? `${isPerf ? '조회수' : '업로드'} 스캔 완료 · ⚠️ ${s.failed}개는 못 봤어요 (다시 시도하세요)`
+        : isPerf
+          ? `조회수 스캔 완료 — 시트 ${s.written}칸 갱신`
+          : `업로드 스캔 완료 — 업로드 ${s.up}개 · 시트 ${s.written}칸 반영`);
     await loadData();
   }, 2000);
 }
