@@ -343,17 +343,20 @@ function viewUpload(accts) {
     <div class="note"><b>검수 완료</b>는 <b>음원·음원구간·해시태그 세 칸이 모두 준수</b>일 때만이에요. 한 칸이라도 <b>미준수</b>나 <b>미확인</b>이면 <b>검수대기</b>로 남습니다. 음원구간은 사람이 영상 보고, 음원·해시태그는 스캔이 자동 판정해요. 드롭다운에서 <b>준수·미준수</b>로 고치면 재스캔해도 유지(수동 우선), <b>미확인</b>으로 되돌리면 자동 판정에 다시 맡겨요. 점선 테두리는 <b>시트에 저장되지 않은 자동 추정값</b>이에요.</div>`;
 }
 
-// 업로드 예정일 (업로드 탭의 '예정일' 열에서 사용). 마스터시트 18열, 주로 SIRIAI 만 값이 있음.
-// 파싱: "7/8" 텍스트 또는 "2026-07-08" 형태 모두 → {key: 정렬용 MMDD, label: "7/8"}
+// 업로드 예정일 (업로드 탭의 '예정일' 열에서 사용). 마스터시트 18열은 원래 '검수 특이사항' 칸인데,
+// 베이온에선 SIRIAI 예정일이 여기 대충 얹혀 있다 → 실제 검수 메모가 들어있을 수도 있다.
+// 그래서 값이 '순수 날짜 모양'("7/8" 또는 "2026-07-08")일 때만 예정일로 인정하고,
+// 그 외(검수 메모 등)는 예정일로 오인하지 않고 null(표시는 '—').
 function schedInfo(a) {
   const t = String(a.schedDate || '').trim();
   if (!t) return null;
-  const iso = t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-  const md = t.match(/^(\d{1,2})\s*[./-]\s*(\d{1,2})/);
   let mo, da;
+  const iso = t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  const md = t.match(/^(\d{1,2})\s*[./-]\s*(\d{1,2})$/);
   if (iso) { mo = +iso[2]; da = +iso[3]; }
   else if (md) { mo = +md[1]; da = +md[2]; }
-  else return { key: 99999, label: t }; // 모르는 형식: 정렬 맨 뒤, 원문 그대로 표시
+  else return null; // 순수 날짜 아님(검수 메모 등) → 예정일 아님
+  if (mo < 1 || mo > 12 || da < 1 || da > 31) return null; // 날짜 범위 밖 → 예정일 아님
   return { key: mo * 100 + da, label: `${mo}/${da}` };
 }
 const scheduled = (a) => !!schedInfo(a);
