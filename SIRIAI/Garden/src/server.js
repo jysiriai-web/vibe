@@ -36,6 +36,7 @@ function pwMatch(input) {
 }
 let contentScanState = { running: false, done: 0, total: 0, up: 0, written: 0, error: null, ranAt: null };
 let scanConfirmResolve = null; // '스캔 시작' 확인을 기다리는 promise 의 resolver (로봇 인증 게이트)
+let scanResumeResolve = null; // 막혔을 때 '재개/중지'를 기다리는 resolver (VPN 바꾸기 게이트)
 
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml' };
 
@@ -299,18 +300,31 @@ export async function handler(req, res) {
       if (contentScanState.running) return send(res, 200, { running: true });
       const full = url.searchParams.get('full') === '1';
       // phase: 'confirm' = 크롬 창 떠서 로봇 인증 후 '스캔 시작' 대기 중, 'scan' = 실제로 긁는 중
-      contentScanState = { running: true, phase: 'starting', done: 0, total: 0, up: 0, written: 0, failed: 0, error: null, ranAt: null };
+      contentScanState = { running: true, phase: 'starting', done: 0, total: 0, up: 0, written: 0, failed: 0, pauseRequested: false, error: null, ranAt: null };
       // 확인 게이트: onWarmup 이 오면 phase=confirm, 사람이 /confirm 누르면 goPromise resolve → 스캔 착수
       const goPromise = new Promise((resolve) => { scanConfirmResolve = resolve; });
       runContentScan(campaign, {
         full,
         onWarmup: () => { contentScanState.phase = 'confirm'; },
         waitForGo: () => goPromise,
-        onProgress: (p) => { contentScanState.phase = 'scan'; contentScanState.done = p.done; contentScanState.total = p.total; },
+        onProgress: (p) => { if (contentScanState.phase !== 'blocked') contentScanState.phase = 'scan'; contentScanState.done = p.done; contentScanState.total = p.total; },
+        shouldPause: () => contentScanState.pauseRequested,
+        // 막히면(연속 실패) 또는 수동 중지 → phase=blocked, 사람이 /resume(재개) 또는 /stop(중지) 누를 때까지 대기.
+        onBlocked: async ({ reason, done, total, failed }) => {
+          contentScanState.phase = 'blocked';
+          contentScanState.blockReason = reason;
+          contentScanState.pauseRequested = false;
+          contentScanState.done = done; contentScanState.total = total; contentScanState.failed = failed;
+          const action = await new Promise((resolve) => { scanResumeResolve = resolve; });
+          scanResumeResolve = null;
+          contentScanState.phase = 'scan';
+          contentScanState.blockReason = null;
+          return action; // 'resume' | 'stop'
+        },
       })
-        .then((r) => { contentScanState = { running: false, done: r.total, total: r.total, up: r.up, written: r.written, failed: r.failed, failedHandles: r.failedHandles, error: null, ranAt: new Date().toISOString() }; })
+        .then((r) => { contentScanState = { running: false, done: r.total, total: r.total, up: r.up, written: r.written, failed: r.failed, failedHandles: r.failedHandles, stopped: r.stopped, error: null, ranAt: new Date().toISOString() }; })
         .catch((e) => { contentScanState = { running: false, done: 0, total: 0, up: 0, written: 0, failed: 0, error: e.message, ranAt: null }; })
-        .finally(() => { scanConfirmResolve = null; });
+        .finally(() => { scanConfirmResolve = null; scanResumeResolve = null; });
       return send(res, 200, { started: true });
     }
     // 로봇 인증 끝났다는 사람 확인 → 스캔 착수
@@ -320,6 +334,24 @@ export async function handler(req, res) {
       scanConfirmResolve = null;
       contentScanState.phase = 'scan';
       return send(res, 200, { ok: true });
+    }
+    // 수동 중지 요청 — 다음 계정 사이에서 멈춘다(phase=blocked 로 넘어감).
+    if (path === '/api/content-scan/pause' && req.method === 'POST') {
+      if (!contentScanState.running || contentScanState.phase !== 'scan') return send(res, 200, { ok: false, error: '스캔 중이 아니에요' });
+      contentScanState.pauseRequested = true;
+      return send(res, 200, { ok: true });
+    }
+    // 재개 — VPN 바꾼 뒤. 멈춘(blocked) 지점부터 이어간다.
+    if (path === '/api/content-scan/resume' && req.method === 'POST') {
+      if (!scanResumeResolve) return send(res, 200, { ok: false, error: '멈춘 스캔이 없어요' });
+      scanResumeResolve('resume');
+      return send(res, 200, { ok: true });
+    }
+    // 중지 — 스캔을 접는다(여기까지 한 건 저장됨).
+    if (path === '/api/content-scan/stop' && req.method === 'POST') {
+      if (!scanResumeResolve) return send(res, 200, { ok: false, error: '멈춘 스캔이 없어요' });
+      scanResumeResolve('stop');
+      return send(res, 200, { ok: true, stopped: true });
     }
     if (path === '/api/content-scan/status' && req.method === 'GET') {
       return send(res, 200, contentScanState);

@@ -780,23 +780,24 @@ async function contentScan(full) {
   const r = await api(`/api/content-scan?campaign=${state.campaign}${full ? '&full=1' : ''}`, { method: 'POST' }).catch(() => ({ error: '네트워크 오류' }));
   if (r.error) { btn.disabled = false; return toast('오류: ' + r.error); }
   toast('크롬 창이 하나 떠요 — 로봇 인증을 끝낸 뒤 [스캔 시작]을 눌러 주세요');
-  let confirmShown = false;
   const poll = setInterval(async () => {
     let s;
     try { s = await api('/api/content-scan/status'); } catch { return; }
-    if (s.error) { clearInterval(poll); scanConfirmPanel(false); btn.disabled = false; btn.textContent = '업로드 스캔'; return toast('스캔 실패: ' + s.error); }
+    if (s.error) { clearInterval(poll); scanPanel(null); btn.disabled = false; btn.textContent = '업로드 스캔'; return toast('스캔 실패: ' + s.error); }
     if (s.running) {
-      if (s.phase === 'confirm') { btn.textContent = '인증 대기 중…'; if (!confirmShown) { confirmShown = true; scanConfirmPanel(true); } }
-      else { if (confirmShown) { confirmShown = false; scanConfirmPanel(false); } btn.textContent = `스캔 중… ${s.done}/${s.total || '?'}`; }
+      if (s.phase === 'confirm') { btn.textContent = '인증 대기 중…'; scanPanel('confirm'); }
+      else if (s.phase === 'blocked') { btn.textContent = '막힘 — 재개 대기'; scanPanel('blocked', s); }
+      else { btn.textContent = `스캔 중… ${s.done}/${s.total || '?'}`; scanPanel('scan', s); }
       return;
     }
-    clearInterval(poll); scanConfirmPanel(false); btn.disabled = false; btn.textContent = '업로드 스캔';
-    // 못 본 계정이 있으면 반드시 알린다. 조용히 넘어가면 '전부 확인했다'로 읽힌다.
-    toast(s.failed
-      ? `업로드 스캔 완료 — 업로드 ${s.up}개 · ⚠️ ${s.failed}개는 못 봤어요 (업로드 탭에 표시됨 — 다시 스캔하세요)`
-      : `업로드 스캔 완료 — 업로드 ${s.up}개 · 시트 ${s.written}칸 반영`);
+    clearInterval(poll); scanPanel(null); btn.disabled = false; btn.textContent = '업로드 스캔';
+    toast(s.stopped
+      ? `⏹ 스캔 중지됨 — 여기까지 업로드 ${s.up || 0}개 반영 (다시 스캔하면 남은 계정부터)`
+      : s.failed
+        ? `업로드 스캔 완료 — 업로드 ${s.up}개 · ⚠️ ${s.failed}개는 못 봤어요 (업로드 탭에 표시됨)`
+        : `업로드 스캔 완료 — 업로드 ${s.up}개 · 시트 ${s.written}칸 반영`);
     await loadData();
-  }, 2500);
+  }, 2000);
 }
 // 수기 대체 — 링크 한 장만 열어 판정 (스캔이 막힐 때). 프로필 목록 대신 영상 페이지 하나라 훨씬 안 막힘.
 async function judgeLink(row, handle, link) {
@@ -808,23 +809,27 @@ async function judgeLink(row, handle, link) {
   toast(`✅ 판정 완료 — 음원 ${r.soundOk ? '준수' : '미준수'} · 해시태그 ${r.hashtagOk ? '준수' : '미준수'} · 조회수 ${fmt(r.views || 0)}`);
   await loadData();
 }
-// 로봇 인증 확인 패널 — 크롬 창에서 인증 끝낸 뒤 [스캔 시작]을 눌러야 착수한다.
-function scanConfirmPanel(show) {
+// 스캔 하단 패널 — 모드에 따라 인증대기 / 스캔중(중지) / 막힘(재개·중지) 를 보여준다.
+function scanPanel(mode, info = {}) {
   let el = $('#scanConfirm');
-  if (!show) { if (el) el.remove(); return; }
-  if (el) return;
-  el = document.createElement('div');
-  el.id = 'scanConfirm';
-  el.innerHTML = `<div class="sc-card">
-      <div class="sc-msg"><b>크롬 창에서 로봇 인증을 끝내셨나요?</b><br>인증(사람입니다 등)을 통과한 뒤 아래 버튼을 누르면 스캔이 시작돼요.</div>
-      <button class="btn primary" id="scanGo">스캔 시작</button>
-    </div>`;
-  document.body.appendChild(el);
-  $('#scanGo').addEventListener('click', async () => {
-    $('#scanGo').disabled = true; $('#scanGo').textContent = '시작하는 중…';
-    await api('/api/content-scan/confirm', { method: 'POST' }).catch(() => {});
-    scanConfirmPanel(false);
-  });
+  if (!mode) { if (el) el.remove(); return; }
+  if (!el) { el = document.createElement('div'); el.id = 'scanConfirm'; document.body.appendChild(el); }
+  // 스캔중 모드는 카운트만 갱신(패널 재생성 안 함 → 클릭 방해 X)
+  if (mode === 'scan' && el.dataset.mode === 'scan') { const c = $('#scanCount'); if (c) c.textContent = `${info.done || 0}/${info.total || '?'}`; return; }
+  if (el.dataset.mode === mode && mode !== 'scan') return;
+  el.dataset.mode = mode;
+  const on = (id, fn) => { const b = $('#' + id); if (b) b.addEventListener('click', fn); };
+  if (mode === 'confirm') {
+    el.innerHTML = `<div class="sc-card"><div class="sc-msg"><b>크롬 창에서 로봇 인증을 끝내셨나요?</b><br>인증(사람입니다 등)을 통과한 뒤 [스캔 시작]을 누르면 시작돼요.</div><button class="btn primary" id="scanGo">스캔 시작</button></div>`;
+    on('scanGo', async () => { $('#scanGo').disabled = true; $('#scanGo').textContent = '시작하는 중…'; await api('/api/content-scan/confirm', { method: 'POST' }).catch(() => {}); });
+  } else if (mode === 'scan') {
+    el.innerHTML = `<div class="sc-card"><div class="sc-msg"><b>스캔 중…</b> <span id="scanCount">${info.done || 0}/${info.total || '?'}</span><br>크롬 창에 콘텐츠가 안 보이면 <b>[중지]</b> → VPN 바꾸고 <b>[재개]</b> 하세요.</div><button class="btn" id="scanPause">■ 중지</button></div>`;
+    on('scanPause', async () => { $('#scanPause').disabled = true; $('#scanPause').textContent = '멈추는 중…'; await api('/api/content-scan/pause', { method: 'POST' }).catch(() => {}); });
+  } else if (mode === 'blocked') {
+    el.innerHTML = `<div class="sc-card blocked"><div class="sc-msg"><b>⚠️ 틱톡이 막는 것 같아요</b> (${info.done || 0}/${info.total || '?'}까지 함)<br><b>VPN을 바꾼 뒤</b> [재개]를 누르면 멈춘 데서 이어가요.</div><button class="btn primary" id="scanResume">▶ 재개</button><button class="btn ghost" id="scanStop">■ 중지</button></div>`;
+    on('scanResume', async () => { $('#scanResume').disabled = true; $('#scanResume').textContent = '재개 중…'; await api('/api/content-scan/resume', { method: 'POST' }).catch(() => {}); });
+    on('scanStop', async () => { $('#scanStop').disabled = true; await api('/api/content-scan/stop', { method: 'POST' }).catch(() => {}); });
+  }
 }
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(t._t); t._t = setTimeout(() => (t.hidden = true), 3400); }
 function overlay(show, msg) { $('#overlay').hidden = !show; if (msg) $('#overlayMsg').textContent = msg; }

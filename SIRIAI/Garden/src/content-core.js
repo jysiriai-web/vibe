@@ -57,7 +57,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // concurrency=1(순차)이 기본 — 탭을 여럿 열면 틱톡이 봇으로 보고 콘텐츠를 잠근다(사용자 반복 지적).
 //   느리지만(업로드 스캔은 미업로드 계정만 = 소량) 훨씬 안 막힌다. 아래 jitter+백오프와 함께.
 const jitter = () => 900 + Math.floor(Math.random() * 1700); // 계정 간 0.9~2.6초 랜덤(사람처럼)
-export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo, full = false, concurrency = 1 } = {}) {
+// onBlocked({reason,done,total,failed}) → 'resume'|'stop' : 막혔을 때 멈추고 사용자를 기다림(VPN 바꾸고 재개).
+// shouldPause() → boolean : 사용자가 '중지'를 눌렀는지(수동). 계정 사이에서 멈춘다.
+export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo, onBlocked, shouldPause, full = false, concurrency = 1 } = {}) {
   const cfg = { hashtags: campaign.campaignHashtags || [], soundId: campaign.campaignSoundId || '' };
   const accounts = await getAccountsFromSheet(campaign.sheet);
   const prev = prevDetected(campaign);
@@ -72,70 +74,63 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
   const detected = { ...prev }; // 이미 업로드된 건 이전 결과 유지
   let done = 0;
   let newUp = 0;
+  let stopped = false; // 사용자가 '중지'로 스캔을 접었는지
   const failedHandles = new Set(); // 틱톡이 막아서 '못 본' 계정 — '영상 없음'과 절대 섞지 않는다
-  let consecFail = 0; // 연속 실패 = 틱톡이 막는 중 → 한 템포 쉬어 rate-limit 이 풀리게
-  // 순차 처리(concurrency=1) + 계정 간 랜덤 간격 — 사람처럼 보이게 해서 봇 차단을 피한다.
-  let idx = 0;
-  const worker = async () => {
-    while (idx < targets.length) {
-      const a = targets[idx++];
-      await sleep(jitter()); // 사람처럼 뜸 들이기
-      let r = { videos: [], ok: false, error: '' };
-      try { r = await fetchVideos(ctx, a.handle); } catch (e) { r.error = String((e && e.message) || e); }
+  const BLOCK_STREAK = 3; // 연속 이만큼 막히면 = 틱톡 차단 → 멈추고 사용자에게 넘긴다(VPN 바꾸게)
 
-      // 시트에 사람이 찍어준 링크가 있는데 그 영상이 목록에 없으면, 영상 페이지를 직접 연다.
-      // 게시물이 아주 많은 계정은 프로필 목록이 안 오는 경우가 있다(@mnrdance: 1,597개).
-      const wantId = videoIdFromLink(a.contentLink);
-      if (wantId && !r.videos.some((v) => String(v.id || '') === wantId)) {
-        try {
-          const one = await fetchVideoByLink(ctx, a.contentLink);
-          if (one.ok) { r = { ...r, videos: [one.video, ...r.videos], ok: true, error: '' }; }
-        } catch {}
-      }
-
-      if (!r.ok) {
-        // 못 봤다 ≠ 안 올렸다.
-        // 예전엔 여기서 {uploaded:false} 로 덮어써서, 봇월 한 번에 이미 감지된 기록이 통째로 날아갔다.
-        // 이제는 이전 판정을 그대로 두고 실패로만 센다. 시트에도 아무것도 안 쓴다(아래 write 루프).
-        failedHandles.add(a.handle);
-        detected[a.handle] = prev[a.handle] || { uploaded: false, scanFailed: true, error: r.error };
-        done++;
-        consecFail++;
-        // 연속으로 막히면(3번) 30초 쉬어 틱톡 rate-limit 이 풀리게 한 뒤 계속한다.
-        if (consecFail >= 3) { if (onProgress) onProgress({ done, total: targets.length, handle: a.handle, uploaded: false, cooldown: true }); await sleep(30000); consecFail = 0; }
-        if (onProgress) onProgress({ done, total: targets.length, handle: a.handle, uploaded: false, failed: true });
-        continue;
-      }
-      consecFail = 0; // 성공하면 리셋
-
-      // 시트 17열에 사람이 적어둔 링크가 있으면 그 영상을 우선 판정한다.
-      const d = detectCampaign(r.videos, cfg, { knownLink: a.contentLink });
-      detected[a.handle] = d;
-      if (d.uploaded && !(prev[a.handle] && prev[a.handle].uploaded)) newUp++;
-      done++;
-      if (onProgress) onProgress({ done, total: targets.length, handle: a.handle, uploaded: !!d.uploaded });
+  // 한 계정 처리 — 성공하면 true. 링크 폴백·판정·기록까지. (실패해도 이전 판정은 안 지운다)
+  const processOne = async (a) => {
+    let r = { videos: [], ok: false, error: '' };
+    try { r = await fetchVideos(ctx, a.handle); } catch (e) { r.error = String((e && e.message) || e); }
+    // 시트에 사람이 찍어준 링크가 있는데 목록에 없으면 영상 페이지를 직접 연다(@mnrdance: 게시물 1,597개).
+    const wantId = videoIdFromLink(a.contentLink);
+    if (wantId && !r.videos.some((v) => String(v.id || '') === wantId)) {
+      try { const one = await fetchVideoByLink(ctx, a.contentLink); if (one.ok) r = { ...r, videos: [one.video, ...r.videos], ok: true, error: '' }; } catch {}
     }
+    if (!r.ok) {
+      // 못 봤다 ≠ 안 올렸다. 이전 판정 유지하고 실패로만 센다(봇월 한 번에 기록 날아가는 것 방지).
+      failedHandles.add(a.handle);
+      detected[a.handle] = prev[a.handle] || { uploaded: false, scanFailed: true, error: r.error };
+      return false;
+    }
+    const d = detectCampaign(r.videos, cfg, { knownLink: a.contentLink });
+    detected[a.handle] = d;
+    failedHandles.delete(a.handle); // 재시도 성공 시 실패목록에서 뺀다
+    if (d.uploaded && !(prev[a.handle] && prev[a.handle].uploaded)) newUp++;
+    return true;
   };
-  try {
-    await Promise.all(Array.from({ length: Math.min(concurrency, targets.length) || 1 }, worker));
 
-    // 실패한 계정은 순차로(동시성 1) 한 번 더 시도한다. 실패는 대개 일시적 rate-limit 이라
-    // 천천히 한 번 더 하면 상당수가 복구된다 = '업로드했는데 못 봄' 케이스를 줄인다.
-    const retry = targets.filter((t) => failedHandles.has(t.handle));
-    for (const a of retry) {
-      await sleep(1500);
-      let r = { videos: [], ok: false, error: '' };
-      try { r = await fetchVideos(ctx, a.handle); } catch (e) { r.error = String((e && e.message) || e); }
-      const wantId = videoIdFromLink(a.contentLink);
-      if (wantId && !r.videos.some((v) => String(v.id || '') === wantId)) {
-        try { const one = await fetchVideoByLink(ctx, a.contentLink); if (one.ok) r = { ...r, videos: [one.video, ...r.videos], ok: true, error: '' }; } catch {}
-      }
-      if (r.ok) {
-        const d = detectCampaign(r.videos, cfg, { knownLink: a.contentLink });
-        detected[a.handle] = d;
-        failedHandles.delete(a.handle);
-        if (d.uploaded && !(prev[a.handle] && prev[a.handle].uploaded)) newUp++;
-        if (onProgress) onProgress({ done, total: targets.length, handle: a.handle, uploaded: !!d.uploaded, retried: true });
+  // 막혔을 때: 멈추고 사용자를 기다린다(VPN 바꾸고 재개). onBlocked 없으면(CLI) 30초 쉬고 자동 재개.
+  const pauseForUser = async (reason) => {
+    if (onBlocked) { try { return (await onBlocked({ reason, done, total: targets.length, failed: failedHandles.size })) || 'resume'; } catch { return 'resume'; } }
+    await sleep(30000); return 'resume';
+  };
+
+  try {
+    let consecFail = 0;
+    for (let i = 0; i < targets.length; i++) {
+      // 사용자가 '중지'를 눌렀으면(수동) 계정 사이에서 멈춘다.
+      if (shouldPause && shouldPause()) { if ((await pauseForUser('manual')) === 'stop') { stopped = true; break; } consecFail = 0; }
+      const a = targets[i];
+      await sleep(jitter()); // 사람처럼 뜸 들이기
+      const ok = await processOne(a);
+      done++;
+      if (onProgress) onProgress({ done, total: targets.length, handle: a.handle, uploaded: ok ? !!detected[a.handle].uploaded : false, failed: !ok });
+      if (ok) { consecFail = 0; continue; }
+      consecFail++;
+      // 연속으로 막히면 = 틱톡이 잠갔다. 멈추고 사용자에게 넘긴다(VPN 바꾸고 [재개]하면 여기서 이어감).
+      if (consecFail >= BLOCK_STREAK) { if ((await pauseForUser('blocked')) === 'stop') { stopped = true; break; } consecFail = 0; }
+    }
+
+    // 실패한 계정 순차 재시도 (중지 안 했을 때만). 여기서도 연속으로 막히면 다시 멈춘다.
+    if (!stopped) {
+      let rFail = 0;
+      for (const a of targets.filter((t) => failedHandles.has(t.handle))) {
+        if (shouldPause && shouldPause()) { if ((await pauseForUser('manual')) === 'stop') break; rFail = 0; }
+        await sleep(1500);
+        const ok = await processOne(a);
+        if (ok) { rFail = 0; if (onProgress) onProgress({ done, total: targets.length, handle: a.handle, uploaded: !!detected[a.handle].uploaded, retried: true }); }
+        else { rFail++; if (rFail >= BLOCK_STREAK) { if ((await pauseForUser('blocked')) === 'stop') break; rFail = 0; } }
       }
     }
   } finally {
@@ -191,5 +186,6 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
     written,
     failed: failedHandles.size,
     failedHandles: [...failedHandles].slice(0, 8),
+    stopped,
   };
 }
