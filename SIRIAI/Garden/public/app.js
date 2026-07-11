@@ -25,10 +25,12 @@ const REVIEW = {
 const revValOf = (a, col) => (col === 19 ? a.soundOk : col === 20 ? a.soundSection : a.hashtagOk);
 // 그 칸의 값이 '시트에 저장된 것'이 아니라 스캔의 추정값인가 (검수로 세면 안 됨)
 const isAuto = (a, col) => !!(a.autoCols && a.autoCols.includes(String(col)));
-// ⚠️ 검수 = '사람이 영상 보고 판정해야 하는' 음원구간(20)만.
-//    음원(19)·해시태그(21)는 스캔이 자동으로 채우므로, 그걸 세면 사람이 아무것도 안 봐도 검수 완료가 된다.
-const reviewed = (a) => uploaded(a) && revState(a.soundSection) !== 'none';
-const reviewPending = (a) => uploaded(a) && !reviewed(a); // 업로드됐는데 사람 검수(음원구간) 미완
+// ⚠️ 검수 완료 = 세 검수칸(음원19·음원구간20·해시태그21)이 모두 판정된 것 = 미확인이 하나도 없음.
+//    음원구간(20)은 사람이 영상 보고 판정, 음원·해시태그는 스캔이 자동 판정.
+//    한 칸이라도 '미확인'이면 검수대기 — 화면 드롭다운과 상태가 어긋나지 않게(미확인인데 검수완료 방지).
+const REV_COLS = [19, 20, 21];
+const reviewed = (a) => uploaded(a) && REV_COLS.every((c) => revState(revValOf(a, c)) !== 'none');
+const reviewPending = (a) => uploaded(a) && !reviewed(a); // 업로드됐는데 검수 미완(미확인 칸 있음)
 const noticeSent = (a) => has(a.notice); // 확정안내 발송여부 (col 16 진행안내여부)
 
 let state = { campaigns: [], campaign: null, krw: 1508.79, services: [], best: [], data: null, tab: 'recruit', sub: 'needs', fCo: 'all', fStatus: 'all', fUp: 'all', fNotice: 'all', fOrder: 'all', sort: {}, bestOnly: false, pending: {}, unpicked: new Set() };
@@ -328,13 +330,13 @@ function viewUpload(accts) {
   const failBanner = failN ? `<div class="scanfail-banner">⚠️ 지난 업로드 스캔에서 <b>${failN}개</b> 계정을 못 봤어요 (틱톡이 막음). 아래 <b>노란 줄</b>이 그 계정이에요 — 업로드했는데 안 잡혔을 수 있으니 <b>다시 스캔</b>하거나 직접 확인하세요. 확인한 계정은 <b>줄을 클릭</b>하면 표시가 사라져요.</div>` : '';
   return `<div class="cards">
       ${kpi('업로드 완료', ofTot(up.length, accts.length), { ic: IC.video })}
-      ${kpi('검수 완료', ofTot(rev.length, up.length || accts.length), { ic: IC.check, sub: '음원구간 판정 기준' })}
+      ${kpi('검수 완료', ofTot(rev.length, up.length || accts.length), { ic: IC.check, sub: '세 칸 모두 판정' })}
       ${kpi('검수대기', accts.filter(reviewPending).length, { ic: IC.clock, accent: 'var(--needs)' })}
     </div>
     ${failBanner}
     ${filterRow(coBar(coCounts(applyFUp(accts))), upBar(upCounts(applyCo(accts))))}
     <table><thead><tr>${sortTh('upload', 'company', '진행사', { defKey: 'state' })}${sortTh('upload', 'handle', '계정', { defKey: 'state' })}${sortTh('upload', 'state', '상태', { defKey: 'state' })}<th>콘텐츠</th>${sortTh('upload', 's19', '음원', { defKey: 'state' })}${sortTh('upload', 's20', '음원구간', { defKey: 'state' })}${sortTh('upload', 's21', '해시태그', { defKey: 'state' })}</tr></thead><tbody>${rows || emptyRow(7)}</tbody></table>
-    <div class="note"><b>음원·해시태그</b>는 스캔이 자동 판정해서 <u>검수로 세지 않아요</u>. <b>음원구간</b>을 사람이 영상 보고 판정해야 <b>검수 완료</b>가 됩니다. 드롭다운에서 <b>준수·미준수</b>로 고치면 재스캔해도 유지(수동 우선), <b>미확인</b>으로 되돌리면 자동 판정에 다시 맡겨요. 점선 테두리는 <b>시트에 저장되지 않은 자동 추정값</b>이에요.</div>`;
+    <div class="note"><b>검수 완료</b>는 <b>음원·음원구간·해시태그 세 칸이 모두 판정</b>됐을 때예요. 한 칸이라도 <b>미확인</b>이면 <b>검수대기</b>입니다. 음원구간은 사람이 영상 보고, 음원·해시태그는 스캔이 자동 판정해요. 드롭다운에서 <b>준수·미준수</b>로 고치면 재스캔해도 유지(수동 우선), <b>미확인</b>으로 되돌리면 자동 판정에 다시 맡겨요. 점선 테두리는 <b>시트에 저장되지 않은 자동 추정값</b>이에요.</div>`;
 }
 
 // ③ 가드닝 (하위 탭)
