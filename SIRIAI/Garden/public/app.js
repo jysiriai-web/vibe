@@ -31,7 +31,7 @@ const reviewed = (a) => uploaded(a) && revState(a.soundSection) !== 'none';
 const reviewPending = (a) => uploaded(a) && !reviewed(a); // 업로드됐는데 사람 검수(음원구간) 미완
 const noticeSent = (a) => has(a.notice); // 확정안내 발송여부 (col 16 진행안내여부)
 
-let state = { campaigns: [], campaign: null, krw: 1508.79, services: [], best: [], data: null, tab: 'recruit', sub: 'needs', fCo: 'all', fStatus: 'all', fUp: 'all', fNotice: 'all', fOrder: 'all', sortKey: 'v', sortDir: 'desc', bestOnly: false, pending: {}, unpicked: new Set() };
+let state = { campaigns: [], campaign: null, krw: 1508.79, services: [], best: [], data: null, tab: 'recruit', sub: 'needs', fCo: 'all', fStatus: 'all', fUp: 'all', fNotice: 'all', fOrder: 'all', sort: {}, bestOnly: false, pending: {}, unpicked: new Set() };
 // unpicked: 가드닝 집행에서 사용자가 명시적으로 체크 해제한 handle. 재렌더(백그라운드 폴링)가 선택을 되돌려 해제한 계정까지 집행하는 것 방지.
 // 편집 열 ↔ 계정 필드 매핑. 낙관적 저장·병합에 공용.
 const COL_FIELD = { 3: 'nick', 4: 'link', 16: 'notice', 17: 'contentLink', 19: 'soundOk', 20: 'soundSection', 21: 'hashtagOk' };
@@ -201,6 +201,37 @@ const applyFNotice = (accts) => (state.fNotice === 'unsent' ? accts.filter((a) =
 function fbar(flab, cls, cur, opts, counts) {
   return `<div class="filterbar"><span class="flab">${flab}</span>${opts.map(([k, l]) => `<button class="fbtn ${cls} ${cur === k ? 'active' : ''}" data-k="${k}" aria-pressed="${cur === k}">${l}${counts && counts[k] != null ? ` <span class="fct">${counts[k]}</span>` : ''}</button>`).join('')}</div>`;
 }
+
+// ── 표 정렬 (열 헤더 클릭 → 오름/내림). 표마다 독립: state.sort[tableId] = {key, dir}. ──
+function sortOf(tableId, defKey, defDir = 'desc') {
+  if (!state.sort[tableId]) state.sort[tableId] = { key: defKey, dir: defDir };
+  return state.sort[tableId];
+}
+const sortNull = (v) => v == null || v === '' || (typeof v === 'number' && Number.isNaN(v));
+function cmpVals(a, b) {
+  const na = sortNull(a), nb = sortNull(b);
+  if (na && nb) return 0;
+  if (na) return 1; // 빈 값은 방향과 무관하게 항상 뒤로
+  if (nb) return -1;
+  if (typeof a === 'number' && typeof b === 'number') return a - b;
+  return String(a).localeCompare(String(b), 'ko');
+}
+// 정렬 가능한 헤더 셀. num=우측정렬 숫자열. defKey=이 표의 기본 정렬열(초기 화살표 표시용).
+function sortTh(tableId, key, label, { num = false, defKey } = {}) {
+  const s = sortOf(tableId, defKey ?? key);
+  const active = s.key === key;
+  const arrow = active ? (s.dir === 'asc' ? ' ▲' : ' ▼') : '';
+  return `<th class="sortable${num ? ' num' : ''}${active ? ' sorted' : ''}" data-sort="${key}" data-table="${tableId}" tabindex="0" role="button" aria-sort="${active ? (s.dir === 'asc' ? 'ascending' : 'descending') : 'none'}" title="클릭하면 이 열로 정렬 (다시 누르면 반대로)">${label}${arrow}</th>`;
+}
+// 리스트 정렬. accessors: { key: (row)=>비교값 }. 헤더보다 먼저 호출해 기본 정렬을 확정한다.
+function sortList(tableId, list, accessors, defKey, defDir = 'desc') {
+  const s = sortOf(tableId, defKey, defDir);
+  const get = accessors[s.key] || accessors[defKey];
+  if (!get) return list;
+  const dir = s.dir === 'asc' ? 1 : -1;
+  return [...list].sort((a, b) => cmpVals(get(a), get(b)) * dir);
+}
+const statusRank = (s) => ({ needs: 0, filling: 1, error: 2, ok: 3 }[s] ?? 9); // 상태 정렬 순서
 const coBar = (c) => fbar('진행사', 'co-f', state.fCo, [['all', '전체'], ['MARU', 'MARU'], ['SIRIAI', 'SIRIAI']], c);
 const statusBar = (c) => fbar('상태', 'st-f', state.fStatus, [['all', '전체'], ['needs', '가드닝 필요'], ['filling', '채워지는 중'], ['ok', '충족'], ['error', '미확인']], c);
 const upBar = (c) => fbar('업로드', 'up-f', state.fUp, [['all', '전체'], ['notup', '미업로드'], ['up', '업로드'], ['pending', '검수대기']], c);
@@ -225,6 +256,10 @@ function viewRecruit(accts) {
   const nt = showNotice();
   let list = applyFStatus(applyCo(accts));
   if (nt) list = applyFNotice(list);
+  list = sortList('recruit', list, {
+    company: (a) => a.company || '', nick: (a) => a.nick || '', handle: (a) => a.handle || '',
+    followers: (a) => (a.current == null ? null : Number(a.current)), status: (a) => statusRank(a.status),
+  }, 'followers', 'desc');
   const unsent = accts.filter((a) => !noticeSent(a)).length;
   const rows = list.map((a) => `<tr${nt && !noticeSent(a) ? ' class="row-alert"' : ''}>
     <td>${coChip(a.company)}</td>
@@ -240,7 +275,7 @@ function viewRecruit(accts) {
     </div>
     ${filterRow(coBar(coCounts((nt ? applyFNotice : (x) => x)(applyFStatus(accts)))), statusBar(statusCounts((nt ? applyFNotice : (x) => x)(applyCo(accts)))), nt ? noticeBar(noticeCounts(applyFStatus(applyCo(accts)))) : '')}
     <div class="bar"><button class="btn small" id="syncRecruitBtn">📥 모집시트 동기화</button><span class="sub" style="margin:0">모집시트(마루 등)의 새 계정 URL을 정리해서 마스터에 자동 추가</span></div>
-    <table><thead><tr><th>진행사</th><th>닉네임</th><th>계정</th><th class="num">팔로워</th><th>상태</th>${nt ? '<th>확정안내</th>' : ''}</tr></thead><tbody>${rows || emptyRow(nt ? 6 : 5)}</tbody></table>`;
+    <table><thead><tr>${sortTh('recruit', 'company', '진행사', { defKey: 'followers' })}${sortTh('recruit', 'nick', '닉네임', { defKey: 'followers' })}${sortTh('recruit', 'handle', '계정', { defKey: 'followers' })}${sortTh('recruit', 'followers', '팔로워', { num: true, defKey: 'followers' })}${sortTh('recruit', 'status', '상태', { defKey: 'followers' })}${nt ? '<th>확정안내</th>' : ''}</tr></thead><tbody>${rows || emptyRow(nt ? 6 : 5)}</tbody></table>`;
 }
 
 // ② 업로드
@@ -262,7 +297,12 @@ function viewUpload(accts) {
   const up = accts.filter(uploaded);
   const rev = accts.filter(reviewed);
   const failed = scanFailedSet(); // 스캔이 못 본 계정 = 하이라이트
-  const list = applyFUp(applyCo(accts));
+  const upRank = (a) => (!uploaded(a) ? 0 : reviewPending(a) ? 1 : 2); // 미업로드<검수대기<검수완료
+  const revRank = (a, col) => ({ none: 0, fail: 1, pass: 2 }[revState(revValOf(a, col))] ?? 0);
+  const list = sortList('upload', applyFUp(applyCo(accts)), {
+    company: (a) => a.company || '', handle: (a) => a.handle || '', state: (a) => upRank(a),
+    s19: (a) => revRank(a, 19), s20: (a) => revRank(a, 20), s21: (a) => revRank(a, 21),
+  }, 'state', 'desc');
   const rows = list.map((a) => {
     const isFail = failed.has(a.handle);
     const cls = [reviewPending(a) ? 'row-alert' : '', isFail ? 'scan-failed' : ''].filter(Boolean).join(' ');
@@ -284,7 +324,7 @@ function viewUpload(accts) {
     </div>
     ${failBanner}
     ${filterRow(coBar(coCounts(applyFUp(accts))), upBar(upCounts(applyCo(accts))))}
-    <table><thead><tr><th>진행사</th><th>계정</th><th>상태</th><th>콘텐츠</th><th>음원</th><th>음원구간</th><th>해시태그</th></tr></thead><tbody>${rows || emptyRow(7)}</tbody></table>
+    <table><thead><tr>${sortTh('upload', 'company', '진행사', { defKey: 'state' })}${sortTh('upload', 'handle', '계정', { defKey: 'state' })}${sortTh('upload', 'state', '상태', { defKey: 'state' })}<th>콘텐츠</th>${sortTh('upload', 's19', '음원', { defKey: 'state' })}${sortTh('upload', 's20', '음원구간', { defKey: 'state' })}${sortTh('upload', 's21', '해시태그', { defKey: 'state' })}</tr></thead><tbody>${rows || emptyRow(7)}</tbody></table>
     <div class="note"><b>음원·해시태그</b>는 스캔이 자동 판정해서 <u>검수로 세지 않아요</u>. <b>음원구간</b>을 사람이 영상 보고 판정해야 <b>검수 완료</b>가 됩니다. 드롭다운에서 <b>준수·미준수</b>로 고치면 재스캔해도 유지(수동 우선), <b>미확인</b>으로 되돌리면 자동 판정에 다시 맡겨요. 점선 테두리는 <b>시트에 저장되지 않은 자동 추정값</b>이에요.</div>`;
 }
 
@@ -306,14 +346,18 @@ function viewNeeds(accts) {
   const rate = rateOf();
   const cost = (a) => (rate > 0 ? won((a.order / 1000) * rate) : '—'); // 클라우드엔 단가표가 없어 ₩0 대신 —
   const allPicked = needs.every((a) => !state.unpicked.has(a.handle));
-  const rows = needs.map((a) => `<tr>
+  const sortedNeeds = sortList('needs', needs, {
+    handle: (a) => a.handle || '', current: (a) => num(a.current), order: (a) => num(a.order),
+    cost: (a) => (rate > 0 ? (a.order / 1000) * rate : 0),
+  }, 'order', 'desc');
+  const rows = sortedNeeds.map((a) => `<tr>
     ${isCloud() ? '' : `<td><input type="checkbox" class="pick" data-h="${a.handle}" aria-label="집행 선택 @${a.handle}"${state.unpicked.has(a.handle) ? '' : ' checked'}></td>`}
     <td class="handle">${link(a.handle)}</td><td class="num">${fmt(a.current)}</td><td class="num">${fmt(a.order)}</td><td class="num">${cost(a)}</td></tr>`).join('');
   const bar = isCloud()
     ? `<div class="bar"><div class="summary">가드닝 필요 <b>${needs.length}</b>개</div></div>`
     : `<div class="bar"><div class="summary">가드닝 필요 <b>${needs.length}</b>개 · 선택 <b id="selQty">0</b>명 · 예상 <b id="selCost">₩0</b></div><div class="spacer"></div><button class="btn danger" id="execBtn">선택 집행</button></div>`;
   return coBar(coCounts(accts.filter((a) => a.status === 'needs'))) + bar +
-    `<table><thead><tr>${isCloud() ? '' : `<th><input type="checkbox" id="pickAll" aria-label="전체 선택"${allPicked ? ' checked' : ''}></th>`}<th>계정</th><th class="num">현재</th><th class="num">충전량</th><th class="num">예상비용</th></tr></thead><tbody>${rows}</tbody></table>${filling.length ? fillingNote(filling) : ''}${localOnlyNote('팔로워를 실제로 사는 <b>집행</b>')}`;
+    `<table><thead><tr>${isCloud() ? '' : `<th><input type="checkbox" id="pickAll" aria-label="전체 선택"${allPicked ? ' checked' : ''}></th>`}${sortTh('needs', 'handle', '계정', { defKey: 'order' })}${sortTh('needs', 'current', '현재', { num: true, defKey: 'order' })}${sortTh('needs', 'order', '충전량', { num: true, defKey: 'order' })}${sortTh('needs', 'cost', '예상비용', { num: true, defKey: 'order' })}</tr></thead><tbody>${rows}</tbody></table>${filling.length ? fillingNote(filling) : ''}${localOnlyNote('팔로워를 실제로 사는 <b>집행</b>')}`;
 }
 // 팀원 화면(클라우드)에서 돈·스캔이 왜 없는지 알려주는 안내
 const localOnlyNote = (what) => (isCloud() ? `<div class="note">🔒 ${what}은 대표님 PC의 대시보드에서만 할 수 있어요. 여기서는 <b>보기만</b> 됩니다.</div>` : '');
@@ -353,7 +397,13 @@ function viewOrders(orders) {
   const cnt = { all: orders.length, active: 0, done: 0, canceled: 0, stuck: 0 };
   orders.forEach((o) => cnt[orderClass(o)]++);
   const shown = state.fOrder === 'all' ? orders : orders.filter((o) => orderClass(o) === state.fOrder);
-  const rows = [...shown].reverse().map((o) => {
+  const sortedOrders = sortList('orders', shown, {
+    id: (o) => Number(o.id) || 0, handle: (o) => o.handle || '', quantity: (o) => Number(o.quantity) || 0,
+    delivered: (o) => (Number(o.quantity) || 0) - (Number(o.remains) || 0),
+    cost: (o) => (o.charge != null ? Number(o.charge) : (o.cost || 0)),
+    placedAt: (o) => (o.placedAt ? new Date(o.placedAt).getTime() : 0),
+  }, 'placedAt', 'desc');
+  const rows = sortedOrders.map((o) => {
     const delivered = o.quantity - (Number(o.remains) || 0), pct = o.quantity ? Math.round((delivered / o.quantity) * 100) : 0;
     let st;
     if (o.abandoned) st = '<span class="chip stale">포기함</span>';
@@ -389,7 +439,7 @@ function viewOrders(orders) {
   const bar = filterRow(fbar('상태', 'ord-f', state.fOrder, [['all', '전체'], ['active', '진행중'], ['done', '완료'], ['canceled', '취소·종료'], ['stuck', '오류']], cnt));
   return `<div class="bar"><div class="summary">총 <b>${orders.length}</b>건 · 진행중 <b>${cnt.active}</b>${cnt.stuck ? ` · <b style="color:var(--needs)">오류 ${cnt.stuck}</b>` : ''}${staleN ? ` · <b style="color:var(--warn)">정체 의심 ${staleN}</b>` : ''}</div></div>
   ${bar}
-  <table><thead><tr><th>주문#</th><th>계정</th><th class="num">수량</th><th>배송</th><th class="num">진행</th><th>상태</th><th class="num">비용</th><th>시각</th><th></th></tr></thead><tbody>${rows || emptyRow(9, '이 상태의 주문이 없어요.')}</tbody></table>
+  <table><thead><tr>${sortTh('orders', 'id', '주문#', { defKey: 'placedAt' })}${sortTh('orders', 'handle', '계정', { defKey: 'placedAt' })}${sortTh('orders', 'quantity', '수량', { num: true, defKey: 'placedAt' })}<th>배송</th>${sortTh('orders', 'delivered', '진행', { num: true, defKey: 'placedAt' })}<th>상태</th>${sortTh('orders', 'cost', '비용', { num: true, defKey: 'placedAt' })}${sortTh('orders', 'placedAt', '시각', { defKey: 'placedAt' })}<th></th></tr></thead><tbody>${rows || emptyRow(9, '이 상태의 주문이 없어요.')}</tbody></table>
   ${cnt.stuck ? `<div class="note"><b style="color:var(--needs)">⚠️ 오류</b> = 종료했는데 smmkings에서 취소가 안 먹히고 계속 배송 중이에요(종료 후 1시간 지나도). <b>다시 종료</b>로 재시도하거나, 급하면 <b>포기</b>로 이 주문을 접고 그 계정을 바로 다시 가드닝할 수 있어요.</div>` : ''}
   ${closedActiveN && !cnt.stuck ? `<div class="note"><b>종료·취소요청</b> = 종료를 눌러 취소 요청한 주문이에요. 급해서 바로 다른 서비스로 재주문하려면 <b>포기</b>를 누르면 이 계정을 다시 가드닝할 수 있어요(포기한 주문의 팔로워는 들어올 수도 있어요).</div>` : ''}
   ${abandonedN ? `<div class="note"><b>포기함</b> = 접은 주문이에요(비용은 기록에 남음). 이 계정은 다시 가드닝할 수 있어요 — <b>비용 탭</b>에서 서비스를 바꾼 뒤 가드닝하면 다른 서비스로 새로 주문돼요.</div>` : ''}
@@ -400,7 +450,9 @@ function viewOrders(orders) {
 function viewCost(orders, balance) {
   const byH = {};
   orders.forEach((o) => { byH[o.handle] = byH[o.handle] || { handle: o.handle, qty: 0, cost: 0, n: 0 }; byH[o.handle].qty += o.quantity; byH[o.handle].cost += (o.charge != null ? Number(o.charge) : (o.cost || 0)); byH[o.handle].n += 1; });
-  const rows = Object.values(byH).sort((a, b) => b.cost - a.cost);
+  const rows = sortList('cost', Object.values(byH), {
+    handle: (r) => r.handle || '', qty: (r) => r.qty, n: (r) => r.n, cost: (r) => r.cost,
+  }, 'cost', 'desc');
   const curId = state.data.config?.service?.id;
   const svcOpts = state.services.map((s) => `<option value="${s.id}" ${s.id == curId ? 'selected' : ''}>#${s.id} · ${cleanName(s.name)} · ₩${Math.round(Number(s.rate) * state.krw).toLocaleString()}/1k</option>`).join('');
   // 클라우드(팀 화면): 잔액·환율 재보정·서비스 변경은 대표님 PC 전용 → 총지출·팔로워 합계만 보여준다.
@@ -414,7 +466,7 @@ function viewCost(orders, balance) {
          <div class="rate-box" style="margin-top:10px"><span class="sub">smmkings 잔액과 다르면 →</span><input class="rate" id="rateInput" placeholder="현재 잔액 ₩"><button class="btn small" id="rateSave">재보정</button></div></div>
        <div class="kpi wide"><div class="lab">가드닝 서비스</div><select class="svc" id="svcSelect" aria-label="가드닝 서비스 선택">${svcOpts}</select><div class="sub">지난 주문은 각자 산 서비스로 기록(집행 내역 s번호).</div></div>`;
   return `<div class="cards">${cards}</div>
-    ${rows.length ? `<table><thead><tr><th>계정</th><th class="num">넣은 팔로워</th><th class="num">주문</th><th class="num">비용</th></tr></thead><tbody>${rows.map((r) => `<tr><td class="handle">${link(r.handle)}</td><td class="num">${fmt(r.qty)}</td><td class="num">${r.n}회</td><td class="num">${won(r.cost)}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">아직 집행 내역이 없어요.</div>'}
+    ${rows.length ? `<table><thead><tr>${sortTh('cost', 'handle', '계정', { defKey: 'cost' })}${sortTh('cost', 'qty', '넣은 팔로워', { num: true, defKey: 'cost' })}${sortTh('cost', 'n', '주문', { num: true, defKey: 'cost' })}${sortTh('cost', 'cost', '비용', { num: true, defKey: 'cost' })}</tr></thead><tbody>${rows.map((r) => `<tr><td class="handle">${link(r.handle)}</td><td class="num">${fmt(r.qty)}</td><td class="num">${r.n}회</td><td class="num">${won(r.cost)}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">아직 집행 내역이 없어요.</div>'}
     ${localOnlyNote('<b>환율 재보정</b>·<b>서비스 변경</b>')}`;
 }
 
@@ -430,10 +482,9 @@ function viewDeliver(accts) {
   if (!content.length) return coBar(coCounts(accts.filter(uploaded))) + `<div class="empty">아직 업로드된 콘텐츠가 없어요.<br>업로드가 되면 여기서 성과를 봐요.</div>`;
   // 베스트만 필터 → 정렬(헤더 클릭)
   let list = state.bestOnly ? withPerf.filter((a) => state.best.includes(a.handle)) : withPerf;
-  const dir = state.sortDir === 'asc' ? 1 : -1;
-  list = [...list].sort((a, b) => ((a[state.sortKey] || 0) - (b[state.sortKey] || 0)) * dir);
-  const arrow = (k) => (state.sortKey === k ? (state.sortDir === 'asc' ? ' ▲' : ' ▼') : '');
-  const th = (k, l) => `<th class="num sortable${state.sortKey === k ? ' sorted' : ''}" data-sort="${k}" tabindex="0" role="button" aria-sort="${state.sortKey === k ? (state.sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}" title="클릭하면 이 열로 정렬">${l}${arrow(k)}</th>`;
+  list = sortList('deliver', list, {
+    handle: (a) => a.handle || '', v: (a) => a.v, l: (a) => a.l, c: (a) => a.c, sh: (a) => a.sh,
+  }, 'v', 'desc');
   const rows = list.map((a) => `<tr>
     <td><button class="star ${state.best.includes(a.handle) ? 'on' : ''}" data-h="${a.handle}" title="SIRIAI 베스트" aria-pressed="${state.best.includes(a.handle)}" aria-label="SIRIAI 베스트 @${a.handle}">★</button></td>
     <td class="handle">${link(a.handle)}</td>
@@ -449,7 +500,7 @@ function viewDeliver(accts) {
     </div>
     <div class="filters"><div class="filterbar"><button class="fbtn best-f ${state.bestOnly ? 'active' : ''}" aria-pressed="${state.bestOnly}">★ 베스트만 (${bestCount})</button></div></div>
     ${noPerf ? '<div class="note"><b>아직 조회수 데이터가 비어있어요.</b> 시트의 조회수·좋아요 칸을 채우면 여기 자동으로 집계돼요. 지금도 ★로 <b>SIRIAI 베스트 콘텐츠</b>는 미리 찍어둘 수 있어요.</div>' : ''}
-    <table><thead><tr><th>★</th><th>계정</th>${th('v', '조회수')}${th('l', '좋아요')}${th('c', '댓글')}${th('sh', '공유')}<th>콘텐츠</th></tr></thead><tbody>${rows || emptyRow(7, state.bestOnly ? '★ 베스트로 찍은 콘텐츠가 없어요.' : '조건에 맞는 콘텐츠가 없어요.')}</tbody></table>`;
+    <table><thead><tr><th>★</th>${sortTh('deliver', 'handle', '계정', { defKey: 'v' })}${sortTh('deliver', 'v', '조회수', { num: true, defKey: 'v' })}${sortTh('deliver', 'l', '좋아요', { num: true, defKey: 'v' })}${sortTh('deliver', 'c', '댓글', { num: true, defKey: 'v' })}${sortTh('deliver', 'sh', '공유', { num: true, defKey: 'v' })}<th>콘텐츠</th></tr></thead><tbody>${rows || emptyRow(7, state.bestOnly ? '★ 베스트로 찍은 콘텐츠가 없어요.' : '조건에 맞는 콘텐츠가 없어요.')}</tbody></table>`;
 }
 
 // ⑤ 정산 — 비용·마진 시뮬레이터. 테두리 없는 iframe을 내용 높이만큼 자동 확장(이중 스크롤·액자 제거).
@@ -497,9 +548,11 @@ function wire() {
   $$('.ord-f').forEach((b) => b.addEventListener('click', () => { state.fOrder = b.dataset.k; render(); }));
   $$('.best-f').forEach((b) => b.addEventListener('click', () => { state.bestOnly = !state.bestOnly; render(); }));
   const doSort = (h) => {
+    const t = h.dataset.table || '_';
     const k = h.dataset.sort;
-    if (state.sortKey === k) state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
-    else { state.sortKey = k; state.sortDir = 'desc'; }
+    const s = state.sort[t] || (state.sort[t] = { key: k, dir: 'desc' });
+    if (s.key === k) s.dir = s.dir === 'asc' ? 'desc' : 'asc';
+    else { s.key = k; s.dir = 'desc'; }
     render();
   };
   $$('th.sortable').forEach((h) => {

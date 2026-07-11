@@ -221,7 +221,7 @@ tr.row-alert { background: var(--warn-bg); }
 tr.row-alert:hover { background: #f9ebd2; }
 
 /* 정렬 가능한 헤더 (납품 탭) */
-th.sortable { cursor: pointer; user-select: none; }
+th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
 th.sortable:hover { color: var(--accent); }
 th.sortable.sorted { color: var(--accent); }
 .fbtn.best-f.active { background: var(--warn); color: #fff; border-color: var(--warn); }
