@@ -312,6 +312,7 @@ function viewUpload(accts) {
   const revRank = (a, col) => ({ none: 0, fail: 1, pass: 2 }[revState(revValOf(a, col))] ?? 0);
   const list = sortList('upload', applyFUp(applyCo(accts)), {
     company: (a) => a.company || '', handle: (a) => a.handle || '', state: (a) => upRank(a),
+    sched: (a) => { const si = schedInfo(a); return si ? si.key : null; },
     s19: (a) => revRank(a, 19), s20: (a) => revRank(a, 20), s21: (a) => revRank(a, 21),
   }, 'state', 'desc');
   const rows = list.map((a) => {
@@ -320,6 +321,7 @@ function viewUpload(accts) {
     return `<tr${cls ? ` class="${cls}"` : ''}${isFail ? ` data-failh="${esc(a.handle)}" title="지난 스캔에서 이 계정을 못 봤어요 (틱톡 차단). 확인했으면 클릭해서 표시를 지우세요."` : ''}>
     <td>${coChip(a.company)}</td>
     <td class="handle">${link(a.handle)}${isFail ? ' <span class="chip warn scanfail-tag">스캔 실패</span>' : ''}</td>
+    ${schedCell(a)}
     <td>${uploaded(a) ? (reviewPending(a) ? '<span class="chip needs">검수대기</span>' : '<span class="chip ok">검수완료</span>') : '<span class="chip error">미업로드</span>'}</td>
     <td>${uploaded(a)
       ? `<a href="${esc(a.contentLink)}" target="_blank">영상 보기</a> <button class="cell-edit" data-kind="content" data-row="${a.row}" data-val="${esc(a.contentLink)}">✎</button>${isCloud() ? '' : ` <button class="btn small judge-link" data-row="${a.row}" data-h="${esc(a.handle)}" data-link="${esc(a.contentLink)}" title="이 영상 한 장만 열어 음원·해시태그·조회수 판정 (스캔이 막힐 때 대체)">🔍 판정</button>`}`
@@ -337,8 +339,36 @@ function viewUpload(accts) {
     </div>
     ${failBanner}
     ${filterRow(coBar(coCounts(applyFUp(accts))), upBar(upCounts(applyCo(accts))))}
-    <table><thead><tr>${sortTh('upload', 'company', '진행사', { defKey: 'state' })}${sortTh('upload', 'handle', '계정', { defKey: 'state' })}${sortTh('upload', 'state', '상태', { defKey: 'state' })}<th>콘텐츠</th>${sortTh('upload', 's19', '음원', { defKey: 'state' })}${sortTh('upload', 's20', '음원구간', { defKey: 'state' })}${sortTh('upload', 's21', '해시태그', { defKey: 'state' })}</tr></thead><tbody>${rows || emptyRow(7)}</tbody></table>
+    <table><thead><tr>${sortTh('upload', 'company', '진행사', { defKey: 'state' })}${sortTh('upload', 'handle', '계정', { defKey: 'state' })}${sortTh('upload', 'sched', '예정일', { defKey: 'state' })}${sortTh('upload', 'state', '상태', { defKey: 'state' })}<th>콘텐츠</th>${sortTh('upload', 's19', '음원', { defKey: 'state' })}${sortTh('upload', 's20', '음원구간', { defKey: 'state' })}${sortTh('upload', 's21', '해시태그', { defKey: 'state' })}</tr></thead><tbody>${rows || emptyRow(8)}</tbody></table>
     <div class="note"><b>검수 완료</b>는 <b>음원·음원구간·해시태그 세 칸이 모두 준수</b>일 때만이에요. 한 칸이라도 <b>미준수</b>나 <b>미확인</b>이면 <b>검수대기</b>로 남습니다. 음원구간은 사람이 영상 보고, 음원·해시태그는 스캔이 자동 판정해요. 드롭다운에서 <b>준수·미준수</b>로 고치면 재스캔해도 유지(수동 우선), <b>미확인</b>으로 되돌리면 자동 판정에 다시 맡겨요. 점선 테두리는 <b>시트에 저장되지 않은 자동 추정값</b>이에요.</div>`;
+}
+
+// 업로드 예정일 (업로드 탭의 '예정일' 열에서 사용). 마스터시트 18열, 주로 SIRIAI 만 값이 있음.
+// 파싱: "7/8" 텍스트 또는 "2026-07-08" 형태 모두 → {key: 정렬용 MMDD, label: "7/8"}
+function schedInfo(a) {
+  const t = String(a.schedDate || '').trim();
+  if (!t) return null;
+  const iso = t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  const md = t.match(/^(\d{1,2})\s*[./-]\s*(\d{1,2})/);
+  let mo, da;
+  if (iso) { mo = +iso[2]; da = +iso[3]; }
+  else if (md) { mo = +md[1]; da = +md[2]; }
+  else return { key: 99999, label: t }; // 모르는 형식: 정렬 맨 뒤, 원문 그대로 표시
+  return { key: mo * 100 + da, label: `${mo}/${da}` };
+}
+const scheduled = (a) => !!schedInfo(a);
+// 예정일이 오늘보다 지났는데 아직 미업로드 (실행자가 챙겨야 할 계정)
+function schedOverdue(a) {
+  const si = schedInfo(a);
+  if (!si || si.key === 99999 || uploaded(a)) return false;
+  const now = new Date();
+  return si.key < (now.getMonth() + 1) * 100 + now.getDate();
+}
+// 업로드 탭 '예정일' 셀 — 값 없으면 —, 예정일 지났는데 미업로드면 '지남' 칩.
+function schedCell(a) {
+  const si = schedInfo(a);
+  if (!si) return '<td><span class="muted">—</span></td>';
+  return `<td class="num">${esc(si.label)}${schedOverdue(a) ? ' <span class="chip needs">지남</span>' : ''}</td>`;
 }
 
 // ③ 가드닝 (하위 탭)

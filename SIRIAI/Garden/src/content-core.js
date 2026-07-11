@@ -25,7 +25,7 @@ export async function judgeOneLink(campaign, { row, handle, link }) {
   finally { try { await browser.close(); } catch {} }
   if (!one || !one.ok) throw new Error((one && one.error) || '영상을 못 열었어요 (틱톡이 막았을 수 있어요). 잠시 후 다시 해주세요.');
 
-  const d = detectCampaign([one.video], cfg, { knownLink: link });
+  const d = detectCampaign([one.video], cfg, { knownLink: link, handle });
   // 시트 되쓰기 — 수동 잠금(overrides)된 칸은 안 건드림. 캠페인 기준 없으면 음원/해시태그는 안 씀.
   const overrides = await readOverrides(campaign);
   const cells = [];
@@ -96,7 +96,7 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
       detected[a.handle] = prev[a.handle] || { uploaded: false, scanFailed: true, error: r.error };
       return false;
     }
-    const d = detectCampaign(r.videos, cfg, { knownLink: a.contentLink });
+    const d = detectCampaign(r.videos, cfg, { knownLink: a.contentLink, handle: a.handle });
     detected[a.handle] = d;
     failedHandles.delete(a.handle); // 재시도 성공 시 실패목록에서 뺀다
     if (d.uploaded && !(prev[a.handle] && prev[a.handle].uploaded)) newUp++;

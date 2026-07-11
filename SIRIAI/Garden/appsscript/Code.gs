@@ -15,7 +15,16 @@ const COL = {
   contentA: 17, reviewNote: 18, soundOk: 19, soundSection: 20, hashtagOk: 21,
   campaignDone: 23, paid: 24, paidDate: 25,
   contentB: 26, views: 27, likes: 28, comments: 29, shares: 30,
+  // 업로드 예정일 — SIRIAI 팀이 18열(헤더상 '검수 특이사항')에 날짜를 기입(예: 7/8). MARU는 비어 있음.
+  // 스캔이 건드리지 않는 열이라 읽기 전용으로 안전. 값이 있는 계정(주로 SIRIAI)만 대시보드 '예정일' 탭에 표시.
+  schedDate: 18,
 };
+
+// 셀 값이 Date 객체면 M/D 로, 텍스트면 그대로. ("7/8" 이 시트에서 날짜로 파싱돼 Date 로 오는 경우 대비)
+function dateStr_(v) {
+  if (v instanceof Date) return (v.getMonth() + 1) + '/' + v.getDate();
+  return String(v == null ? '' : v).trim();
+}
 
 function handleFrom_(link) {
   var m = String(link || '').match(/@([A-Za-z0-9._]+)/);
@@ -67,6 +76,7 @@ function readAccounts_() {
       gardening: String(row[COL.gardening - 1] || ''), // 가드닝 대상여부 — 최초 기록 후 불변(읽기 전용)
       language: String(row[COL.language - 1] || ''),
       notice: String(row[COL.notice - 1] || ''),
+      schedDate: dateStr_(row[COL.schedDate - 1]), // 업로드 예정일(18열) — 값 있는 계정만 대시보드 '예정일' 탭에 노출
       contentLink: c,
       soundOk: String(row[COL.soundOk - 1] || ''),
       soundSection: String(row[COL.soundSection - 1] || ''),
