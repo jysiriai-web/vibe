@@ -109,6 +109,15 @@ td.nick { max-width: 220px; overflow-wrap: anywhere; } /* 공백 없는 긴 라�
 .note { font-size: 14px; color: var(--faint); margin-top: 16px; line-height: 1.6; }
 .note b { color: var(--accent); }
 
+/* 환불 문의용 — 포기 주문 미전달분 주문번호 복사 */
+.refund-box { margin-top: 16px; padding: 16px 18px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--card); display: flex; flex-direction: column; gap: 10px; }
+.refund-head { font-size: 14px; color: var(--ink); }
+.refund-head b { color: var(--accent); }
+.refund-list { font-size: 13px; color: var(--muted); line-height: 1.7; }
+.refund-copyrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.refund-ids { flex: 1; min-width: 200px; font-family: var(--mono, monospace); font-size: 13px; color: var(--ink); background: var(--gray-bg); border-radius: 8px; padding: 9px 12px; overflow-x: auto; white-space: nowrap; }
+.refund-box .sub { font-size: 12.5px; color: var(--faint); margin: 0; }
+
 input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
 input.rate { font-size: 15px; width: 120px; padding: 8px 11px; border: 1.5px solid var(--line); border-radius: 9px; text-align: right; font-variant-numeric: tabular-nums; background: var(--card); color: var(--ink); }
 input.rate:focus { border-color: var(--accent); outline: none; }

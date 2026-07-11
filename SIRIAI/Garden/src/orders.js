@@ -43,7 +43,10 @@ export async function refreshOrders(smm, orders) {
     const sc = toNum(st.start_count);
     if (Number.isFinite(sc)) o.startCount = sc;
     if (st.charge != null && st.charge !== '') o.charge = st.charge;
+    const wasDone = o.done;
     o.done = TERMINAL.includes(st.status) || (Number.isFinite(r) && r === 0);
+    // 처음 완료로 넘어간 순간을 기록 — 완료까지 걸린 시간(placedAt→doneAt) 계산용.
+    if (o.done && !wasDone && !o.doneAt) o.doneAt = new Date().toISOString();
     // 종료(취소) 요청했는데 smm은 아직 배송 중 → 취소가 실제로 안 먹힘.
     // 방금 눌렀을 수 있으니 유예(1시간) 지난 뒤에만 '오류'로 표기(재취소 가능). closed 는 유지.
     if (o.closed && !o.done && Number.isFinite(r) && r > 0 && !CANCEL_STATES.includes(st.status)) {

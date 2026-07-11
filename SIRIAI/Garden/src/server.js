@@ -9,7 +9,7 @@ import { loadEnv } from './env.js';
 import { createSmm } from './smm.js';
 import { classify } from './garden.js';
 import { refreshOrders, inFlightFor } from './orders.js';
-import { runAutoRefill } from './refill.js';
+import { runAutoRefill, refillServiceIds, REFILL_WINDOW_DAYS } from './refill.js';
 import { getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet, syncRecruitToSheet } from './sheet.js';
 import { scanAccounts, buildPlan, placeOrders, findService } from './execute-core.js';
 import { runSync } from './sync-core.js';
@@ -140,7 +140,23 @@ function loadDetected(campaign) {
 function markStale(orders) {
   const cutoff = getStaleDays() * 86400000;
   const now = Date.now();
-  return orders.map((o) => ({ ...o, stale: !o.done && !o.closed && o.placedAt ? now - new Date(o.placedAt).getTime() > cutoff : false }));
+  const refillIds = refillServiceIds(catalog()); // 리필 되는 서비스(refill=true) id 집합
+  const num = (v) => (v == null || String(v).trim() === '' ? NaN : Number(v));
+  return orders.map((o) => {
+    const rem = num(o.remains);
+    const delivered = Number.isFinite(rem) ? (Number(o.quantity) || 0) - rem : null;
+    const undelivered = Number.isFinite(rem) ? rem : null; // 미전달분 = 환불 청구 대상
+    const withinWindow = o.placedAt ? now - new Date(o.placedAt).getTime() <= REFILL_WINDOW_DAYS * 86400000 : false;
+    // 리필 버튼 노출 조건: 리필 되는 서비스 · 30일 안 · 포기 안 함. (패널이 안 되면 눌렀을 때 사유가 뜬다)
+    const refillable = refillIds.has(String(o.service)) && withinWindow && !o.abandoned;
+    return {
+      ...o,
+      stale: !o.done && !o.closed && o.placedAt ? now - new Date(o.placedAt).getTime() > cutoff : false,
+      delivered,
+      undelivered,
+      refillable,
+    };
+  });
 }
 
 function send(res, code, body, type = 'application/json') {
@@ -441,6 +457,25 @@ export async function handler(req, res) {
       if (!w.durable) return send(res, 500, { error: '종료 처리 기록에 실패했어요. 다시 시도해 주세요.' });
       if (w.sheet === 'fail') console.error("[종료] 시트 기록 실패(로컬엔 저장됨):", w.sheetError);
       return send(res, 200, { ok: true, cancelled, cancelError: cancelError || undefined, sheetWarn: w.sheet === 'fail' ? '시트에 아직 안 올라갔어요(로컬엔 저장됨)' : undefined });
+    }
+
+    // 수동 리필 — 버튼 딸깍. 리필 되는 주문(3693 등)의 빠진 팔로워를 지금 바로 리필 요청.
+    // 자동 리필(스캔 시)과 같은 API, 사람이 직접 누르는 경로. 돈 안 나감.
+    if (path === '/api/order/refill' && req.method === 'POST') {
+      if (!smm) return send(res, 400, { error: 'SMM 키 없음 (대표님 PC에서만 됨)' });
+      const body = await readBody(req);
+      let orders = await readOrders(campaign);
+      const o = orders.find((x) => String(x.id) === String(body.orderId));
+      if (!o) return send(res, 404, { error: '주문 없음' });
+      let result;
+      try { [result] = await smm.refill([o.id]); }
+      catch (e) { return send(res, 502, { error: '리필 요청 실패: ' + String((e && e.message) || e) }); }
+      o.refillAt = new Date().toISOString();
+      if (result && result.ok) { o.refillId = result.refillId; o.refillError = undefined; }
+      else { o.refillError = (result && result.error) || '패널이 리필을 거절했어요'; }
+      const w = await writeOrders(campaign, orders);
+      if (!w.durable) return send(res, 500, { error: '리필 기록에 실패했어요. 다시 시도해 주세요.' });
+      return send(res, 200, { ok: !!(result && result.ok), refillId: result && result.refillId, error: result && result.error, orders: markStale(orders) });
     }
 
     // 주문 포기 — 배송 중이라 취소가 안 먹혀도, 이 주문을 접고 계정을 재가드닝 가능하게(inFlightFor 제외).

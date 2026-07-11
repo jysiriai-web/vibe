@@ -25,6 +25,7 @@ export const LOCAL_ONLY = new Set([
   '/api/execute',
   '/api/order/close',
   '/api/order/abandon',
+  '/api/order/refill',
   '/api/rate',
   '/api/service',
 ]);

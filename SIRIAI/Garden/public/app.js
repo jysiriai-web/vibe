@@ -307,6 +307,26 @@ function orderClass(o) {
   if (o.done) return 'done';
   return 'active';
 }
+// 포기한 주문 중 '미전달분(안 들어온 팔로워)'이 있는 것 = 환불 문의 대상.
+// 주문번호를 콤마로 묶어 한 번에 복사 → smmkings 문의에 붙여넣게. (문의 API 는 없어서 수기)
+function refundBox(orders) {
+  const refundable = (orders || []).filter((o) => o.abandoned && Number(o.undelivered) > 0);
+  if (!refundable.length) return '';
+  const ids = refundable.map((o) => o.id).join(',');
+  const totalUndel = refundable.reduce((s, o) => s + Number(o.undelivered || 0), 0);
+  const lines = refundable
+    .map((o) => `#${o.id} @${o.handle} — ${fmt(o.undelivered)}명 미전달 (${fmt(o.delivered)}/${fmt(o.quantity)})`)
+    .join('<br>');
+  return `<div class="refund-box">
+      <div class="refund-head"><b>환불 문의용</b> · 포기 주문 중 미전달 <b>${refundable.length}건</b> · 안 들어온 팔로워 합계 <b>${fmt(totalUndel)}명</b></div>
+      <div class="refund-list">${lines}</div>
+      <div class="refund-copyrow">
+        <code class="refund-ids" id="refundIds">${ids}</code>
+        <button class="btn small copy-refund" data-ids="${ids}">📋 주문번호 복사</button>
+      </div>
+      <div class="sub">이 번호들을 smmkings 문의에 붙여넣어 미전달분 환불을 요청하세요. (리필 없는 서비스라 자동은 안 돼요)</div>
+    </div>`;
+}
 function viewOrders(orders) {
   if (!orders.length) return `<div class="empty">아직 집행 내역이 없어요.</div>`;
   const cnt = { all: orders.length, active: 0, done: 0, canceled: 0, stuck: 0 };
@@ -329,9 +349,13 @@ function viewOrders(orders) {
     // 버튼: 활성=종료 처리 / 종료했는데 아직 배송중(유예·오류)=[다시 종료]+[포기(재주문 허용)] / 포기·완료=없음
     // 클라우드(팀 화면)에서는 아무 버튼도 안 보인다 — 보기 전용.
     let btns = '';
-    if (!isCloud() && !o.abandoned && !o.done) {
-      if (!o.closed) btns = `<button class="btn small close-order" data-id="${o.id}">종료 처리</button>`;
-      else btns = `${o.cancelStuck ? `<button class="btn small close-order" data-id="${o.id}">다시 종료</button>` : ''}<button class="btn small ghost abandon-order" data-id="${o.id}" title="이 주문을 접고 이 계정을 다시 가드닝할 수 있게 해요">포기</button>`;
+    if (!isCloud()) {
+      if (!o.abandoned && !o.done) {
+        if (!o.closed) btns += `<button class="btn small close-order" data-id="${o.id}">종료 처리</button>`;
+        else btns += `${o.cancelStuck ? `<button class="btn small close-order" data-id="${o.id}">다시 종료</button>` : ''}<button class="btn small ghost abandon-order" data-id="${o.id}" title="이 주문을 접고 이 계정을 다시 가드닝할 수 있게 해요">포기</button>`;
+      }
+      // 리필 되는 서비스(3693 등)·30일 안·포기 안 한 주문엔 수동 리필 버튼(빠진 팔로워 되채움).
+      if (o.refillable) btns += `<button class="btn small refill-order" data-id="${o.id}" title="빠진 팔로워를 지금 리필 요청해요 (30일 리필 서비스)">♻️ 리필</button>`;
     }
     return `<tr><td class="company">#${o.id}${o.service ? ` · s${o.service}` : ''}</td><td class="handle">${link(o.handle)}</td><td class="num">${fmt(o.quantity)}</td>
       <td><div class="progress"><span style="width:${pct}%"></span></div></td><td class="num">${delivered}/${o.quantity}</td><td>${st}</td>
@@ -348,6 +372,7 @@ function viewOrders(orders) {
   ${cnt.stuck ? `<div class="note"><b style="color:var(--needs)">⚠️ 오류</b> = 종료했는데 smmkings에서 취소가 안 먹히고 계속 배송 중이에요(종료 후 1시간 지나도). <b>다시 종료</b>로 재시도하거나, 급하면 <b>포기</b>로 이 주문을 접고 그 계정을 바로 다시 가드닝할 수 있어요.</div>` : ''}
   ${closedActiveN && !cnt.stuck ? `<div class="note"><b>종료·취소요청</b> = 종료를 눌러 취소 요청한 주문이에요. 급해서 바로 다른 서비스로 재주문하려면 <b>포기</b>를 누르면 이 계정을 다시 가드닝할 수 있어요(포기한 주문의 팔로워는 들어올 수도 있어요).</div>` : ''}
   ${abandonedN ? `<div class="note"><b>포기함</b> = 접은 주문이에요(비용은 기록에 남음). 이 계정은 다시 가드닝할 수 있어요 — <b>비용 탭</b>에서 서비스를 바꾼 뒤 가드닝하면 다른 서비스로 새로 주문돼요.</div>` : ''}
+  ${refundBox(orders)}
   ${staleN ? `<div class="note"><b style="color:var(--warn)">⚠️ 정체 의심</b> = ${state.data.config.staleDays}일 넘게 안 끝난 주문. 멈춰있으면 <b>종료 처리</b>로 취소하고, 그 계정을 다시 가드닝하면 돼요.</div>` : ''}
   ${localOnlyNote('주문 <b>종료·포기</b>')}`;
 }
@@ -436,6 +461,8 @@ function wire() {
   if ($('#syncRecruitBtn')) $('#syncRecruitBtn').addEventListener('click', syncRecruit);
   $$('.close-order').forEach((b) => b.addEventListener('click', () => closeOrder(b.dataset.id)));
   $$('.abandon-order').forEach((b) => b.addEventListener('click', () => abandonOrder(b.dataset.id)));
+  $$('.refill-order').forEach((b) => b.addEventListener('click', () => refillOrder(b.dataset.id)));
+  $$('.copy-refund').forEach((b) => b.addEventListener('click', () => copyText(b.dataset.ids, `주문번호 ${b.dataset.ids.split(',').length}개 복사됨`)));
   $$('.star').forEach((b) => b.addEventListener('click', () => toggleBest(b.dataset.h)));
   $$('.cell-edit').forEach((b) => b.addEventListener('click', () => startCellEdit(b)));
   $$('.rev-sel').forEach((s) => s.addEventListener('change', () => setReview(Number(s.dataset.row), Number(s.dataset.col), s.value)));
@@ -576,6 +603,29 @@ async function abandonOrder(id) {
   if (r.error) return toast('실패: ' + r.error);
   toast('포기 완료 · 이 계정을 다시 가드닝할 수 있어요');
   await loadData();
+}
+// 수동 리필 — 버튼 딸깍. 빠진 팔로워를 지금 리필 요청(30일 리필 서비스). 돈 안 나감.
+async function refillOrder(id) {
+  if (!confirm(`주문 #${id} 의 빠진 팔로워를 리필 요청할까요?\n30일 리필 서비스만 돼요. 돈은 안 나가요.`)) return;
+  overlay(true, '리필 요청 중…');
+  const r = await api(`/api/order/refill?campaign=${state.campaign}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: id }) }).catch(() => ({ error: '네트워크 오류' }));
+  overlay(false);
+  if (r.error && !('ok' in r)) return toast('실패: ' + r.error);
+  if (r.ok) toast(`♻️ 리필 요청됨 (리필번호 ${r.refillId})`);
+  else toast(`리필이 안 됐어요${r.error ? ` (${r.error})` : ''} — 이미 리필 중이거나 빠진 게 없을 수 있어요`);
+  await loadData();
+}
+// 클립보드 복사 (구형 브라우저 폴백 포함).
+async function copyText(text, okMsg) {
+  try { await navigator.clipboard.writeText(text); }
+  catch {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch {}
+    document.body.removeChild(ta);
+  }
+  toast(okMsg || '복사됨');
 }
 async function openExecute() {
   const picked = $$('.pick:checked').map((c) => c.dataset.h);
