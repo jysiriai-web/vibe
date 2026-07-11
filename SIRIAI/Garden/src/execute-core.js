@@ -82,6 +82,16 @@ export async function placeOrders(smm, orders, toOrder, service, { onEach, persi
         link: `https://www.tiktok.com/@${o.handle}`,
         quantity: o.qty,
       });
+      // 주문번호가 없으면(패널 이상응답) 과금 여부도 불명이고, 기록해도 추적 불가한 좀비가 된다
+      // (refreshOrders 가 id 없는 주문을 영구 제외 → remains 가 qty 로 고정 → 그 계정 재가드닝 영영 불가).
+      // 더 사지 말고 배치를 멈춰서 대표님이 패널에서 직접 확인하게 한다.
+      if (!res || res.order == null || String(res.order).trim() === '') {
+        const err = new Error('주문 응답에 주문번호가 없어요. 돈이 나갔을 수 있으니 smmkings 패널에서 확인하세요. (배치 중단)');
+        err.abortBatch = true;
+        err.placed = placed;
+        err.noOrderId = { handle: o.handle, qty: o.qty };
+        throw err;
+      }
       rec = {
         id: res.order,
         handle: o.handle,
@@ -98,6 +108,7 @@ export async function placeOrders(smm, orders, toOrder, service, { onEach, persi
       orders.push(rec);
       placed.push(rec);
     } catch (e) {
+      if (e && e.abortBatch) throw e; // 추적 불가 주문 → 계속 사지 않고 배치 중단
       if (onEach) onEach({ ok: false, handle: o.handle, error: e.message });
       await sleep(800);
       continue;

@@ -46,12 +46,14 @@ export async function runSync(campaign, { onProgress, full = false } = {}) {
   let nicksWritten = 0;
   if (nickCells.length) { try { nicksWritten = await pushCellsToSheet(campaign.sheet, nickCells); } catch {} }
 
-  // 병합: 대상은 새 값, 나머진 이전 값 유지
+  // 병합: 이번에 실제 숫자를 받았으면 그 값, 아니면(스캔 안 함 or 스캔 실패=null) 이전 값 유지.
+  //  ⚠️ 스캔했지만 실패한 계정은 scannedCur 에 키가 null 로 들어온다. 예전엔 그 null 로
+  //     이전 값(수기 입력 포함)을 덮어써 팔로워 기록이 사라졌다. null 이면 prev 로 폴백한다.
   const mergedAccounts = accounts.map((a) => ({
     company: a.company,
     handle: a.handle,
     row: a.row,
-    current: a.handle in scannedCur ? scannedCur[a.handle] : (a.handle in prev ? prev[a.handle] : null),
+    current: scannedCur[a.handle] != null ? scannedCur[a.handle] : (a.handle in prev ? prev[a.handle] : null),
     sheetFollowers: a.sheetFollowers,
   }));
 
