@@ -323,6 +323,9 @@ function viewOrders(orders) {
     else if (o.closed) st = '<span class="chip stale">종료·취소요청</span>';
     else if (o.stale) st = '<span class="chip stale">정체 의심</span>';
     else st = '<span class="chip filling">진행중</span>';
+    // 빠진 팔로워를 자동 리필 요청한 주문 표시 (30일 리필 서비스만 해당)
+    if (o.refillId) st += ' <span class="chip ok" title="빠진 팔로워를 리필 요청함">♻️ 리필</span>';
+    else if (o.refillError) st += ` <span class="chip stale" title="리필 요청이 거절됨: ${esc(o.refillError)}">♻️ 리필 거절</span>`;
     // 버튼: 활성=종료 처리 / 종료했는데 아직 배송중(유예·오류)=[다시 종료]+[포기(재주문 허용)] / 포기·완료=없음
     // 클라우드(팀 화면)에서는 아무 버튼도 안 보인다 — 보기 전용.
     let btns = '';
@@ -616,7 +619,14 @@ async function scan() {
   const r = await api(`/api/scan?campaign=${state.campaign}&full=1`, { method: 'POST' }).catch(() => ({ error: '네트워크 오류' }));
   overlay(false);
   if (r.error) return toast('스캔 실패: ' + r.error);
-  toast(`스캔 완료 (${r.scannedCount != null ? r.scannedCount : ''}개)` + (r.nicksWritten ? ` · 닉네임 ${r.nicksWritten}개 채움` : '')); await loadData();
+  let msg = `스캔 완료 (${r.scannedCount != null ? r.scannedCount : ''}개)` + (r.nicksWritten ? ` · 닉네임 ${r.nicksWritten}개 채움` : '');
+  // 빠진 팔로워를 감지해 리필을 자동 요청했으면 알린다.
+  if (r.refill && r.refill.requested) {
+    const names = (r.refill.results || []).filter((x) => x.ok).map((x) => '@' + x.handle).slice(0, 3).join(', ');
+    msg += ` · ♻️ 리필 ${r.refill.ok}/${r.refill.requested}건 요청${names ? ' (' + names + ')' : ''}`;
+  }
+  toast(msg);
+  await loadData();
 }
 
 async function contentScan(full) {

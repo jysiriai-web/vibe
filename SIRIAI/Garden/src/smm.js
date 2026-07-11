@@ -69,5 +69,21 @@ export function createSmm(key, apiUrl) {
         return { order: x && x.order, ok: !!c && !err, error: err };
       });
     },
+
+    // 리필(빠진 팔로워 다시 채우기) — 리필 되는 서비스만 됨. cancel 과 같은 배열 형태로 온다.
+    //   [{"order":1,"refill":123}]                          ← 성공(리필 id 123)
+    //   [{"order":1,"refill":{"error":"error.refill_..."}}]  ← 실패
+    // smmkings 는 문의(티켓) API 가 없어서(404), 빠진 걸 되받는 정식 수단이 이 refill 이다.
+    refill: async (orders) => {
+      const r = await req({ action: 'refill', orders: orders.join(',') });
+      const arr = Array.isArray(r) ? r : [r];
+      return arr.map((x) => {
+        const rf = x && x.refill;
+        const err = rf && typeof rf === 'object' && rf.error ? String(rf.error) : (x && x.error ? String(x.error) : '');
+        const id = rf && typeof rf === 'object' ? (rf.refill ?? null) : (rf ?? null);
+        return { order: x && x.order, ok: !!id && !err, refillId: id, error: err };
+      });
+    },
+    refillStatus: (refillId) => req({ action: 'refill_status', refill: String(refillId) }),
   };
 }

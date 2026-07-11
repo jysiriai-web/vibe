@@ -9,6 +9,7 @@ import { loadEnv } from './env.js';
 import { createSmm } from './smm.js';
 import { classify } from './garden.js';
 import { refreshOrders, inFlightFor } from './orders.js';
+import { runAutoRefill } from './refill.js';
 import { getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet, syncRecruitToSheet } from './sheet.js';
 import { scanAccounts, buildPlan, placeOrders, findService } from './execute-core.js';
 import { runSync } from './sync-core.js';
@@ -315,7 +316,19 @@ export async function handler(req, res) {
       const sync = await runSync(campaign, { full: url.searchParams.get('full') === '1' });
       let orders = await readOrders(campaign);
       if (smm) { try { orders = await refreshOrders(smm, orders); } catch {} }
-      return send(res, 200, { ok: true, scannedAt: scanLatest(campaign).ranAt, scannedCount: sync.scannedCount, nicksWritten: sync.nicksWritten, accounts: await buildAccounts(campaign, orders), orders: markStale(orders) });
+      // 자동 리필: 방금 스캔한 팔로워로 드롭 감지 → 리필 되는 주문(3693 등)에 리필 요청.
+      // 리필 없는 서비스·30일 지난 주문·안 빠진 계정은 refill.js 가 알아서 거른다. 돈 안 나감.
+      let refill = null;
+      if (smm) {
+        try {
+          const latest = scanLatest(campaign);
+          const fol = {};
+          (latest.accounts || latest.results || []).forEach((a) => { fol[a.handle] = a.current; });
+          const r = await runAutoRefill({ orders, followersByHandle: fol, smm, services: catalog() });
+          if (r.requested) { await writeOrders(campaign, orders); refill = r; }
+        } catch (e) { console.error('[자동리필] 실패(스캔은 정상):', (e && e.message) || e); }
+      }
+      return send(res, 200, { ok: true, scannedAt: scanLatest(campaign).ranAt, scannedCount: sync.scannedCount, nicksWritten: sync.nicksWritten, refill, accounts: await buildAccounts(campaign, orders), orders: markStale(orders) });
     }
 
     if (path === '/api/plan' && req.method === 'POST') {
