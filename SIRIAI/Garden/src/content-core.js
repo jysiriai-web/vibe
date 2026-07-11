@@ -14,18 +14,22 @@ function prevDetected(campaign) {
   try { return JSON.parse(readFileSync(p, 'utf8')).detected || {}; } catch { return {}; }
 }
 
-// onWait: 로봇 인증을 사람이 끝낼 때까지 기다리는 동안 호출됨(초 단위). 스캔은 그 뒤에 시작한다.
-export async function runContentScan(campaign, { onProgress, onWait, full = false, concurrency = 5 } = {}) {
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// onWarmup: 인증 창이 떠서 '스캔 시작' 대기 중일 때 1회 호출. waitForGo: 사람이 '스캔 시작' 누르면 resolve.
+// concurrency 는 낮게(기본 2) — 탭을 많이 열면 틱톡이 막아서 업로드된 계정도 '못 봄'으로 잡힌다(사용자 지적).
+export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo, full = false, concurrency = 2 } = {}) {
   const cfg = { hashtags: campaign.campaignHashtags || [], soundId: campaign.campaignSoundId || '' };
   const accounts = await getAccountsFromSheet(campaign.sheet);
   const prev = prevDetected(campaign);
 
-  // 스캔 대상: 전체. 이미 업로드된 계정도 성과(조회수 등)가 계속 자라니 다시 긁어야 함(납품 숫자 최신화).
-  // 단, 이미 업로드된 계정은 검수열(17/19/21)은 안 건드리고 성과(27~30)만 갱신(아래 write 루프). full이면 검수도 재판정.
-  const targets = accounts;
+  // 업로드 스캔은 '아직 업로드 안 된 계정만' 긁는다(사용자 지정) — 탭 수를 줄여 차단을 피한다.
+  // 이미 업로드된 계정(감지됨 또는 시트에 콘텐츠 링크 있음)은 건너뛴다. full=true(Shift+클릭)면 전체 재스캔(조회수 갱신).
+  const isUploaded = (a) => (prev[a.handle] && prev[a.handle].uploaded) || !!(a.contentLink && String(a.contentLink).trim());
+  const targets = full ? accounts : accounts.filter((a) => !isUploaded(a));
 
-  // 창 하나를 먼저 띄워 사람이 로봇 인증을 끝낼 때까지 기다린다(인증 실패면 여기서 throw).
-  const { browser, ctx } = await launchBrowser({ onWait }); // Playwright 미설치면 throw
+  // 인증 창 하나 먼저 띄우고 '스캔 시작'을 기다린다(대기 초과면 여기서 throw).
+  const { browser, ctx } = await launchBrowser({ onWarmup, waitForGo }); // Playwright 미설치면 throw
   const detected = { ...prev }; // 이미 업로드된 건 이전 결과 유지
   let done = 0;
   let newUp = 0;
@@ -69,11 +73,37 @@ export async function runContentScan(campaign, { onProgress, onWait, full = fals
   };
   try {
     await Promise.all(Array.from({ length: Math.min(concurrency, targets.length) || 1 }, worker));
+
+    // 실패한 계정은 순차로(동시성 1) 한 번 더 시도한다. 실패는 대개 일시적 rate-limit 이라
+    // 천천히 한 번 더 하면 상당수가 복구된다 = '업로드했는데 못 봄' 케이스를 줄인다.
+    const retry = targets.filter((t) => failedHandles.has(t.handle));
+    for (const a of retry) {
+      await sleep(1500);
+      let r = { videos: [], ok: false, error: '' };
+      try { r = await fetchVideos(ctx, a.handle); } catch (e) { r.error = String((e && e.message) || e); }
+      const wantId = videoIdFromLink(a.contentLink);
+      if (wantId && !r.videos.some((v) => String(v.id || '') === wantId)) {
+        try { const one = await fetchVideoByLink(ctx, a.contentLink); if (one.ok) r = { ...r, videos: [one.video, ...r.videos], ok: true, error: '' }; } catch {}
+      }
+      if (r.ok) {
+        const d = detectCampaign(r.videos, cfg, { knownLink: a.contentLink });
+        detected[a.handle] = d;
+        failedHandles.delete(a.handle);
+        if (d.uploaded && !(prev[a.handle] && prev[a.handle].uploaded)) newUp++;
+        if (onProgress) onProgress({ done, total: targets.length, handle: a.handle, uploaded: !!d.uploaded, retried: true });
+      }
+    }
   } finally {
     try { await browser.close(); } catch {}
   }
 
   const totalUp = Object.values(detected).filter((d) => d && d.uploaded).length;
+
+  // 이번 스캔에서 끝까지 못 본 계정 = 업로드 탭에서 하이라이트할 '실패 지점'. 매 스캔마다 덮어쓴다(성공하면 빈 목록).
+  try {
+    const failRows = targets.filter((t) => failedHandles.has(t.handle)).map((t) => ({ handle: t.handle, row: t.row }));
+    writeFileSync(join(campaign.dataDir, 'scan-failures.json'), JSON.stringify({ ranAt: new Date().toISOString(), handles: failRows }, null, 2));
+  } catch {}
 
   mkdirSync(campaign.dataDir, { recursive: true });
   writeFileSync(join(campaign.dataDir, 'detected.json'), JSON.stringify({ ranAt: new Date().toISOString(), detected }, null, 2));

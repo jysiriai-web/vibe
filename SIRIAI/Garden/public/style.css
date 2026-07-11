@@ -109,6 +109,19 @@ td.nick { max-width: 220px; overflow-wrap: anywhere; } /* 공백 없는 긴 라�
 .note { font-size: 14px; color: var(--faint); margin-top: 16px; line-height: 1.6; }
 .note b { color: var(--accent); }
 
+/* 로봇 인증 확인 패널 (업로드 스캔 착수 전) */
+#scanConfirm { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: flex; justify-content: center; padding: 18px; pointer-events: none; }
+.sc-card { pointer-events: auto; background: var(--card); border: 1.5px solid var(--accent); border-radius: 14px; box-shadow: 0 12px 34px rgba(20,20,35,.18); padding: 16px 18px; display: flex; align-items: center; gap: 18px; max-width: 640px; width: 100%; }
+.sc-msg { font-size: 14px; color: var(--ink); line-height: 1.55; flex: 1; }
+.sc-card .btn { white-space: nowrap; }
+
+/* 업로드 스캔이 못 본 계정 하이라이트 */
+.scanfail-banner { margin: 14px 0 4px; padding: 12px 15px; border-radius: 11px; background: var(--warn-bg, #fdf2e0); color: var(--warn-ink, #8a4f06); font-size: 13.5px; line-height: 1.6; border: 1px solid var(--warn, #e6a94d); }
+tr.scan-failed { background: var(--warn-bg, #fdf5e8); cursor: pointer; box-shadow: inset 3px 0 0 var(--warn, #e6a94d); }
+tr.scan-failed:hover { filter: brightness(0.98); }
+.chip.warn { background: var(--warn-bg, #fdf2e0); color: var(--warn-ink, #8a4f06); }
+.scanfail-tag { margin-left: 6px; }
+
 /* 환불 문의용 — 포기 주문 미전달분 주문번호 복사 */
 .refund-box { margin-top: 16px; padding: 16px 18px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--card); display: flex; flex-direction: column; gap: 10px; }
 .refund-head { font-size: 14px; color: var(--ink); }

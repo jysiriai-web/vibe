@@ -244,24 +244,45 @@ function viewRecruit(accts) {
 }
 
 // ② 업로드
+// 지난 스캔에서 못 본 계정 중, 사용자가 아직 안 지운 것 (클릭하면 하이라이트 사라짐 → localStorage)
+function scanFailedSet() {
+  const fails = (state.data && state.data.scanFailures && state.data.scanFailures.handles) || [];
+  const dismissed = dismissedFails();
+  const set = new Set();
+  for (const f of fails) { const h = typeof f === 'string' ? f : f.handle; if (h && !dismissed.has(h) && !uploadedByHandle(h)) set.add(h); }
+  return set;
+}
+function dismissKey() { return `garden_scanfail_dismissed_${state.campaign}`; }
+function dismissedFails() { try { return new Set(JSON.parse(localStorage.getItem(dismissKey()) || '[]')); } catch { return new Set(); } }
+function dismissFail(handle) { const s = dismissedFails(); s.add(handle); localStorage.setItem(dismissKey(), JSON.stringify([...s])); render(); }
+function uploadedByHandle(h) { const a = (state.data.accounts || []).find((x) => x.handle === h); return a ? uploaded(a) : false; }
+
 function viewUpload(accts) {
   if (!accts.length) return emptyScan();
   const up = accts.filter(uploaded);
   const rev = accts.filter(reviewed);
+  const failed = scanFailedSet(); // 스캔이 못 본 계정 = 하이라이트
   const list = applyFUp(applyCo(accts));
-  const rows = list.map((a) => `<tr${reviewPending(a) ? ' class="row-alert"' : ''}>
+  const rows = list.map((a) => {
+    const isFail = failed.has(a.handle);
+    const cls = [reviewPending(a) ? 'row-alert' : '', isFail ? 'scan-failed' : ''].filter(Boolean).join(' ');
+    return `<tr${cls ? ` class="${cls}"` : ''}${isFail ? ` data-failh="${esc(a.handle)}" title="지난 스캔에서 이 계정을 못 봤어요 (틱톡 차단). 확인했으면 클릭해서 표시를 지우세요."` : ''}>
     <td>${coChip(a.company)}</td>
-    <td class="handle">${link(a.handle)}</td>
+    <td class="handle">${link(a.handle)}${isFail ? ' <span class="chip warn scanfail-tag">스캔 실패</span>' : ''}</td>
     <td>${uploaded(a) ? (reviewPending(a) ? '<span class="chip needs">검수대기</span>' : '<span class="chip ok">검수완료</span>') : '<span class="chip error">미업로드</span>'}</td>
     <td>${uploaded(a) ? `<a href="${esc(a.contentLink)}" target="_blank">영상 보기</a> <button class="cell-edit" data-kind="content" data-row="${a.row}" data-val="${esc(a.contentLink)}">✎</button>` : `<button class="cell-edit prompt" data-kind="content" data-row="${a.row}" data-val="">링크 달기</button>`}</td>
     <td>${revChip(a, 19)}</td>
     <td>${revChip(a, 20)}</td>
-    <td>${revChip(a, 21)}</td></tr>`).join('');
+    <td>${revChip(a, 21)}</td></tr>`;
+  }).join('');
+  const failN = failed.size;
+  const failBanner = failN ? `<div class="scanfail-banner">⚠️ 지난 업로드 스캔에서 <b>${failN}개</b> 계정을 못 봤어요 (틱톡이 막음). 아래 <b>노란 줄</b>이 그 계정이에요 — 업로드했는데 안 잡혔을 수 있으니 <b>다시 스캔</b>하거나 직접 확인하세요. 확인한 계정은 <b>줄을 클릭</b>하면 표시가 사라져요.</div>` : '';
   return `<div class="cards">
       ${kpi('업로드 완료', ofTot(up.length, accts.length), { ic: IC.video })}
       ${kpi('검수 완료', ofTot(rev.length, up.length || accts.length), { ic: IC.check, sub: '음원구간 판정 기준' })}
       ${kpi('검수대기', accts.filter(reviewPending).length, { ic: IC.clock, accent: 'var(--needs)' })}
     </div>
+    ${failBanner}
     ${filterRow(coBar(coCounts(applyFUp(accts))), upBar(upCounts(applyCo(accts))))}
     <table><thead><tr><th>진행사</th><th>계정</th><th>상태</th><th>콘텐츠</th><th>음원</th><th>음원구간</th><th>해시태그</th></tr></thead><tbody>${rows || emptyRow(7)}</tbody></table>
     <div class="note"><b>음원·해시태그</b>는 스캔이 자동 판정해서 <u>검수로 세지 않아요</u>. <b>음원구간</b>을 사람이 영상 보고 판정해야 <b>검수 완료</b>가 됩니다. 드롭다운에서 <b>준수·미준수</b>로 고치면 재스캔해도 유지(수동 우선), <b>미확인</b>으로 되돌리면 자동 판정에 다시 맡겨요. 점선 테두리는 <b>시트에 저장되지 않은 자동 추정값</b>이에요.</div>`;
@@ -466,6 +487,8 @@ function wire() {
   $$('.star').forEach((b) => b.addEventListener('click', () => toggleBest(b.dataset.h)));
   $$('.cell-edit').forEach((b) => b.addEventListener('click', () => startCellEdit(b)));
   $$('.rev-sel').forEach((s) => s.addEventListener('change', () => setReview(Number(s.dataset.row), Number(s.dataset.col), s.value)));
+  // 스캔 실패 하이라이트: 그 줄을 클릭하면(검수 드롭다운·편집 버튼 제외) 표시가 사라진다.
+  $$('tr[data-failh]').forEach((tr) => tr.addEventListener('click', (e) => { if (e.target.closest('select, .cell-edit')) return; dismissFail(tr.dataset.failh); }));
   $$('.notice').forEach((b) => b.addEventListener('click', () => toggleNotice(Number(b.dataset.row), b.classList.contains('sent'))));
   $$('.co-f').forEach((b) => b.addEventListener('click', () => { state.fCo = b.dataset.k; render(); }));
   $$('.st-f').forEach((b) => b.addEventListener('click', () => { state.fStatus = b.dataset.k; render(); }));
@@ -685,22 +708,42 @@ async function contentScan(full) {
   btn.disabled = true; // 느린 초기 왕복 동안 더블클릭 방지 — await 전에 잠금
   const r = await api(`/api/content-scan?campaign=${state.campaign}${full ? '&full=1' : ''}`, { method: 'POST' }).catch(() => ({ error: '네트워크 오류' }));
   if (r.error) { btn.disabled = false; return toast('오류: ' + r.error); }
-  toast('크롬 창이 떠요 — 로봇 인증이 뜨면 먼저 통과시켜 주세요. 그다음 스캔이 시작됩니다');
+  toast('크롬 창이 하나 떠요 — 로봇 인증을 끝낸 뒤 [스캔 시작]을 눌러 주세요');
+  let confirmShown = false;
   const poll = setInterval(async () => {
     let s;
     try { s = await api('/api/content-scan/status'); } catch { return; }
-    if (s.error) { clearInterval(poll); btn.disabled = false; btn.textContent = '업로드 스캔'; return toast('스캔 실패: ' + s.error); }
+    if (s.error) { clearInterval(poll); scanConfirmPanel(false); btn.disabled = false; btn.textContent = '업로드 스캔'; return toast('스캔 실패: ' + s.error); }
     if (s.running) {
-      btn.textContent = s.phase === 'warmup' ? `인증 대기… ${s.waitSeconds || 0}초` : `스캔 중… ${s.done}/${s.total || '?'}`;
+      if (s.phase === 'confirm') { btn.textContent = '인증 대기 중…'; if (!confirmShown) { confirmShown = true; scanConfirmPanel(true); } }
+      else { if (confirmShown) { confirmShown = false; scanConfirmPanel(false); } btn.textContent = `스캔 중… ${s.done}/${s.total || '?'}`; }
       return;
     }
-    clearInterval(poll); btn.disabled = false; btn.textContent = '업로드 스캔';
+    clearInterval(poll); scanConfirmPanel(false); btn.disabled = false; btn.textContent = '업로드 스캔';
     // 못 본 계정이 있으면 반드시 알린다. 조용히 넘어가면 '전부 확인했다'로 읽힌다.
     toast(s.failed
-      ? `콘텐츠 스캔 완료 — 업로드 ${s.up}개 · 시트 ${s.written}칸 · ⚠️ ${s.failed}개는 틱톡이 막아서 못 봤어요 (다시 스캔하세요)`
-      : `콘텐츠 스캔 완료 — 업로드 ${s.up}개 · 시트 ${s.written}칸 반영`);
+      ? `업로드 스캔 완료 — 업로드 ${s.up}개 · ⚠️ ${s.failed}개는 못 봤어요 (업로드 탭에 표시됨 — 다시 스캔하세요)`
+      : `업로드 스캔 완료 — 업로드 ${s.up}개 · 시트 ${s.written}칸 반영`);
     await loadData();
-  }, 3000);
+  }, 2500);
+}
+// 로봇 인증 확인 패널 — 크롬 창에서 인증 끝낸 뒤 [스캔 시작]을 눌러야 착수한다.
+function scanConfirmPanel(show) {
+  let el = $('#scanConfirm');
+  if (!show) { if (el) el.remove(); return; }
+  if (el) return;
+  el = document.createElement('div');
+  el.id = 'scanConfirm';
+  el.innerHTML = `<div class="sc-card">
+      <div class="sc-msg"><b>크롬 창에서 로봇 인증을 끝내셨나요?</b><br>인증(사람입니다 등)을 통과한 뒤 아래 버튼을 누르면 스캔이 시작돼요.</div>
+      <button class="btn primary" id="scanGo">스캔 시작</button>
+    </div>`;
+  document.body.appendChild(el);
+  $('#scanGo').addEventListener('click', async () => {
+    $('#scanGo').disabled = true; $('#scanGo').textContent = '시작하는 중…';
+    await api('/api/content-scan/confirm', { method: 'POST' }).catch(() => {});
+    scanConfirmPanel(false);
+  });
 }
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(t._t); t._t = setTimeout(() => (t.hidden = true), 3400); }
 function overlay(show, msg) { $('#overlay').hidden = !show; if (msg) $('#overlayMsg').textContent = msg; }

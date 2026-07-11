@@ -21,26 +21,27 @@ async function profileRendered(page) {
   } catch { return false; }
 }
 
-// 창 하나를 먼저 띄워 사람이 로봇 인증을 끝낼 때까지 기다린다.
-// 이걸 안 하면 첫 탭들이 전부 인증 화면에 막히고, 그게 '영상 없음'처럼 보인다.
-// 통과하면 그 쿠키가 같은 ctx 의 모든 탭에 적용되므로 이후 스캔은 막히지 않는다.
-async function warmUp(ctx, { onWait, timeout = 5 * 60 * 1000 } = {}) {
+// 창 하나만 먼저 띄운다. 이 창에서 로봇 인증을 사람이 끝내고, 대시보드에서 '스캔 시작'을 누르면
+// (waitForGo 가 resolve) 그때부터 실제 스캔이 착수한다. 통과 쿠키는 같은 ctx 의 모든 탭에 적용된다.
+//
+// 예전엔 자동 감지(프로필 렌더 폴링)로 판단했는데, 시간 압박·오탐이 있었다.
+// 이제는 '사람 확인'이 기본 신호다: waitForGo 가 resolve 되면 신뢰하고 진행.
+// (프로필이 저절로 렌더되면 인증이 필요 없던 것이므로 확인 없이도 자동 진행 — 쿠키 살아있을 때 편의)
+async function warmUp(ctx, { onWarmup, waitForGo, timeout = 15 * 60 * 1000 } = {}) {
   const page = await ctx.newPage();
   const start = Date.now();
   let ok = false;
+  let confirmed = false;
+  if (waitForGo) { try { Promise.resolve(waitForGo()).then(() => { confirmed = true; }).catch(() => {}); } catch {} }
   try {
     await page.goto(WARMUP_URL, { waitUntil: 'domcontentloaded', timeout: 45000 }).catch(() => {});
+    if (onWarmup) { try { onWarmup(); } catch {} } // 창 떴고 인증 대기 — 대시보드에 '스캔 시작' 버튼 띄우라는 신호
     let lastReload = Date.now();
     while (Date.now() - start < timeout) {
-      ok = await profileRendered(page);
-      if (ok) break;
-      if (onWait) onWait({ seconds: Math.round((Date.now() - start) / 1000) });
-      await page.waitForTimeout(2000);
-      // 인증을 끝냈는데 화면이 안 넘어가는 경우가 있어 주기적으로 새로고침해 확인한다.
-      if (Date.now() - lastReload > 25000) {
-        lastReload = Date.now();
-        await page.goto(WARMUP_URL, { waitUntil: 'domcontentloaded', timeout: 45000 }).catch(() => {});
-      }
+      if (await profileRendered(page)) { ok = true; break; }   // 인증 필요 없었음(쿠키 살아있음) → 자동 진행
+      if (confirmed) { ok = true; break; }                     // 사람이 '스캔 시작' 누름 → 신뢰하고 진행
+      await page.waitForTimeout(1500);
+      if (Date.now() - lastReload > 30000) { lastReload = Date.now(); await page.goto(WARMUP_URL, { waitUntil: 'domcontentloaded', timeout: 45000 }).catch(() => {}); }
     }
   } catch {}
   try { await page.close(); } catch {}
@@ -48,7 +49,7 @@ async function warmUp(ctx, { onWait, timeout = 5 * 60 * 1000 } = {}) {
 }
 
 // warmup=false 는 테스트용. 평소엔 항상 인증 관문을 거친다 (호출부가 빠뜨릴 수 없게 여기에 둠).
-export async function launchBrowser({ warmup = true, onWait } = {}) {
+export async function launchBrowser({ warmup = true, onWarmup, waitForGo } = {}) {
   const { chromium } = await import('playwright'); // 미설치면 여기서 throw
   const browser = await chromium.launch({ headless: false });
   const base = { userAgent: UA, viewport: { width: 1280, height: 900 }, locale: 'ja-JP' };
@@ -59,10 +60,10 @@ export async function launchBrowser({ warmup = true, onWait } = {}) {
     ctx = await browser.newContext(base); // 저장된 세션이 깨졌으면 그냥 새로 시작
   }
   if (warmup) {
-    const ok = await warmUp(ctx, { onWait });
+    const ok = await warmUp(ctx, { onWarmup, waitForGo });
     if (!ok) {
       try { await browser.close(); } catch {}
-      throw new Error('틱톡 로봇 인증을 통과하지 못했어요. 크롬 창에서 인증을 끝낸 뒤 다시 눌러주세요.');
+      throw new Error('로봇 인증 대기가 끝났어요(시간 초과). 크롬 창에서 인증을 끝내고 스캔을 다시 눌러주세요.');
     }
     try { mkdirSync(dirname(SESSION_PATH), { recursive: true }); await ctx.storageState({ path: SESSION_PATH }); } catch {}
   }

@@ -34,6 +34,7 @@ function pwMatch(input) {
   return a.length === b.length && timingSafeEqual(a, b); // 상수시간 비교(길이 다르면 즉시 false)
 }
 let contentScanState = { running: false, done: 0, total: 0, up: 0, written: 0, error: null, ranAt: null };
+let scanConfirmResolve = null; // '스캔 시작' 확인을 기다리는 promise 의 resolver (로봇 인증 게이트)
 
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml' };
 
@@ -62,6 +63,12 @@ async function effectiveRate() {
 function scanLatest(campaign) {
   const p = join(campaign.dataDir, 'scan-latest.json');
   return existsSync(p) ? JSON.parse(readFileSync(p, 'utf8')) : { accounts: [], ranAt: null };
+}
+// 지난 업로드 스캔에서 틱톡이 막아 '못 본' 계정 목록 (업로드 탭 하이라이트용). content-core 가 매 스캔마다 씀.
+function scanFailures(campaign) {
+  const p = join(campaign.dataDir, 'scan-failures.json');
+  if (!existsSync(p)) return { ranAt: null, handles: [] };
+  try { return JSON.parse(readFileSync(p, 'utf8')); } catch { return { ranAt: null, handles: [] }; }
 }
 // 수기 팔로워 입력 시 scan-latest 의 해당 계정 current 도 갱신 → buildAccounts 가 stale 스캔값으로 되돌리는 것 방지.
 function setScanLatestFollowers(campaign, row, followers) {
@@ -243,6 +250,7 @@ export async function handler(req, res) {
         config: { target: campaign.target, min: campaign.min, krwPerUsd: await effectiveRate(), staleDays: getStaleDays(), hasKey: !!smm, confirmNotice: !!campaign.confirmNotice, execPwRequired: !!EXEC_PW, stateMode: stateMode(), cloud: CLOUD,
           service: svc ? { id: svc.service, name: svc.name, rate: svc.rate } : { id: campaign.serviceId, name: `#${campaign.serviceId}`, rate: 0 } },
         balance, scannedAt: scanLatest(campaign).ranAt, accounts, orders: markStale(orders), best: all.best,
+        scanFailures: scanFailures(campaign), // 지난 업로드 스캔에서 못 본 계정 — 업로드 탭 하이라이트용
       });
     }
 
@@ -289,16 +297,28 @@ export async function handler(req, res) {
     if (path === '/api/content-scan' && req.method === 'POST') {
       if (contentScanState.running) return send(res, 200, { running: true });
       const full = url.searchParams.get('full') === '1';
-      // phase: 'warmup' = 크롬 창에서 사람이 로봇 인증하는 중, 'scan' = 실제로 긁는 중
-      contentScanState = { running: true, phase: 'warmup', waitSeconds: 0, done: 0, total: 0, up: 0, written: 0, failed: 0, error: null, ranAt: null };
+      // phase: 'confirm' = 크롬 창 떠서 로봇 인증 후 '스캔 시작' 대기 중, 'scan' = 실제로 긁는 중
+      contentScanState = { running: true, phase: 'starting', done: 0, total: 0, up: 0, written: 0, failed: 0, error: null, ranAt: null };
+      // 확인 게이트: onWarmup 이 오면 phase=confirm, 사람이 /confirm 누르면 goPromise resolve → 스캔 착수
+      const goPromise = new Promise((resolve) => { scanConfirmResolve = resolve; });
       runContentScan(campaign, {
         full,
-        onWait: (p) => { contentScanState.waitSeconds = p.seconds; },
+        onWarmup: () => { contentScanState.phase = 'confirm'; },
+        waitForGo: () => goPromise,
         onProgress: (p) => { contentScanState.phase = 'scan'; contentScanState.done = p.done; contentScanState.total = p.total; },
       })
         .then((r) => { contentScanState = { running: false, done: r.total, total: r.total, up: r.up, written: r.written, failed: r.failed, failedHandles: r.failedHandles, error: null, ranAt: new Date().toISOString() }; })
-        .catch((e) => { contentScanState = { running: false, done: 0, total: 0, up: 0, written: 0, failed: 0, error: e.message, ranAt: null }; });
+        .catch((e) => { contentScanState = { running: false, done: 0, total: 0, up: 0, written: 0, failed: 0, error: e.message, ranAt: null }; })
+        .finally(() => { scanConfirmResolve = null; });
       return send(res, 200, { started: true });
+    }
+    // 로봇 인증 끝났다는 사람 확인 → 스캔 착수
+    if (path === '/api/content-scan/confirm' && req.method === 'POST') {
+      if (!scanConfirmResolve) return send(res, 200, { ok: false, error: '대기 중인 스캔이 없어요' });
+      scanConfirmResolve();
+      scanConfirmResolve = null;
+      contentScanState.phase = 'scan';
+      return send(res, 200, { ok: true });
     }
     if (path === '/api/content-scan/status' && req.method === 'GET') {
       return send(res, 200, contentScanState);
