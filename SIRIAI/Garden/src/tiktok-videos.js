@@ -8,6 +8,21 @@ const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 const SESSION_PATH = fileURLToPath(new URL('../data/tiktok-session.json', import.meta.url));
 const WARMUP_URL = 'https://www.tiktok.com/@tiktok'; // 항상 존재하는 프로필 — 인증 통과 여부 확인용
 
+// 스캐너를 특정 프록시(다른 나라)로 내보내기 — .env 의 TIKTOK_PROXY 로 지정.
+//   예) TIKTOK_PROXY=http://호스트:포트   또는   http://아이디:비번@호스트:포트   또는  socks5://호스트:포트
+// (시스템 VPN 을 켜두면 크롬이 알아서 그 연결을 타므로 보통은 이게 필요 없다. 이건 '스캐너만' 특정 프록시로 보낼 때.)
+export function proxyFromEnv() {
+  const raw = (process.env.TIKTOK_PROXY || '').trim();
+  if (!raw) return undefined;
+  try {
+    const u = new URL(raw);
+    const proxy = { server: `${u.protocol}//${u.host}` };
+    if (u.username) proxy.username = decodeURIComponent(u.username);
+    if (u.password) proxy.password = decodeURIComponent(u.password);
+    return proxy;
+  } catch { return undefined; }
+}
+
 // 프로필 데이터가 실제로 렌더됐는가 = 봇월/로봇인증을 통과했는가.
 async function profileRendered(page) {
   try {
@@ -51,7 +66,8 @@ async function warmUp(ctx, { onWarmup, waitForGo, timeout = 15 * 60 * 1000 } = {
 // warmup=false 는 테스트용. 평소엔 항상 인증 관문을 거친다 (호출부가 빠뜨릴 수 없게 여기에 둠).
 export async function launchBrowser({ warmup = true, onWarmup, waitForGo } = {}) {
   const { chromium } = await import('playwright'); // 미설치면 여기서 throw
-  const browser = await chromium.launch({ headless: false });
+  const proxy = proxyFromEnv(); // TIKTOK_PROXY 설정 시 스캐너를 그 프록시(다른 나라)로 내보냄
+  const browser = await chromium.launch({ headless: false, ...(proxy ? { proxy } : {}) });
   const base = { userAgent: UA, viewport: { width: 1280, height: 900 }, locale: 'ja-JP' };
   let ctx;
   try {
@@ -68,6 +84,21 @@ export async function launchBrowser({ warmup = true, onWarmup, waitForGo } = {})
     try { mkdirSync(dirname(SESSION_PATH), { recursive: true }); await ctx.storageState({ path: SESSION_PATH }); } catch {}
   }
   return { browser, ctx };
+}
+
+// 스캐너가 지금 실제로 어느 나라 IP로 나가는지 확인 — 틱톡이 보는 것과 동일한 출구 IP.
+// VPN(시스템) 또는 TIKTOK_PROXY 가 적용됐는지 눈으로 볼 수 있게.
+export async function checkExitLocation() {
+  const { browser, ctx } = await launchBrowser({ warmup: false }); // 인증 게이트 없이 빠르게
+  const page = await ctx.newPage();
+  let info = {};
+  try {
+    await page.goto('https://ipinfo.io/json', { waitUntil: 'domcontentloaded', timeout: 20000 });
+    const txt = await page.evaluate(() => document.body.innerText);
+    info = JSON.parse(txt);
+  } catch (e) { info = { error: String((e && e.message) || e) }; }
+  try { await browser.close(); } catch {}
+  return { ip: info.ip || null, country: info.country || null, city: info.city || null, region: info.region || null, proxied: !!proxyFromEnv(), error: info.error || null };
 }
 
 // 한 계정 프로필의 팔로워수·닉네임 반환 (실제 브라우저 = 봇 차단 우회). 못 가져오면 { followers:null, nickname:'' }.

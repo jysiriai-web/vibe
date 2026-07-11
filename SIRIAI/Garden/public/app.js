@@ -129,6 +129,7 @@ function render() {
   const isSettle = state.tab === 'settle';
   $('#scanBtn').hidden = isSettle || cloud;
   $('#contentScanBtn').hidden = isSettle || cloud;
+  if ($('#exitIpBtn')) $('#exitIpBtn').hidden = isSettle || cloud;
   const st = $('.stats'); if (st) st.hidden = isSettle || cloud; // 클라우드엔 잔액·스캔시각이 없음
   const c = $('#content');
   if (state.tab === 'recruit') c.innerHTML = viewRecruit(accts);
@@ -832,6 +833,16 @@ $$('.tab').forEach((t) => t.addEventListener('click', () => { state.tab = t.data
 $('#campaignSelect').addEventListener('change', (e) => { state.campaign = e.target.value; state.tab = 'recruit'; state.pending = {}; state.unpicked = new Set(); overlay(true, '불러오는 중…'); loadData().finally(() => overlay(false)); });
 $('#scanBtn').addEventListener('click', scan);
 $('#contentScanBtn').addEventListener('click', (e) => contentScan(e.shiftKey));
+if ($('#exitIpBtn')) $('#exitIpBtn').addEventListener('click', checkExitCountry);
+// 스캐너가 지금 어느 나라 IP로 나가는지 — VPN/프록시 적용 확인용.
+async function checkExitCountry() {
+  overlay(true, '스캐너 출구 국가 확인 중… (크롬 창이 잠깐 떠요)');
+  const r = await api('/api/exit-ip', { method: 'POST' }).catch(() => ({ error: '네트워크 오류' }));
+  overlay(false);
+  if (!r || !r.ok) return toast('확인 실패: ' + ((r && r.error) || ''));
+  const where = [r.country, r.region, r.city].filter(Boolean).join(' · ') || '알 수 없음';
+  toast(`🌐 스캔이 지금 [${where}] 로 나가요 (IP ${r.ip || '?'})${r.proxied ? ' · 프록시 적용됨' : ''}`);
+}
 function closeModal() { $('#modal').hidden = true; }
 $('#modalCancel').addEventListener('click', closeModal);
 // 돈 나가는 확정 다이얼로그 — Esc로 닫기(취소), 바깥 배경 클릭도 취소

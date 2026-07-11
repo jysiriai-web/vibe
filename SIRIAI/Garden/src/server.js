@@ -14,6 +14,7 @@ import { getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet, syncRecru
 import { scanAccounts, buildPlan, placeOrders, findService } from './execute-core.js';
 import { runSync } from './sync-core.js';
 import { runContentScan, judgeOneLink } from './content-core.js';
+import { checkExitLocation } from './tiktok-videos.js';
 import { listCampaigns, getCampaign, getFx, setCalibration, setFallbackRate, getStaleDays, setService } from './campaigns.js';
 import { getMarketUsdKrw } from './fx.js';
 import { EDITABLE_COLS, OVERRIDE_COLS } from './overrides.js';
@@ -322,6 +323,11 @@ export async function handler(req, res) {
     }
     if (path === '/api/content-scan/status' && req.method === 'GET') {
       return send(res, 200, contentScanState);
+    }
+    // 스캐너 출구 국가 확인 — VPN/프록시가 적용됐는지 눈으로. 창 하나 잠깐 뜸.
+    if (path === '/api/exit-ip' && req.method === 'POST') {
+      try { return send(res, 200, { ok: true, ...(await checkExitLocation()) }); }
+      catch (e) { return send(res, 200, { ok: false, error: (e && e.message) || String(e) }); }
     }
     // 수기 대체 — 링크 한 장만 열어 판정(스캔이 막힐 때). 창 하나 잠깐 뜸.
     if (path === '/api/judge-link' && req.method === 'POST') {
