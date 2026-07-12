@@ -356,7 +356,7 @@ function deliverReviewed_(sheetId, rows) {
   }
   if (!sh) return { error: '납품시트에서 헤더행(채널명·업로드 링크)을 못 찾음' };
   var col = function (name) { return header.indexOf(name) + 1; }; // 1-based, 없으면 0
-  var cName = col('채널명'), cLink = col('계정링크'), cUp = col('업로드링크'), cNo = col('no'), cNote = col('특이사항');
+  var cName = col('채널명'), cLink = col('계정링크'), cUp = col('업로드링크'), cNo = col('no'), cMemo = col('비고'), cOld = col('특이사항'); // 조회수 노트는 비고에. 특이사항은 옛 노트 이관용.
   if (!cName || !cLink || !cUp) return { error: '필수 열(채널명·계정링크·업로드 링크)을 못 찾음' };
   var last = sh.getLastRow(), lastC = sh.getLastColumn(), nData = Math.max(0, last - hRow);
   var body = nData ? sh.getRange(hRow + 1, 1, nData, lastC).getValues() : [];
@@ -364,7 +364,7 @@ function deliverReviewed_(sheetId, rows) {
   for (var i = 0; i < body.length; i++) {
     var abs = hRow + 1 + i;
     var h0 = handleOf(body[i][cLink - 1]);
-    if (h0 && !byHandle[h0]) byHandle[h0] = { row: abs, note: cNote ? String(body[i][cNote - 1] || '') : '' };
+    if (h0 && !byHandle[h0]) byHandle[h0] = { row: abs, memo: cMemo ? String(body[i][cMemo - 1] || '') : '', old: cOld ? String(body[i][cOld - 1] || '') : '' };
     if (cNo) { var n = Number(body[i][cNo - 1]); if (!isNaN(n) && n > maxNo) maxNo = n; }
     if (!String(body[i][cName - 1] || '').trim()) emptyRows.push(abs); // 채널명 빈 = 채울 후보
   }
@@ -375,11 +375,13 @@ function deliverReviewed_(sheetId, rows) {
     if (!h) continue;
     var ex = byHandle[h];
     if (ex) {
-      // 이미 있는 계정 → 채널/링크는 그대로, 특이사항(조회수 노트)만 자가보정.
-      if (cNote) {
-        if (row.viewNote) { if (ex.note !== row.viewNote) { sh.getRange(ex.row, cNote).setValue(row.viewNote); updated++; } } // 1만+ → 갱신
-        else if (/조회수/.test(ex.note)) { sh.getRange(ex.row, cNote).setValue(''); updated++; } // 1만 미만인데 옛 자동노트 → 지움
+      // 이미 있는 계정 → 채널/링크 그대로. 조회수 노트는 '비고'에 자가보정(수기 메모는 보존).
+      if (cMemo) {
+        var isAuto = (ex.memo === '' || /조회수/.test(ex.memo)); // 비었거나 조회수 노트일 때만 자동 갱신 대상
+        if (row.viewNote) { if (isAuto && ex.memo !== row.viewNote) { sh.getRange(ex.row, cMemo).setValue(row.viewNote); updated++; } } // 1만+ → 갱신
+        else if (/조회수/.test(ex.memo)) { sh.getRange(ex.row, cMemo).setValue(''); updated++; } // 1만 미만인데 옛 자동노트 → 지움
       }
+      if (cOld && /조회수/.test(ex.old)) { sh.getRange(ex.row, cOld).setValue(''); updated++; } // 예전에 특이사항에 넣던 자동노트 제거(비고로 이관)
       continue;
     }
     var target = emptyRows.shift();
@@ -389,8 +391,8 @@ function deliverReviewed_(sheetId, rows) {
     sh.getRange(target, cName).setValue(row.nick || h);
     sh.getRange(target, cLink).setValue(row.link || ('https://www.tiktok.com/@' + h));
     sh.getRange(target, cUp).setValue(row.contentLink);
-    if (cNote && row.viewNote) sh.getRange(target, cNote).setValue(row.viewNote);
-    byHandle[h] = { row: target, note: row.viewNote || '' };
+    if (cMemo && row.viewNote) sh.getRange(target, cMemo).setValue(row.viewNote);
+    byHandle[h] = { row: target, memo: row.viewNote || '', old: '' };
     added.push(h);
   }
   return { added: added.length, updated: updated, handles: added };
