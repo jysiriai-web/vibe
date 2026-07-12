@@ -172,6 +172,14 @@
     </div>
   </div>
 
+  <div class="preset-group" style="border-left-color:var(--good)">
+    <div class="pg-head" style="color:var(--good)">📊 캠페인 종료 후 — 실제 실적 <small style="color:var(--faint);font-weight:500">검수완료(납품) 건수 · 실제 가드닝 지출을 대시보드에서 불러와 채움</small></div>
+    <div class="pg-btns">
+      <button id="loadActual" style="border-color:var(--good);color:var(--good)">실제값 불러오기</button>
+      <span id="actualNote" style="align-self:center;font-size:13px;color:var(--faint);font-weight:600"></span>
+    </div>
+  </div>
+
   <div class="cols">
     <!-- LEFT: controls -->
     <div class="card">
@@ -319,15 +327,33 @@ const PRESETS={
   // 최대 마진: 50건(최소 충족) + 시리아이 비중↑(5천엔, 쌈) + 가드닝 최소
   max:{'m-n':15,'s-n':35,'garden':200000},
 };
+function setNum(id,val){ $(id).value=gfmt(val); const rid = id==='garden' ? 'garden-r' : id.replace('-n','-r'); if($(rid)) $(rid).value=val; }
 document.querySelectorAll('button[data-p]').forEach(b=>{
   b.addEventListener('click',()=>{
     const p=PRESETS[b.dataset.p];
-    for(const k in p){
-      const rid = k==='garden' ? 'garden-r' : k.replace('-n','-r');
-      $(k).value=gfmt(p[k]); if($(rid)) $(rid).value=p[k];
-    }
+    for(const k in p) setNum(k,p[k]);
     calc();
   });
+});
+
+// 캠페인 종료 후 — 대시보드 실제값(검수완료 건수·실제 가드닝 지출)으로 업로드/가드닝 칸을 채운다. 단가·매출은 계약값 그대로.
+const _rs = x => { const t=String(x==null?'':x).trim(); if(!t) return 'none'; if(/다름|누락|미준수|미사용|불가|없음|이슈|문제/.test(t)) return 'fail'; if(/확인|준수|사용|완료|ok|pass/i.test(t)) return 'pass'; return 'none'; };
+const _actualBtn = $('loadActual');
+if(_actualBtn) _actualBtn.addEventListener('click', async ()=>{
+  const note=$('actualNote'); note.textContent='불러오는 중…'; note.style.color='var(--faint)';
+  try{
+    const d = await (await fetch('/api/data?campaign=bayonn')).json();
+    const acc=d.accounts||[], orders=d.orders||[];
+    const done = a => a.contentLink && String(a.contentLink).trim() && _rs(a.soundOk)==='pass' && _rs(a.soundSection)==='pass' && _rs(a.hashtagOk)==='pass';
+    const maru = acc.filter(a=>a.company==='MARU' && done(a)).length;
+    const si   = acc.filter(a=>a.company==='SIRIAI' && done(a)).length;
+    const krw  = Number(d.config && d.config.krwPerUsd) || 0;
+    const gUSD = orders.reduce((s,o)=> s + (o.cancelled ? 0 : (parseFloat(String(o.charge).replace(/[^0-9.]/g,''))||0)), 0); // 취소(환불)분 제외
+    const gKRW = Math.round(gUSD*krw);
+    setNum('m-n',maru); setNum('s-n',si); setNum('garden',gKRW); calc();
+    note.style.color='var(--good)';
+    note.textContent=`✅ 실제 반영 — 검수완료 마루 ${maru}·시리아이 ${si} · 가드닝 ${won(gKRW)}`;
+  }catch(e){ note.style.color='var(--cost)'; note.textContent='불러오기 실패 ('+((e&&e.message)||e)+')'; }
 });
 
 function calc(){

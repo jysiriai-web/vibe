@@ -4,7 +4,7 @@ import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { getAccountsFromSheet, pushCellsToSheet } from './sheet.js';
 import { detectCampaign, videoIdFromLink } from './content-detect.js';
-import { launchBrowser, fetchVideos, fetchVideoByLink } from './tiktok-videos.js';
+import { launchBrowser, fetchVideos, fetchVideoByLink, warmContext, closeWarm } from './tiktok-videos.js';
 import { isLocked } from './overrides.js';
 import { readOverrides } from './store.js';
 
@@ -49,6 +49,50 @@ export async function judgeOneLink(campaign, { row, handle, link }) {
   } catch {}
 
   return { uploaded: d.uploaded, soundOk: d.soundOk, hashtagOk: d.hashtagOk, views: d.views, written };
+}
+
+// 미업로드 계정 하나만 확인 — 전체 스캔 대신 이 프로필 한 장만 열어 업로드/검수/성과 판정.
+// (전체 스캔보다 훨씬 빠르고, 탭 하나만 여니 덜 막힌다. 작성자 가드는 detectCampaign 이 알아서.)
+export async function scanOneProfile(campaign, { row, handle }) {
+  if (!handle) throw new Error('계정 핸들이 없어요.');
+  const cfg = { hashtags: campaign.campaignHashtags || [], soundId: campaign.campaignSoundId || '' };
+  let r = { videos: [], ok: false, error: '' };
+  let ctx = await warmContext(); // 워밍 브라우저 재사용(연속 확인 빠름). 브라우저는 안 닫고 page만 닫힌다.
+  try { r = await fetchVideos(ctx, handle, { quick: true }); }
+  catch (e) {
+    const msg = String((e && e.message) || e);
+    if (/closed|crash|Target|Browser|context|disconnect/i.test(msg)) { // 워밍 브라우저가 죽었으면 새로 띄워 1회 재시도
+      await closeWarm(); ctx = await warmContext();
+      try { r = await fetchVideos(ctx, handle, { quick: true }); } catch (e2) { r = { videos: [], ok: false, error: String((e2 && e2.message) || e2) }; }
+    } else r = { videos: [], ok: false, error: msg };
+  }
+  if (!r.ok) throw new Error(r.error || '프로필을 못 봤어요 (틱톡이 막았을 수 있어요). VPN 바꾸고 다시, 또는 링크 달고 🔍 판정을 써보세요.');
+  const d = detectCampaign(r.videos, cfg, { handle });
+
+  // detected.json 갱신 (다음 증분 스캔이 이 계정 상태를 알게)
+  try {
+    const p = join(campaign.dataDir, 'detected.json');
+    const cur = existsSync(p) ? JSON.parse(readFileSync(p, 'utf8')) : { detected: {} };
+    cur.detected = cur.detected || {};
+    cur.detected[handle] = d;
+    cur.ranAt = new Date().toISOString();
+    mkdirSync(campaign.dataDir, { recursive: true });
+    writeFileSync(p, JSON.stringify(cur, null, 2));
+  } catch {}
+
+  // 업로드 감지된 경우만 시트 되쓰기(콘텐츠·검수·성과). 수동잠금·미설정 캠페인 존중.
+  let written = 0;
+  if (d.uploaded && row) {
+    const overrides = await readOverrides(campaign);
+    const cells = [];
+    const putIf = (col, value) => { if (!isLocked(overrides, row, col)) cells.push({ row, col, value }); };
+    putIf(17, d.contentLink);
+    if (cfg.soundId) putIf(19, d.soundOk ? '사용 확인' : '음원 다름');
+    if (cfg.hashtags.length) putIf(21, d.hashtagOk ? '확인 완료' : '해시태그 누락');
+    cells.push({ row, col: 27, value: d.views }, { row, col: 28, value: d.likes }, { row, col: 29, value: d.comments }, { row, col: 30, value: d.shares });
+    try { written = await pushCellsToSheet(campaign.sheet, cells); } catch {}
+  }
+  return { uploaded: !!d.uploaded, contentLink: d.contentLink || '', soundOk: !!d.soundOk, hashtagOk: !!d.hashtagOk, views: d.views || 0, written };
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -140,7 +184,13 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
     try { await browser.close(); } catch {}
   }
 
-  const totalUp = Object.values(detected).filter((d) => d && d.uploaded).length;
+  // 실제 업로드 수 = 스캔이 감지한 것 + 시트에 링크가 있는 것(수기 입력 포함). 계정 단위로 중복 없이 센다.
+  // (예전엔 detected 만 세서, 사람이 손으로 링크 넣은 계정이 스캔 요약 카운트에서 빠졌다 — @asumin0318 사례)
+  const upHandles = new Set();
+  for (const a of accounts) {
+    if ((detected[a.handle] && detected[a.handle].uploaded) || (a.contentLink && String(a.contentLink).trim())) upHandles.add(a.handle);
+  }
+  const totalUp = upHandles.size;
 
   // 이번 스캔에서 끝까지 못 본 계정 = 업로드 탭에서 하이라이트할 '실패 지점'. 매 스캔마다 덮어쓴다(성공하면 빈 목록).
   try {

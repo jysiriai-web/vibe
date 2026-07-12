@@ -45,6 +45,20 @@ export async function syncRecruitToSheet(sheet, sync) {
   return data;
 }
 
+// 검수완료 콘텐츠 → 납품시트(다른 스프레드시트)에 기입. deliver = { sheetId, rows:[{nick,link,contentLink,viewNote}] }.
+export async function deliverToSheet(sheet, deliverySheetId, rows) {
+  ensure(sheet);
+  const res = await fetch(sheet.url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: sheet.token, deliver: { sheetId: deliverySheetId, rows } }),
+    redirect: 'follow',
+  });
+  const data = await res.json();
+  if (data.error) throw new Error('시트 응답: ' + data.error);
+  return data;
+}
+
 // 임의 셀 쓰기: cells = [{ row, col, value }] — 콘텐츠 링크·검수·조회수 되쓰기용
 export async function pushCellsToSheet(sheet, cells) {
   ensure(sheet);

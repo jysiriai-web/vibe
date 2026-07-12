@@ -18,6 +18,7 @@ const COL = {
   // 업로드 예정일 — SIRIAI 팀이 18열(헤더상 '검수 특이사항')에 날짜를 기입(예: 7/8). MARU는 비어 있음.
   // 스캔이 건드리지 않는 열이라 읽기 전용으로 안전. 값이 있는 계정(주로 SIRIAI)만 대시보드 '예정일' 탭에 표시.
   schedDate: 18,
+  memo: 22, // 22열(헤더상 '비고', 검수 뒤) — 대시보드에서 계정별 자유 메모. 스캔이 안 건드리는 열이라 안전.
 };
 
 // 셀 값이 Date 객체면 M/D 로, 텍스트면 그대로. ("7/8" 이 시트에서 날짜로 파싱돼 Date 로 오는 경우 대비)
@@ -77,6 +78,7 @@ function readAccounts_() {
       language: String(row[COL.language - 1] || ''),
       notice: String(row[COL.notice - 1] || ''),
       schedDate: dateStr_(row[COL.schedDate - 1]), // 업로드 예정일(18열) — 값 있는 계정만 대시보드 '예정일' 탭에 노출
+      memo: String(row[COL.memo - 1] || ''), // 계정별 자유 메모(22열) — 각 탭 끝 '비고' 열
       contentLink: c,
       soundOk: String(row[COL.soundOk - 1] || ''),
       soundSection: String(row[COL.soundSection - 1] || ''),
@@ -331,12 +333,76 @@ function syncRecruit_(sheetId, company, linkCol) {
   return { added: added.length, handles: added };
 }
 
+// 검수완료 콘텐츠 → 납품시트(다른 스프레드시트)에 기입. rows = [{nick, link, contentLink, viewNote}].
+// 헤더명(채널명·계정링크·업로드 링크·특이사항)으로 열을 자동매칭 → 열 위치가 바뀌어도 안전.
+// 계정 핸들 기준 중복 제외. 채널명이 빈 템플릿 행부터 위→아래로 채우고, 모자라면 맨 아래에 append.
+function deliverReviewed_(sheetId, rows) {
+  if (!sheetId) return { error: '납품시트 ID 없음(campaigns.json deliverySheetId)' };
+  if (!rows || !rows.length) return { added: 0, handles: [] };
+  var dst;
+  try { dst = SpreadsheetApp.openById(sheetId); } catch (err) { return { error: '납품시트 열기 실패(권한/ID 확인): ' + err }; }
+  var norm = function (v) { return String(v || '').replace(/\s+/g, ''); };
+  var handleOf = function (str) { var m = String(str || '').match(/@([A-Za-z0-9._]+)/); return m ? m[1].toLowerCase() : ''; };
+  // 헤더행(채널명 + 업로드 링크가 있는 행)이 있는 탭 찾기 (상단 20행 내)
+  var sheets = dst.getSheets(), sh = null, header = null, hRow = -1;
+  for (var s = 0; s < sheets.length && !sh; s++) {
+    var lr = sheets[s].getLastRow(), lc = sheets[s].getLastColumn();
+    if (lr < 1) continue;
+    var top = sheets[s].getRange(1, 1, Math.min(lr, 20), lc).getValues();
+    for (var r = 0; r < top.length; r++) {
+      var hv = top[r].map(norm);
+      if (hv.indexOf('채널명') >= 0 && hv.indexOf('업로드링크') >= 0) { sh = sheets[s]; header = hv; hRow = r + 1; break; }
+    }
+  }
+  if (!sh) return { error: '납품시트에서 헤더행(채널명·업로드 링크)을 못 찾음' };
+  var col = function (name) { return header.indexOf(name) + 1; }; // 1-based, 없으면 0
+  var cName = col('채널명'), cLink = col('계정링크'), cUp = col('업로드링크'), cNo = col('no'), cNote = col('특이사항');
+  if (!cName || !cLink || !cUp) return { error: '필수 열(채널명·계정링크·업로드 링크)을 못 찾음' };
+  var last = sh.getLastRow(), lastC = sh.getLastColumn(), nData = Math.max(0, last - hRow);
+  var body = nData ? sh.getRange(hRow + 1, 1, nData, lastC).getValues() : [];
+  var byHandle = {}, maxNo = 0, emptyRows = [];
+  for (var i = 0; i < body.length; i++) {
+    var abs = hRow + 1 + i;
+    var h0 = handleOf(body[i][cLink - 1]);
+    if (h0 && !byHandle[h0]) byHandle[h0] = { row: abs, note: cNote ? String(body[i][cNote - 1] || '') : '' };
+    if (cNo) { var n = Number(body[i][cNo - 1]); if (!isNaN(n) && n > maxNo) maxNo = n; }
+    if (!String(body[i][cName - 1] || '').trim()) emptyRows.push(abs); // 채널명 빈 = 채울 후보
+  }
+  var added = [], updated = 0;
+  for (var j = 0; j < rows.length; j++) {
+    var row = rows[j];
+    var h = handleOf(row.link) || handleOf(row.contentLink);
+    if (!h) continue;
+    var ex = byHandle[h];
+    if (ex) {
+      // 이미 있는 계정 → 채널/링크는 그대로, 특이사항(조회수 노트)만 자가보정.
+      if (cNote) {
+        if (row.viewNote) { if (ex.note !== row.viewNote) { sh.getRange(ex.row, cNote).setValue(row.viewNote); updated++; } } // 1만+ → 갱신
+        else if (/조회수/.test(ex.note)) { sh.getRange(ex.row, cNote).setValue(''); updated++; } // 1만 미만인데 옛 자동노트 → 지움
+      }
+      continue;
+    }
+    var target = emptyRows.shift();
+    if (!target) target = sh.getLastRow() + 1; // 빈 템플릿 행 소진 시 맨 아래 추가
+    maxNo++;
+    if (cNo) sh.getRange(target, cNo).setValue(maxNo);
+    sh.getRange(target, cName).setValue(row.nick || h);
+    sh.getRange(target, cLink).setValue(row.link || ('https://www.tiktok.com/@' + h));
+    sh.getRange(target, cUp).setValue(row.contentLink);
+    if (cNote && row.viewNote) sh.getRange(target, cNote).setValue(row.viewNote);
+    byHandle[h] = { row: target, note: row.viewNote || '' };
+    added.push(h);
+  }
+  return { added: added.length, updated: updated, handles: added };
+}
+
 function doPost(e) {
   try {
     var body;
     try { body = JSON.parse(e.postData.contents); } catch (err) { return json_({ error: 'bad json' }); }
     if ((body.token || '') !== TOKEN) return json_({ error: 'unauthorized' });
     if (body.sync) return json_(syncRecruit_(body.sync.sheetId, body.sync.company, body.sync.linkCol));
+    if (body.deliver) return json_(deliverReviewed_(body.deliver.sheetId, body.deliver.rows)); // 검수완료 → 납품시트 기입
     // 내용이 있을 때만 분기 — 빈 배열 []/빈 객체 {} 는 truthy 라, 그냥 두면
     // {updates:[...], orders:[]} 같은 요청이 updates 를 조용히 건너뛴다.
     if (Array.isArray(body.orders) && body.orders.length) return json_(upsertOrders_(body.orders)); // 주문(돈) 로그 upsert

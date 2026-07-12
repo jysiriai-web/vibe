@@ -35,7 +35,7 @@ const noticeSent = (a) => has(a.notice); // 확정안내 발송여부 (col 16 �
 let state = { campaigns: [], campaign: null, krw: 1508.79, services: [], best: [], data: null, tab: 'recruit', sub: 'needs', fCo: 'all', fStatus: 'all', fUp: 'all', fNotice: 'all', fOrder: 'all', sort: {}, bestOnly: false, pending: {}, unpicked: new Set() };
 // unpicked: 가드닝 집행에서 사용자가 명시적으로 체크 해제한 handle. 재렌더(백그라운드 폴링)가 선택을 되돌려 해제한 계정까지 집행하는 것 방지.
 // 편집 열 ↔ 계정 필드 매핑. 낙관적 저장·병합에 공용.
-const COL_FIELD = { 3: 'nick', 4: 'link', 16: 'notice', 17: 'contentLink', 19: 'soundOk', 20: 'soundSection', 21: 'hashtagOk' };
+const COL_FIELD = { 3: 'nick', 4: 'link', 16: 'notice', 17: 'contentLink', 18: 'schedDate', 19: 'soundOk', 20: 'soundSection', 21: 'hashtagOk', 22: 'memo' };
 const LOCK_COLS = [17, 19, 20, 21]; // 자동스캔이 건드리는 검수/콘텐츠 열 (서버 OVERRIDE_COLS 와 일치)
 
 const won = (usd) => (usd == null ? '—' : '₩' + Math.round(Number(usd) * state.krw).toLocaleString());
@@ -277,7 +277,7 @@ function viewRecruit(accts) {
     <td class="nick">${a.nick ? esc(a.nick) : '<span class="muted">—</span>'} <button class="cell-edit${a.nick ? '' : ' prompt'}" data-kind="nick" data-row="${a.row}" data-val="${esc(a.nick || '')}">${a.nick ? '✎' : '입력'}</button></td>
     <td class="handle">${link(a.handle)} <button class="cell-edit" data-kind="link" data-row="${a.row}" data-val="${esc(a.link || ('https://www.tiktok.com/@' + a.handle))}">✎</button></td>
     <td class="num">${a.current == null ? '' : fmt(a.current)} <button class="cell-edit${a.current == null ? ' prompt' : ''}" data-kind="fol" data-row="${a.row}" data-val="${a.current ?? ''}">${a.current == null ? '입력' : '✎'}</button></td>
-    <td>${chip(a.status)}</td>${nt ? noticeCell(a) : ''}</tr>`).join('');
+    <td>${chip(a.status)}</td>${nt ? noticeCell(a) : ''}${memoCell(a)}</tr>`).join('');
   return `<div class="cards">
       ${kpi('모집 계정', accts.length, { ic: IC.users })}
       ${kpi('MARU / SIRIAI', `${maru} / ${siriai}`, { ic: IC.split })}
@@ -286,7 +286,7 @@ function viewRecruit(accts) {
     </div>
     ${filterRow(coBar(coCounts((nt ? applyFNotice : (x) => x)(applyFStatus(accts)))), statusBar(statusCounts((nt ? applyFNotice : (x) => x)(applyCo(accts)))), nt ? noticeBar(noticeCounts(applyFStatus(applyCo(accts)))) : '')}
     <div class="bar"><button class="btn small" id="syncRecruitBtn">📥 모집시트 동기화</button><span class="sub" style="margin:0">모집시트(마루 등)의 새 계정 URL을 정리해서 마스터에 자동 추가</span></div>
-    <table><thead><tr>${sortTh('recruit', 'company', '진행사', { defKey: 'followers' })}${sortTh('recruit', 'nick', '닉네임', { defKey: 'followers' })}${sortTh('recruit', 'handle', '계정', { defKey: 'followers' })}${sortTh('recruit', 'followers', '팔로워', { num: true, defKey: 'followers' })}${sortTh('recruit', 'status', '상태', { defKey: 'followers' })}${nt ? '<th>확정안내</th>' : ''}</tr></thead><tbody>${rows || emptyRow(nt ? 6 : 5)}</tbody></table>`;
+    <table><thead><tr>${sortTh('recruit', 'company', '진행사', { defKey: 'followers' })}${sortTh('recruit', 'nick', '닉네임', { defKey: 'followers' })}${sortTh('recruit', 'handle', '계정', { defKey: 'followers' })}${sortTh('recruit', 'followers', '팔로워', { num: true, defKey: 'followers' })}${sortTh('recruit', 'status', '상태', { defKey: 'followers' })}${nt ? '<th>확정안내</th>' : ''}<th>비고</th></tr></thead><tbody>${rows || emptyRow(nt ? 7 : 6)}</tbody></table>`;
 }
 
 // ② 업로드
@@ -325,10 +325,10 @@ function viewUpload(accts) {
     <td>${uploaded(a) ? (reviewPending(a) ? '<span class="chip needs">검수대기</span>' : '<span class="chip ok">검수완료</span>') : '<span class="chip error">미업로드</span>'}</td>
     <td>${uploaded(a)
       ? `<a href="${esc(a.contentLink)}" target="_blank">영상 보기</a> <button class="cell-edit" data-kind="content" data-row="${a.row}" data-val="${esc(a.contentLink)}">✎</button>${isCloud() ? '' : ` <button class="btn small judge-link" data-row="${a.row}" data-h="${esc(a.handle)}" data-link="${esc(a.contentLink)}" title="이 영상 한 장만 열어 음원·해시태그·조회수 판정 (스캔이 막힐 때 대체)">🔍 판정</button>`}`
-      : `<button class="cell-edit prompt" data-kind="content" data-row="${a.row}" data-val="">링크 달기</button>`}</td>
+      : `<button class="cell-edit prompt" data-kind="content" data-row="${a.row}" data-val="">링크 달기</button>${isCloud() ? '' : ` <button class="btn small scan-one" data-row="${a.row}" data-h="${esc(a.handle)}" title="이 계정 프로필만 열어 업로드했는지 확인 (전체 스캔 대신, 훨씬 빠름)">🔍 확인</button>`}`}</td>
     <td>${revChip(a, 19)}</td>
     <td>${revChip(a, 20)}</td>
-    <td>${revChip(a, 21)}</td></tr>`;
+    <td>${revChip(a, 21)}</td>${memoCell(a)}</tr>`;
   }).join('');
   const failN = failed.size;
   const failBanner = failN ? `<div class="scanfail-banner">⚠️ 지난 업로드 스캔에서 <b>${failN}개</b> 계정을 못 봤어요 (틱톡이 막음). 아래 <b>노란 줄</b>이 그 계정이에요 — 업로드했는데 안 잡혔을 수 있으니 <b>다시 스캔</b>하거나 직접 확인하세요. 확인한 계정은 <b>줄을 클릭</b>하면 표시가 사라져요.</div>` : '';
@@ -339,7 +339,7 @@ function viewUpload(accts) {
     </div>
     ${failBanner}
     ${filterRow(coBar(coCounts(applyFUp(accts))), upBar(upCounts(applyCo(accts))))}
-    <table><thead><tr>${sortTh('upload', 'company', '진행사', { defKey: 'state' })}${sortTh('upload', 'handle', '계정', { defKey: 'state' })}${sortTh('upload', 'sched', '예정일', { defKey: 'state' })}${sortTh('upload', 'state', '상태', { defKey: 'state' })}<th>콘텐츠</th>${sortTh('upload', 's19', '음원', { defKey: 'state' })}${sortTh('upload', 's20', '음원구간', { defKey: 'state' })}${sortTh('upload', 's21', '해시태그', { defKey: 'state' })}</tr></thead><tbody>${rows || emptyRow(8)}</tbody></table>
+    <table><thead><tr>${sortTh('upload', 'company', '진행사', { defKey: 'state' })}${sortTh('upload', 'handle', '계정', { defKey: 'state' })}${sortTh('upload', 'sched', '예정일', { defKey: 'state' })}${sortTh('upload', 'state', '상태', { defKey: 'state' })}<th>콘텐츠</th>${sortTh('upload', 's19', '음원', { defKey: 'state' })}${sortTh('upload', 's20', '음원구간', { defKey: 'state' })}${sortTh('upload', 's21', '해시태그', { defKey: 'state' })}<th>비고</th></tr></thead><tbody>${rows || emptyRow(9)}</tbody></table>
     <div class="note"><b>검수 완료</b>는 <b>음원·음원구간·해시태그 세 칸이 모두 준수</b>일 때만이에요. 한 칸이라도 <b>미준수</b>나 <b>미확인</b>이면 <b>검수대기</b>로 남습니다. 음원구간은 사람이 영상 보고, 음원·해시태그는 스캔이 자동 판정해요. 드롭다운에서 <b>준수·미준수</b>로 고치면 재스캔해도 유지(수동 우선), <b>미확인</b>으로 되돌리면 자동 판정에 다시 맡겨요. 점선 테두리는 <b>시트에 저장되지 않은 자동 추정값</b>이에요.</div>`;
 }
 
@@ -367,11 +367,30 @@ function schedOverdue(a) {
   const now = new Date();
   return si.key < (now.getMonth() + 1) * 100 + now.getDate();
 }
-// 업로드 탭 '예정일' 셀 — 값 없으면 —, 예정일 지났는데 미업로드면 '지남' 칩.
+// "7/8"·"2026-07-08" → <input type=date> 용 ISO "2026-07-08" (아니면 '')
+function schedISO(value) {
+  const t = String(value || '').trim();
+  let mo, da, yr;
+  const iso = t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/), md = t.match(/^(\d{1,2})\s*[./-]\s*(\d{1,2})$/);
+  if (iso) { yr = +iso[1]; mo = +iso[2]; da = +iso[3]; }
+  else if (md) { yr = new Date().getFullYear(); mo = +md[1]; da = +md[2]; }
+  else return '';
+  if (mo < 1 || mo > 12 || da < 1 || da > 31) return '';
+  return `${yr}-${String(mo).padStart(2, '0')}-${String(da).padStart(2, '0')}`;
+}
+// 업로드 탭 '예정일' 셀 — 컴팩트. 빈칸=📅 아이콘만(칸 절약), 값 있으면 날짜+✎. 예정일 지남+미업로드면 '지남' 칩.
 function schedCell(a) {
   const si = schedInfo(a);
-  if (!si) return '<td><span class="muted">—</span></td>';
-  return `<td class="num">${esc(si.label)}${schedOverdue(a) ? ' <span class="chip needs">지남</span>' : ''}</td>`;
+  if (!si) return `<td class="num"><button class="cell-edit prompt sched-btn" data-kind="sched" data-row="${a.row}" data-val="" title="업로드 예정일 입력">📅</button></td>`;
+  return `<td class="num">${esc(si.label)}${schedOverdue(a) ? ' <span class="chip needs">지남</span>' : ''} <button class="cell-edit sched-btn" data-kind="sched" data-row="${a.row}" data-val="${esc(a.schedDate || '')}" title="예정일 수정">✎</button></td>`;
+}
+
+// 계정 비고 셀 (각 탭 끝 열). 값 없으면 작은 ＋, 있으면 요약+✎. 마스터 22열 공유 → 어느 탭에서 적어도 같이 보임.
+function memoCell(a) {
+  const m = String(a.memo || '').trim();
+  if (!m) return `<td class="memo"><button class="cell-edit prompt" data-kind="memo" data-row="${a.row}" data-val="" title="비고 메모 추가">＋</button></td>`;
+  const short = m.length > 16 ? m.slice(0, 16) + '…' : m;
+  return `<td class="memo" title="${esc(m)}">${esc(short)} <button class="cell-edit" data-kind="memo" data-row="${a.row}" data-val="${esc(m)}" title="비고 수정">✎</button></td>`;
 }
 
 // ③ 가드닝 (하위 탭)
@@ -539,7 +558,7 @@ function viewDeliver(accts) {
     <td class="handle">${link(a.handle)}</td>
     <td class="num">${a.v == null ? '—' : fmt(a.v)}</td><td class="num">${a.l == null ? '—' : fmt(a.l)}</td>
     <td class="num">${a.c == null ? '—' : fmt(a.c)}</td><td class="num">${a.sh == null ? '—' : fmt(a.sh)}</td>
-    <td><a href="${esc(a.contentLink)}" target="_blank">영상</a></td></tr>`).join('');
+    <td><a href="${esc(a.contentLink)}" target="_blank">영상</a></td>${memoCell(a)}</tr>`).join('');
   const bestCount = withPerf.filter((a) => state.best.includes(a.handle)).length;
   return coBar(coCounts(accts.filter(uploaded))) + `<div class="cards">
       ${kpi('총 조회수', fmt(totalViews), { ic: IC.eye })}
@@ -548,9 +567,9 @@ function viewDeliver(accts) {
       ${heroOn ? `<div class="kpi wide"><div class="kpi-top"><span class="kpi-ic">${IC.trophy}</span><span class="lab">히어로 콘텐츠 · 최고 조회수</span></div><div class="big" style="font-size:20px">@${heroOn.handle} · ${fmt(heroOn.v)} 조회</div><div class="sub"><a href="${esc(heroOn.contentLink)}" target="_blank">영상 보기</a></div></div>` : ''}
     </div>
     <div class="filters"><div class="filterbar"><button class="fbtn best-f ${state.bestOnly ? 'active' : ''}" aria-pressed="${state.bestOnly}">★ 베스트만 (${bestCount})</button></div></div>
-    ${isCloud() ? '' : `<div class="bar"><button class="btn small" id="perfScanBtn">📊 조회수 스캔</button><span class="sub" style="margin:0">업로드된 계정 영상을 열어 조회수·좋아요를 한 번에 갱신해요 (막히면 멈춤 → VPN 바꾸고 재개)</span></div>`}
+    ${isCloud() ? '' : `<div class="bar"><button class="btn small" id="perfScanBtn">📊 조회수 스캔</button><button class="btn small" id="deliverBtn" title="음원·음원구간·해시태그 3칸이 모두 준수인 검수완료 콘텐츠를 납품시트에 자동 기입해요 (이미 있는 계정은 건너뜀). 조회수 1,000+ 는 천 단위로 특이사항에 표기.">📤 납품시트 기입</button><span class="sub" style="margin:0">검수완료(3칸 준수)만 납품시트에 채워요 · 중복 제외</span></div>`}
     ${noPerf ? '<div class="note"><b>아직 조회수 데이터가 비어있어요.</b> 위 <b>📊 조회수 스캔</b>을 누르면 업로드된 영상들을 열어 조회수를 채워요. ★로 <b>SIRIAI 베스트 콘텐츠</b>도 찍어둘 수 있어요.</div>' : ''}
-    <table><thead><tr><th>★</th>${sortTh('deliver', 'handle', '계정', { defKey: 'v' })}${sortTh('deliver', 'v', '조회수', { num: true, defKey: 'v' })}${sortTh('deliver', 'l', '좋아요', { num: true, defKey: 'v' })}${sortTh('deliver', 'c', '댓글', { num: true, defKey: 'v' })}${sortTh('deliver', 'sh', '공유', { num: true, defKey: 'v' })}<th>콘텐츠</th></tr></thead><tbody>${rows || emptyRow(7, state.bestOnly ? '★ 베스트로 찍은 콘텐츠가 없어요.' : '조건에 맞는 콘텐츠가 없어요.')}</tbody></table>`;
+    <table><thead><tr><th>★</th>${sortTh('deliver', 'handle', '계정', { defKey: 'v' })}${sortTh('deliver', 'v', '조회수', { num: true, defKey: 'v' })}${sortTh('deliver', 'l', '좋아요', { num: true, defKey: 'v' })}${sortTh('deliver', 'c', '댓글', { num: true, defKey: 'v' })}${sortTh('deliver', 'sh', '공유', { num: true, defKey: 'v' })}<th>콘텐츠</th><th>비고</th></tr></thead><tbody>${rows || emptyRow(8, state.bestOnly ? '★ 베스트로 찍은 콘텐츠가 없어요.' : '조건에 맞는 콘텐츠가 없어요.')}</tbody></table>`;
 }
 
 // ⑤ 정산 — 비용·마진 시뮬레이터. 테두리 없는 iframe을 내용 높이만큼 자동 확장(이중 스크롤·액자 제거).
@@ -582,6 +601,7 @@ function wire() {
   if ($('#svcSelect')) $('#svcSelect').addEventListener('change', changeService);
   if ($('#syncRecruitBtn')) $('#syncRecruitBtn').addEventListener('click', syncRecruit);
   if ($('#perfScanBtn')) $('#perfScanBtn').addEventListener('click', () => contentScan(false, true)); // 납품 탭 조회수 스캔
+  if ($('#deliverBtn')) $('#deliverBtn').addEventListener('click', deliverReviewed); // 납품 탭 → 납품시트 기입
   $$('.close-order').forEach((b) => b.addEventListener('click', () => closeOrder(b.dataset.id)));
   $$('.abandon-order').forEach((b) => b.addEventListener('click', () => abandonOrder(b.dataset.id)));
   $$('.refill-order').forEach((b) => b.addEventListener('click', () => refillOrder(b.dataset.id)));
@@ -589,6 +609,7 @@ function wire() {
   $$('.star').forEach((b) => b.addEventListener('click', () => toggleBest(b.dataset.h)));
   $$('.cell-edit').forEach((b) => b.addEventListener('click', () => startCellEdit(b)));
   $$('.judge-link').forEach((b) => b.addEventListener('click', () => judgeLink(b.dataset.row, b.dataset.h, b.dataset.link)));
+  $$('.scan-one').forEach((b) => b.addEventListener('click', () => scanOne(b)));
   $$('.rev-sel').forEach((s) => s.addEventListener('change', () => setReview(Number(s.dataset.row), Number(s.dataset.col), s.value)));
   // 스캔 실패 하이라이트: 그 줄을 클릭하면(검수 드롭다운·편집 버튼 제외) 표시가 사라진다.
   $$('tr[data-failh]').forEach((tr) => tr.addEventListener('click', (e) => { if (e.target.closest('select, .cell-edit')) return; dismissFail(tr.dataset.failh); }));
@@ -623,18 +644,20 @@ function startCellEdit(btn) {
     nick: { ph: '닉네임', save: (v) => saveCell(row, 3, v) },
     link: { ph: '틱톡 계정 링크', validate: (v) => /@[A-Za-z0-9._]+/.test(v), verr: '계정 링크에 @사용자명이 있어야 해요 (예: tiktok.com/@user). 없으면 계정이 목록에서 사라져요.', save: (v) => saveCell(row, 4, v) },
     content: { ph: '영상 링크 붙여넣기', save: (v) => saveCell(row, 17, v) },
+    sched: { ph: '업로드 예정일', date: true, save: (v) => saveCell(row, 18, v) },
+    memo: { ph: '비고 메모', save: (v) => saveCell(row, 22, v) },
     fol: { ph: '팔로워 수', num: true, save: (v) => saveFollowers(row, v) },
   }[kind];
   if (!cfg) return;
-  const shown = (cfg.num && num(value) != null) ? fmt(num(value)) : value; // 숫자칸은 콤마 붙여 보여줌
-  td.innerHTML = `<input class="inline-input" type="text" value="${esc(shown)}" placeholder="${cfg.ph}">`;
+  const shown = cfg.date ? schedISO(value) : (cfg.num && num(value) != null) ? fmt(num(value)) : value; // 날짜칸=ISO, 숫자칸=콤마
+  td.innerHTML = `<input class="inline-input" type="${cfg.date ? 'date' : 'text'}" value="${esc(shown)}" placeholder="${cfg.ph}">`;
   const inp = td.querySelector('input');
-  inp.focus(); inp.select();
+  inp.focus(); if (cfg.date) { try { inp.showPicker(); } catch {} } else inp.select(); // 날짜칸은 달력 팝업
   let done = false;
   const commit = async () => {
     if (done) return; done = true;
     const v = inp.value.trim();
-    const unchanged = cfg.num ? (num(v) === num(String(value))) : (v === String(value).trim());
+    const unchanged = cfg.date ? (v === schedISO(value)) : cfg.num ? (num(v) === num(String(value))) : (v === String(value).trim());
     if (unchanged) return render(); // 변화 없음 → 원복 (숫자칸은 콤마 무시하고 비교)
     if (cfg.num && v !== '' && num(v) == null) { toast('숫자만 넣을 수 있어요'); return render(); }
     if (cfg.validate && !cfg.validate(v)) { toast(cfg.verr); return render(); } // 검증 실패 → 취소
@@ -792,6 +815,20 @@ async function syncRecruit() {
   toast(`✅ 새 계정 ${r.added}개 추가${sample ? ' — ' + sample + (r.added > 3 ? ' 외' : '') : ''}`);
   await loadData();
 }
+// 납품 탭 → 검수완료 콘텐츠를 납품시트에 자동 기입 (3칸 준수만, 중복 제외)
+async function deliverReviewed() {
+  const btn = $('#deliverBtn'); if (btn) { btn.disabled = true; btn.textContent = '기입 중…'; }
+  overlay(true, '납품시트에 기입 중…');
+  const r = await api(`/api/deliver?campaign=${state.campaign}`, { method: 'POST' }).catch(() => ({ error: '네트워크 오류' }));
+  overlay(false);
+  if (btn) { btn.disabled = false; btn.textContent = '📤 납품시트 기입'; }
+  if (r && r.localOnly) return toast('납품 기입은 대표님 PC 대시보드에서만 돼요');
+  if (!r || r.error) return toast('기입 실패: ' + ((r && r.error) || ''));
+  const parts = [];
+  if (r.added) parts.push(`신규 ${r.added}건`);
+  if (r.updated) parts.push(`특이사항 보정 ${r.updated}건`);
+  toast(parts.length ? `✅ 납품시트 — ${parts.join(' · ')} (검수완료 ${r.reviewedTotal})` : `변경 없음 (검수완료 ${r.reviewedTotal}건 이미 반영됨)`);
+}
 async function scan() {
   overlay(true, '크롬 창이 떴어요. 로봇 인증이 보이면 통과시켜 주세요 — 그다음 팔로워를 확인합니다');
   const r = await api(`/api/scan?campaign=${state.campaign}&full=1`, { method: 'POST' }).catch(() => ({ error: '네트워크 오류' }));
@@ -846,6 +883,20 @@ async function judgeLink(row, handle, link) {
   if (!r.ok) return toast('판정 실패: ' + (r.error || ''));
   toast(`✅ 판정 완료 — 음원 ${r.soundOk ? '준수' : '미준수'} · 해시태그 ${r.hashtagOk ? '준수' : '미준수'} · 조회수 ${fmt(r.views || 0)}`);
   await loadData();
+}
+// 미업로드 계정 하나만 확인 — 이 프로필 한 장만 열어 업로드 여부 판정 (전체 스캔 대신)
+async function scanOne(btn) {
+  const handle = btn.dataset.h, row = Number(btn.dataset.row);
+  btn.disabled = true; const orig = btn.textContent; btn.textContent = '확인 중…';
+  overlay(true, `@${handle} 프로필만 열어 확인 중… (크롬 창이 잠깐 떠요)`);
+  const r = await api(`/api/scan-one?campaign=${state.campaign}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ row, handle }) }).catch(() => ({ error: '네트워크 오류' }));
+  overlay(false);
+  if (r && r.localOnly) { btn.disabled = false; btn.textContent = orig; return toast('개별 확인은 대표님 PC 대시보드에서만 돼요'); }
+  if (!r || !r.ok) { btn.disabled = false; btn.textContent = orig; return toast('확인 실패: ' + ((r && r.error) || '')); }
+  if (r.accounts) { state.data.accounts = r.accounts; render(); } // 업로드 감지되면 상태가 바뀌어 이 행이 재렌더됨
+  toast(r.uploaded
+    ? `✅ @${handle} 업로드 확인 — 음원 ${r.soundOk ? '준수' : '미준수'} · 해시 ${r.hashtagOk ? '준수' : '미준수'} · 조회수 ${fmt(r.views || 0)}`
+    : `@${handle} 아직 미업로드`);
 }
 // 스캔 하단 패널 — 모드에 따라 인증대기 / 스캔중(중지) / 막힘(재개·중지) 를 보여준다.
 function scanPanel(mode, info = {}) {

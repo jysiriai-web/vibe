@@ -10,10 +10,10 @@ import { createSmm } from './smm.js';
 import { classify } from './garden.js';
 import { refreshOrders, inFlightFor } from './orders.js';
 import { runAutoRefill, refillServiceIds, REFILL_WINDOW_DAYS } from './refill.js';
-import { getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet, syncRecruitToSheet } from './sheet.js';
+import { getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet, syncRecruitToSheet, deliverToSheet } from './sheet.js';
 import { scanAccounts, buildPlan, placeOrders, findService } from './execute-core.js';
 import { runSync } from './sync-core.js';
-import { runContentScan, judgeOneLink } from './content-core.js';
+import { runContentScan, judgeOneLink, scanOneProfile } from './content-core.js';
 import { checkExitLocation } from './tiktok-videos.js';
 import { listCampaigns, getCampaign, getFx, setCalibration, setFallbackRate, getStaleDays, setService } from './campaigns.js';
 import { getMarketUsdKrw } from './fx.js';
@@ -372,6 +372,16 @@ export async function handler(req, res) {
         return send(res, 200, { ok: true, ...r, accounts: await buildAccounts(campaign, await readOrders(campaign)) });
       } catch (e) { return send(res, 200, { ok: false, error: (e && e.message) || String(e) }); }
     }
+    // 미업로드 계정 하나만 확인 — 이 프로필 한 장만 열어 업로드 여부 판정 (전체 스캔 대신)
+    if (path === '/api/scan-one' && req.method === 'POST') {
+      const body = await readBody(req);
+      const row = Number(body.row), handle = String(body.handle || '');
+      if (!row || !handle) return send(res, 400, { error: 'row·handle 이 필요해요' });
+      try {
+        const r = await scanOneProfile(campaign, { row, handle });
+        return send(res, 200, { ok: true, ...r, accounts: await buildAccounts(campaign, await readOrders(campaign)) });
+      } catch (e) { return send(res, 200, { ok: false, error: (e && e.message) || String(e) }); }
+    }
 
     // SIRIAI 베스트 콘텐츠 토글
     if (path === '/api/best' && req.method === 'POST') {
@@ -395,6 +405,27 @@ export async function handler(req, res) {
         if (Array.isArray(r.handles)) handles.push(...r.handles);
       }
       return send(res, 200, { ok: true, added, handles });
+    }
+
+    // 검수완료 콘텐츠 → 납품시트 자동 기입 (버튼). 링크 있고 3칸(음원·구간·해시) 모두 준수인 것만. 중복(계정 핸들) 제외.
+    if (path === '/api/deliver' && req.method === 'POST') {
+      if (!campaign.deliverySheetId) return send(res, 400, { error: '이 캠페인엔 납품시트 설정이 없어요 (campaigns.json deliverySheetId)' });
+      const has = (v) => !!(v != null && String(v).trim());
+      const revState = (v) => { const s = String(v == null ? '' : v).trim(); if (!s) return 'none'; if (/다름|누락|미준수|미사용|불가|없음|이슈|문제|✗|✘/i.test(s)) return 'fail'; if (/확인|준수|사용|완료|ok|pass|✓|✔/i.test(s)) return 'pass'; return 'none'; };
+      const accounts = await buildAccounts(campaign, await readOrders(campaign));
+      const reviewed = accounts.filter((a) => has(a.contentLink) && revState(a.soundOk) === 'pass' && revState(a.soundSection) === 'pass' && revState(a.hashtagOk) === 'pass');
+      const rows = reviewed.map((a) => {
+        const v = parseNum(a.views);
+        return {
+          nick: a.nick || a.handle,
+          link: a.link || ('https://www.tiktok.com/@' + a.handle),
+          contentLink: a.contentLink,
+          viewNote: (v != null && v >= 10000) ? (Math.floor(v / 1000) * 1000) + '조회수' : '', // 1만+만 표기. 12,428 → "12000조회수"
+        };
+      });
+      const r = await deliverToSheet(campaign.sheet, campaign.deliverySheetId, rows);
+      if (r.added === undefined) return send(res, 400, { error: '브릿지에 납품 기입 기능이 없어요 — Apps Script(Code.gs) 재배포가 필요합니다' });
+      return send(res, 200, { ok: true, ...r, reviewedTotal: reviewed.length });
     }
 
     if (path === '/api/scan' && req.method === 'POST') {

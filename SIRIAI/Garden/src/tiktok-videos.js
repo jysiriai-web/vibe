@@ -86,6 +86,28 @@ export async function launchBrowser({ warmup = true, onWarmup, waitForGo } = {})
   return { browser, ctx };
 }
 
+// ── 개별 확인용 '워밍 브라우저' ────────────────────────────────────────────
+// 계정 하나씩 확인할 때 매번 크롬을 새로 띄우면 느리다(런치 ~3초). 한 번 띄워두고 재사용하면
+// 다음 확인은 새 탭만 열어 훨씬 빠르다. 유휴 2분이면 자동으로 닫는다(리소스 반납).
+let _warm = null, _warmIdle = null;
+function _touchWarm() {
+  if (_warmIdle) clearTimeout(_warmIdle);
+  _warmIdle = setTimeout(() => { closeWarm(); }, 2 * 60 * 1000);
+  if (_warmIdle.unref) _warmIdle.unref(); // 이 타이머가 서버 종료를 막지 않게
+}
+export async function warmContext() {
+  if (_warm && _warm.ctx) { _touchWarm(); return _warm.ctx; }
+  const { browser, ctx } = await launchBrowser({ warmup: false }); // 저장세션으로 인증 게이트 없이
+  _warm = { browser, ctx };
+  _touchWarm();
+  return ctx;
+}
+export async function closeWarm() {
+  if (_warmIdle) { clearTimeout(_warmIdle); _warmIdle = null; }
+  const w = _warm; _warm = null;
+  if (w) { try { await w.browser.close(); } catch {} }
+}
+
 // 스캐너가 지금 실제로 어느 나라 IP로 나가는지 확인 — 틱톡이 보는 것과 동일한 출구 IP.
 // VPN(시스템) 또는 TIKTOK_PROXY 가 적용됐는지 눈으로 볼 수 있게.
 export async function checkExitLocation() {
@@ -174,7 +196,7 @@ export async function fetchVideoByLink(ctx, link, { timeout = 45000 } = {}) {
 //
 // 영상 목록(itemList)은 XHR 로만 온다. 프로필은 떴는데 목록만 못 받는 경우가 실제로 있어
 // (@mnrdance: 게시물 1,597개인데 0개 수신) 프로필이 말하는 게시물 수와 대조해 판정한다.
-export async function fetchVideos(ctx, handle, { timeout = 45000, attempts = 2 } = {}) {
+export async function fetchVideos(ctx, handle, { timeout = 45000, attempts = 2, quick = false } = {}) {
   const page = await ctx.newPage();
   let videos = [];
   page.on('response', async (res) => {
@@ -189,31 +211,32 @@ export async function fetchVideos(ctx, handle, { timeout = 45000, attempts = 2 }
   let hasUser = false;
   let videoCount = null; // 프로필이 밝힌 게시물 수. null = 못 읽음.
   let error = '';
-  for (let att = 0; att < attempts; att++) {
+  const probeInline = () => page.evaluate(() => {
+    const el = document.getElementById('__UNIVERSAL_DATA_FOR_REHYDRATION__');
+    if (!el) return null;
+    const scope = JSON.parse(el.textContent)['__DEFAULT_SCOPE__'] || {};
+    const ud = scope['webapp.user-detail'] && scope['webapp.user-detail'].userInfo;
+    let inline = null;
+    for (const k of Object.keys(scope)) if (scope[k] && scope[k].itemList) { inline = scope[k].itemList; break; }
+    return {
+      hasUser: !!(ud && ud.user && ud.user.id),
+      videoCount: ud && ud.stats && Number.isFinite(ud.stats.videoCount) ? ud.stats.videoCount : null,
+      inline,
+    };
+  }).catch(() => null);
+  const applyProbe = (probe) => { if (!probe) return; hasUser = probe.hasUser; if (probe.videoCount != null) videoCount = probe.videoCount; if (!videos.length && Array.isArray(probe.inline)) videos = probe.inline; };
+  // quick(개별 확인): 스크롤 전에 초기 데이터부터 확인(최근 영상은 보통 거기 있음) → 없을 때만 짧게 2회, 1회 시도.
+  // 전체 스캔(quick=false)은 기존대로 6회×2.2초 스크롤 후 인라인 확인.
+  const maxAtt = quick ? 1 : attempts, scrolls = quick ? 2 : 6, waitMs = quick ? 900 : 2200;
+  for (let att = 0; att < maxAtt; att++) {
     try {
       await page.goto(`https://www.tiktok.com/@${handle}`, { waitUntil: 'domcontentloaded', timeout });
-      for (let i = 0; i < 6 && !videos.length; i++) {
+      if (quick) applyProbe(await probeInline()); // 스크롤 전 선확인 → 있으면 바로 끝
+      for (let i = 0; i < scrolls && !videos.length; i++) {
         await page.mouse.wheel(0, 2200);
-        await page.waitForTimeout(2200);
+        await page.waitForTimeout(waitMs);
       }
-      const probe = await page.evaluate(() => {
-        const el = document.getElementById('__UNIVERSAL_DATA_FOR_REHYDRATION__');
-        if (!el) return null;
-        const scope = JSON.parse(el.textContent)['__DEFAULT_SCOPE__'] || {};
-        const ud = scope['webapp.user-detail'] && scope['webapp.user-detail'].userInfo;
-        let inline = null;
-        for (const k of Object.keys(scope)) if (scope[k] && scope[k].itemList) { inline = scope[k].itemList; break; }
-        return {
-          hasUser: !!(ud && ud.user && ud.user.id),
-          videoCount: ud && ud.stats && Number.isFinite(ud.stats.videoCount) ? ud.stats.videoCount : null,
-          inline,
-        };
-      }).catch(() => null);
-      if (probe) {
-        hasUser = probe.hasUser;
-        if (probe.videoCount != null) videoCount = probe.videoCount;
-        if (!videos.length && Array.isArray(probe.inline)) videos = probe.inline;
-      }
+      applyProbe(await probeInline());
     } catch (e) {
       error = String((e && e.message) || e).slice(0, 120);
     }
