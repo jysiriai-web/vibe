@@ -348,7 +348,7 @@ if(_actualBtn) _actualBtn.addEventListener('click', async ()=>{
     const maru = acc.filter(a=>a.company==='MARU' && done(a)).length;
     const si   = acc.filter(a=>a.company==='SIRIAI' && done(a)).length;
     const krw  = Number(d.config && d.config.krwPerUsd) || 0;
-    const gUSD = orders.reduce((s,o)=> s + (o.cancelled ? 0 : (parseFloat(String(o.charge).replace(/[^0-9.]/g,''))||0)), 0); // 취소(환불)분 제외
+    const gUSD = orders.reduce((s,o)=> s + ((o.charge!=null ? Number(o.charge) : (o.cost||0))||0), 0); // 대시보드 비용탭과 동일 — 전체 charge 합(취소 마킹돼도 실제 지출된 건 포함)
     const gKRW = Math.round(gUSD*krw);
     setNum('m-n',maru); setNum('s-n',si); setNum('garden',gKRW); calc();
     note.style.color='var(--good)';
