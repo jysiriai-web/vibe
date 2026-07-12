@@ -12,7 +12,7 @@ const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;'
 function revState(v) {
   const s = String(v == null ? '' : v).trim();
   if (!s) return 'none';
-  if (/다름|누락|미준수|미사용|불가|없음|이슈|문제|✗|✘/i.test(s)) return 'fail';
+  if (/다름|누락|미준수|미사용|불가|없음|이슈|문제|수정요청|✗|✘/i.test(s)) return 'fail'; // 마스터 값: 이슈·수정요청 = 미준수
   if (/확인|준수|사용|완료|ok|pass|✓|✔|^[oy]$/i.test(s)) return 'pass';
   return 'none'; // 모르는 글자를 '준수'로 단정하면 안 된다 ('이슈' 가 통과로 뒤집혔던 적 있음)
 }
