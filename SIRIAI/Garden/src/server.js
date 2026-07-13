@@ -35,6 +35,9 @@ function pwMatch(input) {
   return a.length === b.length && timingSafeEqual(a, b); // 상수시간 비교(길이 다르면 즉시 false)
 }
 let contentScanState = { running: false, done: 0, total: 0, up: 0, written: 0, error: null, ranAt: null };
+// 캠페인별 SMM 캐시 — 잔액·주문상태 갱신을 매 로드마다 치지 않고 30초 스로틀. { balance, balanceAt, ordersAt }
+const smmCache = new Map();
+const SMM_TTL = 30000;
 let scanConfirmResolve = null; // '스캔 시작' 확인을 기다리는 promise 의 resolver (로봇 인증 게이트)
 let scanResumeResolve = null; // 막혔을 때 '재개/중지'를 기다리는 resolver (VPN 바꾸기 게이트)
 
@@ -235,16 +238,23 @@ export async function handler(req, res) {
       // 시트 모드면 계정+주문+검수잠금+베스트를 한 번에 (왕복 1회)
       const all = await readAll(campaign);
       let orders = all.orders;
-      // 상태 폴링이 실제로 값을 바꿨을 때만 저장 — 매 페이지로드마다 시트에 쓰지 않도록.
-      if (smm) {
+      // 상태 폴링이 실제로 값을 바꿨을 때만 저장 — 30초 스로틀로 매 로드마다 SMM·시트를 치지 않도록.
+      const now = Date.now();
+      const sc = smmCache.get(campaign.id) || {};
+      if (smm && (!sc.ordersAt || now - sc.ordersAt > SMM_TTL)) {
         try {
           const before = JSON.stringify(orders);
           orders = await refreshOrders(smm, orders);
           if (JSON.stringify(orders) !== before) { const w = await writeOrders(campaign, orders); if (w.sheet === 'fail') console.error("[상태폴링] 시트 기록 실패(로컬엔 저장됨):", w.sheetError); }
+          sc.ordersAt = now;
         } catch {}
       }
       let balance = null;
-      if (smm) { try { balance = Number((await smm.balance()).balance); } catch {} }
+      if (smm) {
+        if (sc.balance != null && sc.balanceAt && now - sc.balanceAt < SMM_TTL) balance = sc.balance; // 30초 내면 캐시된 잔액
+        else { try { balance = Number((await smm.balance()).balance); sc.balance = balance; sc.balanceAt = now; } catch {} }
+      }
+      smmCache.set(campaign.id, sc);
       const svc = serviceOf(campaign);
       const accounts = await buildAccounts(campaign, orders, { accounts: all.accounts, overrides: all.overrides });
       return send(res, 200, {
