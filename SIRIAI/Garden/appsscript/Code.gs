@@ -8,18 +8,80 @@
 const TOKEN = 'grdn_2f8a91c4e7b3';
 const MIN_FOLLOWERS = 1000;
 
-// 컬럼 위치(1부터). 마스터 통합시트 헤더 기준.
-const COL = {
+// ─── 필드 ↔ 열 매핑 (헤더 기반 자동 인식) ───────────────────────────────────
+// 열 번호를 하드코딩하지 않고 마스터 헤더행에서 필드 위치를 찾는다. 열을 추가하거나
+// 순서를 바꿔도, 캠페인 레이아웃이 달라도 헤더만 맞으면 그대로 동작.
+// 헤더 매칭 실패 시 DEFAULT_COL(베이온 기준)로 폴백 → 기존 캠페인은 무조건 안전.
+const DEFAULT_COL = {
   company: 2, nick: 3, link: 4, followers: 5, gardening: 6,
-  language: 11, notice: 16,
-  contentA: 17, reviewNote: 18, soundOk: 19, soundSection: 20, hashtagOk: 21,
-  campaignDone: 23, paid: 24, paidDate: 25,
-  contentB: 26, views: 27, likes: 28, comments: 29, shares: 30,
-  // 업로드 예정일 — SIRIAI 팀이 18열(헤더상 '검수 특이사항')에 날짜를 기입(예: 7/8). MARU는 비어 있음.
-  // 스캔이 건드리지 않는 열이라 읽기 전용으로 안전. 값이 있는 계정(주로 SIRIAI)만 대시보드 '예정일' 탭에 표시.
-  schedDate: 18,
-  memo: 22, // 22열(헤더상 '비고', 검수 뒤) — 대시보드에서 계정별 자유 메모. 스캔이 안 건드리는 열이라 안전.
+  language: 11, notice: 16, contentA: 17, schedDate: 18,
+  soundOk: 19, soundSection: 20, hashtagOk: 21, memo: 22,
+  campaignDone: 23, paid: 24, paidDate: 25, contentB: 26,
+  views: 27, likes: 28, comments: 29, shares: 30,
 };
+// 필드 → 헤더 별칭(선호 순서, 정규화 정확일치). 새 캠페인 헤더가 다르면 여기에 별칭만 추가.
+// ⚠️ schedDate: 베이온은 '예정일'을 헤더상 '검수 특이사항' 열(18)에 기입 → 그 별칭 포함.
+const FIELD_HEADERS = {
+  company: ['진행사', '회사', '소속'],
+  nick: ['닉네임', '크리에이터', '채널명', '이름'],
+  link: ['계정링크', '틱톡링크', '계정', '링크'],
+  followers: ['팔로워', '팔로워수'],
+  gardening: ['가드닝대상여부', '가드닝', '가드닝대상'],
+  language: ['언어', '국가'],
+  notice: ['안내여부', '안내', '공지'],
+  contentA: ['콘텐츠', '업로드링크', '콘텐츠1', '콘텐츠①', '영상링크'],
+  schedDate: ['업로드예정일', '예정일', '검수특이사항'],
+  soundOk: ['음원'],
+  soundSection: ['음원구간', '구간'],
+  hashtagOk: ['해시태그', '해시태그여부'],
+  memo: ['비고', '메모'],
+  campaignDone: ['캠페인완료', '완료여부'],
+  paid: ['정산여부', '정산', '지급여부'],
+  paidDate: ['정산일', '지급일'],
+  contentB: ['콘텐츠2', '콘텐츠②', '추가콘텐츠'],
+  views: ['조회수', '조회'],
+  likes: ['좋아요'],
+  comments: ['댓글'],
+  shares: ['공유'],
+};
+var COL = shallowClone_(DEFAULT_COL); // 런타임에 헤더 기반으로 재해석됨 (initCols_)
+var _dataSheet = null;                // 데이터 탭 캐시 (initCols_ 가 채움)
+
+function shallowClone_(o) { var r = {}; for (var k in o) r[k] = o[k]; return r; }
+// 헤더 정규화: 공백·괄호 제거 + 소문자. '음원 구간' == '음원구간', '팔로워(명)' == '팔로워'
+function normH_(s) { return String(s == null ? '' : s).replace(/[\s()（）]/g, '').toLowerCase(); }
+// headerRow(값 배열)에 field 의 별칭이 실제로 존재하는가 (헤더행 판별용)
+function headerHasField_(headerRow, field) {
+  var norm = headerRow.map(normH_), al = FIELD_HEADERS[field] || [];
+  for (var i = 0; i < al.length; i++) if (norm.indexOf(normH_(al[i])) >= 0) return true;
+  return false;
+}
+// headerRow → { field: col }. 별칭 정확일치(선호순), 못 찾으면 DEFAULT_COL 폴백.
+function resolveColsFromHeaders_(headerRow) {
+  var norm = headerRow.map(normH_), map = {};
+  for (var f in DEFAULT_COL) {
+    var col = 0, al = FIELD_HEADERS[f] || [];
+    for (var a = 0; a < al.length && !col; a++) { var idx = norm.indexOf(normH_(al[a])); if (idx >= 0) col = idx + 1; }
+    map[f] = col || DEFAULT_COL[f];
+  }
+  return map;
+}
+// 데이터 탭 + 헤더행 자동 탐지 → 전역 COL 재설정. doGet/doPost 시작에 1회.
+// 헤더행 = 상단 20행 중 link + (nick|company) 별칭이 함께 있는 행 (베이온 1행, LUN8 요약 아래 헤더행 등).
+function initCols_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sheets = ss.getSheets();
+  for (var i = 0; i < sheets.length; i++) {
+    var sh = sheets[i], last = sh.getLastRow(), lc = sh.getLastColumn();
+    if (last < 1 || lc < 1) continue;
+    var top = sh.getRange(1, 1, Math.min(last, 20), lc).getValues();
+    for (var r = 0; r < top.length; r++) {
+      if (headerHasField_(top[r], 'link') && (headerHasField_(top[r], 'nick') || headerHasField_(top[r], 'company'))) {
+        _dataSheet = sh; COL = resolveColsFromHeaders_(top[r]); return;
+      }
+    }
+  }
+  _dataSheet = null; COL = shallowClone_(DEFAULT_COL); // 헤더 못 찾음 → 폴백(getSheet_ 가 예전 방식으로 탭 탐색)
+}
 
 // 셀 값이 Date 객체면 M/D 로, 텍스트면 그대로. ("7/8" 이 시트에서 날짜로 파싱돼 Date 로 오는 경우 대비)
 function dateStr_(v) {
@@ -43,6 +105,7 @@ function json_(obj) {
 
 // 데이터 탭 자동 탐지 — D열에 tiktok 링크가 있는 시트
 function getSheet_() {
+  if (_dataSheet) return _dataSheet; // initCols_ 가 찾은 데이터 탭
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheets = ss.getSheets();
   for (var i = 0; i < sheets.length; i++) {
@@ -60,7 +123,7 @@ function readAccounts_() {
   var sh = getSheet_();
   var last = sh.getLastRow();
   if (last < 1) return [];
-  var v = sh.getRange(1, 1, last, 30).getValues();
+  var v = sh.getRange(1, 1, last, sh.getLastColumn()).getValues();
   var out = [];
   for (var i = 0; i < v.length; i++) {
     var row = v[i];
@@ -281,13 +344,14 @@ function writeState_(state) {
 function doGet(e) {
   try {
     if ((e.parameter.token || '') !== TOKEN) return json_({ error: 'unauthorized' });
+    initCols_(); // 헤더 기반으로 열 매핑 해석 (COL 재설정) — colmap 으로 노출해 검증 가능
     var action = e.parameter.action || 'list';
-    if (action === 'list') return json_({ accounts: readAccounts_() });
+    if (action === 'list') return json_({ accounts: readAccounts_(), colmap: COL });
     if (action === 'orders') return json_({ orders: readOrders_() });
     if (action === 'state') return json_(readState_());
     if (action === 'bundle') {
       var s = readState_();
-      return json_({ accounts: readAccounts_(), orders: readOrders_(), overrides: s.overrides, best: s.best });
+      return json_({ accounts: readAccounts_(), orders: readOrders_(), overrides: s.overrides, best: s.best, colmap: COL });
     }
     return json_({ error: 'unknown action' });
   } catch (err) {
@@ -403,6 +467,7 @@ function doPost(e) {
     var body;
     try { body = JSON.parse(e.postData.contents); } catch (err) { return json_({ error: 'bad json' }); }
     if ((body.token || '') !== TOKEN) return json_({ error: 'unauthorized' });
+    initCols_(); // 헤더 기반 열 매핑 — cells 의 필드명 해석·마스터 쓰기에 사용
     if (body.sync) return json_(syncRecruit_(body.sync.sheetId, body.sync.company, body.sync.linkCol));
     if (body.deliver) return json_(deliverReviewed_(body.deliver.sheetId, body.deliver.rows)); // 검수완료 → 납품시트 기입
     // 내용이 있을 때만 분기 — 빈 배열 []/빈 객체 {} 는 truthy 라, 그냥 두면
@@ -429,8 +494,9 @@ function doPost(e) {
     var cells = body.cells || [];
     for (var j = 0; j < cells.length; j++) {
       var c = cells[j];
-      if (!c.row || !c.col) continue;
-      sh.getRange(c.row, c.col).setValue(c.value);
+      var col = c.field ? (COL[c.field] || 0) : c.col; // 필드명이 오면 현재 열로 해석(헤더 기반), 없으면 기존 col 하위호환
+      if (!c.row || !col) continue;
+      sh.getRange(c.row, col).setValue(c.value);
       n++;
     }
     return json_({ updated: n });
