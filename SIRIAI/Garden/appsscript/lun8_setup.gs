@@ -13,15 +13,30 @@ var LUN8_SOURCES = [
   // { id: '<마루 모집시트 id>', company: 'MARU' },   // ← 마루 시트 받으면 여기 활성화
 ];
 var LUN8_TARGET = { tiktok: 50, instagram: 50, overbook: 5 };  // 목표(플랫폼별 검수완료) + 오버부킹 허용.
+var LUN8_REFER_FEE = 3000;   // 친구 1명 소개당 추가 정산(엔). 바뀌면 여기만 고치고 '① 연락열 정리' 재실행.
 // overbook = 목표 초과분을 몇 건까지 인정·정산할지(캠페인별. 보통 ~10%, LUN8 합의=5). 인정상한 = (tiktok+instagram)+overbook = 105.
 
 // 시트 열면 상단에 'LUN8' 메뉴 버튼 생성
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('LUN8')
-    .addItem('모집 동기화 (신규 추가·진행사·번호)', 'setupLun8')
+    .addItem('① 연락열 정리 (확정메일·추천인) — 처음 한 번', 'restructureLun8Contact')
+    .addItem('② 모집 동기화 (신규 추가·진행사·번호·확정메일·추천인)', 'setupLun8')
+    .addSeparator()
+    .addItem('응대 매뉴얼 · 가이드라인 탭 만들기', 'buildLun8Docs')
     .addItem('색상 고치기 (조건부서식 → 교차색상, 하이라이트 되게)', 'fixLun8Colors')
     .addToUi();
 }
+
+// 헤더행(크리에이터 + 틱톡 닉네임이 같이 있는 줄) 찾기 — 함수마다 다시 짜지 않게 공용.
+function lun8Head_(sh) {
+  var scan = sh.getRange(1, 1, Math.min(sh.getMaxRows(), 12), sh.getMaxColumns()).getValues();
+  for (var r = 0; r < scan.length; r++) {
+    var row = scan[r].map(function (v) { return String(v == null ? '' : v).trim(); });
+    if (row.indexOf('크리에이터') >= 0 && row.indexOf('틱톡 닉네임') >= 0) return r + 1;
+  }
+  throw new Error('헤더행(크리에이터·틱톡 닉네임)을 못 찾음 — LUN8_마스터 탭 맞는지 확인');
+}
+function lun8Toast_(ss, msg) { try { ss.toast(msg, 'LUN8', 8); } catch (e) {} Logger.log(msg); }
 
 function setupLun8() {
   var t = function (v) { return String(v == null ? '' : v).trim(); };
@@ -62,8 +77,7 @@ function setupLun8() {
   addAfter('인스타 공유', '인스타 비고', { w: 160 });
   addAfter('정산방식', '최우수', { check: true, w: 70 });
   addAfter('최우수', '개별단가', { fmt: '#,##0"엔"', w: 90 });
-  // 확정메일 = 연락 섹션 끝(업로드 예정일 뒤). '연락처 바로 뒤'(6열)는 요약 격자(4~7열) 한가운데를 갈라서 피함.
-  addAfter('업로드 예정일', '확정메일', { w: 90 });
+  // 확정메일·추천인 열은 '① 연락열 정리'가 만든다 (요약 격자를 안 깨는 순서로 이동·삭제가 필요해서 별도 함수).
   var cGb = col('개별단가');
   if (cGb) {
     var rgGb = sh.getRange(DS, cGb, N, 1); rgGb.clearDataValidations();
@@ -79,7 +93,7 @@ function setupLun8() {
 
   var cNo = col('no'), cCre = col('크리에이터'), cCo = col('진행사'), cMail = col('이메일'), cTel = col('연락처'),
       cTkN = col('틱톡 닉네임'), cTkL = col('틱톡 링크'), cIgN = col('인스타 닉네임'), cIgL = col('인스타 링크'),
-      cSched = col('업로드 예정일'), cConf = col('확정메일');
+      cSched = col('업로드 예정일'), cConf = col('확정메일'), cRef = col('추천인');
   if (!cCre || !cCo || !cTkL || !cIgL) throw new Error('마스터 필수 열(진행사·크리에이터·틱톡/인스타 링크) 못 찾음');
 
   // 기존 행 인덱스: key → {row, co(진행사)}. + 마지막 데이터행
@@ -99,7 +113,7 @@ function setupLun8() {
     }
   }
 
-  var added = 0, tagged = 0, confFilled = 0, writeRow = lastData + 1;
+  var added = 0, tagged = 0, confFilled = 0, referred = 0, writeRow = lastData + 1;
   LUN8_SOURCES.forEach(function (src) {
     var rvals;
     try { rvals = SpreadsheetApp.openById(src.id).getSheets()[0].getDataRange().getValues(); }
@@ -107,17 +121,36 @@ function setupLun8() {
     var rHead = rvals[0].map(function (v) { return t(v).toLowerCase(); });
     var rc = function (kw) { kw = kw.toLowerCase(); for (var j = 0; j < rHead.length; j++) if (rHead[j].indexOf(kw) >= 0) return j; return -1; };
     var iName = rc('이름'), iMail = rc('이메일'), iTel = rc('연락처'), iTk = rc('tiktok'), iIg = rc('instagram'), iSched = rc('예정'), iConf = rc('확정');
+
+    // 친구 소개 선반영: '친구N SNS링크/이메일' 칸을 먼저 훑어 (소개받은 사람 → 소개한 사람) 지도를 만든다.
+    // 소개받은 쪽이 명단에 먼저 나올 수도 있어서 본 루프 전에 한 번에 모아둔다.
+    var refByH = {}, refByM = {};
+    for (var p = 1; p < rvals.length; p++) {
+      var pr = rvals[p], who = iName >= 0 ? t(pr[iName]) : '';
+      if (!who) continue;
+      for (var fc = 0; fc < rHead.length; fc++) {
+        if (rHead[fc].indexOf('친구') < 0) continue;
+        var fv = t(pr[fc]); if (!fv) continue;
+        var fh = tkH(fv) || igH(fv);
+        if (fh) { if (!refByH[fh]) refByH[fh] = who; continue; }
+        var fm = fv.match(/[\w.+-]+@[\w.-]+\.\w+/);           // '메일 보냄' 같은 메모가 섞여 있어 주소만 뽑음
+        if (fm && !refByM[fm[0].toLowerCase()]) refByM[fm[0].toLowerCase()] = who;
+      }
+    }
+
     for (var r2 = 1; r2 < rvals.length; r2++) {
       var row = rvals[r2];
       var tk = iTk >= 0 ? cleanUrl(row[iTk]) : '', ig = iIg >= 0 ? cleanUrl(row[iIg]) : '', mail = iMail >= 0 ? t(row[iMail]) : '';
       var a = tkH(tk), b = igH(ig), m = mail.toLowerCase();
       if (!a && !b && !m) continue;                     // 식별자 하나도 없으면 스킵
       var ex = (a && seenT[a]) || (b && seenI[b]) || (m && seenM[m]);   // 틱톡·인스타·이메일 중 하나라도 겹치면 동일인
+      var refer = (a && refByH[a]) || (b && refByH[b]) || (m && refByM[m]) || '';   // 나를 소개해준 사람
       if (ex) {                                          // 이미 있음 → 진행사·예정일·확정메일 비었으면 채움(backfill)
         if (!ex.co) { sh.getRange(ex.row, cCo).setValue(src.company); ex.co = src.company; tagged++; }
         if (iSched >= 0 && cSched) { var sd0 = row[iSched]; if (sd0 !== '' && sd0 != null && !t(sh.getRange(ex.row, cSched).getValue())) sh.getRange(ex.row, cSched).setValue(sd0); }
         // 확정메일: 마스터가 비었을 때만 채움 — 모집시트는 임시 소스라, 마스터에서 고친 값을 되돌리지 않는다.
         if (iConf >= 0 && cConf && t(row[iConf]) && !t(sh.getRange(ex.row, cConf).getValue())) { sh.getRange(ex.row, cConf).setValue(t(row[iConf])); confFilled++; }
+        if (refer && cRef && !t(sh.getRange(ex.row, cRef).getValue())) { sh.getRange(ex.row, cRef).setValue(refer); referred++; }
         continue;
       }
       var rw = writeRow + added;                         // 신규 append (진행사 태깅)
@@ -129,6 +162,7 @@ function setupLun8() {
       if (ig) { sh.getRange(rw, cIgL).setValue(ig); if (cIgN) sh.getRange(rw, cIgN).setValue(igH(ig)); }
       if (iSched >= 0 && cSched) { var sd = row[iSched]; if (sd !== '' && sd != null) sh.getRange(rw, cSched).setValue(sd); }
       if (iConf >= 0 && cConf && t(row[iConf])) { sh.getRange(rw, cConf).setValue(t(row[iConf])); confFilled++; }
+      if (refer && cRef) { sh.getRange(rw, cRef).setValue(refer); referred++; }
       var ref2 = { row: rw, co: src.company };
       if (a) seenT[a] = ref2; if (b) seenI[b] = ref2; if (m) seenM[m] = ref2;
       added++;
@@ -222,10 +256,108 @@ function setupLun8() {
     }
     confMsg = ' · 확정메일 ' + confFilled + '명 채움' + (pend.length ? ' · ⚠️ 미발송 ' + pend.length + '명: ' + pend.join(', ') : ' · 미발송 없음');
   }
+  if (referred) confMsg += ' · 추천인 ' + referred + '명 자동기입';
 
   var msg = '✅ LUN8 셋업 완료 — 신규 ' + added + '명 추가, 진행사 ' + tagged + '명 소급 태깅, 번호 재정리' + confMsg + summaryMsg + '.';
   try { ss.toast(msg, 'LUN8', 8); } catch (e) {}
   Logger.log(msg);
+}
+
+/**
+ * ① 연락열 정리 — 처음 한 번만. 확정메일을 정산 섹션에서 연락 섹션으로 옮기고, 추천 출처/추천 수를 '추천인' 하나로 정리.
+ *
+ * ⚠️ 왜 '삭제·삽입'이 아니라 '이름 바꾸기'인가:
+ *    요약 격자가 4~7열(진행사 × 틱톡/인스타), 합계가 8~9열을 쓴다. 데이터 헤더와 같은 열을 위아래로 공유한다는 뜻.
+ *    그래서 7열을 지우면 요약의 '인스타 기획' 칸이 같이 지워지고, 열을 끼우면 격자가 갈라진다.
+ *    → 4~17열 안에서는 구조를 절대 안 건드리고 헤더 이름만 바꾼다. 지우는 건 요약 밖(17열 초과)뿐.
+ *
+ * 결과 배치: 이메일 · 연락처 · 확정메일 · 추천인 · 업로드 예정일   (요청하신 순서에서 추천인↔업로드 예정일만 뒤바뀜 — 위 이유)
+ * 정산 섹션엔 '추천 수'(자동 집계) · '추천 보너스'(자동 계산)가 붙는다.
+ */
+function restructureLun8Contact() {
+  var t = function (v) { return String(v == null ? '' : v).trim(); };
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName('LUN8_마스터') || ss.getActiveSheet();
+  var hRow = lun8Head_(sh), DS = hRow + 1, LASTR = 408, N = Math.max(1, sh.getMaxRows() - DS + 1);
+  var col = function (name) {
+    var v = sh.getRange(hRow, 1, 1, sh.getLastColumn()).getValues()[0];
+    for (var i = 0; i < v.length; i++) if (t(v[i]) === name) return i + 1;
+    return 0;
+  };
+  var Lc = function (c) { var s = ''; while (c > 0) { var m = (c - 1) % 26; s = String.fromCharCode(65 + m) + s; c = (c - m - 1) / 26; } return s; };
+  var hasData = function (c) {
+    if (!c) return false;
+    var v = sh.getRange(DS, c, N, 1).getValues();
+    for (var i = 0; i < v.length; i++) if (t(v[i][0])) return true;
+    return false;
+  };
+
+  var log = [];
+  var cConf0 = col('확정메일'), cSrc = col('추천 출처'), cCnt = col('추천 수');
+
+  // ── 이미 정리됐으면 종료 ──
+  if (col('추천인') && cConf0 && cConf0 < 10) { lun8Toast_(ss, '이미 정리돼 있어요. (확정메일 ' + cConf0 + '열 · 추천인 ' + col('추천인') + '열)'); return; }
+
+  // ── 덮어쓸 칸에 값이 있으면 중단 (사람이 뭔가 적어둔 걸 조용히 날리지 않게) ──
+  if (hasData(cSrc)) throw new Error("'추천 출처' 열에 값이 들어있어요. 확정메일 자리로 쓰려던 칸이라, 먼저 그 값을 옮기거나 지운 뒤 다시 실행하세요.");
+  if (hasData(cCnt)) throw new Error("'추천 수' 열에 값이 들어있어요. 추천인 자리로 쓰려던 칸이라, 먼저 그 값을 옮기거나 지운 뒤 다시 실행하세요.");
+
+  // ── ① 기존 확정메일 값 백업 (정산 섹션에 있던 것) ──
+  var keep = null;
+  if (cConf0) { keep = sh.getRange(DS, cConf0, N, 1).getValues(); log.push('확정메일 값 ' + cConf0 + '열에서 백업'); }
+
+  // ── ② 제자리 이름 바꾸기: 추천 출처 → 확정메일, 추천 수 → 추천인 ──
+  if (cSrc) { sh.getRange(hRow, cSrc).setValue('확정메일'); sh.setColumnWidth(cSrc, 95); log.push('추천 출처 → 확정메일(' + cSrc + '열)'); }
+  if (cCnt) { sh.getRange(hRow, cCnt).setValue('추천인'); sh.setColumnWidth(cCnt, 120); log.push('추천 수 → 추천인(' + cCnt + '열)'); }
+  var cConf = col('확정메일'), cRef = col('추천인');
+  if (!cConf || !cRef) throw new Error('확정메일·추천인 열을 못 만들었어요 — 헤더에 "추천 출처"·"추천 수"가 있는지 확인하세요.');
+
+  // ── ③ 백업한 확정메일 값 복원 + 옛 열 삭제 (옛 열은 요약 밖이라 삭제해도 안전) ──
+  if (keep) {
+    sh.getRange(DS, cConf, keep.length, 1).setValues(keep);
+    var cOld = 0, hv = sh.getRange(hRow, 1, 1, sh.getLastColumn()).getValues()[0];
+    for (var i = hv.length - 1; i >= 0; i--) if (t(hv[i]) === '확정메일' && (i + 1) !== cConf) { cOld = i + 1; break; }
+    if (cOld > 17) { sh.deleteColumn(cOld); log.push('옛 확정메일 열(' + cOld + ') 삭제'); }
+    else if (cOld) log.push('⚠️ 옛 확정메일 열이 ' + cOld + '열(요약 영역)이라 안 지움 — 직접 확인 필요');
+  }
+
+  // ── ④ 추천인 드롭다운: 크리에이터 목록에서 고르게 (오타로 집계가 어긋나는 걸 막음) ──
+  var cCre = col('크리에이터');
+  try {
+    var rule = SpreadsheetApp.newDataValidation()
+      .requireValueInRange(sh.getRange(DS, cCre, LASTR - DS + 1, 1), true)
+      .setAllowInvalid(true)
+      .setHelpText('나를 소개해준 사람을 고르세요. 목록에 없으면 직접 입력해도 됩니다.')
+      .build();
+    sh.getRange(DS, cRef, LASTR - DS + 1, 1).setDataValidation(rule);
+    log.push('추천인 드롭다운 적용');
+  } catch (e) { log.push('⚠️ 추천인 드롭다운 실패: ' + e.message); }
+
+  // ── ⑤ 정산 섹션: 추천 수(자동 집계) · 추천 보너스(자동 계산) ──
+  // A가 B·C를 소개하면 B·C 행의 '추천인'에 A. 그러면 A 행의 추천 수가 저절로 2가 된다. 사람이 세지 않는다.
+  var addAfter = function (after, name, w) {
+    if (col(name)) return col(name);
+    var a = col(after); if (!a) throw new Error('기준 열 없음: ' + after);
+    sh.insertColumnAfter(a); var c = a + 1;
+    sh.getRange(hRow, c).setValue(name);
+    sh.getRange(DS, c, N, 1).clearDataValidations();
+    if (w) sh.setColumnWidth(c, w);
+    return c;
+  };
+  var cRc = addAfter('개별단가', '추천 수', 80);
+  var cRb = addAfter('추천 수', '추천 보너스', 110);
+  var refA = '$' + Lc(cRef) + '$' + DS + ':$' + Lc(cRef) + '$' + LASTR;
+  var fc = [], fb = [];
+  for (var r = DS; r <= LASTR; r++) {
+    var cre = '$' + Lc(cCre) + r;
+    fc.push(['=IF(' + cre + '="","",COUNTIF(' + refA + ',' + cre + '))']);
+    fb.push(['=IF(' + cre + '="","",' + Lc(cRc) + r + '*' + LUN8_REFER_FEE + ')']);
+  }
+  sh.getRange(DS, cRc, fc.length, 1).setFormulas(fc);
+  sh.getRange(DS, cRb, fb.length, 1).setFormulas(fb).setNumberFormat('#,##0"엔"');
+  log.push('정산에 추천 수·추천 보너스(' + LUN8_REFER_FEE.toLocaleString() + '엔/명) 수식 적용');
+
+  lun8Toast_(ss, '✅ 연락열 정리 완료 — ' + log.join(' · ') + '. 이제 ②모집 동기화를 누르세요.');
 }
 
 /**
@@ -264,4 +396,126 @@ function fixLun8Colors() {
   var msg = '✅ 색상 정리 — 데이터행 조건부서식 ' + removed + '개 제거' + (applied ? ' + 교차색상 적용' : '') + '. 이제 수동 하이라이트 됩니다.';
   try { ss.toast(msg, 'LUN8', 7); } catch (e) {}
   Logger.log(msg);
+}
+
+/**
+ * 응대 매뉴얼 · 가이드라인 탭 만들기 — LUN8 메뉴에서 실행.
+ * 이미 내용이 있으면 덮어쓰지 않는다(팀이 적어둔 걸 날리지 않게). 서식만 다시 맞춘다.
+ *
+ * 매뉴얼 = 문의가 오면 그대로 복사해 답장하는 스크립트. 계속 늘어난다 → 팀이 여기에 행을 추가.
+ * 가이드라인 = 캠페인 사양. 한 번 쓰고 고정. 이메일을 다시 뒤지지 않는 게 목적.
+ * [확인필요] = 아직 안 채운 자리. 그대로 크리에이터에게 보내지 말 것.
+ */
+var LUN8_MANUAL_ROWS = [
+  ['음원', '틱톡에서 지정 음원을 어떻게 찾나요?',
+   '안녕하세요! 지정 음원은 아래 링크에서 바로 사용하실 수 있어요.\n\n[확인필요] 음원 링크\n\n링크를 눌러 → 우측 하단 [이 사운드 사용하기] → 촬영/업로드 순으로 진행하시면 됩니다.\n검색으로 찾으실 경우 동명의 다른 음원이 있을 수 있어서, 꼭 위 링크로 들어가 주세요.',
+   'こんにちは！指定楽曲は下記のリンクからそのままご使用いただけます。\n\n[확인필요] 音源リンク\n\nリンクを開く → 右下の[この楽曲を使う] → 撮影・アップロードの順で進めてください。\n検索の場合、同名の別音源が出てくることがありますので、必ず上記リンクからお願いいたします。'],
+  ['음원', '음원 구간이 정해져 있나요?',
+   '네, 지정 구간이 있어요.\n\n[확인필요] 사용 구간\n\n이 구간이 영상에 포함되어야 검수를 통과할 수 있어요. 영상 전체 길이는 자유롭게 하셔도 괜찮습니다.',
+   'はい、指定区間がございます。\n\n[확인필요] 使用区間\n\nこの区間が動画に含まれている必要がございます。動画全体の長さは自由で問題ありません。'],
+  ['음원', '인스타 릴스에 같은 음원이 안 보여요.',
+   '릴스는 계정 종류에 따라 일부 음원이 표시되지 않을 수 있어요.\n\n혹시 비즈니스 계정을 쓰고 계시다면, 크리에이터 계정으로 전환하시면 대부분 해결됩니다.\n그래도 안 보이시면, 업로드 화면 스크린샷을 보내주세요. 저희가 확인 후 대체 방법을 안내드릴게요.',
+   'リールズはアカウントの種類によって一部の音源が表示されないことがございます。\n\nビジネスアカウントをご利用の場合、クリエイターアカウントに切り替えると解決することが多いです。\nそれでも表示されない場合は、アップロード画面のスクリーンショットをお送りください。確認のうえ、代替方法をご案内いたします。'],
+  ['해시태그', '해시태그는 어디에 넣나요?',
+   '아래 해시태그를 캡션(설명글)에 모두 넣어주세요.\n\n[확인필요] 필수 해시태그\n\n댓글이 아니라 캡션에 넣어주셔야 검수에 반영됩니다. 순서나 위치는 자유예요.',
+   '下記のハッシュタグをキャプション（説明文）にすべてご記載ください。\n\n[확인필요] 必須ハッシュタグ\n\nコメント欄ではなくキャプションに入れていただく必要がございます。順番や位置は自由です。'],
+  ['업로드', '언제까지 올려야 하나요?',
+   '업로드 기간은 [확인필요] 기간 입니다.\n\n신청하실 때 적어주신 예정일에 맞춰 올려주시면 가장 좋고, 사정이 생기시면 미리 알려주세요. 조정 가능합니다.',
+   'アップロード期間は [확인필요] 期間 です。\n\nお申し込み時にご記入いただいた予定日に合わせてご投稿いただけますと幸いです。ご都合が変わる場合は事前にお知らせください。調整可能です。'],
+  ['업로드', '올린 영상을 언제까지 유지해야 하나요?',
+   '[확인필요] 유지 기간 동안은 삭제하지 말고 공개 상태로 유지해주세요.\n\n정산 확인과 성과 집계에 필요해서예요. 기간이 지나면 자유롭게 하셔도 됩니다.',
+   '[확인필요] 保持期間 の間は、削除せず公開状態のまま保っていただけますようお願いいたします。\n\n精算の確認と成果集計に必要なためです。期間終了後は自由にしていただいて問題ありません。'],
+  ['계정', '비공개 계정으로 올려도 되나요?',
+   '아니요, 공개 상태로 올려주셔야 해요.\n\n비공개나 친구공개는 저희가 확인할 수 없어서 검수가 안 됩니다. 업로드 후 공개로 설정되어 있는지 한 번만 확인 부탁드려요.',
+   'いいえ、公開設定でのご投稿をお願いいたします。\n\n非公開・友達のみ公開の場合、こちらで確認ができず検収ができません。投稿後、公開設定になっているか一度ご確認ください。'],
+  ['계정', '팔로워 조건이 있나요?',
+   '[확인필요] 팔로워 조건\n\n조건에 대해 궁금한 점 있으시면 편하게 문의해주세요.',
+   '[확인필요] フォロワー条件\n\n条件についてご不明な点がございましたら、お気軽にお問い合わせください。'],
+  ['정산', '보수는 얼마이고 언제 받나요?',
+   '[확인필요] 정산 금액 체계\n\n지급 시점은 [확인필요] 지급 시점 이며, [확인필요] 기프트카드 종류 로 보내드립니다.\n받으시면 확인 회신 한 번만 부탁드려요.',
+   '[확인필요] 報酬体系\n\nお支払い時期は [확인필요] 支払い時期 で、[확인필요] ギフトカード種類 にてお送りいたします。\n受け取られましたら、確認のご返信を一度お願いいたします。'],
+  ['정산', '친구를 소개하면 추가 보수가 있나요?',
+   '네, 있어요. 소개해주신 분이 실제로 참여하시면 1명당 3,000엔이 추가로 지급됩니다.\n\n소개해주실 분의 SNS 링크와 이메일을 알려주시면 저희가 안내 메일을 보내드립니다.\n(상한 등 세부 조건: [확인필요])',
+   'はい、ございます。ご紹介いただいた方が実際に参加された場合、お一人につき3,000円が追加で支払われます。\n\nご紹介いただける方のSNSリンクとメールアドレスをお知らせいただければ、こちらからご案内メールをお送りいたします。\n（上限などの詳細条件：[확인필요]）'],
+  ['기타', '검수에서 미준수가 나왔다고 연락받았어요.',
+   '확인해주셔서 감사합니다. 아래 항목이 조건과 달라서 재업로드가 필요해요.\n\n[확인필요] 해당 항목\n\n수정본은 [확인필요] 재제출 마감 까지 올려주시면 정상적으로 인정됩니다. 번거롭게 해드려 죄송합니다!',
+   'ご確認ありがとうございます。下記の項目が条件と異なっており、再投稿が必要です。\n\n[확인필요] 該当項目\n\n修正版は [확인필요] 再提出期限 までにご投稿いただければ、問題なく認定されます。お手数をおかけし申し訳ございません。'],
+];
+
+var LUN8_GUIDE_ROWS = [
+  ['개요', '캠페인', 'SNEAKERS 댄스 챌린지 · 시리아이 × 마루'],
+  ['개요', '기간', '[확인필요] — 마스터 상단 표기는 7/22~8/4, 실제 시작은 7/23'],
+  ['개요', '플랫폼', '틱톡 + 인스타 릴스'],
+  ['개요', '목표', '검수완료 100건 (틱톡 50 / 인스타 50) · 정산 인정 상한 105건'],
+  ['지정 음원', '틱톡 음원 링크', '[확인필요]'],
+  ['지정 음원', '인스타 음원 링크', '[확인필요] — 릴스에 같은 음원이 있는지부터 확인 필요'],
+  ['지정 음원', '사용 구간', '[확인필요]'],
+  ['지정 음원', '주의', '릴스는 지정 음원을 써도 표기가 "오리지널 오디오"로 바뀌는 경우가 있어 화면만으로 판정이 안 될 수 있음. 애매하면 업로드 화면 스크린샷을 요청할 것.'],
+  ['댄스 동작', '참고 영상', '[확인필요]'],
+  ['댄스 동작', '필수 동작', '[확인필요]'],
+  ['댄스 동작', '변형 허용 범위', '[확인필요] — 어디까지 바꿔도 인정인지'],
+  ['해시태그', '필수 해시태그', '[확인필요] — 마스터 상단 표기는 #루네이트 #LUN8 #SNEAKERS. 최종본인지 확인 필요'],
+  ['해시태그', '위치', '캡션에 넣어야 인정. 댓글은 불인정.'],
+  ['검수', '통과 조건', '음원 · 음원구간 · 해시태그 3개가 모두 "준수"여야 검수완료'],
+  ['검수', '판정값', '준수 / 미준수 / 미확인 — 이 셋만 사용. 자유롭게 적으면 집계가 안 됨'],
+  ['검수', '미준수 처리', '판정한 날 바로 통보. 재제출 마감을 넘기면 인정 불가'],
+  ['팔로워', '틱톡 기준', '[확인필요] — 기존 기준은 1,000'],
+  ['팔로워', '인스타 기준', '[확인필요] — 틱톡과 같은 기준인지 마루와 합의 필요'],
+  ['팔로워', '미달 시', '가드닝(팔로워 보충) 대상. 가드닝 집행은 대표님 PC에서만 가능'],
+  ['정산', '금액 체계', '[확인필요] — 단건 / 양 플랫폼 / 최우수'],
+  ['정산', '추천 보너스', '소개한 친구 1명당 3,000엔. 소개받은 사람 행의 "추천인"에 소개자 이름을 넣으면 자동 집계됨'],
+  ['정산', '지급 수단', '[확인필요] — 아마존·구글·애플 중 무엇, 어느 나라 스토어'],
+  ['정산', '지급 시점', '[확인필요]'],
+  ['정산', '주의', '기프트카드 코드는 한 번 나가면 회수 불가. 수령 확인 회신을 반드시 기록에 남길 것'],
+  ['응대 원칙', '애매하면', '임의로 답하지 말고 비고란에 적고 대표님께'],
+  ['응대 원칙', '일관성', '금액·기간·인정 여부는 팀원마다 답이 달라지면 그 자체가 사고. 반드시 응대 매뉴얼 문구를 그대로 복사해서 사용'],
+  ['응대 원칙', '새 질문', '매뉴얼에 없는 질문이 오면, 답한 뒤 그 문답을 응대 매뉴얼 탭에 추가할 것'],
+];
+
+function buildLun8Docs() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var made = [], kept = [];
+
+  var build = function (name, headers, rows, widths) {
+    var sh = ss.getSheetByName(name);
+    if (!sh) sh = ss.insertSheet(name);
+    if (sh.getLastRow() <= 1) {                    // 비어 있을 때만 내용을 넣는다 (팀이 적은 걸 안 지움)
+      sh.clear();
+      sh.getRange(1, 1, 1, headers.length).setValues([headers]);
+      if (rows.length) sh.getRange(2, 1, rows.length, headers.length).setValues(rows);
+      made.push(name);
+    } else kept.push(name);
+
+    // 서식은 매번 다시 맞춰도 안전 (값은 안 건드림)
+    sh.getRange(1, 1, 1, headers.length)
+      .setFontWeight('bold').setBackground('#211A33').setFontColor('#F3EEE2').setVerticalAlignment('middle');
+    sh.setRowHeight(1, 34);
+    sh.setFrozenRows(1);
+    for (var i = 0; i < widths.length; i++) sh.setColumnWidth(i + 1, widths[i]);
+    var last = Math.max(sh.getLastRow(), 2);
+    var body = sh.getRange(2, 1, last - 1, headers.length);
+    body.setVerticalAlignment('top').setWrap(true);
+    try { sh.getBandings().forEach(function (b) { b.remove(); }); } catch (e) {}
+    try { body.applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY, false, false); } catch (e) {}
+    return sh;
+  };
+
+  // ── 응대 매뉴얼 ──
+  var m = build('응대 매뉴얼', ['분류', '질문', '답변 (한국어)', '답변 (일본어)'], LUN8_MANUAL_ROWS, [90, 260, 480, 480]);
+  // 분류는 드롭다운으로 고정 — 자유 입력이면 대시보드 필터 버튼이 무한정 늘어난다
+  try {
+    var rule = SpreadsheetApp.newDataValidation()
+      .requireValueInList(['음원', '해시태그', '업로드', '계정', '정산', '기타'], true).setAllowInvalid(true).build();
+    m.getRange(2, 1, Math.max(m.getMaxRows() - 1, 1), 1).setDataValidation(rule);
+  } catch (e) {}
+  try { m.getRange(2, 2, Math.max(m.getLastRow() - 1, 1), 1).setFontWeight('bold'); } catch (e) {}
+
+  // ── 가이드라인 ──
+  build('가이드라인', ['구분', '항목', '내용'], LUN8_GUIDE_ROWS, [110, 160, 720]);
+
+  lun8Toast_(ss, '✅ 문서 탭 — ' +
+    (made.length ? '새로 만듦: ' + made.join(', ') : '') +
+    (made.length && kept.length ? ' / ' : '') +
+    (kept.length ? '이미 내용이 있어 그대로 둠: ' + kept.join(', ') : '') +
+    '. [확인필요] 자리를 채우면 완성입니다.');
 }
