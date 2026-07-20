@@ -124,17 +124,19 @@ function render() {
   $$('.tab').forEach((t) => { const on = t.dataset.tab === state.tab; t.classList.toggle('active', on); if (on) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current'); });
   // 클라우드(팀 공유)에서는 스캔·집행 '버튼'만 숨긴다. 가드닝 탭 자체는 보여줌(보기 전용).
   const cloud = !!d.config?.cloud;
-  // 정산 탭은 독립 시뮬레이터 → 스캔 버튼·계정 통계 무의미하니 숨김 (딱 필요한 것만 노출)
-  const isSettle = state.tab === 'settle';
-  $('#scanBtn').hidden = isSettle || cloud;
-  $('#contentScanBtn').hidden = isSettle || cloud;
-  if ($('#exitIpBtn')) $('#exitIpBtn').hidden = isSettle || cloud;
-  const st = $('.stats'); if (st) st.hidden = isSettle || cloud; // 클라우드엔 잔액·스캔시각이 없음
+  // 정산·매뉴얼·가이드는 계정 데이터와 무관한 문서형 탭 → 스캔 버튼·계정 통계 무의미하니 숨김
+  const isDoc = ['settle', 'manual', 'guide'].includes(state.tab);
+  $('#scanBtn').hidden = isDoc || cloud;
+  $('#contentScanBtn').hidden = isDoc || cloud;
+  if ($('#exitIpBtn')) $('#exitIpBtn').hidden = isDoc || cloud;
+  const st = $('.stats'); if (st) st.hidden = isDoc || cloud; // 클라우드엔 잔액·스캔시각이 없음
   const c = $('#content');
   if (state.tab === 'recruit') c.innerHTML = viewRecruit(accts);
   else if (state.tab === 'upload') c.innerHTML = viewUpload(accts);
   else if (state.tab === 'garden') c.innerHTML = viewGarden(accts, orders);
   else if (state.tab === 'deliver') c.innerHTML = viewDeliver(accts);
+  else if (state.tab === 'manual') c.innerHTML = viewManual();
+  else if (state.tab === 'guide') c.innerHTML = viewGuide();
   else c.innerHTML = viewSettle();
   // 넓은 표는 자체 가로 스크롤 (좁은 창에서 페이지 전체가 밀리는 것 방지)
   c.querySelectorAll('table').forEach((t) => {
@@ -578,6 +580,48 @@ function viewSettle() {
     onload="try{var d=this.contentWindow.document;var fit=()=>{this.style.height=(d.documentElement.scrollHeight+24)+'px';};fit();setTimeout(fit,500);setTimeout(fit,1500);}catch(e){this.style.height='1600px';}"></iframe>`;
 }
 
+// 아직 안 채워진 사양 자리를 빨갛게 — 실수로 [확인필요] 그대로 크리에이터에게 보내는 걸 막는다.
+// esc() 뒤에 쓸 것(대괄호·한글이라 esc 후에도 문자열이 그대로다). 복사는 textContent라 표시가 섞이지 않는다.
+const mark = (s) => String(s).replace(/\[확인필요\]/g, '<span class="todo">[확인필요]</span>');
+
+// ⑥ 매뉴얼 — 문의 응대 스크립트. 검색·분류로 찾아서 한국어/일본어를 그대로 복사해 답장한다.
+//    검색·분류는 재렌더 없이 DOM만 숨기고 보인다 (입력 중 포커스가 튀지 않게).
+function viewManual() {
+  const cats = ['전체', ...new Set(MANUAL.map((m) => m.cat))];
+  const cards = MANUAL.map((m, i) => {
+    const hay = esc((m.q + ' ' + m.cat + ' ' + m.ko + ' ' + m.ja).toLowerCase());
+    const ans = (L, label) => `<div class="qa-a">
+        <div class="qa-l"><span>${label}</span><button class="btn small copy-ans" data-t="ans-${i}-${L}">복사</button></div>
+        <pre id="ans-${i}-${L}">${mark(esc(m[L]))}</pre>
+      </div>`;
+    return `<div class="qa" data-cat="${esc(m.cat)}" data-hay="${hay}">
+      <div class="qa-h"><span class="qa-cat">${esc(m.cat)}</span><b>${esc(m.q)}</b></div>
+      <div class="qa-b">${ans('ko', '한국어')}${ans('ja', '日本語')}</div>
+    </div>`;
+  }).join('');
+  return `<div class="bar">
+      <input id="mSearch" class="msearch" type="search" placeholder="질문·답변 내용으로 검색…" autocomplete="off" />
+      ${cats.map((c, i) => `<button class="btn small m-f${i ? '' : ' primary'}" data-k="${esc(c)}">${esc(c)}</button>`).join('')}
+    </div>
+    <div class="note">문의가 오면 여기서 찾아 <b>복사</b>해서 그대로 답장하세요. 금액·기간·인정 여부는 팀원마다 답이 달라지면 그 자체가 사고예요.
+      <br>아직 <b>구조 예시</b>입니다 — <b>[확인필요]</b> 자리는 실제 사양이 안 채워진 곳이니 그대로 보내지 마세요.</div>
+    <div id="qaList">${cards}</div>
+    <div class="empty" id="qaEmpty" hidden>검색 결과가 없어요.</div>`;
+}
+
+// ⑦ 가이드 — 캠페인 사양. 한 번 쓰고 고정(편집 없음). 이메일을 뒤질 일이 없게 하는 게 목적.
+function viewGuide() {
+  const spec = GUIDE.spec.map((s) => `<tr><th>${esc(s.k)}</th><td>${mark(esc(s.v))}</td></tr>`).join('');
+  // body 는 내가 쓴 문구라 <b> 강조를 그대로 살린다(사용자 입력 아님).
+  const secs = GUIDE.sections.map((s) => `<section class="gsec">
+      <h3>${esc(s.title)}${s.copy ? `<button class="btn small copy-lit" data-v="${esc(s.copy)}">복사</button>` : ''}</h3>
+      <ul>${s.body.map((b) => `<li>${mark(b)}</li>`).join('')}</ul>
+    </section>`).join('');
+  return `<div class="note">${esc(GUIDE.note)} <span class="sub">· 갱신 ${esc(GUIDE.updated)}</span></div>
+    <table class="gspec"><tbody>${spec}</tbody></table>
+    <div class="gsecs">${secs}</div>`;
+}
+
 const emptyScan = () => `<div class="empty">아직 데이터가 없어요.<br><br><button class="btn primary" onclick="scan()">지금 스캔하기</button></div>`;
 // 필터 결과가 0행일 때 표 안에 넣는 빈 상태 (헤더만 남은 빈 표 방지). rows가 비면 이걸로 대체.
 const emptyRow = (cols, msg = '조건에 맞는 계정이 없어요.') => `<tr class="empty-tr"><td colspan="${cols}">${msg}</td></tr>`;
@@ -591,8 +635,26 @@ function updateSel() {
   if ($('#selCost')) $('#selCost').textContent = won((qty / 1000) * rateOf());
   if ($('#execBtn')) $('#execBtn').disabled = !sel.length;
 }
+// 매뉴얼 검색·분류 — 재렌더 대신 DOM만 걸러낸다(입력 포커스 유지·즉시 반응).
+function filterManual() {
+  const q = ($('#mSearch')?.value || '').trim().toLowerCase();
+  const cat = $('.m-f.primary')?.dataset.k || '전체';
+  let shown = 0;
+  $$('#qaList .qa').forEach((el) => {
+    const ok = (cat === '전체' || el.dataset.cat === cat) && (!q || el.dataset.hay.includes(q));
+    el.hidden = !ok; if (ok) shown++;
+  });
+  if ($('#qaEmpty')) $('#qaEmpty').hidden = shown > 0;
+}
+
 function wire() {
   $$('.subtab').forEach((b) => b.addEventListener('click', () => { state.sub = b.dataset.sub; render(); }));
+  if ($('#mSearch')) $('#mSearch').addEventListener('input', filterManual);
+  $$('.m-f').forEach((b) => b.addEventListener('click', () => {
+    $$('.m-f').forEach((o) => o.classList.remove('primary')); b.classList.add('primary'); filterManual();
+  }));
+  $$('.copy-ans').forEach((b) => b.addEventListener('click', () => copyText($('#' + b.dataset.t).textContent, '답변 복사됨 — 그대로 붙여넣으세요')));
+  $$('.copy-lit').forEach((b) => b.addEventListener('click', () => copyText(b.dataset.v, '복사됨')));
   $$('.pick').forEach((c) => c.addEventListener('change', () => { state.unpicked[c.checked ? 'delete' : 'add'](c.dataset.h); updateSel(); }));
   if ($('#pickAll')) $('#pickAll').addEventListener('change', (e) => { $$('.pick').forEach((c) => { c.checked = e.target.checked; state.unpicked[e.target.checked ? 'delete' : 'add'](c.dataset.h); }); updateSel(); });
   if ($('#execBtn')) $('#execBtn').addEventListener('click', openExecute);

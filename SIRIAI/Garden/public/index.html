@@ -32,6 +32,15 @@
           <svg class="ni" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           <span class="lb">정산</span>
         </button>
+        <div class="nav-sep"></div>
+        <button class="tab" data-tab="manual">
+          <svg class="ni" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span class="lb">매뉴얼</span>
+        </button>
+        <button class="tab" data-tab="guide">
+          <svg class="ni" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <span class="lb">가이드</span>
+        </button>
       </nav>
     </aside>
 
@@ -70,6 +79,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
   <div class="overlay" id="overlay" role="status" aria-live="assertive" hidden><div class="spinner"></div><div id="overlayMsg">처리 중…</div></div>
 
+  <script src="/knowledge.js"></script>
   <script src="/app.js"></script>
 </body>
 </html>

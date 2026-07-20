@@ -62,8 +62,8 @@ function setupLun8() {
   addAfter('인스타 공유', '인스타 비고', { w: 160 });
   addAfter('정산방식', '최우수', { check: true, w: 70 });
   addAfter('최우수', '개별단가', { fmt: '#,##0"엔"', w: 90 });
-  // 확정메일은 '맨 끝'에 붙인다 — 요약이 K3/L3/N3/O3·N5:Q6 절대좌표라 앞쪽에 열을 끼우면 요약 수식이 조용히 어긋남.
-  addAfter('개별단가', '확정메일', { w: 90 });
+  // 확정메일 = 연락 섹션 끝(업로드 예정일 뒤). '연락처 바로 뒤'(6열)는 요약 격자(4~7열) 한가운데를 갈라서 피함.
+  addAfter('업로드 예정일', '확정메일', { w: 90 });
   var cGb = col('개별단가');
   if (cGb) {
     var rgGb = sh.getRange(DS, cGb, N, 1); rgGb.clearDataValidations();
@@ -154,16 +154,27 @@ function setupLun8() {
   try {
     var TK = LUN8_TARGET.tiktok, IG = LUN8_TARGET.instagram, TOT = TK + IG, OB = LUN8_TARGET.overbook || 0;
     var reTgt = /\/\s*\d+/;
+    // 요약 좌표는 '라벨을 찾아서' 잡는다 — 열을 추가·이동해도 안 깨지게. (예전엔 K3/N3/14 하드코딩이라
+    // 앞쪽에 열 하나만 끼워도 엉뚱한 셀에 서식·수식을 써버렸음.)
+    var findCol = function (rowNum, re) {
+      var to = Math.min(sh.getLastColumn(), 30);
+      if (to < 8) return 0;
+      var vals = sh.getRange(rowNum, 8, 1, to - 7).getValues()[0];
+      for (var i = 0; i < vals.length; i++) if (re.test(t(vals[i]))) return 8 + i;
+      return 0;
+    };
     // (a) 목표 치환 — 수식/값/서식 어디에 있든 그 숫자만 교체. 못 찾으면 무해(no-op).
     var rep = function (s, from, to) { return s.replace(new RegExp('(?<![0-9.])' + from + '(?![0-9])', 'g'), to); }; // 온전한 토큰만 (1000·$..408 오손 방지)
-    var repl = function (a1, from, to) {
-      var rg = sh.getRange(a1), f = rg.getFormula();
+    var repl = function (rw, cl, from, to) {
+      var rg = sh.getRange(rw, cl), f = rg.getFormula();
       if (f) { var f2 = rep(f, from, to); if (f2 !== f) rg.setFormula(f2); }
       else { var v = rg.getValue(); if (typeof v === 'string') { var v2 = rep(v, from, to); if (v2 !== v) rg.setValue(v2); } }
       var nf = rg.getNumberFormat(); if (nf) { var nf2 = rep(nf, from, to); if (nf2 !== nf) rg.setNumberFormat(nf2); }
     };
-    ['K3', 'L3', 'N3', 'O3'].forEach(function (a) { repl(a, '200', String(TK)); });   // 틱톡 목표
-    ['K4', 'L4', 'N4', 'O4'].forEach(function (a) { repl(a, '100', String(IG)); });   // 인스타 목표
+    // 행3 '🎵 틱톡' / 행4 '📸 인스타' 라벨 기준 +1(값) +2(병합) +4(%) +5(남은 수)
+    var aTk = findCol(3, /틱톡/), aIg = findCol(4, /인스타/);
+    if (aTk) [1, 2, 4, 5].forEach(function (o) { repl(3, aTk + o, '200', String(TK)); });   // 틱톡 목표
+    if (aIg) [1, 2, 4, 5].forEach(function (o) { repl(4, aIg + o, '100', String(IG)); });   // 인스타 목표
     // (b) '모집' → 모집 계정(틱톡/인스타 링크 수)
     var Lc = function (c) { var s = ''; while (c > 0) { var m = (c - 1) % 26; s = String.fromCharCode(65 + m) + s; c = (c - m - 1) / 26; } return s; };
     var acctF = '="틱톡 "&COUNTIF($' + Lc(cTkL) + '$' + DS + ':$' + Lc(cTkL) + '$408,"?*")&"  /  인스타 "&COUNTIF($' + Lc(cIgL) + '$' + DS + ':$' + Lc(cIgL) + '$408,"?*")';
@@ -179,7 +190,7 @@ function setupLun8() {
     if (gChanged) grid.setFormulas(gf);
     // (d) 하단 재배치 — '원래 배치'(미입금@N6 & 참여율@P5)일 때만 실행. 이미 됐거나 부분상태면 안 건드림(오손 방지).
     //     행5: cN=검수완료 라벨, cO:cQ 병합=값 | 행6: cN=참여율·cO=값, cP=미입금·cQ=값
-    var cN = 14, cO = 15, cP = 16;
+    var cN = findCol(5, /^검수완료$/) || 14, cO = cN + 1, cP = cN + 2;   // '검수완료' 라벨 위치가 기준 (재배치 전·후 모두 행5에 있음)
     var origLayout = String(sh.getRange(6, cN).getValue()).trim() === '미입금' && String(sh.getRange(5, cP).getValue()).trim() === '참여율';
     if (origLayout) {
       sh.getRange(5, cN, 2, 4).breakApart();                      // N5:Q6 병합 해제
