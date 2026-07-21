@@ -503,6 +503,8 @@ body.fb-picking #content *:hover { outline: 2px solid var(--accent); outline-off
 /* 버튼 묶음을 오른쪽 끝으로. spacer 는 형제들과 폭을 나눠 가져서 덜 밀린다. */
 .bar-right { margin-left:auto; display:flex; align-items:center; gap:8px; flex-shrink:0; }
 .bar .hidebadge { margin:0; }
+#fbBtn { gap:5px; }
+#fbCnt:not(:empty) { font-size:11px; font-weight:800; background:var(--needs); color:#fff; border-radius:20px; padding:1px 6px; }
 </style>
 </head>
 <body>
@@ -548,7 +550,7 @@ body.fb-picking #content *:hover { outline: 2px solid var(--accent); outline-off
       </div>
       <div class="topbar-right">
         <div class="stats" id="stats"></div>
-        <button class="btn ghost" id="fbBtn" title="화면 아무 곳이나 눌러서 '여기 이런 기능·필터 있으면 좋겠다'를 남겨요">💬 <span id="fbCnt"></span></button>
+        <button class="btn small ghost" id="fbBtn" title="화면 아무 곳이나 눌러서 '여기 이런 기능·필터 있으면 좋겠다'를 남겨요">💬 의견<span id="fbCnt"></span></button>
         <button class="btn" id="btnSettings" title="설정 · 뷰 모드">⚙︎ 설정</button>
       </div>
     </header>
@@ -808,7 +810,7 @@ async function loadData(){
     const rows = Array.isArray(j.accounts) ? j.accounts : [];
     D = rows.map(fromApi);
     applyBest(j.best);
-    CAMPAIGNS.lun8.scan = agoText(j.scannedAt);
+    CAMPAIGNS.lun8.scan = agoText(j.uploadScannedAt || j.scannedAt);
     clearErr();
     render();
     return true;
@@ -1308,6 +1310,7 @@ function likelihood(d,p){
 
 /* ============ 뷰: 가드닝 (garden.js 방식 · 대상만 노출 · 보류 개념) ============ */
 function viewGarden(){
+  if(state.plat==='all') return viewGardenAll();
   const p = state.plat;
   // 후보 = 이 플랫폼 참여자 중, 충족(ok)·미참여(na) 아닌 사람만 (필요없는 사람 숨김)
   let rows = D.filter(d=> d.plats.includes(p) && d[p]!==null).filter(d=>{ const st=gStat(d,p).st; return st!=='ok' && st!=='na'; });
@@ -1344,6 +1347,48 @@ function viewGarden(){
   const execBar = `<div class="bar"><div class="summary">${pName(p)} 가드닝 대상 <b>${targets.length}</b>건 · 충전 합계 <b>${nf(needSum)}</b>명 ${filling.length?`<span class="cmuted">진행중 ${filling.length}건</span>`:''}</div><div class="spacer"></div>${holdToggle}<button class="btn danger" id="btnExec"${targets.length?'':' disabled'}>선택 집행</button></div>`;
   return platSubtabs() + execBar + renderTable(cols, rows, { tableId:'garden-'+p, rowClass:r=> gStat(r,p).st==='hold'?'held':'' }) +
     `<div class="finenote">충전량 = 목표 <b>${nf(GTARGET)}</b>까지 100단위 반올림(베이온 가드닝과 동일). <b>최소 ${nf(GMIN)} 미만</b>만 대상, 진행중 주문(remains)은 자동 차감. 마감임박·저확률 미업로드자는 <b>보류</b> → 업로드 확인 후 가드닝(자동 제외 X). 집행은 워커가 로컬 SMM 키로.</div>`;
+}
+
+/* 가드닝 통합 — 한 행 = 1건(사람×플랫폼). 틱톡·인스타를 한 화면에서 같이 본다. */
+function viewGardenAll(){
+  const pairs = [];
+  D.filter(inCampaign).forEach(d=> platsOn().forEach(p=>{
+    if(!d[p]) return;
+    const st = gStat(d,p).st;
+    if(st==='ok' || st==='na') return;                 // 이미 충족·미참여는 숨긴다
+    if(st==='hold' && !state.gardenHold) return;
+    pairs.push({ d, p, id:d.id+'|'+p, g:gStat(d,p) });
+  }));
+  const stRank = { target:3, filling:2, scan:1, hold:0 };
+  const rows = pairs.slice().sort((a,b)=> (stRank[b.g.st]-stRank[a.g.st]) || ((a.d[a.p].fol||0)-(b.d[b.p].fol||0)));
+  const stChip = st => ({ target:'<span class="chip needs">가드닝 대상</span>', hold:'<span class="chip stale">보류 · 업로드 대기</span>', filling:'<span class="lk sched">채워지는 중</span>', scan:'<span class="cmuted">스캔 대기</span>' }[st] || '');
+  const cols = [
+    { key:'pick', label:'', sortable:false, cell:r=> r.g.st==='target'?`<input type="checkbox" checked onclick="return false">`
+        : r.g.st==='hold'?`<span class="cmuted" title="업로드 확인 후 가드닝">보류</span>` : `<span class="emptydot">·</span>` },
+    { key:'co', label:'진행사', sv:r=>r.d.co, cell:r=>coChip(r.d.co) },
+    { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.d.nick, cell:r=>nickCell(r.d) },
+    { key:'plat', label:'플랫폼', sv:r=>r.p, cell:r=>`<span class="plat-pill ${r.p}">${pName(r.p)}</span>` },
+    { key:'h', label:'닉네임', cls:'handle', sv:r=>r.d[r.p].h, cell:r=>acctLink(r.d[r.p].h, r.p) },
+    { key:'lk', label:'업로드 가능성', sv:r=>likelihood(r.d,r.p).rank, cell:r=>{ const l=likelihood(r.d,r.p); return `<span class="lk ${l.k}">${l.t}</span>`; } },
+    { key:'fol', label:'현재 팔로워', cls:'num', thcls:'num', sv:r=> r.d[r.p].fol==null?-1:r.d[r.p].fol,
+      cell:r=> r.d[r.p].fol==null?`<span class="cmuted">스캔 대기</span>`:nf(r.d[r.p].fol) },
+    { key:'st', label:'상태', sv:r=>r.g.st, cell:r=>stChip(r.g.st) },
+    { key:'order', label:'충전량', cls:'num', thcls:'num', sv:r=>r.g.order, cell:r=>{
+        if(r.g.st==='target') return `<b>${nf(r.g.order)}</b>`;
+        if(r.g.st==='hold')   return `<span class="cmuted">${nf(r.g.order)} <small>업로드 시</small></span>`;
+        if(r.g.st==='filling')return `<span class="cmuted">진행중 ${nf(r.d[r.p].inFlight)}</span>`;
+        return `<span class="emptydot">·</span>`; } },
+    { key:'edit', label:'', cell:r=>editBtn(r.d.id) },
+  ];
+  // 보류 토글은 '지금 걸러진 것'이 아니라 '전체에 보류가 몇 건인지'를 세야 한다(꺼도 숫자가 남게)
+  let holdN = 0; D.filter(inCampaign).forEach(d=> platsOn().forEach(p=>{ if(d[p] && gStat(d,p).st==='hold') holdN++; }));
+  const targets = rows.filter(r=>r.g.st==='target'), filling = rows.filter(r=>r.g.st==='filling');
+  const needSum = targets.reduce((a,r)=> a+r.g.order, 0);
+  const holdToggle = holdN ? `<label class="toggle ${state.gardenHold?'on':''}" id="gardenHoldToggle"><span class="switch"></span><span>보류 ${holdN}건 표시</span></label>` : '';
+  const byPlat = platsOn().map(p=>{ const n = targets.filter(r=>r.p===p).length; return n?pName(p)+' '+n:''; }).filter(Boolean).join(' · ');
+  const execBar = `<div class="bar"><div class="summary">가드닝 대상 <b>${targets.length}</b>건${byPlat?' <span class="cmuted">('+byPlat+')</span>':''} · 충전 합계 <b>${nf(needSum)}</b>명 ${filling.length?'<span class="cmuted">진행중 '+filling.length+'건</span>':''}</div><span class="bar-right">${holdToggle}<button class="btn danger" id="btnExec"${targets.length?'':' disabled'}>선택 집행</button></span></div>`;
+  return platSubtabs() + execBar + renderTable(cols, rows, { tableId:'garden-all', rowClass:r=> r.g.st==='hold'?'held':'' }) +
+    `<div class="finenote">한 행 = <b>1건</b>(사람×플랫폼). 충전량 = 목표 <b>${nf(GTARGET)}</b>까지 100단위 반올림. <b>최소 ${nf(GMIN)} 미만</b>만 대상, 진행중 주문(remains)은 자동 차감. 마감임박·저확률 미업로드자는 <b>보류</b> → 업로드 확인 후 가드닝. 집행은 작업 콘솔에서.</div>`;
 }
 
 /* ============ 뷰: 납품 (플랫폼별 · 시트 하단탭 대비) ============ */
@@ -1640,7 +1685,7 @@ function renderStats(){
   h += stat('모집', `${secured}<small> 건 / ${(cfg().secure&&cfg().secure.target)||cap}</small>`);
   h += stat('업로드', `${upN}<small> 건</small>`);
   h += stat('검수완료', `${revN}<small> 건${cap?' / '+cap:''}</small>`);
-  h += stat('마지막 스캔', cfg().scan, true);
+  h += stat('업로드 스캔', cfg().scan, true);
   document.getElementById('stats').innerHTML = h;
 }
 function renderNav(){

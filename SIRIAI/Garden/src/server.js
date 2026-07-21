@@ -146,6 +146,12 @@ async function buildAccounts(campaign, orders, pre = {}) {
 
 // SIRIAI 베스트 콘텐츠 마킹 — store.js 가 로컬/시트를 알아서 처리(readBest/writeBest)
 // 자동 감지 결과 로드 (scan-content.js 가 저장)
+// 업로드 스캔을 마지막으로 돌린 시각 — 팀 화면 상단의 '업로드 스캔'에 쓴다
+function detectedRanAt(campaign) {
+  const p = join(campaign.dataDir, 'detected.json');
+  if (!existsSync(p)) return null;
+  try { return JSON.parse(readFileSync(p, 'utf8')).ranAt || null; } catch { return null; }
+}
 function loadDetected(campaign) {
   const p = join(campaign.dataDir, 'detected.json');
   if (!existsSync(p)) return {};
@@ -300,7 +306,7 @@ export async function handler(req, res) {
         campaign: { id: campaign.id, name: campaign.name, group: campaign.group },
         config: { target: campaign.target, min: campaign.min, krwPerUsd: await effectiveRate(), staleDays: getStaleDays(), hasKey: !!smm, confirmNotice: !!campaign.confirmNotice, execPwRequired: !!EXEC_PW, stateMode: stateMode(), cloud: CLOUD, readOnly: !!campaign.readOnly,
           service: svc ? { id: svc.service, name: svc.name, rate: svc.rate } : { id: campaign.serviceId, name: `#${campaign.serviceId}`, rate: 0 } },
-        balance, scannedAt: scanLatest(campaign).ranAt, accounts, orders: markStale(orders), best: all.best,
+        balance, scannedAt: scanLatest(campaign).ranAt, uploadScannedAt: detectedRanAt(campaign), accounts, orders: markStale(orders), best: all.best,
         scanFailures: scanFailures(campaign), // 지난 업로드 스캔에서 못 본 계정 — 업로드 탭 하이라이트용
       });
     }
