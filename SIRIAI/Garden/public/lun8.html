@@ -550,7 +550,7 @@ body.fb-picking #content *:hover { outline: 2px solid var(--accent); outline-off
       </div>
       <div class="topbar-right">
         <div class="stats" id="stats"></div>
-        <button class="btn small ghost" id="fbBtn" title="화면 아무 곳이나 눌러서 '여기 이런 기능·필터 있으면 좋겠다'를 남겨요">💬 의견<span id="fbCnt"></span></button>
+        <button class="btn ghost" id="fbBtn" title="화면 아무 곳이나 눌러서 '여기 이런 기능·필터 있으면 좋겠다'를 남겨요">💬 의견<span id="fbCnt"></span></button>
         <button class="btn" id="btnSettings" title="설정 · 뷰 모드">⚙︎ 설정</button>
       </div>
     </header>
@@ -1685,7 +1685,7 @@ function renderStats(){
   h += stat('모집', `${secured}<small> 건 / ${(cfg().secure&&cfg().secure.target)||cap}</small>`);
   h += stat('업로드', `${upN}<small> 건</small>`);
   h += stat('검수완료', `${revN}<small> 건${cap?' / '+cap:''}</small>`);
-  h += stat('업로드 스캔', cfg().scan, true);
+  h += stat('마지막 스캔', cfg().scan, true);   // 값은 업로드 스캔 시각
   document.getElementById('stats').innerHTML = h;
 }
 function renderNav(){
