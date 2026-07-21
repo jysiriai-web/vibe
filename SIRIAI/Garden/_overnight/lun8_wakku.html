@@ -226,6 +226,21 @@ tbody tr:hover td.pgrp-tk { background: rgba(17,20,23,.04); }
 .daybar b { color:var(--ink); }
 .schedhint { font-size:12px; color:var(--muted); line-height:1.6; margin-top:6px; }
 .schedhint b { color:var(--ink); }
+/* 접힌 상태 = 주차 칩. 매일 볼 건 주차 진도이고, 일자는 손댈 때만 펼친다. */
+.wchips { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:12px; }
+.wchip { display:flex; flex-direction:column; align-items:flex-start; gap:2px; cursor:pointer;
+         border:1px solid var(--line); border-radius:12px; padding:9px 15px; background:var(--card); font-family:var(--sans); text-align:left; }
+.wchip:hover { border-color:var(--accent); }
+.wchip.bad { background:var(--needs-bg); border-color:#f3cccc; }
+.wchip .wl { font-size:11px; font-weight:700; color:var(--faint); }
+.wchip .wn { font-size:19px; font-weight:800; line-height:1.15; font-variant-numeric:tabular-nums; }
+.wchip .ws { font-size:11px; color:var(--muted); }
+.wchip.bad .wl, .wchip.bad .wn, .wchip.bad .ws { color:var(--needs-ink); }
+.wchip.mini .wn { font-size:15px; }
+.linkbtn { background:none; border:none; cursor:pointer; font-family:var(--sans); font-size:12px; font-weight:700; color:var(--accent-ink); padding:4px 2px; }
+.linkbtn:hover { text-decoration:underline; }
+.warn-t { color:var(--needs-ink); }
+.subtab.all .dot { background:var(--ink); }
 .lk.maybe { background:var(--gray-bg); color:var(--gray-ink); }
 .lk.none { background:var(--needs-bg); color:var(--needs-ink); }
 tr.held td { opacity:.6; }
@@ -469,10 +484,16 @@ const esc = s => (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;
    weeks 가 없는 캠페인(베이온)은 스트립·일자필터·모달힌트가 전부 자동으로 안 나온다 = 오늘 화면 그대로.
    주차 개념이 없는 캠페인도 weeks:[{label:'업로드 기간', share:1, days:[...]}] 하나면 그냥 동작한다. */
 const CAMPAIGNS = {
-  lun8:   { name:'LUN8 · SNEAKERS', plats:['tk','ig'], targets:{tk:50, ig:50}, settleCap:105, sub:'댄스챌린지', scan:'2분 전', sheet:'https://docs.google.com/spreadsheets/d/LUN8_MASTER',
+  /* 목표(검수완료) 틱톡 50 + 인스타 50 = 100건, 오버부킹 5 → 정산 인정 상한 105건. 단가 건당 15만원.
+     확보는 105가 아니라 **115건**으로 간다 — 미업로드 10건을 미리 깔고 가야 105를 채운다.
+       확보 115 = 시리아이 94(현재 틱톡48/인스타46) + 마루 21(요청함)
+     즉 여유분 10건이 '미업로드 완충'이고, 이게 0이 되면 마루에 추가 요청이 들어가야 한다. */
+  lun8:   { name:'LUN8 · SNEAKERS', plats:['tk','ig'], targets:{tk:50, ig:50}, settleCap:105,
+            secure:{ target:115, SIRIAI:94, MARU:21 }, sub:'댄스챌린지', scan:'2분 전', sheet:'https://docs.google.com/spreadsheets/d/LUN8_MASTER',
             weeks:[ { label:'1주차', share:0.60, days:['7/23','7/24','7/25','7/26','7/27','7/28'] },
                     { label:'2주차', share:0.40, days:['7/29','7/30','7/31','8/1','8/2','8/3','8/4'] } ],
-            spreadOverBy:3 },
+            spreadOverBy:3,
+            today:'7/26' },   // 목업 전용 — '지연'(예정일 지났는데 미업로드)이 화면에 보이게. 실서비스는 실제 날짜를 쓴다.
   bayonn: { name:'베이온 챌린지',    plats:['tk'],       targets:{tk:200},        settleCap:210, sub:'틱톡 전용',       scan:'1시간 전', sheet:'https://docs.google.com/spreadsheets/d/BAYONN_MASTER' },
 };
 
@@ -481,7 +502,7 @@ const tkC = (h,id,lab)=>({label:lab, url:'https://www.tiktok.com/@'+h+'/video/76
 const igC = (id,lab)=>({label:lab, url:'https://www.instagram.com/reel/Cx'+id+'/'});
 
 let D = [
-  { id:1, co:'MARU', nick:'박창호', plats:['tk','ig'], refBy:'', refCount:2, sched:'7/23', mir:'m1', memo:'', noUpload:false, oddsLow:false,
+  { id:1, co:'MARU', nick:'박창호', plats:['tk','ig'], refBy:'', refCount:2, sched:'7/27', mir:'m1', memo:'', noUpload:false, oddsLow:false,
     tk:{h:'@maru_changho', c1:tkC('maru_changho','1203','🎬 영상①'), c2:tkC('maru_changho','1204','🎬 영상②'), snd:'p',sec:'p',hash:'p', fol:15280, inFlight:0, views:'128,400', memo:'' },
     ig:{h:'@maru.changho', c1:igC('A9kLp','🎬 릴스①'), c2:'', snd:'p',sec:'p',hash:'n', fol:8200, inFlight:0, views:'41,200', memo:'릴스 인사이트 비공개 → 조회수 수기확인' },
     settle:{ pay:'아마존', best:true, override:null, paid:true, memo:'' } },
@@ -491,7 +512,7 @@ let D = [
     ig:{h:'@siri.yujin', c1:'', c2:'', snd:'n',sec:'n',hash:'n', fol:1200, inFlight:0, views:'', memo:'' },
     settle:{ pay:'구글', best:false, override:null, paid:false, memo:'' } },
 
-  { id:3, co:'SIRIAI', nick:'하늘', plats:['tk','ig'], refBy:'박창호', refCount:0, sched:'7/23', mir:'m1', memo:'', noUpload:false, oddsLow:false,
+  { id:3, co:'SIRIAI', nick:'하늘', plats:['tk','ig'], refBy:'박창호', refCount:0, sched:'7/28', mir:'m1', memo:'', noUpload:false, oddsLow:false,
     tk:{h:'@siri_haneul', c1:tkC('siri_haneul','3307','🎬 영상①'), c2:'', snd:'p',sec:'p',hash:'p', fol:9800, inFlight:0, views:'51,200', memo:'' },
     ig:{h:'@siri.haneul', c1:igC('B2mQr','🎬 릴스①'), c2:'', snd:'p',sec:'p',hash:'p', fol:18600, inFlight:0, views:'33,900', memo:'' },
     settle:{ pay:'애플', best:false, override:8000, paid:false, memo:'개별단가 8,000엔(급건 추가) — 자동수식 무시' } },
@@ -506,7 +527,7 @@ let D = [
     ig:null,
     settle:{ pay:'구글', best:false, override:null, paid:false, memo:'' } },
 
-  { id:6, co:'MARU', nick:'카논', plats:['tk','ig'], refBy:'', refCount:3, sched:'7/24', mir:'m1', memo:'', noUpload:false, oddsLow:false,
+  { id:6, co:'MARU', nick:'카논', plats:['tk','ig'], refBy:'', refCount:3, sched:'7/31', mir:'m1', memo:'', noUpload:false, oddsLow:false,
     tk:{h:'@kanon_dance', c1:tkC('kanon_dance','5509','🎬 영상①'), c2:'', snd:'p',sec:'p',hash:'p', fol:54300, inFlight:0, views:'210,500', memo:'' },
     ig:{h:'@kanon.dance', c1:igC('C7nSt','🎬 릴스①'), c2:'', snd:'p',sec:'p',hash:'p', fol:33900, inFlight:0, views:'88,700', memo:'미러링 확인됨' },
     settle:{ pay:'아마존', best:true, override:null, paid:true, memo:'' } },
@@ -516,12 +537,12 @@ let D = [
     ig:null,
     settle:{ pay:'애플', best:false, override:null, paid:true, memo:'' } },
 
-  { id:8, co:'MARU', nick:'렌', plats:['tk','ig'], refBy:'', refCount:0, sched:'7/30', mir:'mx', memo:'', noUpload:false, oddsLow:false,
+  { id:8, co:'MARU', nick:'렌', plats:['tk','ig'], refBy:'', refCount:0, sched:'8/3', mir:'mx', memo:'', noUpload:false, oddsLow:false,
     tk:{h:'@maru_ren', c1:tkC('maru_ren','7711','🎬 영상①'), c2:'', snd:'n',sec:'n',hash:'n', fol:720, inFlight:0, views:'', memo:'업로드됨 · 검수 대기 · 팔로워 낮음' },
     ig:{h:'@maru.ren', c1:igC('D1oUv','🎬 릴스①'), c2:'', snd:'n',sec:'n',hash:'n', fol:6300, inFlight:0, views:'', memo:'업로드됨 · 검수 대기' },
     settle:{ pay:'구글', best:false, override:null, paid:false, memo:'' } },
 
-  { id:9, co:'SIRIAI', nick:'사쿠라', plats:['tk','ig'], refBy:'', refCount:1, sched:'8/1', mir:'m1', memo:'', noUpload:false, oddsLow:false,
+  { id:9, co:'SIRIAI', nick:'사쿠라', plats:['tk','ig'], refBy:'', refCount:1, sched:'7/25', mir:'m1', memo:'', noUpload:false, oddsLow:false,
     tk:{h:'@siri_sakura', c1:tkC('siri_sakura','8812','🎬 영상①'), c2:'', snd:'p',sec:'p',hash:'p', fol:12100, inFlight:0, views:'44,300', memo:'' },
     ig:{h:'@siri.sakura', c1:igC('E5pWx','🎬 릴스①'), c2:'', snd:'p',sec:'p',hash:'p', fol:9700, inFlight:0, views:'20,100', memo:'' },
     settle:{ pay:'아마존', best:false, override:null, paid:false, memo:'' } },
@@ -539,21 +560,22 @@ const PAY_OPTS = ['아마존','구글','애플'];
    여기서 34명을 더 채워 실제 마스터시트의 '업로드 예정일 분포'를 그대로 재현한다.
    이게 없으면 10명이 하루 한 명씩 고르게 퍼져 있어서, 정작 보여줘야 할 쏠림이 화면에 안 나온다.
 
-   기대값 — 모집 44명 · 84건 (예정일 있는 83건 + 미정 1건, 리아)
-   일자별 건: 7/23=14 7/24=12 7/25=5 7/26=10 7/27=4 7/28=3 | 7/29=0 7/30=10 7/31=2 8/1=9 8/2=6 8/3=2 8/4=6
-   → 몰린 날 4일(7/23·7/24·7/30·8/1) · 빈 날 1일(7/29) · 비율 48:35 = 58:42 (요청 60:40)
+   기대값 — 48명 · 94건 (틱톡 48 / 인스타 46 · 예정일 있는 93건 + 미정 1건, 리아)
+   일자별 건: 7/23=14 7/24=14 7/25=7 7/26=10 7/27=6 7/28=6 | 7/29=0 7/30=8 7/31=4 8/1=8 8/2=6 8/3=4 8/4=6
+   → 몰린 날 4일(7/23·7/24·7/30·8/1) · 빈 날 1일(7/29) · 비율 57:36 = 61:39 (요청 60:40)
+   ⚠️ 마스터시트를 44행까지만 읽을 수 있어 뒷부분 예정일은 추정이다. 총계(94건·48/46)는 시트 요약과 일치.
    실서비스 이식할 때는 이 블록만 통째로 지우면 된다. */
 (function seedMock(){
-  // [날짜, 양플랫폼 인원, 틱톡전용 인원] — 위 10명이 이미 채운 몫을 뺀 나머지
-  const PLAN = [['7/23',4,0],['7/24',4,0],['7/25',2,0],['7/26',5,0],['7/27',2,0],['7/28',1,1],
-                ['7/30',4,0],['7/31',1,0],['8/1',3,1],['8/2',3,0],['8/3',1,0],['8/4',2,0]];
+  // [날짜, 양플랫폼 인원] — 위 10명이 이미 채운 몫을 뺀 나머지. 전원 틱톡+인스타.
+  const PLAN = [['7/23',6],['7/24',6],['7/25',2],['7/26',5],['7/27',2],['7/28',2],
+                ['7/30',4],['7/31',1],['8/1',4],['8/2',3],['8/3',1],['8/4',2]];
   const NAMES = ['하루카','유이','리쿠','아오이','소라','칸나','히나','렌토','미오','유즈','케이','노아','사키','타쿠미',
                  '메이','린','쇼타','아카리','유마','히로','나기','코하루','다이키','에마','쥰','미사키','류','치아키',
                  '토모','유키','아사히','마이','케이타','시온'];
   let n = 0;
-  PLAN.forEach(([day, both, tkOnly])=>{
-    for(let i=0;i<both+tkOnly;i++){
-      const ig = i < both, nick = NAMES[n % NAMES.length] + (n>=NAMES.length?('·'+n):'');
+  PLAN.forEach(([day, both])=>{
+    for(let i=0;i<both;i++){
+      const ig = true, nick = NAMES[n % NAMES.length] + (n>=NAMES.length?('·'+n):'');
       const key = 'm'+(n+11);
       D.push({ id: nextId++, co: n%3===0 ? 'MARU' : 'SIRIAI', nick,
         plats: ig?['tk','ig']:['tk'], refBy:'', refCount:0, sched:day, mir: ig?'m1':'mx',
@@ -586,7 +608,7 @@ function gStat(d, p){
 }
 
 /* ============ 상태 ============ */
-const state = { view:'recruit', plat:'tk', raw:false, campaign:'lun8', worker:'online', addForm:false, gardenHold:true, simOpen:false, sim:null, simCampaign:null, sort:{}, day:null };
+const state = { view:'recruit', plat:'tk', raw:false, campaign:'lun8', worker:'online', addForm:false, gardenHold:true, simOpen:false, sim:null, simCampaign:null, sort:{}, day:null, stripOpen:false, lateOnly:false };
 const cfg = ()=> CAMPAIGNS[state.campaign];
 const platsOn = ()=> cfg().plats;
 const hasIG = ()=> platsOn().includes('ig');
@@ -632,6 +654,18 @@ function schedKey(s){
   const m = /^(\d{1,2})\/(\d{1,2})$/.exec(k);
   return m ? 900 + (+m[1])*100 + (+m[2]) : 9999;                  // 일정 밖 날짜 → 뒤, 미정 → 맨 뒤
 }
+/* 오늘 — 목업은 config.today로 고정(지연이 화면에 보이게), 실서비스는 실제 날짜. */
+const TODAY = ()=> cfg().today || (()=>{ const t=new Date(); return (t.getMonth()+1)+'/'+t.getDate(); })();
+const dayIdx = s => ALLDAYS().indexOf(normDay(s));
+/* 지연 = 예정일이 오늘보다 이전인데 아직 안 올라온 것. 예정일이 없거나 일정 밖이면 지연 판정 안 함. */
+function isLate(d, p){
+  if(!WEEKS().length) return false;
+  const i = dayIdx(d.sched), t = dayIdx(TODAY());
+  if(i < 0 || t < 0 || i >= t) return false;
+  return p ? (d[p] && !uploaded(d,p)) : platsOn().some(x=> d[x] && !uploaded(d,x));
+}
+const lateSlots = d => platsOn().filter(p=> isLate(d,p)).length;
+
 /* excludeId: 편집 모달에서 '나를 뺀' 값이 필요할 때. 표시 숫자는 항상 나를 포함해 스트립과 일치시킨다. */
 function schedStats(excludeId){
   const rows = D.filter(inCampaign).filter(d=> d.id!==excludeId);
@@ -754,10 +788,22 @@ function schedStrip(){
     ? `<button class="dday side${state.day===key?' on':''}" data-day="${key}" title="${esc(label)} ${o.myeong}명 · ${o.geon}건"><span class="dd">${label}</span><span class="dn">${o.geon}</span></button>`
     : '';
   const extras = side('__unset','미정',st.unset) + side('__off','일정 밖',st.off);
-  const strip = `<div class="dstrip">${st.weeks.map(grp).join('')}`
-    + (extras ? `<div class="dgrp"><div class="ddays">${extras}</div><div class="dcap">예정일 확인 필요</div></div>` : '')
-    + `</div><div class="dstrip-rule">숫자는 그 날 <b>예정된 건수</b>(시트 그대로)예요. 빨간 표시는 <b>아직 안 올라온 건</b>으로만 판정하니, 이미 다 올라간 날은 저절로 조용해져요.`
-    + ` 칸을 누르면 그 날 사람만 아래 표에 남습니다. 한 사람의 2건(틱톡+인스타)은 같은 날 올라가는 것으로 계산해요.</div>`;
+  // 접힌 상태(기본) = 주차 2칸만. 펼치면 일자별 13칸. 매일 볼 건 주차 진도이고, 일자는 손댈 때만 필요하다.
+  const wchip = w=>{
+    const bad = w.days.filter(x=>x.flag==='over').length, zero = w.days.filter(x=>x.flag==='zero').length;
+    const note = [bad?`몰림 ${bad}일`:'', zero?`빈날 ${zero}일`:''].filter(Boolean).join(' · ') || '고르게';
+    return `<button class="wchip${bad||zero?' bad':''}" data-stripopen="1">`
+      + `<span class="wl">${esc(w.label)}</span><span class="wn">${w.geon}<span class="of"> 건</span></span>`
+      + `<span class="ws">${w.days[0].day}–${w.days[w.days.length-1].day} · ${note}</span></button>`;
+  };
+  const strip = state.stripOpen
+    ? `<div class="dstrip">${st.weeks.map(grp).join('')}`
+      + (extras ? `<div class="dgrp"><div class="ddays">${extras}</div><div class="dcap">예정일 확인 필요</div></div>` : '')
+      + `</div><div class="dstrip-rule">숫자는 그 날 <b>예정된 건수</b>(시트 그대로)예요. 빨간 표시는 <b>아직 안 올라온 건</b>으로만 판정하니, 이미 다 올라간 날은 저절로 조용해져요.`
+      + ` 칸을 누르면 그 날 사람만 아래 표에 남습니다. <button class="linkbtn" data-stripopen="0">▲ 주차만 보기</button></div>`
+    : `<div class="wchips">${st.weeks.map(wchip).join('')}`
+      + (st.unset.geon ? `<button class="wchip mini" data-day="__unset"><span class="wl">예정일 미정</span><span class="wn">${st.unset.geon}<span class="of"> 건</span></span></button>` : '')
+      + `<button class="linkbtn" data-stripopen="1">▼ 일자별 보기</button></div>`;
   // 비율은 이미 요청에 맞아서 카드 주인공이 될 이유가 없다 → sub 한 줄로 강등
   const shareTxt = st.weeks.map(w=> `${w.label} ${w.geon}건(${st.dayTot?Math.round(w.geon/st.dayTot*100):0}%)`).join(' · ');
   const req = st.weeks.map(w=> Math.round((w.share||0)*100)+'%').join(':');
@@ -798,9 +844,14 @@ function viewRecruit(){
   const maruGeon = all.filter(d=>d.co==='MARU').reduce((a,d)=>a+slots(d),0);
   const siGeon   = all.filter(d=>d.co==='SIRIAI').reduce((a,d)=>a+slots(d),0);
   const tkGeon = tkPeople, igGeon = igPeople, totGeon = maruGeon+siGeon;
+  // 확보는 정산 상한(105)이 아니라 확보 목표(115)를 향해 간다 — 미업로드 완충 10건을 미리 깔고 가므로.
+  const sec = cfg().secure;
+  const coSub = sec
+    ? `확보 목표 <b>${sec.target}건</b> = 시리아이 ${sec.SIRIAI} + 마루 ${sec.MARU}(요청함) · 현재 <b>${totGeon}건</b>`
+    : `콘텐츠 총 ${totGeon}건 (1명이 여러 건)`;
   const kpis = `<div class="cards">
-    ${kpi('모집 인원 · 명', `${totPeople}<span class="of"> 명</span>`, { ic:IC.users, sub:`${hasIG()?`틱톡 ${tkPeople}명 · 인스타 ${igPeople}명`:`틱톡 ${tkPeople}명`} · 상한 없음(무제한 모집)` })}
-    ${kpi('진행사 · 건', `${maruGeon}<span class="of"> 마루</span> · ${siGeon}<span class="of"> 시리아이</span>`, { ic:IC.split, two:true, sub:`콘텐츠 총 ${totGeon}건 (1명이 여러 건)` })}
+    ${kpi('모집 인원 · 명', `${totPeople}<span class="of"> 명</span>`, { ic:IC.users, sub:`${hasIG()?`틱톡 ${tkPeople}명 · 인스타 ${igPeople}명`:`틱톡 ${tkPeople}명`} · 확보 ${totGeon}건` })}
+    ${kpi('확보 · 건', sec ? ofTot(totGeon, sec.target) : `${totGeon}`, { ic:IC.split, sub:coSub, accent: (sec && totGeon < sec.target)?'var(--warn)':undefined })}
     ${hasIG() ? kpi('플랫폼 · 건', `${tkGeon}<span class="of"> 틱톡</span> · ${igGeon}<span class="of"> 인스타</span>`, { ic:IC.layers, two:true, sub:`콘텐츠 총 ${totGeon}건` }) : ''}
     ${schedStrip()}
   </div>`;
@@ -832,10 +883,71 @@ function viewRecruit(){
     `<div class="note-line">한 행 = 한 사람(<b>명</b>). 콘텐츠는 사람×플랫폼 = <b>건</b>이라 총 건수가 인원보다 많아요. 모집은 상한 없이 무제한 — 상한은 <b>정산 105건</b>(목표 100 + 오버부킹 5)만.</div>`;
 }
 
-/* ============ 뷰: 업로드 (플랫폼 하위탭, 둘 다 자동 스캔) ============ */
+/* ============ 뷰: 업로드 (통합/플랫폼 하위탭 · 지연 필터) ============
+   통합 = 사람이 아니라 '건'(사람×플랫폼) 단위로 편다. 미러링 금지라 틱톡·인스타가
+   각각 다른 콘텐츠이므로, 건 단위로 봐야 진짜 진도가 보인다. */
+function viewUploadAll(){
+  const pairs = [];
+  D.filter(inCampaign).forEach(d=> platsOn().forEach(p=>{ if(d[p]) pairs.push({ d, p, id:d.id+'|'+p }); }));
+  let rows = pairs;
+  if(state.lateOnly) rows = rows.filter(x=> isLate(x.d, x.p));
+  const cols = [
+    { key:'co', label:'진행사', sv:r=>r.d.co, cell:r=>coChip(r.d.co) },
+    { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.d.nick, cell:r=>nickCell(r.d) },
+    { key:'plat', label:'플랫폼', sv:r=>r.p, cell:r=>`<span class="plat-pill ${r.p}">${pName(r.p)}</span>` },
+    { key:'h', label:'닉', cls:'handle', sv:r=>r[('d')][r.p].h, cell:r=>`<a href="#" onclick="return false">${esc(r.d[r.p].h)}</a>` },
+    { key:'sched', label:'예정일', hideable:true, empty:r=>!r.d.sched, sv:r=>schedKey(r.d.sched),
+      cell:r=> r.d.sched ? (isLate(r.d,r.p) ? `<span class="chip needs">${esc(r.d.sched)} 지남</span>` : `<b>${esc(r.d.sched)}</b>`) : `<span class="cmuted">미정</span>` },
+    { key:'c1', label:'콘텐츠', hideable:true, empty:r=>!r.d[r.p].c1, sortable:false, cell:r=>contentCell(r.d[r.p].c1, r.p) },
+    { key:'st', label:'상태', sv:r=> uploaded(r.d,r.p) ? (done(r.d[r.p])?2:1) : 0,
+      cell:r=> !uploaded(r.d,r.p) ? (isLate(r.d,r.p)?'<span class="chip needs">지연</span>':'<span class="chip stale">대기</span>')
+             : done(r.d[r.p]) ? '<span class="chip ok">검수완료</span>' : '<span class="chip fill">검수대기</span>' },
+    { key:'memo', label:'비고', hideable:true, empty:r=>!r.d[r.p].memo, sv:r=>r.d[r.p].memo||'', cell:r=>memoCell(r.d.id, r.d[r.p].memo) },
+    { key:'edit', label:'', cell:r=>editBtn(r.d.id) },
+  ];
+  const tot = pairs.length, up = pairs.filter(x=>uploaded(x.d,x.p)).length;
+  const rev = pairs.filter(x=>done(x.d[x.p])).length, late = pairs.filter(x=>isLate(x.d,x.p)).length;
+  const goal = (cfg().targets ? Object.values(cfg().targets).reduce((a,b)=>a+b,0) : 0);
+  const kpis = `<div class="cards">
+    ${kpi('업로드 · 건', ofTot(up, tot), { ic:IC.video, sub:`계약 목표 ${goal}건 · 모집 ${tot}건` })}
+    ${kpi('검수완료 · 건', ofTot(rev, goal||tot), { ic:IC.check, sub:'음원·음원구간·해시태그 3칸 모두 준수' })}
+    ${kpi('지연 · 건', late, { ic:IC.clock, accent: late?'var(--needs)':undefined, sub:`예정일(${TODAY()} 기준)이 지났는데 아직 미업로드` })}
+    ${bufferKpi()}
+  </div>`;
+  return platSubtabs() + kpis + lateBar(late) +
+    renderTable(cols, rows, {tableId:'upload-all', noHide: state.lateOnly,
+      emptyMsg: state.lateOnly ? '지연된 건이 없어요. 예정일을 넘긴 사람이 아직 없습니다.' : undefined}) +
+    `<div class="note-line">한 행 = <b>1건</b>(사람×플랫폼). <b>미러링 금지</b>라 틱톡·인스타는 각각 다른 콘텐츠여야 해요 — 그래서 건 단위로 봅니다.</div>`;
+}
+/* 미업로드 완충 — 확보(115)에서 정산 상한(105)을 뺀 여유가 미업로드를 흡수한다.
+   지연이 그 여유를 넘어가는 순간이 '마루에 대체 요청' 시점이다. 이걸 숫자 하나로 띄운다. */
+function bufferKpi(){
+  const sec = cfg().secure; if(!sec) return '';
+  const cap = cfg().settleCap || 0;
+  const secured = D.filter(inCampaign).reduce((a,d)=>a+slots(d),0);
+  let late = 0; D.filter(inCampaign).forEach(d=> platsOn().forEach(p=>{ if(isLate(d,p)) late++; }));
+  const buf = sec.target - cap;           // 계획된 완충 = 확보목표 − 인정상한 (115−105=10)
+  const left = buf - late;                // 지연을 흡수하고 남은 완충
+  const gap = sec.target - secured;       // 아직 안 들어온 확보분 (마루 미도착 등) — 완충과 별개 문제
+  const sub = (left >= 0
+      ? `확보목표 ${sec.target} − 인정상한 ${cap} = 완충 <b>${buf}건</b> · 지연 ${late}건 흡수 가능`
+      : `<b class="warn-t">완충 ${buf}건을 지연 ${late}건이 넘어섰어요 — ${-left}건 대체 필요</b>`)
+    + (gap > 0 ? ` · 확보 ${gap}건 미도착(마루 ${sec.MARU}건 요청중)` : '');
+  return kpi('미업로드 완충 · 건', `${left}<span class="of"> 남음</span>`, { ic:IC.split, accent: left<0?'var(--needs)':(left<=2?'var(--warn)':undefined), sub });
+}
+function lateBar(late){
+  return `<div class="bar">
+    <button class="btn small${state.lateOnly?'':' primary'}" data-late="0">전체</button>
+    <button class="btn small${state.lateOnly?' primary':''}" data-late="1">지연만${late?` (${late})`:''}</button>
+    <span class="spacer"></span><button class="btn small" id="btnUpScan">🔎 업로드 스캔</button></div>`;
+}
+
 function viewUpload(){
+  if(state.plat==='all') return viewUploadAll();
   const p = state.plat;
-  const rows = D.filter(d=> d.plats.includes(p) && d[p]!==null);
+  let rows = D.filter(d=> d.plats.includes(p) && d[p]!==null);
+  const allRows = rows;
+  if(state.lateOnly) rows = rows.filter(d=> isLate(d,p));
   const cols = [
     { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
@@ -845,23 +957,25 @@ function viewUpload(){
     { key:'snd', label:'음원', hideable:true, empty:()=>false, sv:r=>r[p].snd, cell:r=>revSel(r[p].snd, r.id, 'snd', p) },
     { key:'sec', label:'음원구간', hideable:true, empty:()=>false, sv:r=>r[p].sec, cell:r=>revSel(r[p].sec, r.id, 'sec', p) },
     { key:'hash', label:'해시태그', hideable:true, empty:()=>false, sv:r=>r[p].hash, cell:r=>revSel(r[p].hash, r.id, 'hash', p) },
-    { key:'mir', label:'미러링', hideable:true, empty:()=>false, sv:r=>r.mir, cell:r=>`<span class="mirror ${r.mir}">${mirName(r.mir)}</span>` },
+    { key:'sched', label:'예정일', hideable:true, empty:r=>!r.sched, sv:r=>schedKey(r.sched), cell:r=> r.sched ? (isLate(r,p)?`<span class="chip needs">${esc(r.sched)} 지남</span>`:`<b>${esc(r.sched)}</b>`) : `<span class="cmuted">미정</span>` },
+    { key:'mir', label:'미러링', hideable:true, empty:()=> !!cfg().mirrorBan, sv:r=>r.mir, cell:r=>`<span class="mirror ${r.mir}">${mirName(r.mir)}</span>` },
     { key:'memo', label:pName(p)+' 비고', hideable:true, empty:r=>!r[p].memo, sv:r=>r[p].memo||'', cell:r=>memoCell(r.id, r[p].memo) },
     { key:'edit', label:'', cell:r=>editBtn(r.id) },
   ];
   const excluded = D.filter(inCampaign).filter(d=> !(d.plats.includes(p) && d[p]!==null)).length;
-  const up = rows.filter(r=>uploaded(r,p)).length;
-  const rev = rows.filter(r=>done(r[p])).length;
-  const pend = rows.filter(r=>uploaded(r,p) && !done(r[p])).length;
+  const up = allRows.filter(r=>uploaded(r,p)).length;
+  const rev = allRows.filter(r=>done(r[p])).length;
+  const late = allRows.filter(r=>isLate(r,p)).length;
   const t = cfg().targets;
   const kpis = `<div class="cards">
-    ${kpi('업로드 완료 · 건', ofTot(up, rows.length), { ic:IC.video, sub:`목표 ${t[p]||'—'}건` })}
-    ${kpi('검수 완료 · 건', ofTot(rev, up||rows.length), { ic:IC.check, sub:'음원·음원구간·해시태그 3칸 모두 준수' })}
-    ${kpi('검수 대기 · 건', pend, { ic:IC.clock, accent:'var(--needs)' })}
+    ${kpi('업로드 완료 · 건', ofTot(up, allRows.length), { ic:IC.video, sub:`목표 ${t[p]||'—'}건` })}
+    ${kpi('검수 완료 · 건', ofTot(rev, up||allRows.length), { ic:IC.check, sub:'음원·음원구간·해시태그 3칸 모두 준수' })}
+    ${kpi('지연 · 건', late, { ic:IC.clock, accent: late?'var(--needs)':undefined, sub:`예정일(${TODAY()} 기준) 지났는데 미업로드` })}
+    ${bufferKpi()}
   </div>`;
-  const scanBar = `<div class="bar"><button class="btn small primary" id="btnUpScan">🔎 업로드 스캔</button><span class="spacer"></span></div>`;
+  const scanBar = lateBar(late);
   const exNote = excluded ? `<div class="note-line">🎯 ${pName(p)} 미참여 <b>${excluded}명</b>은 이 탭에서 자동 숨김.</div>` : '';
-  return platSubtabs() + kpis + scanBar + exNote + renderTable(cols, rows, {tableId:'upload-'+p}) +
+  return platSubtabs() + kpis + scanBar + exNote + renderTable(cols, rows, {tableId:'upload-'+p, noHide: state.lateOnly, emptyMsg: state.lateOnly?'지연된 건이 없어요. 예정일을 넘긴 사람이 아직 없습니다.':undefined}) +
     `<div class="note-line">틱톡·인스타 모두 <b>집 IP·실제 크롬으로 자동 스캔</b>. 검수 3칸은 드롭다운으로 바로 고치고(수동=자동보다 우선), 행 전체는 <b>편집</b>으로.</div>`;
 }
 
@@ -1083,6 +1197,7 @@ function viewSettle(){
 function platSubtabs(){
   if(!hasIG()) return `<div class="note-line">🎯 이 캠페인은 <b>틱톡 전용</b> — 인스타 하위탭·열은 자동 숨김. <span class="muted">(config plats:['tk'])</span></div>`;
   return `<div class="subtabs" id="platSub">
+    <button class="subtab all ${state.plat==='all'?'active':''}" data-plat="all"><span class="dot"></span>통합 <span class="cmuted">건 단위</span></button>
     <button class="subtab tk ${state.plat==='tk'?'active':''}" data-plat="tk"><span class="dot"></span>틱톡 <span class="cmuted">자동 스캔</span></button>
     <button class="subtab ig ${state.plat==='ig'?'active':''}" data-plat="ig"><span class="dot"></span>인스타 <span class="cmuted">자동 스캔</span></button></div>`;
 }
@@ -1367,12 +1482,14 @@ document.getElementById('sideToggle').addEventListener('click', ()=> document.bo
 document.getElementById('nav').addEventListener('click', e=>{
   const b=e.target.closest('.tab'); if(!b) return;
   document.querySelectorAll('#nav .tab').forEach(t=>t.classList.remove('active'));
-  b.classList.add('active'); state.view=b.dataset.view; state.addForm=false; state.day=null;
+  b.classList.add('active'); state.view=b.dataset.view; state.addForm=false; state.day=null; state.lateOnly=false;
   if(!hasIG()) state.plat='tk';
   render();
 });
 
 document.getElementById('content').addEventListener('click', e=>{
+  const so=e.target.closest('[data-stripopen]'); if(so){ state.stripOpen = so.dataset.stripopen==='1'; render(); return; }
+  const lt=e.target.closest('[data-late]'); if(lt){ state.lateOnly = lt.dataset.late==='1'; render(); return; }
   const dy=e.target.closest('[data-day]'); if(dy){ state.day = (state.day===dy.dataset.day) ? null : dy.dataset.day; render(); return; }
   if(e.target.closest('#dayClear')){ state.day=null; render(); return; }
   const th=e.target.closest('.th-sort'); if(th){ toggleSort(th.dataset.table, th.dataset.sort); return; }
