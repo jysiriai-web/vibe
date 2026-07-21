@@ -22,6 +22,7 @@ function onOpen() {
     .addItem('① 연락열 정리 (확정메일·추천인) — 처음 한 번', 'restructureLun8Contact')
     .addItem('② 모집 동기화 (신규 추가·진행사·번호·확정메일·추천인)', 'setupLun8')
     .addItem('③ 확정일 열 추가 — 처음 한 번', 'addLun8ConfirmedDate')
+    .addItem('④ 일반 비고 열 추가 — 처음 한 번', 'addLun8Memo')
     .addSeparator()
     .addItem('응대 매뉴얼 · 가이드라인 탭 만들기', 'buildLun8Docs')
     .addItem('가드닝 열 정리 (값 통일·색·인스타 오염 청소)', 'fixLun8Gardening')
@@ -663,4 +664,43 @@ function fixLun8Gardening() {
   out.push('인스타 전용 오염 ' + cleaned + '칸 청소');
 
   lun8Toast_(ss, '✅ 가드닝 정리 — ' + out.join(' · '));
+}
+
+/**
+ * 일반 비고 열 추가 — 연락 섹션(확정일 뒤). 처음 한 번.
+ * 지금은 모집탭 비고가 '틱톡 비고'에 써진다 — 크리에이터 전반 메모와 틱톡 콘텐츠 메모가 한 칸을 쓴다.
+ * 비고가 들어갈 자리는 넷이고 각자 달라야 한다: 일반 / 틱톡 / 인스타 / 정산.
+ * ⚠️ 요약 블록(2~6행)이 1~17열을 덮어서 그 안에 열을 끼우면 병합이 한 칸 밀린다 →
+ *    삽입 지점을 가로지른 병합만 원래 폭으로 되돌린다(확정일 추가 때와 같은 방식).
+ */
+function addLun8Memo() {
+  var t = function (v) { return String(v == null ? '' : v).trim(); };
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName('LUN8_마스터') || ss.getActiveSheet();
+  var hRow = lun8Head_(sh), DS = hRow + 1;
+  var hv = sh.getRange(hRow, 1, 1, sh.getLastColumn()).getValues()[0];
+  var col = function (n) { for (var i = 0; i < hv.length; i++) if (t(hv[i]) === n) return i + 1; return 0; };
+  if (col('비고')) { lun8Toast_(ss, '이미 있어요 — 비고 ' + col('비고') + '열.'); return; }
+  var after = col('확정일') || col('업로드 예정일');
+  if (!after) throw new Error("'확정일'/'업로드 예정일' 열을 못 찾았어요.");
+
+  var before = [];
+  sh.getRange(2, 1, 5, 20).getMergedRanges().forEach(function (r) {
+    before.push({ row: r.getRow(), col: r.getColumn(), rows: r.getNumRows(), cols: r.getNumColumns() });
+  });
+
+  sh.insertColumnAfter(after);
+  var c = after + 1;
+  sh.getRange(hRow, c).setValue('비고');
+  sh.setColumnWidth(c, 200);
+  sh.getRange(DS, c, Math.max(1, sh.getMaxRows() - DS + 1), 1).clearDataValidations().setWrap(true);
+
+  var fixed = 0;
+  before.forEach(function (m) {
+    if (!(m.col < c && m.col + m.cols > c)) return;
+    try { sh.getRange(m.row, m.col, m.rows, m.cols + 1).breakApart(); } catch (e) {}
+    try { sh.getRange(m.row, m.col, m.rows, m.cols).merge(); fixed++; } catch (e) {}
+  });
+  lun8Toast_(ss, '✅ 비고 열 추가 — ' + c + '열(확정일 옆). 요약 병합 ' + fixed + '개 복원. '
+    + '일반 비고 / 틱톡 비고 / 인스타 비고 / 정산 비고가 이제 각자 칸을 씁니다.');
 }

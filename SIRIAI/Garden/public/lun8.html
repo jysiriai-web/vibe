@@ -500,6 +500,9 @@ body.fb-picking #content *:hover { outline: 2px solid var(--accent); outline-off
 .dstrip-card .dday.over .dn i { color:var(--needs-ink); }
 /* 플랫폼 칩이 좁은 화면에서 '틱톡 + 인'/'스타' 로 쪼개지던 것 방지 */
 .plat-pill { white-space:nowrap; }
+/* 버튼 묶음을 오른쪽 끝으로. spacer 는 형제들과 폭을 나눠 가져서 덜 밀린다. */
+.bar-right { margin-left:auto; display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.bar .hidebadge { margin:0; }
 </style>
 </head>
 <body>
@@ -1008,6 +1011,7 @@ function toggleSort(tableId, key){
 const isSortable = c => c.sortable!==false && c.key && !['edit','pick',''].includes(c.key);
 
 /* ============ 빈 열 자동 숨김 + 정렬 엔진 ============ */
+let _lastHideNote = '';   // 표를 그릴 때 계산된 '빈 열 숨김' 배지 — 필터 줄에서 꺼내 쓴다
 function renderTable(cols, rows, opts={}){
   const tableId = opts.tableId || state.view;
   rows = applySort(rows, cols, tableId);
@@ -1017,6 +1021,7 @@ function renderTable(cols, rows, opts={}){
   const empties = (opts.noHide || !rows.length) ? [] : cols.filter(c=> c.hideable && rows.every(r=> c.empty(r)));
   const emptyKeys = new Set(empties.map(c=>c.key));
   const shown = state.raw ? cols : cols.filter(c=> !emptyKeys.has(c.key));
+  _lastHideNote = hideNote(empties.map(c=>c.label));
   const thead = shown.map(c=>{
     const ghost = state.raw && emptyKeys.has(c.key);
     const grp = c.grp ? ' pgrp-'+c.grp : '';
@@ -1036,7 +1041,7 @@ function renderTable(cols, rows, opts={}){
       return `<td class="${c.cls||''}${grp}${ghost?' col-ghost-c':''}">${c.cell(r)}</td>`;
     }).join('')}</tr>`;
   }).join('');
-  return `${hideNote(empties.map(c=>c.label))}<div class="tscroll"><table><thead><tr>${thead}</tr></thead><tbody>${body || emptyRow(shown.length, opts.emptyMsg)}</tbody></table></div>`;
+  return `<div class="tscroll"><table><thead><tr>${thead}</tr></thead><tbody>${body || emptyRow(shown.length, opts.emptyMsg)}</tbody></table></div>`;
 }
 function hideNote(hiddenList){
   if(!hiddenList.length) return '';
@@ -1156,10 +1161,12 @@ function viewRecruit(){
     <button class="btn small${state.noticeOnly?'':' primary'}" data-notice-f="0">전체</button>
     <button class="btn small${state.noticeOnly?' primary':''}" data-notice-f="1">확정메일 미발송${unsent?` (${unsent})`:''}</button>
     <button class="btn small${state.unfixedOnly?' primary':''}" data-unfixed="${state.unfixedOnly?0:1}">날짜 미확정${unfixed?` (${unfixed})`:''}</button>
-    <span class="spacer"></span>
-    <button class="btn small" id="btnAddPerson">${IC.userplus} 인원 추가</button>
-    <button class="btn small" id="btnReload">↻ 새로고침</button>
-    <button class="btn small" id="btnRecScan">🔎 모집 스캔</button>
+    <span id="hideSlot"></span>
+    <span class="bar-right">
+      <button class="btn small" id="btnRecScan">🔎 모집 스캔</button>
+      <button class="btn small" id="btnAddPerson">${IC.userplus} 인원 추가</button>
+      <button class="btn small" id="btnReload">↻ 새로고침</button>
+    </span>
     <span class="spacer"></span>
   </div>`;
   const addFormHTML = state.addForm ? `
@@ -1249,7 +1256,7 @@ function filterBar(pairs, extra){
     const n = f.test ? pairs.filter(x=> f.test(x.d, x.p)).length : 0;
     return `<button class="btn small${state.upFilter===f.k?' primary':''}" data-upf="${f.k}">${f.label}${f.test&&n?` (${n})`:''}</button>`;
   }).join('');
-  return `<div class="bar">${btns}<span class="spacer"></span>${extra||''}</div>`;
+  return `<div class="bar">${btns}<span id="hideSlot"></span><span class="bar-right">${extra||''}</span></div>`;
 }
 
 function viewUpload(){
@@ -1650,6 +1657,8 @@ function renderCampSelect(){
 function render(){
   document.getElementById('brandSub').textContent = cfg().sub;
   document.getElementById('content').innerHTML = VIEWS[state.view]();
+  // 빈열 배지는 표를 그린 뒤에야 값이 정해진다 → 자리에 나중에 꽂는다
+  const _hs=document.getElementById('hideSlot'); if(_hs) _hs.innerHTML=_lastHideNote;
   if(state.view==='settle' && state.simOpen) updateSim();
   renderStats(); renderNav();
 }
@@ -1724,7 +1733,7 @@ function openRowEdit(id){
       d.co=selVal('reCo'); d.nick=val('reNick')||d.nick; d.sched=val('reSched'); d.fixed=val('reFixed'); d.memo=val('reMemo');
       if(d.sched!==was.sched) saveField(d.id,'schedDate',d.sched);
       if(d.fixed!==was.fixed) saveField(d.id,'fixedDate',d.fixed);
-      if(d.memo!==was.memo)   saveField(d.id,'tk.memo',d.memo);
+      if(d.memo!==was.memo)   saveField(d.id,'memo',d.memo);   // 일반 비고(연락 섹션). 틱톡/인스타 비고는 업로드탭 소관.
       if(d.tk && val('reTk')) d.tk.h=val('reTk'); if(d.ig && val('reIg')) d.ig.h=val('reIg'); };
 
   } else if(state.view==='upload'){
