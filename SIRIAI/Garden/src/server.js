@@ -173,7 +173,9 @@ function markStale(orders) {
 
 function send(res, code, body, type = 'application/json') {
   const t = type + (type.startsWith('text') || type === 'application/json' ? '; charset=utf-8' : '');
-  res.writeHead(code, { 'Content-Type': t });
+  // 캐시 금지 — 고친 화면이 안 바뀌어 "요청한 게 하나도 적용이 안 됐다"로 보이던 원인.
+  // 매일 고치는 내부 도구라 캐시 이득보다 '새로고침했는데 옛 화면'이 훨씬 비싸다.
+  res.writeHead(code, { 'Content-Type': t, 'Cache-Control': 'no-store, must-revalidate', Pragma: 'no-cache' });
   res.end(typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body));
 }
 function readBody(req) {
