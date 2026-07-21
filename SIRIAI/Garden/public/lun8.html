@@ -458,6 +458,7 @@ body.fb-picking #content *:hover { outline: 2px solid var(--accent); outline-off
 .notice { border:none; cursor:pointer; font-family:var(--sans); font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:999px; }
 .notice.sent { background:var(--ok-bg); color:var(--ok-ink); }
 .notice.unsent { background:var(--needs-bg); color:var(--needs-ink); }
+.fixdate { color:var(--ok-ink); }
 </style>
 </head>
 <body>
@@ -693,7 +694,8 @@ function fromApi(a){
     // 추천·미러링·업로드확률·정산방식은 아직 시트에서 안 올라온다. 가짜로 채우면 화면이 거짓말을 하므로
     // 빈 값으로 둔다 — 빈 열 자동숨김이 알아서 해당 열을 감춘다.
     refBy: '', refCount: 0,
-    sched: String(a.schedDate==null?'':a.schedDate).trim(),
+    sched: String(a.schedDate==null?'':a.schedDate).trim(),        // 크리에이터가 낸 희망일
+    fixed: String(a.fixedDate==null?'':a.fixedDate).trim(),         // 우리와 합의된 날짜 — 있으면 이게 기준
     mir: 'mx',
     memo: String(a.memo==null?'':a.memo),
     noUpload: false, oddsLow: false,
@@ -813,7 +815,7 @@ function gStat(d, p){
 }
 
 /* ============ 상태 ============ */
-const state = { view:'recruit', plat:'tk', raw:false, campaign:'lun8', worker:'online', addForm:false, gardenHold:true, simOpen:false, sim:null, simCampaign:null, sort:{}, day:null, week:null, stripOpen:false, upFilter:'all', noticeOnly:false };
+const state = { view:'recruit', plat:'tk', raw:false, campaign:'lun8', worker:'online', addForm:false, gardenHold:true, simOpen:false, sim:null, simCampaign:null, sort:{}, day:null, week:null, stripOpen:false, upFilter:'all', noticeOnly:false, unfixedOnly:false };
 const cfg = ()=> CAMPAIGNS[state.campaign];
 const platsOn = ()=> cfg().plats;
 const hasIG = ()=> platsOn().includes('ig');
@@ -847,8 +849,11 @@ const WEEKS   = ()=> (cfg().weeks || []);
 const ALLDAYS = ()=> { const seen={}, out=[]; WEEKS().forEach(w=> (w.days||[]).forEach(d=>{ if(!seen[d]){ seen[d]=1; out.push(d); } })); return out; };
 /* 자유입력 예정일을 'M/D'로 정규화. '07/24' '7-24' '7월 24일' '7/24(협의)' → '7/24'. 실패하면 '' */
 function normDay(s){ const m = String(s==null?'':s).trim().match(/(\d{1,2})\s*[\/월.\-]\s*(\d{1,2})/); return m ? (+m[1])+'/'+(+m[2]) : ''; }
+/* 집계·필터의 기준 날짜 — 확정일이 있으면 그게 진짜다. 없으면 희망일로 임시 집계.
+   두 열을 만든 이유가 "누가 언제 바꿨나"를 남기는 것이므로, 기준은 항상 확정일 우선. */
+const effDay = d => (d.fixed || d.sched || '');
 function dayBucket(d){
-  const k = normDay(d.sched);
+  const k = normDay(effDay(d));
   if(k && ALLDAYS().indexOf(k)>=0) return k;
   return String(d.sched||'').trim()==='' ? '__unset' : '__off';   // 미정 / 일정 밖
 }
@@ -1044,7 +1049,11 @@ function viewRecruit(){
       cell:r=> `<button class="notice ${r.notice?'sent':'unsent'}" data-notice="${r.id}">${r.notice?'발송':'미발송'}</button>` },
     { key:'refBy', label:'추천 출처', hideable:true, empty:r=>!r.refBy, sv:r=>r.refBy, cell:r=> r.refBy?`<span class="chip filling">${esc(r.refBy)} 추천</span>`:`<span class="emptydot">·</span>` },
     { key:'refCount', label:'추천 수', cls:'num', thcls:'num', hideable:true, empty:r=>!r.refCount, sv:r=>r.refCount||0, cell:r=> r.refCount?`<b>${r.refCount}</b>`:`<span class="emptydot">·</span>` },
-    { key:'sched', label:'업로드 예정일', hideable:true, empty:r=>!r.sched, sv:r=>schedKey(r.sched), cell:r=> r.sched?`<b>${esc(r.sched)}</b>`:`<span class="cmuted">미정</span>` },
+    { key:'sched', label:'예정일', hideable:true, empty:r=>!r.sched, sv:r=>schedKey(r.sched),
+      cell:r=> r.sched ? (r.fixed ? `<span class="cmuted">${esc(r.sched)}</span>` : `<b>${esc(r.sched)}</b>`) : `<span class="cmuted">미정</span>` },
+    { key:'fixed', label:'확정일', hideable:true, empty:r=>!r.fixed, sv:r=>schedKey(r.fixed),
+      cell:r=> r.fixed ? `<b class="fixdate">${esc(r.fixed)}</b>`
+                       : `<span class="chip stale">협의중</span>` },
     { key:'memo', label:'비고', hideable:true, empty:r=>!r.memo, sv:r=>r.memo||'', cell:r=>memoCell(r.id, r.memo) },
     { key:'edit', label:'', cell:r=>editBtn(r.id) },
   ];
@@ -1067,7 +1076,9 @@ function viewRecruit(){
     ${schedStrip()}
   </div>`;
   const unsent = all.filter(d=> !d.notice).length;
+  const unfixed = all.filter(d=> !d.fixed).length;
   if(state.noticeOnly) rows = rows.filter(d=> !d.notice);
+  if(state.unfixedOnly) rows = rows.filter(d=> !d.fixed);
   const dayLabel = state.day==='__unset' ? '예정일 미정' : state.day==='__off' ? '캠페인 일정 밖' : state.day;
   const filtLabel = state.day ? dayLabel : state.week;   // 주차 필터도 같은 줄로 알린다
   const dayBar = ((state.day || state.week) && WEEKS().length)
@@ -1076,6 +1087,7 @@ function viewRecruit(){
   const addBar = `<div class="bar">
     <button class="btn small${state.noticeOnly?'':' primary'}" data-notice-f="0">전체</button>
     <button class="btn small${state.noticeOnly?' primary':''}" data-notice-f="1">확정메일 미발송${unsent?` (${unsent})`:''}</button>
+    <button class="btn small${state.unfixedOnly?' primary':''}" data-unfixed="${state.unfixedOnly?0:1}">날짜 미확정${unfixed?` (${unfixed})`:''}</button>
     <span class="spacer"></span>
     <button class="btn primary small" id="btnAddPerson">${IC.userplus} 인원 추가</button>
     <button class="btn small" id="btnRecScan">🔎 모집 스캔</button>
@@ -1629,10 +1641,14 @@ function openRowEdit(id){
         <div class="row"><label class="h">틱톡 링크/닉</label><input class="inp" id="reTk" value="${d.tk?esc(d.tk.h):''}" placeholder="${d.tk?'':'미참여'}"></div>
         ${hasIG()?`<div class="row"><label class="h">인스타 링크/닉</label><input class="inp" id="reIg" value="${d.ig?esc(d.ig.h):''}" placeholder="${d.ig?'':'미참여'}"></div>`:''}
       </div>
-      <div class="row"><label class="h">업로드 예정일</label><input class="inp" id="reSched" value="${esc(d.sched||'')}" placeholder="예: 7/28">${schedHint(d)}</div>
+      <div class="row2">
+        <div class="row"><label class="h">예정일 <small>크리에이터 희망</small></label><input class="inp" id="reSched" value="${esc(d.sched||'')}" placeholder="예: 7/28"></div>
+        <div class="row"><label class="h">확정일 <small>합의된 날짜</small></label><input class="inp" id="reFixed" value="${esc(d.fixed||'')}" placeholder="합의되면 입력"></div>
+      </div>
+      ${schedHint(d)}
       <div class="row"><label class="h">비고 (일반 · 특이사항)</label><textarea class="inp" id="reMemo" placeholder="이 크리에이터 전반 메모">${esc(d.memo||'')}</textarea></div>
     </div>`;
-    save = ()=>{ d.co=selVal('reCo'); d.nick=val('reNick')||d.nick; d.sched=val('reSched'); d.memo=val('reMemo');
+    save = ()=>{ d.co=selVal('reCo'); d.nick=val('reNick')||d.nick; d.sched=val('reSched'); d.fixed=val('reFixed'); d.memo=val('reMemo');
       if(d.tk && val('reTk')) d.tk.h=val('reTk'); if(d.ig && val('reIg')) d.ig.h=val('reIg'); };
 
   } else if(state.view==='upload'){
@@ -1832,6 +1848,7 @@ document.getElementById('content').addEventListener('click', e=>{
     return;
   }
   const nf2=e.target.closest('[data-notice-f]'); if(nf2){ state.noticeOnly = nf2.dataset.noticeF==='1'; render(); return; }
+  const ufx=e.target.closest('[data-unfixed]'); if(ufx){ state.unfixedOnly = ufx.dataset.unfixed==='1'; render(); return; }
   const wk=e.target.closest('[data-week]'); if(wk){ state.week = (state.week===wk.dataset.week) ? null : wk.dataset.week; state.day=null; render(); return; }
   const uf=e.target.closest('[data-upf]'); if(uf){ state.upFilter = uf.dataset.upf; render(); return; }
   const dy=e.target.closest('[data-day]'); if(dy){ state.day = (state.day===dy.dataset.day) ? null : dy.dataset.day; state.week=null; render(); return; }

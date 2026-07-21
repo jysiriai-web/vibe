@@ -18,7 +18,7 @@ const DEFAULT_COL = {
   soundOk: 19, soundSection: 20, hashtagOk: 21, memo: 22,
   campaignDone: 23, paid: 24, paidDate: 25, contentB: 26,
   views: 27, likes: 28, comments: 29, shares: 30,
-  igLink: 0, igNick: 0,   // 0 = 이 마스터엔 없는 열 → 폴백하지 않고 '없음'으로 둔다(베이온은 틱톡 전용)
+  igLink: 0, igNick: 0, fixedDate: 0,   // 0 = 이 마스터엔 없는 열 → 폴백하지 않고 '없음'으로 둔다(베이온은 틱톡 전용)
 };
 // 필드 → 헤더 별칭(선호 순서, 정규화 정확일치). 새 캠페인 헤더가 다르면 여기에 별칭만 추가.
 // ⚠️ schedDate: 베이온은 '예정일'을 헤더상 '검수 특이사항' 열(18)에 기입 → 그 별칭 포함.
@@ -51,6 +51,7 @@ const FIELD_HEADERS = {
   shares: ['공유', '틱톡공유'],
   igLink: ['인스타링크', '인스타그램링크', 'instagram링크'],
   igNick: ['인스타닉네임', '인스타그램닉네임'],
+  fixedDate: ['확정일', '업로드확정일'],   // 예정일=크리에이터 희망, 확정일=합의된 날짜
 };
 // 플랫폼별로 두 벌 존재하는 항목. 접두어만 갈아끼워 같은 규칙으로 찾는다.
 var PLAT_FIELDS = ['nick', 'link', 'followers', 'gardening', 'contentA', 'contentB',
@@ -247,7 +248,8 @@ function readAccounts_() {
       gardening: String(row[COL.gardening - 1] || ''), // 가드닝 대상여부 — 최초 기록 후 불변(읽기 전용)
       language: String(row[COL.language - 1] || ''),
       notice: String(row[COL.notice - 1] || ''),
-      schedDate: dateStr_(row[COL.schedDate - 1]), // 업로드 예정일(18열) — 값 있는 계정만 대시보드 '예정일' 탭에 노출
+      schedDate: dateStr_(row[COL.schedDate - 1]),
+      fixedDate: COL.fixedDate ? dateStr_(row[COL.fixedDate - 1]) : '',   // 합의된 날짜(있으면 이게 기준) // 업로드 예정일(18열) — 값 있는 계정만 대시보드 '예정일' 탭에 노출
       memo: String(row[COL.memo - 1] || ''), // 계정별 자유 메모(22열) — 각 탭 끝 '비고' 열
       contentLink: c,
       soundOk: String(row[COL.soundOk - 1] || ''),

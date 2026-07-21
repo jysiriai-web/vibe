@@ -21,6 +21,7 @@ function onOpen() {
   SpreadsheetApp.getUi().createMenu('LUN8')
     .addItem('① 연락열 정리 (확정메일·추천인) — 처음 한 번', 'restructureLun8Contact')
     .addItem('② 모집 동기화 (신규 추가·진행사·번호·확정메일·추천인)', 'setupLun8')
+    .addItem('③ 확정일 열 추가 — 처음 한 번', 'addLun8ConfirmedDate')
     .addSeparator()
     .addItem('응대 매뉴얼 · 가이드라인 탭 만들기', 'buildLun8Docs')
     .addItem('색상 고치기 (조건부서식 → 교차색상, 하이라이트 되게)', 'fixLun8Colors')
@@ -358,6 +359,57 @@ function restructureLun8Contact() {
   log.push('정산에 추천 수·추천 보너스(' + LUN8_REFER_FEE.toLocaleString() + '엔/명) 수식 적용');
 
   lun8Toast_(ss, '✅ 연락열 정리 완료 — ' + log.join(' · ') + '. 이제 ②모집 동기화를 누르세요.');
+}
+
+/**
+ * ③ 확정일 열 추가 — 처음 한 번만.
+ *
+ * '업로드 예정일'은 크리에이터가 스스로 적어 낸 희망일이고, '확정일'은 우리와 합의된 날짜다.
+ * 둘을 한 칸에 두면 누가 언제 바꿨는지 알 수 없어 독촉·집계 기준이 흔들린다.
+ *
+ * ⚠️ 요약 블록(2~6행)이 1~17열을 덮고 있어서, 그 안에 열을 끼우면 병합이 한 칸씩 밀린다.
+ *    특히 '합계'(8~9열 병합)가 8~10으로 넓어진다 — 값·수식은 자동으로 따라가므로 안 깨지고
+ *    칸 너비만 어긋난다. 아래에서 그 병합을 원래 폭으로 되돌린다.
+ */
+function addLun8ConfirmedDate() {
+  var t = function (v) { return String(v == null ? '' : v).trim(); };
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName('LUN8_마스터') || ss.getActiveSheet();
+  var hRow = lun8Head_(sh), DS = hRow + 1;
+  var col = function (name) {
+    var v = sh.getRange(hRow, 1, 1, sh.getLastColumn()).getValues()[0];
+    for (var i = 0; i < v.length; i++) if (t(v[i]) === name) return i + 1;
+    return 0;
+  };
+  if (col('확정일')) { lun8Toast_(ss, '이미 있어요 — 확정일 ' + col('확정일') + '열.'); return; }
+  var cSched = col('업로드 예정일');
+  if (!cSched) throw new Error("'업로드 예정일' 열을 못 찾았어요.");
+
+  // 넣기 전에 요약의 가로 병합 폭을 기억해둔다(2~6행). 넣고 나서 원래 폭으로 되돌리기 위함.
+  var before = [];
+  sh.getRange(2, 1, 5, 20).getMergedRanges().forEach(function (r) {
+    before.push({ row: r.getRow(), col: r.getColumn(), rows: r.getNumRows(), cols: r.getNumColumns() });
+  });
+
+  sh.insertColumnAfter(cSched);
+  var c = cSched + 1;
+  sh.getRange(hRow, c).setValue('확정일');
+  sh.setColumnWidth(c, 90);
+  var N = Math.max(1, sh.getMaxRows() - DS + 1);
+  sh.getRange(DS, c, N, 1).clearDataValidations().setNumberFormat('m". "d');
+
+  // 삽입 지점보다 오른쪽에서 시작하는 병합은 통째로 밀렸을 뿐이라 그대로 두고,
+  // 삽입 지점을 '가로지른' 병합만 원래 폭으로 되돌린다(그것만 한 칸 넓어졌다).
+  var fixed = 0;
+  before.forEach(function (m) {
+    if (!(m.col < c && m.col + m.cols > c)) return;   // 가로지르지 않음 → 손대지 않는다
+    var now = sh.getRange(m.row, m.col, m.rows, m.cols + 1);
+    try { now.breakApart(); } catch (e) {}
+    try { sh.getRange(m.row, m.col, m.rows, m.cols).merge(); fixed++; } catch (e) {}
+  });
+
+  lun8Toast_(ss, '✅ 확정일 열 추가 — ' + c + '열(업로드 예정일 옆). 요약 병합 ' + fixed + '개 원래 폭으로 복원. '
+    + '예정일은 크리에이터가 낸 희망일, 확정일은 합의된 날짜로 쓰세요.');
 }
 
 /**
