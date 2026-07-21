@@ -603,6 +603,19 @@ function doPost(e) {
       }
       n++;
     }
+    // 셋업 작업 실행 — 열 추가·정리처럼 한 번씩 돌리는 것들. 토큰이 있어야 하고, 아래 목록에 있는 것만.
+    if (body.setup) {
+      var ran = String(body.setup), out = '';
+      switch (ran) {
+        case 'addLun8ConfirmedDate':    out = addLun8ConfirmedDate(); break;
+        case 'restructureLun8Contact':  out = restructureLun8Contact(); break;
+        case 'setupLun8':               out = setupLun8(); break;
+        case 'buildLun8Docs':           out = buildLun8Docs(); break;
+        case 'fixLun8Colors':           out = fixLun8Colors(); break;
+        default: return json_({ error: '허용되지 않은 작업: ' + ran });
+      }
+      return json_({ ok: true, ran: ran, result: out || '완료', setupRan: true });
+    }
     // 의견 남기기 — 팀이 화면에서 남긴 개선 요청. 별도 탭이라 마스터 데이터와 안 섞인다.
     if (body.feedback) {
       var fb = body.feedback;

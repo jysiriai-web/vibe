@@ -10,3 +10,6 @@ _archive/
 
 # Vercel 환경변수용 (시트 토큰 포함 — 커밋 금지)
 _docs/vercel-CAMPAIGNS_JSON.txt
+
+# clasp 로컬 클론 (원격 스크립트 사본 + 인증 경로) — appsscript/ 원본이 진실
+appsscript/lun8/
