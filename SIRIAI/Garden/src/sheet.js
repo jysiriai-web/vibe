@@ -79,6 +79,11 @@ export async function pushCellsToSheet(sheet, cells) {
     throw new Error('마스터시트에서 이 항목의 열을 못 찾았어요: ' + [...new Set(r.skipped)].join(', ')
       + ' — 시트 헤더 이름을 확인하거나 브릿지 별칭에 추가해야 합니다(엉뚱한 열을 덮어쓰지 않으려고 쓰기를 멈췄어요).');
   }
+  // 리다이렉트로 POST 가 GET 이 되면 목록 응답(accounts)이 돌아온다 — 쓰기 결과가 아니다.
+  // 이때 '실패'라고 해도 '성공'이라고 해도 거짓말이다. 확인 불가라고 그대로 말한다.
+  if (r && r.accounts && r.updated == null) {
+    throw new Error('시트에 썼는지 확인이 안 됐어요 (구글이 응답을 리다이렉트로 돌렸어요). 시트를 직접 확인해 주세요 — 보통은 써져 있습니다.');
+  }
   const updated = (r && r.updated) || 0;
   if (cells.length && !updated) {
     throw new Error('마스터시트에 아무것도 안 써졌어요 — 브릿지가 옛 버전이라 필드명을 모를 수 있어요(재배포 필요).');

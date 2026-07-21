@@ -55,12 +55,11 @@ body.nav-collapsed .sidebar { width: 66px; padding: 16px 10px; }
 body.nav-collapsed .brand-txt,
 body.nav-collapsed .nav .tab .lb,
 body.nav-collapsed .nav .tab .cnt,
-body.nav-collapsed #workerTxt,
 body.nav-collapsed .side-toggle .st { display: none; }
 body.nav-collapsed .nav .tab { justify-content: center; gap: 0; padding: 11px; }
 body.nav-collapsed .side-brand { justify-content: center; padding: 2px 0; }
 body.nav-collapsed .side-toggle { justify-content: center; padding: 9px; }
-body.nav-collapsed .wbadge { justify-content: center; padding: 9px; }
+
 
 /* ===== 상단바 ===== */
 .topbar { display: flex; align-items: center; gap: 18px; padding: 12px 30px; border-bottom: 1px solid var(--line); flex-wrap: wrap; background: var(--card); }
@@ -249,12 +248,6 @@ tbody tr:hover td.pgrp-tk { background: rgba(17,20,23,.04); }
 tr.held td { opacity:.6; }
 
 /* 워커 하트비트 배지 */
-.wbadge { display:inline-flex; align-items:center; gap:7px; font-size:13px; font-weight:700; padding:7px 13px; border-radius:20px; cursor:pointer; border:1.5px solid transparent; user-select:none; transition:.12s; white-space:nowrap; }
-.wbadge .hb { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
-.wbadge.on { background:var(--ok-bg); color:var(--ok-ink); border-color:#bfe9d7; }
-.wbadge.on .hb { background:var(--ok); box-shadow:0 0 0 0 rgba(12,166,120,.5); animation:pulse 1.8s infinite; }
-.wbadge.off { background:var(--needs-bg); color:var(--needs-ink); border-color:#f3cccc; }
-.wbadge.off .hb { background:var(--needs); }
 @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(12,166,120,.5);} 70%{box-shadow:0 0 0 7px rgba(12,166,120,0);} 100%{box-shadow:0 0 0 0 rgba(12,166,120,0);} }
 
 /* 빈 열 숨김 배지(작게) */
@@ -537,7 +530,6 @@ body.fb-picking #content *:hover { outline: 2px solid var(--accent); outline-off
       <button class="tab" data-view="guide"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span class="lb">가이드</span></button>
     </nav>
     <div class="side-foot">
-      <span class="wbadge on" id="worker"><span class="hb"></span><span id="workerTxt">워커 온라인 · 방금</span></span>
     </div>
   </aside>
 
@@ -1711,12 +1703,10 @@ function render(){
 }
 
 /* ============ 워커 하트비트 ============ */
-function renderWorker(){
-  const w = document.getElementById('worker');
-  const on = state.worker==='online';
-  w.className = 'wbadge '+(on?'on':'off');
-  document.getElementById('workerTxt').textContent = on ? '워커 온라인 · 방금' : 'PC 꺼짐 · 대기';
-}
+// 워커 상태 배지는 없앴다 — 실제 워커와 연결된 적이 없고, 사람이 눌러 토글하는 값이라
+// PC 가 꺼져 있어도 '온라인'이라고 떠 있었다. 없는 정보를 있는 척하느니 안 보여주는 게 낫다.
+// (스캔·집행은 눌러보면 되고, 안 되면 그때 진짜 오류가 뜬다)
+function renderWorker(){}
 
 /* 예정일 입력칸 아래 한 줄 — 실제로 손이 움직이는 유일한 순간에 답을 붙여둔다.
    표시 숫자는 '이 사람을 그 날에 뒀을 때' 값이라 스트립과 항상 일치한다(1 차이로 신뢰 깎이지 않게).
@@ -1923,14 +1913,12 @@ function execModal(){
     `<button class="btn ghost" onclick="closeModal()">취소</button><button class="btn danger" id="execConfirm">집행 요청 (워커로 전달)</button>`);
   document.getElementById('execConfirm').addEventListener('click',()=>{
     closeModal();
-    if(state.worker!=='online'){ toast('🔴 PC 워커 오프라인 — 켜지면 이 집행부터 처리해요.'); return; }
     toast(`집행 요청을 시트에 기록했어요 · 워커가 로컬 SMM 키로 처리합니다.`);
   });
 }
 
 /* ============ 스캔 ============ */
 function scanRequest(kind){
-  if(state.worker!=='online'){ toast(`🔴 PC 워커 오프라인 — 켜지면 ${kind} 스캔부터 처리해요.`); return; }
   toast(`${kind} 스캔 요청을 시트에 기록했어요 — 워커가 집 IP·실제 크롬으로 시작합니다.`);
 }
 
