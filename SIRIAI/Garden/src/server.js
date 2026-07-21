@@ -563,6 +563,18 @@ export async function handler(req, res) {
       if (smm) { try { orders = await refreshOrders(smm, orders); } catch {} }
       const body = await readBody(req);
       let accs = (scanLatest(campaign).accounts || scanLatest(campaign).results || []);
+      // 지난 스캔 기록에는 그 뒤 시트에서 지워진 계정이 남아 있다. 지금 시트에 틱톡 링크가
+      // 실제로 있는 계정만 남긴다 — 안 그러면 없는 계정에 돈이 나간다(행28 りゅう 사례).
+      try {
+        const live = await getAccountsFromSheet(campaign.sheet);
+        const ok = new Set(live.filter((a) => a.plat !== 'ig' && a.handle).map((a) => String(a.handle).toLowerCase()));
+        const before = accs.length;
+        accs = accs.filter((a) => ok.has(String(a.handle || '').toLowerCase()));
+        if (accs.length < before) console.log('[집행계획] 시트에 없는 틱톡 계정 ' + (before - accs.length) + '건 제외');
+      } catch (e) {
+        // 시트를 못 읽으면 오래된 기록만으로 돈을 쓸 수는 없다.
+        return send(res, 503, { error: '시트를 못 읽어서 집행 계획을 못 세웠어요 — 오래된 스캔 기록만으로는 주문하지 않습니다.' });
+      }
       if (Array.isArray(body.handles)) accs = accs.filter((a) => body.handles.includes(a.handle));
       const plan = buildPlan(accs, orders, { target: campaign.target, min: campaign.min, service: svc });
       let balance = null;
@@ -580,6 +592,9 @@ export async function handler(req, res) {
       let orders = await readOrders(campaign);
       orders = await refreshOrders(smm, orders);
       let accounts = await getAccountsFromSheet(campaign.sheet);
+      // 틱톡 서비스로 주문하므로 틱톡 계정만. 인스타 전용 행을 넘기면 인스타 핸들로
+      // 틱톡을 검색해 엉뚱한 계정을 잡는다(모집 스캔은 이미 같은 이유로 거른다).
+      accounts = accounts.filter((a) => a.plat !== 'ig');
       if (Array.isArray(body.handles)) accounts = accounts.filter((a) => body.handles.includes(a.handle));
       const scanned = await scanAccounts(accounts);
       const plan = buildPlan(scanned, orders, { target: campaign.target, min: campaign.min, service: svc });

@@ -43,6 +43,10 @@ export async function scanAccounts(accounts, { delayMs = 500, onProgress, onWait
 }
 
 // 집행 계획 계산 (주문 안 함). 100단위 충전 규칙 + 진행중 차감(중복방지).
+// 이 아래는 '계정이 아니라 스크랩 실패'로 본다. 1K 이상으로 모집한 캠페인에서
+// 두 자리 팔로워는 계정이 없거나 핸들이 틀린 것이다 — 그걸 믿고 주문하면 돈이 사라진다.
+const SANE_FLOOR = 50;
+
 export function buildPlan(scanned, orders, { target, min, service }) {
   const rate = Number(service.rate);
   const sMin = Number(service.min);
@@ -53,6 +57,8 @@ export function buildPlan(scanned, orders, { target, min, service }) {
   const seen = new Set(); // 같은 배치에 동일 핸들이 두 행(예: 시트 중복 등록)으로 오면 한 번만 주문 → 이중지출 방지
   for (const a of scanned) {
     if (a.current == null) { errored.push(a); continue; }
+    // 사람이 눈으로 확인해야 할 값 — 주문 목록이 아니라 오류 목록으로 보낸다.
+    if (a.current < SANE_FLOOR) { errored.push({ ...a, reason: `팔로워 ${a.current}명 — 계정이 없거나 핸들이 틀린 것 같아요. 확인 후 수기로 처리해 주세요.` }); continue; }
     if (seen.has(a.handle)) continue;
     seen.add(a.handle);
     const inFlight = inFlightFor(orders, a.handle);
