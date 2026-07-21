@@ -25,6 +25,7 @@ function onOpen() {
     .addItem('④ 일반 비고 열 추가 — 처음 한 번', 'addLun8Memo')
     .addSeparator()
     .addItem('응대 매뉴얼 · 가이드라인 탭 만들기', 'buildLun8Docs')
+    .addItem('요약 폭 정리 (합계 H:I · 진행율 당기기)', 'fixLun8Summary')
     .addItem('가드닝 열 정리 (값 통일·색·인스타 오염 청소)', 'fixLun8Gardening')
     .addItem('색상 고치기 (조건부서식 → 교차색상, 하이라이트 되게)', 'fixLun8Colors')
     .addToUi();
@@ -703,4 +704,59 @@ function addLun8Memo() {
   });
   lun8Toast_(ss, '✅ 비고 열 추가 — ' + c + '열(확정일 옆). 요약 병합 ' + fixed + '개 복원. '
     + '일반 비고 / 틱톡 비고 / 인스타 비고 / 정산 비고가 이제 각자 칸을 씁니다.');
+}
+
+/**
+ * 요약 폭 정리 — 열을 추가할 때마다 '합계' 병합이 한 칸씩 넓어져 J·K까지 먹었다.
+ * (열 삽입은 그 지점을 가로지르는 병합을 자동으로 늘린다)
+ * 합계는 H:I 두 칸으로 되돌리고, 오른쪽 '진행율·현황' 블록을 J부터 시작하게 당긴다.
+ */
+function fixLun8Summary() {
+  var t = function (v) { return String(v == null ? '' : v).trim(); };
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName('LUN8_마스터') || ss.getActiveSheet();
+  var R1 = 2, R2 = 6, NR = R2 - R1 + 1;
+  var SUM_C = 8, SUM_W = 2;            // 합계 = H:I
+  var DEST = SUM_C + SUM_W;            // 진행율 블록이 시작할 자리 = J(10)
+
+  // 오른쪽 블록이 지금 어디서 시작하는지 — '진행율'이 적힌 칸을 찾는다
+  var wide = Math.min(sh.getLastColumn(), 30);
+  var vals = sh.getRange(R1, 1, NR, wide).getValues();
+  var src = 0;
+  for (var r = 0; r < NR && !src; r++)
+    for (var c = SUM_C; c < wide; c++)
+      if (t(vals[r][c]).indexOf('진행율') >= 0) { src = c + 1; break; }
+  if (!src) throw new Error("요약에서 '진행율' 칸을 못 찾았어요.");
+  if (src === DEST) { lun8Toast_(ss, '이미 정리돼 있어요 — 합계 H:I, 진행율 ' + DEST + '열.'); return; }
+
+  // 블록의 오른쪽 끝 = 내용이 있는 마지막 열
+  var last = src;
+  for (var r2 = 0; r2 < NR; r2++)
+    for (var c2 = src - 1; c2 < wide; c2++) if (t(vals[r2][c2])) last = c2 + 1;
+
+  // 병합을 먼저 전부 풀어야 옮길 수 있다(병합된 채 이동하면 겹침 오류)
+  var rows = sh.getRange(R1, SUM_C, NR, last - SUM_C + 1);
+  var merges = [];
+  rows.getMergedRanges().forEach(function (m) {
+    merges.push({ row: m.getRow(), col: m.getColumn(), rows: m.getNumRows(), cols: m.getNumColumns() });
+  });
+  merges.forEach(function (m) { try { sh.getRange(m.row, m.col, m.rows, m.cols).breakApart(); } catch (e) {} });
+
+  // 진행율 블록을 왼쪽으로 당긴다(서식·수식 함께)
+  var shift = src - DEST;
+  var block = sh.getRange(R1, src, NR, last - src + 1);
+  block.moveTo(sh.getRange(R1, DEST, NR, last - src + 1));
+
+  // 합계는 H:I 로 다시 묶고, 옮긴 블록의 병합은 같은 폭으로 shift 만큼 당겨 복원
+  merges.forEach(function (m) {
+    if (m.col < DEST) {                       // 합계 쪽 병합 → H:I 폭으로
+      if (m.col <= SUM_C && m.col + m.cols > SUM_C) {
+        try { sh.getRange(m.row, SUM_C, m.rows, SUM_W).merge(); } catch (e) {}
+      }
+      return;
+    }
+    try { sh.getRange(m.row, m.col - shift, m.rows, m.cols).merge(); } catch (e) {}
+  });
+
+  lun8Toast_(ss, '✅ 요약 정리 — 합계 H:I(2칸), 진행율 블록 ' + src + '열 → ' + DEST + '열로 ' + shift + '칸 당김.');
 }

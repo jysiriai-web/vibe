@@ -620,6 +620,7 @@ function doPost(e) {
         case 'fixLun8Colors':           out = fixLun8Colors(); break;
         case 'fixLun8Gardening':        out = fixLun8Gardening(); break;
         case 'addLun8Memo':             out = addLun8Memo(); break;
+        case 'fixLun8Summary':          out = fixLun8Summary(); break;
         default: return json_({ error: '허용되지 않은 작업: ' + ran });
       }
       return json_({ ok: true, ran: ran, result: out || '완료', setupRan: true });
