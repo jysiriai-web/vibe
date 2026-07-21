@@ -248,18 +248,32 @@ export async function fetchIgPostsViaPage(ctx, handleRaw, { max = 6, timeout = 6
           const t = document.querySelector('time[datetime]');
           return { desc: og ? og.content || '' : '', dt: t ? t.getAttribute('datetime') : '' };
         });
+        // og:description 은 "645 likes, 25 comments - 계정 - May 28, 2026: "본문"" 꼴이다.
+        // 앞머리(좋아요·댓글·날짜)와 본문을 갈라 쓴다. 형식이 바뀌면 통째로 캡션으로 둔다 —
+        // 해시태그만 보면 되므로 앞머리가 섞여도 판정에는 지장이 없다.
+        const d = info.desc;
+        const head = d.match(/^([\d,]+)\s*likes?,\s*([\d,]+)\s*comments?/i);
+        const body = d.match(/:\s*"([\s\S]*)"\s*$/);
+        // 릴스는 time[datetime] 이 없을 때가 있다 — 앞머리의 날짜를 쓴다.
+        const dateTxt = d.match(/-\s*([A-Z][a-z]+ \d{1,2}, \d{4})\s*:/);
+        let taken = info.dt || null;
+        if (!taken && dateTxt) { const t2 = new Date(dateTxt[1]); if (!isNaN(t2)) taken = t2.toISOString(); }
+        const num = (v) => (v == null ? null : Number(String(v).replace(/,/g, '')));
         posts.push({
           shortcode: l.shortcode,
           link: `https://www.instagram.com/${l.kind}/${l.shortcode}/`,
           isVideo: l.kind === 'reel',
-          // og:description 앞머리에 좋아요·댓글 수가 붙는 경우가 있다 — 해시태그만 쓰므로 그대로 둔다.
-          caption: info.desc,
-          views: null, likes: null, comments: null,
-          takenAt: info.dt || null,
+          caption: body ? body[1] : d,
+          views: null,
+          likes: head ? num(head[1]) : null,
+          comments: head ? num(head[2]) : null,
+          takenAt: taken,
         });
       } catch { /* 이 게시물만 건너뛴다 — 하나 못 봤다고 계정 전체를 포기하지 않는다 */ }
       await sleep(1200);
     }
+    // 그리드 순서가 최신순이 아닐 때가 있다(고정 게시물 등) → 시각으로 다시 세운다.
+    posts.sort((x, y) => new Date(y.takenAt || 0) - new Date(x.takenAt || 0));
     return { handle, followers: null, name: '', isPrivate: false, postCount: null, posts, via: 'page' };
   } finally { try { await page.close(); } catch {} }
 }

@@ -76,6 +76,17 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
             }
           }
         }
+        // ⚠️ '막힘'만 폴백 조건으로 두면 안 된다. 인스타는 200 을 주면서 게시물 목록만
+        //    비워 보낸다(게시물 962개인데 edges 0). 그러면 스캔은 '정상 완료 · 감지 0건'
+        //    이라고 보고하면서 실제로는 아무것도 안 본 상태가 된다 — 가장 나쁜 실패다.
+        //    게시물이 있는 계정인데 목록이 비었으면 못 본 것으로 치고 직접 열어 확인한다.
+        if (p && (!p.posts || !p.posts.length) && (p.postCount == null || p.postCount > 0)) {
+          if (!apiDead) {
+            apiDead = true;
+            if (onProgress) onProgress({ note: 'API 가 게시물 목록을 비워 보냅니다 — 프로필을 직접 열어 확인합니다 (느려요)' });
+          }
+          p = null;
+        }
         // ② 프로필을 직접 열어 최근 게시물을 하나씩 확인한다 — 사람이 하는 것과 같은 경로.
         //    느리지만 막혔을 때 스캔 전체가 멈추는 것보다 낫다.
         if (!p) {
