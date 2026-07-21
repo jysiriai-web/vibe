@@ -18,7 +18,7 @@ const DEFAULT_COL = {
   soundOk: 19, soundSection: 20, hashtagOk: 21, memo: 22,
   campaignDone: 23, paid: 24, paidDate: 25, contentB: 26,
   views: 27, likes: 28, comments: 29, shares: 30,
-  igLink: 0, igNick: 0, fixedDate: 0,   // 0 = 이 마스터엔 없는 열 → 폴백하지 않고 '없음'으로 둔다(베이온은 틱톡 전용)
+  igLink: 0, igNick: 0, fixedDate: 0, creator: 0,   // 0 = 이 마스터엔 없는 열 → 폴백하지 않고 '없음'으로 둔다(베이온은 틱톡 전용)
 };
 // 필드 → 헤더 별칭(선호 순서, 정규화 정확일치). 새 캠페인 헤더가 다르면 여기에 별칭만 추가.
 // ⚠️ schedDate: 베이온은 '예정일'을 헤더상 '검수 특이사항' 열(18)에 기입 → 그 별칭 포함.
@@ -29,7 +29,7 @@ const DEFAULT_COL = {
 //    순서가 곧 우선순위이므로 베이온의 무접두 이름을 앞에 둔다(기존 캠페인 영향 0).
 const FIELD_HEADERS = {
   company: ['진행사', '회사', '소속'],
-  nick: ['닉네임', '크리에이터', '채널명', '이름'],
+  nick: ['닉네임', '틱톡닉네임', '크리에이터', '채널명', '이름'],   // '틱톡닉네임'을 '크리에이터'보다 앞에 — 뒤에 두면 사람 이름 열에 잡힌다
   link: ['계정링크', '틱톡링크', '계정', '링크'],
   followers: ['팔로워', '팔로워수', '틱톡팔로워'],
   gardening: ['가드닝대상여부', '가드닝', '가드닝대상', '틱톡가드닝'],
@@ -51,7 +51,9 @@ const FIELD_HEADERS = {
   shares: ['공유', '틱톡공유'],
   igLink: ['인스타링크', '인스타그램링크', 'instagram링크'],
   igNick: ['인스타닉네임', '인스타그램닉네임'],
-  fixedDate: ['확정일', '업로드확정일'],   // 예정일=크리에이터 희망, 확정일=합의된 날짜
+  fixedDate: ['확정일', '업로드확정일'],
+  // 사람 이름. nick 은 되쓰기 대상(틱톡 닉네임)이라 표시용 이름을 따로 둔다 — 섞으면 화면에 핸들이 뜬다.
+  creator: ['크리에이터'],   // 예정일=크리에이터 희망, 확정일=합의된 날짜
 };
 // 플랫폼별로 두 벌 존재하는 항목. 접두어만 갈아끼워 같은 규칙으로 찾는다.
 var PLAT_FIELDS = ['nick', 'link', 'followers', 'gardening', 'contentA', 'contentB',
@@ -238,6 +240,7 @@ function readAccounts_() {
       row: i + 1,
       company: String(row[COL.company - 1] || ''),
       nick: String(row[COL.nick - 1] || ''),
+      creator: COL.creator ? String(row[COL.creator - 1] || '') : '',
       handle: handle,
       link: String(row[COL.link - 1] || ''),
       plat: plat,                                 // tk / ig / both — 프론트가 계정 링크 주소를 고를 때 쓴다
@@ -629,15 +632,22 @@ function doPost(e) {
       return json_({ ok: true, feedbackSaved: true });
     }
     // 임의 셀 쓰기 [{row, col, value}] — 콘텐츠 링크·검수·조회수 되쓰기용
-    var cells = body.cells || [];
+    var cells = body.cells || [], skipped = [];
     for (var j = 0; j < cells.length; j++) {
       var c = cells[j];
-      var col = c.field ? (COL[c.field] || 0) : c.col; // 필드명이 오면 현재 열로 해석(헤더 기반), 없으면 기존 col 하위호환
+      var col = 0;
+      if (c.field) {
+        // 헤더에서 못 찾아 폴백한 필드 = 어느 열인지 모르는 것. 쓰면 엉뚱한 열을 덮어쓴다 → 거부.
+        if (_colInfo.fellBack && _colInfo.fellBack.indexOf(c.field) >= 0) { skipped.push(c.field); continue; }
+        col = COL[c.field] || 0;
+        if (!col) { skipped.push(c.field); continue; }   // 오타 등으로 모르는 필드명
+      } else col = c.col;                                 // 옛 호출부 하위호환
       if (!c.row || !col) continue;
       sh.getRange(c.row, col).setValue(c.value);
       n++;
     }
-    return json_({ updated: n });
+    // skipped 를 반드시 올려보낸다 — 안 그러면 '조용히 아무것도 안 써짐'이 성공으로 보인다.
+    return json_({ updated: n, skipped: skipped, fellBack: _colInfo.fellBack || [] });
   } catch (err) {
     return json_({ error: String((err && err.message) || err) });
   }

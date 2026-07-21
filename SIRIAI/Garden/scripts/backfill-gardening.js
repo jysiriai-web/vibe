@@ -20,7 +20,7 @@ import { readOrders, localOrders } from '../src/store.js';
 
 loadEnv();
 const APPLY = process.argv.includes('--apply');
-const GARDENING_COL = 6;
+const GARDENING_FIELD = 'gardening'; // 열 번호(6) 고정이었다 → 브릿지 필드명으로
 const TARGET = '가드닝 대상';
 const NOT_TARGET = '가드닝 불필요';
 
@@ -81,6 +81,6 @@ if (!APPLY) {
   process.exit(0);
 }
 
-const cells = fixes.map((f) => ({ row: f.row, col: GARDENING_COL, value: f.to }));
+const cells = fixes.map((f) => ({ row: f.row, field: GARDENING_FIELD, value: f.to }));
 const n = await pushCellsToSheet(campaign.sheet, cells);
 console.log(`\n✅ ${n}칸 기록 복원 완료. 앞으로는 스캔해도 이 값이 안 바뀝니다.`);

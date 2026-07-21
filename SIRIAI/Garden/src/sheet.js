@@ -63,10 +63,27 @@ export async function deliverToSheet(sheet, deliverySheetId, rows) {
   return await bridgePost(sheet, { deliver: { sheetId: deliverySheetId, rows } });
 }
 
-// 임의 셀 쓰기: cells = [{ row, col, value }] — 콘텐츠 링크·검수·조회수 되쓰기용
+// 임의 셀 쓰기: cells = [{ row, field, value }] — 콘텐츠 링크·검수·조회수 되쓰기용.
+// field 는 브릿지(Code.gs)의 COL 키. 브릿지가 헤더에서 실제 열을 찾아 쓴다(마스터마다 열이 달라도 안전).
 export async function pushCellsToSheet(sheet, cells) {
   ensure(sheet);
-  return (await bridgePost(sheet, { cells })).updated || 0;
+  // 안전장치: 열 번호로 쓰는 경로가 하나라도 남아 있으면 다른 마스터에서 조용히 엉뚱한 열을 덮어쓴다.
+  // 조용한 데이터 파손보다 시끄러운 실패가 낫다 → 여기서 막는다.
+  const bad = (cells || []).filter((c) => !c || typeof c.field !== 'string' || !c.field);
+  if (bad.length) {
+    throw new Error('셀 쓰기는 필드명(field)으로만 합니다 — 열 번호(col)를 쓰는 호출부가 남아 있어요: ' + JSON.stringify(bad.slice(0, 3)));
+  }
+  const r = await bridgePost(sheet, { cells });
+  // 브릿지가 필드를 못 알아들으면 skipped 로 돌려준다. 이걸 안 보면 '아무것도 안 써졌는데 성공'이 된다.
+  if (r && Array.isArray(r.skipped) && r.skipped.length) {
+    throw new Error('마스터시트에서 이 항목의 열을 못 찾았어요: ' + [...new Set(r.skipped)].join(', ')
+      + ' — 시트 헤더 이름을 확인하거나 브릿지 별칭에 추가해야 합니다(엉뚱한 열을 덮어쓰지 않으려고 쓰기를 멈췄어요).');
+  }
+  const updated = (r && r.updated) || 0;
+  if (cells.length && !updated) {
+    throw new Error('마스터시트에 아무것도 안 써졌어요 — 브릿지가 옛 버전이라 필드명을 모를 수 있어요(재배포 필요).');
+  }
+  return updated;
 }
 
 // 의견 남기기 — 마스터 데이터와 분리된 '의견' 탭. 읽기전용 캠페인에서도 열려 있다.

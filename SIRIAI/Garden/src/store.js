@@ -14,7 +14,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { loadOrders as fileLoadOrders, saveOrders as fileSaveOrders } from './orders.js';
-import { loadOverrides as fileLoadOverrides, OVERRIDE_COLS } from './overrides.js';
+import { loadOverrides as fileLoadOverrides, OVERRIDE_FIELDS, normalizeOverrides } from './overrides.js';
 import { getAccountsFromSheet } from './sheet.js';
 import { getOrders, putOrders, getState, putOverrides, putBest, getBundle } from './state.js';
 import { eq } from './state-diff.js';
@@ -116,12 +116,16 @@ function unionOverrides(base, extra) {
 export async function readOverrides(campaign) {
   if (!isSheet()) return localOverrides(campaign);
   const local = localOverrides(campaign);
-  let sheetOv;
-  try { sheetOv = (await getState(campaign.sheet)).overrides || {}; }
+  let sheetRaw;
+  try { sheetRaw = (await getState(campaign.sheet)).overrides || {}; }
   catch { return local; } // 시트를 못 읽어도 로컬 잠금은 지킨다(워커가 덮어쓰지 않게)
+  // 시트에는 아직 옛 열번호 키가 들어있을 수 있다 → 필드 키로 정규화해서 합친다.
+  const sheetOv = normalizeOverrides(sheetRaw);
   const pend = !!readPending(campaign).overrides;
   const merged = pend ? unionOverrides(local, sheetOv) : unionOverrides(sheetOv, local);
-  if (!eq(merged, sheetOv)) {
+  // 비교 대상은 '정규화 전 원본' — 그래야 정규화만 일어난 경우에도 한 번 밀어 넣어
+  // 시트의 옛 키가 자연히 필드 키로 마이그레이션된다.
+  if (!eq(merged, sheetRaw)) {
     try { await putOverrides(campaign.sheet, merged); clearPending(campaign, 'overrides'); } catch {}
   }
   return merged;
@@ -139,20 +143,21 @@ async function writeOverrides(campaign, ov) {
   return out;
 }
 
-export function setOverrideStore(campaign, row, col, value) {
-  if (!OVERRIDE_COLS.includes(Number(col))) return Promise.resolve({ sheet: 'skip', durable: true });
+// 잠금 키 = 필드명(브릿지 Code.gs 의 COL 키). 열 번호는 마스터마다 달라서 키로 쓸 수 없다.
+export function setOverrideStore(campaign, row, field, value) {
+  if (!OVERRIDE_FIELDS.includes(String(field))) return Promise.resolve({ sheet: 'skip', durable: true });
   return withLock(`${campaign.id}:ov`, async () => {
     const ov = await readOverrides(campaign);
     const r = String(row);
     ov[r] = ov[r] || {};
-    ov[r][String(col)] = value;
+    ov[r][String(field)] = value;
     return writeOverrides(campaign, ov);
   });
 }
-export function clearOverrideStore(campaign, row, col) {
+export function clearOverrideStore(campaign, row, field) {
   return withLock(`${campaign.id}:ov`, async () => {
     const ov = await readOverrides(campaign);
-    const r = String(row), c = String(col);
+    const r = String(row), c = String(field);
     if (!ov[r] || !(c in ov[r])) return { sheet: 'skip', durable: true };
     delete ov[r][c];
     if (!Object.keys(ov[r]).length) delete ov[r];
@@ -199,11 +204,13 @@ export async function readAll(campaign) {
   }
   const b = await getBundle(campaign.sheet); // 원칙 ③: 실패하면 throw
   const orders = await repairOrders(campaign, reconcileOrders(campaign, b.orders || []));
-  // 잠금은 합집합(원칙 ④)
+  // 잠금은 합집합(원칙 ④). 시트 값은 옛 열번호 키일 수 있으므로 먼저 필드 키로 정규화한다.
   const local = localOverrides(campaign);
   const pend = !!readPending(campaign).overrides;
-  const sheetOv = b.overrides || {};
+  const sheetRaw = b.overrides || {};
+  const sheetOv = normalizeOverrides(sheetRaw);
   const overrides = pend ? unionOverrides(local, sheetOv) : unionOverrides(sheetOv, local);
-  if (!eq(overrides, sheetOv)) { try { await putOverrides(campaign.sheet, overrides); clearPending(campaign, 'overrides'); } catch {} }
+  // 원본과 비교 → 정규화만 일어나도 한 번 밀어 넣어 시트를 필드 키로 마이그레이션한다.
+  if (!eq(overrides, sheetRaw)) { try { await putOverrides(campaign.sheet, overrides); clearPending(campaign, 'overrides'); } catch {} }
   return { accounts: b.accounts, orders, overrides, best: b.best || [] };
 }

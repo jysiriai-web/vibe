@@ -39,10 +39,11 @@ export async function runSync(campaign, { onProgress, full = false } = {}) {
   let written = 0;
   try { written = await pushFollowersToSheet(campaign.sheet, updates); } catch {}
 
-  // 닉네임 자동채움(#8): 시트 닉이 비어있고 스크랩으로 잡힌 것만 3열에 되쓰기
+  // 닉네임 자동채움(#8): 시트 닉이 비어있고 스크랩으로 잡힌 것만 nick 필드에 되쓰기
+  // (3열 고정이었다 → 마스터마다 닉 열 위치가 달라 필드명으로 바꿈)
   const nickCells = scanned
     .filter((a) => a.row && a.scrapedNick && !String(a.nick || '').trim())
-    .map((a) => ({ row: a.row, col: 3, value: a.scrapedNick }));
+    .map((a) => ({ row: a.row, field: 'nick', value: a.scrapedNick }));
   let nicksWritten = 0;
   if (nickCells.length) { try { nicksWritten = await pushCellsToSheet(campaign.sheet, nickCells); } catch {} }
 

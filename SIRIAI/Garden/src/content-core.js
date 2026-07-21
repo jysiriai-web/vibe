@@ -29,13 +29,15 @@ export async function judgeOneLink(campaign, { row, handle, link }) {
   // 시트 되쓰기 — 수동 잠금(overrides)된 칸은 안 건드림. 캠페인 기준 없으면 음원/해시태그는 안 씀.
   const overrides = await readOverrides(campaign);
   const cells = [];
-  const putIf = (col, value) => { if (!isLocked(overrides, row, col)) cells.push({ row, col, value }); };
-  putIf(17, d.contentLink || link);
-  if (cfg.soundId) putIf(19, d.soundOk ? '사용 확인' : '음원 다름');
-  if (cfg.hashtags.length) putIf(21, d.hashtagOk ? '확인 완료' : '해시태그 누락');
-  cells.push({ row, col: 27, value: d.views }, { row, col: 28, value: d.likes }, { row, col: 29, value: d.comments }, { row, col: 30, value: d.shares });
-  let written = 0;
-  try { written = await pushCellsToSheet(campaign.sheet, cells); } catch {}
+  // 키는 전부 필드명(브릿지가 헤더에서 실제 열을 찾는다). 옛 열번호(17·19·21·27~30)는 베이온 전용 좌표였다.
+  const putIf = (field, value) => { if (!isLocked(overrides, row, field)) cells.push({ row, field, value }); };
+  putIf('contentA', d.contentLink || link);
+  if (cfg.soundId) putIf('soundOk', d.soundOk ? '사용 확인' : '음원 다름');
+  if (cfg.hashtags.length) putIf('hashtagOk', d.hashtagOk ? '확인 완료' : '해시태그 누락');
+  cells.push({ row, field: 'views', value: d.views }, { row, field: 'likes', value: d.likes }, { row, field: 'comments', value: d.comments }, { row, field: 'shares', value: d.shares });
+  let written = 0, writeError = null;
+  try { written = await pushCellsToSheet(campaign.sheet, cells); }
+  catch (e) { writeError = String((e && e.message) || e); }   // 조용히 삼키면 '왜 0칸이지'를 아무도 못 푼다
 
   // detected.json 갱신 → 다음 업로드 스캔이 이 계정을 '미업로드'로 다시 안 봄.
   try {
@@ -81,18 +83,19 @@ export async function scanOneProfile(campaign, { row, handle }) {
   } catch {}
 
   // 업로드 감지된 경우만 시트 되쓰기(콘텐츠·검수·성과). 수동잠금·미설정 캠페인 존중.
-  let written = 0;
+  let written = 0, writeError = null;
   if (d.uploaded && row) {
     const overrides = await readOverrides(campaign);
     const cells = [];
-    const putIf = (col, value) => { if (!isLocked(overrides, row, col)) cells.push({ row, col, value }); };
-    putIf(17, d.contentLink);
-    if (cfg.soundId) putIf(19, d.soundOk ? '사용 확인' : '음원 다름');
-    if (cfg.hashtags.length) putIf(21, d.hashtagOk ? '확인 완료' : '해시태그 누락');
-    cells.push({ row, col: 27, value: d.views }, { row, col: 28, value: d.likes }, { row, col: 29, value: d.comments }, { row, col: 30, value: d.shares });
-    try { written = await pushCellsToSheet(campaign.sheet, cells); } catch {}
+    const putIf = (field, value) => { if (!isLocked(overrides, row, field)) cells.push({ row, field, value }); };
+    putIf('contentA', d.contentLink);
+    if (cfg.soundId) putIf('soundOk', d.soundOk ? '사용 확인' : '음원 다름');
+    if (cfg.hashtags.length) putIf('hashtagOk', d.hashtagOk ? '확인 완료' : '해시태그 누락');
+    cells.push({ row, field: 'views', value: d.views }, { row, field: 'likes', value: d.likes }, { row, field: 'comments', value: d.comments }, { row, field: 'shares', value: d.shares });
+    try { written = await pushCellsToSheet(campaign.sheet, cells); }
+  catch (e) { writeError = String((e && e.message) || e); }   // 조용히 삼키면 '왜 0칸이지'를 아무도 못 푼다
   }
-  return { uploaded: !!d.uploaded, contentLink: d.contentLink || '', soundOk: !!d.soundOk, hashtagOk: !!d.hashtagOk, views: d.views || 0, written };
+  return { uploaded: !!d.uploaded, writeError, contentLink: d.contentLink || '', soundOk: !!d.soundOk, hashtagOk: !!d.hashtagOk, views: d.views || 0, written };
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -201,11 +204,12 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
   mkdirSync(campaign.dataDir, { recursive: true });
   writeFileSync(join(campaign.dataDir, 'detected.json'), JSON.stringify({ ranAt: new Date().toISOString(), detected }, null, 2));
 
-  // 감지 결과 → 시트 되쓰기: 이번에 스캔한 대상 중 업로드된 것만 (17콘텐츠·19음원·21해시태그·27~30성과)
-  // 수동 잠금(overrides)된 검수/콘텐츠 셀(17·19·20·21)은 덮어쓰지 않음 = '수동 우선'.
+  // 감지 결과 → 시트 되쓰기: 이번에 스캔한 대상 중 업로드된 것만
+  // (contentA 콘텐츠 · soundOk 음원 · hashtagOk 해시태그 · views/likes/comments/shares 성과)
+  // 수동 잠금(overrides)된 검수/콘텐츠 필드(contentA·soundOk·soundSection·hashtagOk)는 덮어쓰지 않음 = '수동 우선'.
   const overrides = await readOverrides(campaign); // 시트 모드면 브릿지에서 — 팀이 잠근 셀을 워커가 덮어쓰지 않게
   const cells = [];
-  const putIf = (r, col, value) => { if (!isLocked(overrides, r, col)) cells.push({ row: r, col, value }); };
+  const putIf = (r, field, value) => { if (!isLocked(overrides, r, field)) cells.push({ row: r, field, value }); };
   for (const a of targets) {
     const d = detected[a.handle];
     if (!d || !d.uploaded || !a.row) continue;
@@ -215,16 +219,18 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
     // (예전 기준이던 '이번에 새로 감지된 것'은 detected.json 이 스캔 실패로 초기화되면 곧장 덮어쓰기로 변했다.
     //  full=true 면 사람이 명시적으로 재판정을 요청한 것이므로 그때만 덮어쓴다.)
     const blank = (v) => !(v != null && String(v).trim());
-    if (full || blank(a.contentLink)) putIf(r, 17, d.contentLink);
+    if (full || blank(a.contentLink)) putIf(r, 'contentA', d.contentLink);
     // 캠페인에 음원/해시태그 기준이 설정된 경우에만 판정을 쓴다.
     // (기준이 없으면 d.soundOk/hashtagOk 가 무조건 false → '음원 다름'·'해시태그 누락'을 잘못 기록하게 됨)
-    if (cfg.soundId && (full || blank(a.soundOk))) putIf(r, 19, d.soundOk ? '사용 확인' : '음원 다름');
-    if (cfg.hashtags.length && (full || blank(a.hashtagOk))) putIf(r, 21, d.hashtagOk ? '확인 완료' : '해시태그 누락');
-    // 성과 수치(27~30)는 항상 최신으로 갱신(이미 업로드된 계정도 조회수 증가 반영).
-    cells.push({ row: r, col: 27, value: d.views });
-    cells.push({ row: r, col: 28, value: d.likes });
-    cells.push({ row: r, col: 29, value: d.comments });
-    cells.push({ row: r, col: 30, value: d.shares });
+    if (cfg.soundId && (full || blank(a.soundOk))) putIf(r, 'soundOk', d.soundOk ? '사용 확인' : '음원 다름');
+    if (cfg.hashtags.length && (full || blank(a.hashtagOk))) putIf(r, 'hashtagOk', d.hashtagOk ? '확인 완료' : '해시태그 누락');
+    // 성과 수치는 항상 최신으로 갱신(이미 업로드된 계정도 조회수 증가 반영).
+    // ⚠️ 예전엔 col 27~30 고정이었다 — LUN8 마스터에선 그 자리가 인스타 콘텐츠①·②·음원·음원구간이라
+    //    조회수를 쓰면 콘텐츠 링크가 지워졌다. 필드명으로 바꾼 핵심 이유.
+    cells.push({ row: r, field: 'views', value: d.views });
+    cells.push({ row: r, field: 'likes', value: d.likes });
+    cells.push({ row: r, field: 'comments', value: d.comments });
+    cells.push({ row: r, field: 'shares', value: d.shares });
   }
 
   // 재조정: 예전 스캔이 '업로드'로 감지했는데(detected) 시트 되쓰기가 실패해 링크가 빈 계정을 메운다.
@@ -236,14 +242,15 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
     if (scanned.has(a.handle) || !a.row) continue; // 이번에 스캔한 건 위에서 처리됨
     const d = detected[a.handle];
     if (!d || !d.uploaded) continue;
-    if (blankV(a.contentLink)) putIf(a.row, 17, d.contentLink);
-    if (cfg.soundId && blankV(a.soundOk)) putIf(a.row, 19, d.soundOk ? '사용 확인' : '음원 다름');
-    if (cfg.hashtags.length && blankV(a.hashtagOk)) putIf(a.row, 21, d.hashtagOk ? '확인 완료' : '해시태그 누락');
+    if (blankV(a.contentLink)) putIf(a.row, 'contentA', d.contentLink);
+    if (cfg.soundId && blankV(a.soundOk)) putIf(a.row, 'soundOk', d.soundOk ? '사용 확인' : '음원 다름');
+    if (cfg.hashtags.length && blankV(a.hashtagOk)) putIf(a.row, 'hashtagOk', d.hashtagOk ? '확인 완료' : '해시태그 누락');
   }
 
-  let written = 0;
+  let written = 0, writeError = null;
   if (cells.length) {
-    try { written = await pushCellsToSheet(campaign.sheet, cells); } catch {}
+    try { written = await pushCellsToSheet(campaign.sheet, cells); }
+  catch (e) { writeError = String((e && e.message) || e); }   // 조용히 삼키면 '왜 0칸이지'를 아무도 못 푼다
   }
   // failed = 틱톡이 막아서 못 본 계정. 0이 아니면 그 결과는 '완전'하지 않다 — 화면에 그대로 알린다.
   return {

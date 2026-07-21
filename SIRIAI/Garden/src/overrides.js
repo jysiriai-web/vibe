@@ -4,44 +4,76 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-// 자동 스캔이 건드리는 검수/콘텐츠 열 — 이 열들만 수동 우선 잠금 대상.
-export const OVERRIDE_COLS = [17, 19, 20, 21];
-// 대시보드에서 편집 허용하는 열 (닉3·계정4·확정안내16·콘텐츠17·예정일18·음원19·음원구간20·해시태그21·비고22).
-// 4·16·18·22 는 자동스캔이 안 건드려서 잠금(OVERRIDE) 대상 아님, 편집만 허용.
-export const EDITABLE_COLS = [3, 4, 16, 17, 18, 19, 20, 21, 22];
+// 자동 스캔이 건드리는 검수/콘텐츠 '필드' — 이 필드들만 수동 우선 잠금 대상.
+// ⚠️ 열 번호가 아니라 필드명이다. 열 번호는 마스터마다 달라서(베이온 vs LUN8) 되쓰기 키로 못 쓴다.
+//    이름은 브릿지(appsscript/Code.gs DEFAULT_COL/FIELD_HEADERS) 키를 그대로 따른다.
+export const OVERRIDE_FIELDS = ['contentA', 'soundOk', 'soundSection', 'hashtagOk'];
+// 대시보드에서 편집 허용하는 필드(화이트리스트). nick·link·notice·schedDate·memo 는
+// 자동스캔이 안 건드려서 잠금(OVERRIDE) 대상은 아니고 편집만 허용.
+export const EDITABLE_FIELDS = ['nick', 'link', 'notice', 'contentA', 'schedDate', 'soundOk', 'soundSection', 'hashtagOk', 'memo'];
+
+// ── 마이그레이션 호환 계층 ──────────────────────────────────────────────
+// 기존 잠금은 베이온 열 번호를 키로 저장돼 있다: { "9": { "17": "...", "19": "..." } }.
+// 필드 키로 바꾸면서 이걸 그냥 두면 잠금이 전부 무시돼, 다음 스캔이 사람이 고친 칸을 덮어쓴다.
+// 그래서 '읽을 때' 숫자 키를 필드명으로 옮겨준다(베이온 DEFAULT_COL 역매핑). 쓸 때는 필드명으로만 쓴다.
+export const LEGACY_COL_FIELD = {
+  3: 'nick', 4: 'link', 6: 'gardening', 16: 'notice', 17: 'contentA', 18: 'schedDate',
+  19: 'soundOk', 20: 'soundSection', 21: 'hashtagOk', 22: 'memo',
+  27: 'views', 28: 'likes', 29: 'comments', 30: 'shares',
+};
+// 숫자 키 → 필드 키. 같은 칸이 양쪽 키로 있으면 필드 키(새것)가 이긴다.
+// (JS 객체는 정수형 키를 먼저 돌려주므로, 반드시 숫자를 먼저 깔고 필드로 덮어써야 순서가 보장된다.)
+export function normalizeOverrides(all) {
+  const out = {};
+  for (const row of Object.keys(all || {})) {
+    const src = all[row];
+    if (!src || typeof src !== 'object') continue;
+    const dst = {};
+    for (const k of Object.keys(src)) {
+      if (!/^\d+$/.test(k)) continue;
+      const f = LEGACY_COL_FIELD[Number(k)];
+      if (f) dst[f] = src[k]; // 모르는 옛 열번호는 버린다 — 어느 필드인지 모르면 쓰는 게 더 위험
+    }
+    for (const k of Object.keys(src)) if (!/^\d+$/.test(k)) dst[k] = src[k];
+    if (Object.keys(dst).length) out[String(row)] = dst;
+  }
+  return out;
+}
 
 function file(dataDir) { return join(dataDir, 'overrides.json'); }
 
 export function loadOverrides(dataDir) {
   const p = file(dataDir);
   if (!existsSync(p)) return {};
-  try { return JSON.parse(readFileSync(p, 'utf8')) || {}; } catch { return {}; }
+  // 읽는 순간 필드 키로 정규화 — 옛 열번호 키로 저장된 잠금도 그대로 살아 있게(사고 방지).
+  try { return normalizeOverrides(JSON.parse(readFileSync(p, 'utf8')) || {}); } catch { return {}; }
 }
 
-// (row,col) 수동값 기록. col 이 OVERRIDE_COLS 가 아니면 잠그지 않음(닉 등).
-export function setOverride(dataDir, row, col, value) {
-  if (!OVERRIDE_COLS.includes(Number(col))) return;
+// (row,field) 수동값 기록. field 가 OVERRIDE_FIELDS 가 아니면 잠그지 않음(닉 등).
+export function setOverride(dataDir, row, field, value) {
+  if (!OVERRIDE_FIELDS.includes(String(field))) return;
   const all = loadOverrides(dataDir);
   const key = String(row);
   all[key] = all[key] || {};
-  all[key][String(col)] = value;
+  all[key][String(field)] = value;
   mkdirSync(dataDir, { recursive: true });
   writeFileSync(file(dataDir), JSON.stringify(all, null, 2));
 }
 
 // (row,col) 수동 잠금 해제 — '미확인'으로 되돌리면 자동 관리에 반환(다음 스캔이 다시 채움).
-export function clearOverride(dataDir, row, col) {
+export function clearOverride(dataDir, row, field) {
   const all = loadOverrides(dataDir);
   const key = String(row);
-  if (!all[key] || !(String(col) in all[key])) return;
-  delete all[key][String(col)];
+  if (!all[key] || !(String(field) in all[key])) return;
+  delete all[key][String(field)];
   if (!Object.keys(all[key]).length) delete all[key];
   mkdirSync(dataDir, { recursive: true });
   writeFileSync(file(dataDir), JSON.stringify(all, null, 2));
 }
 
-// content-scan 이 (row,col) 을 덮어써도 되는지 — 수동 잠금이면 false.
-export function isLocked(overrides, row, col) {
+// content-scan 이 (row,field) 를 덮어써도 되는지 — 수동 잠금이면 false.
+// overrides 는 loadOverrides/readOverrides 를 거쳐 이미 필드 키로 정규화된 것이어야 한다.
+export function isLocked(overrides, row, field) {
   const r = overrides[String(row)];
-  return !!(r && Object.prototype.hasOwnProperty.call(r, String(col)));
+  return !!(r && Object.prototype.hasOwnProperty.call(r, String(field)));
 }

@@ -17,7 +17,7 @@ import { runContentScan, judgeOneLink, scanOneProfile } from './content-core.js'
 import { checkExitLocation } from './tiktok-videos.js';
 import { listCampaigns, getCampaign, getFx, setCalibration, setFallbackRate, getStaleDays, setService } from './campaigns.js';
 import { getMarketUsdKrw } from './fx.js';
-import { EDITABLE_COLS, OVERRIDE_COLS } from './overrides.js';
+import { EDITABLE_FIELDS, OVERRIDE_FIELDS, LEGACY_COL_FIELD } from './overrides.js';
 // 상태 계층 — GARDEN_STATE=sheet 면 시트가 진실, 기본(local)은 지금까지처럼 로컬 파일.
 import { CLOUD, isLocalOnly, cloudConfigError } from './cloud.js';
 import { mode as stateMode, readOrders, writeOrders, readOverrides, setOverrideStore, clearOverrideStore, readBest, toggleBest, readAll, pendingState } from './store.js';
@@ -118,23 +118,26 @@ async function buildAccounts(campaign, orders, pre = {}) {
     const d = det[a.handle];
     if (d && d.uploaded) {
       // 시트값이 비었을 때만 자동감지로 채움 (content-scan이 시트에 이미 썼다면 시트값 유지).
-      // autoCols = '시트에 저장된 값이 아니라 스캔의 추정값'인 열. 프론트가 검수로 세지 않도록 구분용.
-      const autoCols = [];
+      // autoFields = '시트에 저장된 값이 아니라 스캔의 추정값'인 필드. 프론트가 검수로 세지 않도록 구분용.
+      // (열 번호 '19'/'21' 로 보내던 것 → 필드명. 프론트 app.js 도 같이 바뀐다)
+      const autoFields = [];
       if (!hasV(m.contentLink)) m.contentLink = d.contentLink;
-      if (!hasV(m.soundOk)) { m.soundOk = d.soundOk ? '사용 확인' : '음원 다름'; autoCols.push('19'); }
-      if (!hasV(m.hashtagOk)) { m.hashtagOk = d.hashtagOk ? '확인 완료' : '해시태그 누락'; autoCols.push('21'); }
+      if (!hasV(m.soundOk)) { m.soundOk = d.soundOk ? '사용 확인' : '음원 다름'; autoFields.push('soundOk'); }
+      if (!hasV(m.hashtagOk)) { m.hashtagOk = d.hashtagOk ? '확인 완료' : '해시태그 누락'; autoFields.push('hashtagOk'); }
       if (!hasV(m.views)) { m.views = d.views; m.likes = d.likes; m.comments = d.comments; m.shares = d.shares; }
       m.autoDetected = true;
-      if (autoCols.length) m.autoCols = autoCols;
+      if (autoFields.length) m.autoFields = autoFields;
     }
     // 수동 잠금값 최우선 (닉 제외 검수/콘텐츠 열). 로컬 저장이라 시트 재배포 전에도 즉시 반영.
     const rowOv = ov[String(a.row)];
     if (rowOv) {
-      if ('17' in rowOv) m.contentLink = rowOv['17'];
-      if ('19' in rowOv) m.soundOk = rowOv['19'];
-      if ('20' in rowOv) m.soundSection = rowOv['20'];
-      if ('21' in rowOv) m.hashtagOk = rowOv['21'];
-      m.manualCols = Object.keys(rowOv); // 프론트 툴팁: 수동 지정된 열 구분
+      // 잠금 키는 필드명(contentA·soundOk…). 표시용 프로퍼티 이름(a.contentLink)은 그대로 둔다 —
+      // 통일이 필요한 건 '되쓰기 키'뿐이고, 화면 코드까지 갈아엎으면 회귀 위험만 커진다.
+      if ('contentA' in rowOv) m.contentLink = rowOv.contentA;
+      if ('soundOk' in rowOv) m.soundOk = rowOv.soundOk;
+      if ('soundSection' in rowOv) m.soundSection = rowOv.soundSection;
+      if ('hashtagOk' in rowOv) m.hashtagOk = rowOv.hashtagOk;
+      m.manualFields = Object.keys(rowOv); // 프론트 툴팁: 수동 지정된 필드 구분
     }
     return m;
   });
@@ -317,21 +320,24 @@ export async function handler(req, res) {
       }
     }
 
-    // 셀 수기 편집 → 시트 되쓰기 + 검수/콘텐츠 열이면 수동 잠금 기록(수동 우선)
+    // 셀 수기 편집 → 시트 되쓰기 + 검수/콘텐츠 필드면 수동 잠금 기록(수동 우선)
     if (path === '/api/cell' && req.method === 'POST') {
       const body = await readBody(req);
       const row = Number(body.row);
-      const col = Number(body.col);
+      // 되쓰기 키는 필드명. 열 번호는 마스터마다 달라(베이온 4=계정링크, LUN8 4=이메일) 쓰면 안 된다.
+      // 옛 화면(캐시된 app.js)이 col 로 보내는 경우만 베이온 좌표로 해석해 준다 —
+      // 그렇게 얻은 필드도 아래 화이트리스트를 똑같이 통과해야 한다.
+      const field = body.field ? String(body.field) : (LEGACY_COL_FIELD[Number(body.col)] || '');
       const value = body.value == null ? '' : String(body.value);
-      if (!row || !EDITABLE_COLS.includes(col)) return send(res, 400, { error: `row/col(${EDITABLE_COLS.join('·')}) 필요` });
-      // 계정 링크(4)는 @핸들이 있어야 함 — 없으면 시트 읽을 때 그 행이 통째로 사라짐(계정 소실 방지)
-      if (col === 4 && !/@[A-Za-z0-9._]+/.test(value)) return send(res, 400, { error: '계정 링크에 @사용자명이 필요합니다 (예: tiktok.com/@user)' });
+      if (!row || !EDITABLE_FIELDS.includes(field)) return send(res, 400, { error: `row/field(${EDITABLE_FIELDS.join('·')}) 필요` });
+      // 계정 링크는 @핸들이 있어야 함 — 없으면 시트 읽을 때 그 행이 통째로 사라짐(계정 소실 방지)
+      if (field === 'link' && !/@[A-Za-z0-9._]+/.test(value)) return send(res, 400, { error: '계정 링크에 @사용자명이 필요합니다 (예: tiktok.com/@user)' });
       try {
-        await pushCellsToSheet(campaign.sheet, [{ row, col, value }]);
-        // 검수/콘텐츠 열: 값 있으면 수동 잠금, '미확인'(빈값)이면 잠금 해제(자동 관리에 반환). 닉3은 잠금 무관.
-        const w = (OVERRIDE_COLS.includes(col) && !value.trim())
-          ? await clearOverrideStore(campaign, row, col)
-          : await setOverrideStore(campaign, row, col, value);
+        await pushCellsToSheet(campaign.sheet, [{ row, field, value }]);
+        // 검수/콘텐츠 필드: 값 있으면 수동 잠금, '미확인'(빈값)이면 잠금 해제(자동 관리에 반환). nick 은 잠금 무관.
+        const w = (OVERRIDE_FIELDS.includes(field) && !value.trim())
+          ? await clearOverrideStore(campaign, row, field)
+          : await setOverrideStore(campaign, row, field, value);
         // 잠금이 어디에도 안 남으면 스캔이 이 셀을 덮어쓸 수 있다 → 조용히 넘기지 않는다.
         if (w && w.durable === false) { console.error('[검수잠금] 기록 실패:', w.localError || w.sheetError); return send(res, 500, { error: '수정은 됐지만 잠금 기록에 실패했어요. 다음 스캔이 이 칸을 덮어쓸 수 있어요.' }); }
         if (w && w.sheet === 'fail') console.error('[검수잠금] 시트 기록 실패(로컬엔 저장됨):', w.sheetError);

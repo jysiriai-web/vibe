@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LUN8 — 캠페인 대시보드 (시안 v2)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    :root { --tk:#263238; --ig:#c0288f; }
+    .plat-tag { font-size:11px; font-weight:800; letter-spacing:.03em; padding:2px 8px; border-radius:6px; color:#fff; }
+    .plat-tag.tk { background:var(--tk); } .plat-tag.ig { background:var(--ig); }
+    th.memo-col { background:var(--accent-soft); color:var(--accent-ink); }
+    td.memo-col { background:#faf9ff; }
+    .memo-new { font-size:9px; font-weight:800; background:var(--accent); color:#fff; padding:1px 5px; border-radius:5px; margin-left:6px; vertical-align:middle; }
+    .memo-txt { font-size:13px; color:var(--ink); } .memo-add { font-size:12px; color:var(--muted); font-weight:600; cursor:pointer; opacity:.6; }
+    .clink { color:var(--accent); text-decoration:none; font-weight:600; font-size:13px; } .clink:hover { text-decoration:underline; }
+    .cmuted { color:var(--muted); font-size:13px; }
+    .mirror { font-size:12px; font-weight:700; padding:3px 10px; border-radius:20px; }
+    .mirror.m1 { background:var(--warn-bg); color:var(--warn-ink); } .mirror.m0 { background:var(--gray-bg); color:var(--gray-ink); } .mirror.mx { background:var(--line2); color:var(--muted); }
+    .platsub .subtab.tk.active { color:var(--tk); border-bottom-color:var(--tk); } .platsub .subtab.ig.active { color:var(--ig); border-bottom-color:var(--ig); }
+    .amt { font-weight:800; font-variant-numeric:tabular-nums; cursor:help; }
+    .amt .tag { font-size:10px; font-weight:800; padding:1px 6px; border-radius:5px; margin-left:6px; vertical-align:middle; }
+    .tag.auto { background:var(--gray-bg); color:var(--gray-ink); } .tag.ovr { background:var(--warn-bg); color:var(--warn-ink); } .tag.cap { background:var(--needs-bg); color:var(--needs-ink); }
+    .best-chk { display:inline-flex; align-items:center; gap:5px; font-size:12px; color:var(--muted); }
+    .demo-note { margin:20px 0 4px; padding:14px 16px; border-radius:12px; background:var(--accent-soft); color:var(--accent-ink); font-size:13.5px; line-height:1.65; border:1px solid #d9d4ff; }
+    .demo-note b { font-weight:800; }
+    .status-ok { color:var(--ok-ink); font-weight:700; font-size:13px; } .status-wait { color:var(--warn-ink); font-weight:700; font-size:13px; } .status-mid { color:var(--muted); font-size:13px; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="side-brand"><span class="leaf">🌱</span><span class="brand-txt"><b>SIRIAI</b><span class="brand-sub">댄스 챌린지</span></span></div>
+      <nav class="nav" id="nav">
+        <button class="tab" data-view="recruit"><span class="ni">👥</span><span class="lb">모집</span><span class="cnt">6</span></button>
+        <button class="tab active" data-view="upload"><span class="ni">⬆️</span><span class="lb">업로드</span><span class="cnt">6</span></button>
+        <button class="tab" data-view="garden"><span class="ni">🌱</span><span class="lb">가드닝</span><span class="cnt warn">2</span></button>
+        <button class="tab" data-view="deliver"><span class="ni">📦</span><span class="lb">납품</span><span class="cnt">8</span></button>
+        <button class="tab" data-view="settle"><span class="ni">💰</span><span class="lb">정산</span><span class="cnt warn">4</span></button>
+      </nav>
+    </aside>
+
+    <div class="mainwrap">
+      <header class="topbar">
+        <div class="topbar-title"><select class="camp-select" id="camp"><option value="lun8">LUN8 (SNEAKERS)</option><option value="bayonn">베이온</option></select></div>
+        <div class="topbar-right">
+          <div class="stats">
+            <div class="stat"><span class="k">틱톡 검수완료</span><span class="v" id="s-tk">—</span></div>
+            <div class="stat"><span class="k">인스타 검수완료</span><span class="v" id="s-ig">—</span></div>
+            <div class="stat"><span class="k">미입금</span><span class="v" id="s-pay" style="color:var(--needs-ink)">—</span></div>
+          </div>
+          <button class="btn ghost" title="스캐너 나가는 IP 확인" aria-label="나가는 나라">🌐</button>
+          <button class="btn">업로드 스캔</button>
+          <button class="btn primary">모집 스캔</button>
+        </div>
+      </header>
+      <main id="content"></main>
+    </div>
+  </div>
+
+<script>
+const REV = { p:['rev-pass','준수'], f:['rev-fail','미준수'], n:['rev-none','미확인'] };
+// 1행=1사람. tk/ig 각 플랫폼, settle. done=음원·구간·해시 3개 준수.
+const D = [
+  { co:'MARU', nick:'박창호', refBy:'', refCount:2, sched:'7/24', mir:'m1',
+    tk:{h:'@maru_changho', c1:'video/765…', c2:'', snd:'p',sec:'p',hash:'p', fol:15280, v:'128,400', memo:'' },
+    ig:{h:'@maru.changho', c1:'reel/CxA…', c2:'', snd:'p',sec:'p',hash:'n', fol:8200, v:'41,200', memo:'릴스 인사이트 비공개 → 조회수 수기확인' },
+    settle:{ pay:'현금', best:true, override:null, paid:true, memo:'' } },
+  { co:'SIRIAI', nick:'유진', refBy:'박창호', refCount:0, sched:'7/25', mir:'m1',
+    tk:{h:'@siri_yujin', c1:'video/766…', c2:'video/766b', snd:'p',sec:'f',hash:'p', fol:3400, v:'22,100', memo:'음원구간 어긋남 → 재업로드 요청함' },
+    ig:{h:'@siri.yujin', c1:'', c2:'', snd:'n',sec:'n',hash:'n', fol:1200, v:'', memo:'' },
+    settle:{ pay:'기프트카드', best:false, override:null, paid:false, memo:'' } },
+  { co:'SIRIAI', nick:'하늘', refBy:'박창호', refCount:0, sched:'7/26', mir:'m0',
+    tk:{h:'@siri_haneul', c1:'video/767…', c2:'', snd:'p',sec:'p',hash:'p', fol:9800, v:'9,800', memo:'' },
+    ig:{h:'@siri.haneul', c1:'reel/CxB…', c2:'', snd:'p',sec:'p',hash:'p', fol:18600, v:'18,600', memo:'' },
+    settle:{ pay:'현금', best:false, override:8000, paid:false, memo:'개별단가 8,000엔 (급건 추가) — 수식 무시' } },
+  { co:'MARU', nick:'소다', refBy:'', refCount:0, sched:'7/27', mir:'mx',
+    tk:{h:'@melon_sooda', c1:'video/768…', c2:'', snd:'n',sec:'p',hash:'p', fol:890, v:'', memo:'음원 다른 곡 → 확인중' },
+    ig:{h:'@melon.sooda', c1:'', c2:'', snd:'n',sec:'n',hash:'n', fol:400, v:'', memo:'' },
+    settle:{ pay:'현금', best:false, override:null, paid:false, memo:'' } },
+  { co:'SIRIAI', nick:'리아', refBy:'', refCount:0, sched:'', mir:'mx',
+    tk:{h:'@siri_ria', c1:'', c2:'', snd:'n',sec:'n',hash:'n', fol:620, v:'', memo:'예정일 미정' },
+    ig:{h:'@siri.ria', c1:'', c2:'', snd:'n',sec:'n',hash:'n', fol:300, v:'', memo:'' },
+    settle:{ pay:'기프트카드', best:false, override:null, paid:false, memo:'' } },
+  { co:'MARU', nick:'카논', refBy:'', refCount:3, sched:'7/28', mir:'m1',
+    tk:{h:'@kanon_dance', c1:'video/769…', c2:'', snd:'p',sec:'p',hash:'p', fol:54300, v:'54,300', memo:'' },
+    ig:{h:'@kanon.dance', c1:'reel/CxC…', c2:'reel/CxC2', snd:'p',sec:'p',hash:'p', fol:33900, v:'33,900', memo:'미러링 확인됨' },
+    settle:{ pay:'현금', best:true, override:null, paid:true, memo:'' } },
+];
+const coChip = c => `<span class="co ${c==='MARU'?'co-maru':'co-siriai'}">${c}</span>`;
+const rev = k => { const [cl,tx]=REV[k]; return `<span class="rev-sel ${cl}" style="display:inline-block">${tx}</span>`; };
+const cont = (l,dash) => l ? `<a class="clink" href="#">${l}</a>` : `<span class="cmuted">${dash||'미업로드'}</span>`;
+const mirName = k => ({m1:'미러링',m0:'별개',mx:'미확인'}[k]);
+const done = p => p.snd==='p'&&p.sec==='p'&&p.hash==='p';
+const nf = n => n.toLocaleString();
+const memoCell = m => m ? `<td class="memo-col"><span class="memo-txt">${m}</span></td>` : `<td class="memo-col"><span class="memo-add">＋</span></td>`;
+
+// ── 정산 금액 계산 ──
+function settle(d){
+  const s=d.settle;
+  if (s.override!=null) return { amt:s.override, tag:['ovr','특별'], bd:`특별케이스(수식 무시): ${nf(s.override)}엔` };
+  const plats=(done(d.tk)?1:0)+(done(d.ig)?1:0);
+  const base= plats===2?12000: plats===1?5000: 0;
+  const best= s.best?10000:0;
+  const ref = d.refCount*3000;
+  const raw = base+best+ref;
+  const amt = Math.min(raw,30000);
+  const parts=[`참여(${plats===2?'양쪽':plats===1?'단일':'없음'}) ${nf(base)}`];
+  if(best) parts.push(`최우수 +${nf(best)}`);
+  if(ref)  parts.push(`추천 ${d.refCount}×3,000 +${nf(ref)}`);
+  const bd = parts.join('  ·  ')+` = ${nf(raw)}`+(raw>30000?` → 3만 cap`:'');
+  return { amt, tag: raw>30000?['cap','3만 cap']:['auto','자동'], bd };
+}
+
+// ── 뷰들 (기존 탭 구조 유지) ──
+function viewRecruit(){
+  const rows=D.map(d=>`<tr>
+    <td>${coChip(d.co)}</td><td class="nick"><b>${d.nick}</b></td>
+    <td class="handle"><a href="#">${d.tk.h}</a></td><td class="handle"><a href="#">${d.ig.h}</a></td>
+    <td>${d.refBy?`<span class="chip filling">${d.refBy} 추천</span>`:'<span class="cmuted">—</span>'}</td>
+    <td>${d.sched?`<b>${d.sched}</b>`:'<span class="cmuted">미정</span>'}</td>
+  </tr>`).join('');
+  return `<div class="bar"><div class="summary">모집 <b>6</b>명 · MARU <b>3</b> · SIRIAI <b>3</b></div></div>
+    <div class="tscroll"><table><thead><tr><th>진행사</th><th>크리에이터</th><th>틱톡</th><th>인스타</th><th>추천 출처</th><th>업로드 예정일</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function viewUpload(){
+  const p=state.plat, tag=p==='tk'?'<span class="plat-tag tk">TikTok</span>':'<span class="plat-tag ig">Instagram</span>';
+  const rows=D.map(d=>{const x=d[p];return `<tr>
+    <td>${coChip(d.co)}</td><td class="nick"><b>${d.nick}</b></td>
+    <td class="handle"><a href="#">${x.h}</a></td>
+    <td>${cont(x.c1)}</td><td>${cont(x.c2,'—')}</td>
+    <td>${rev(x.snd)}</td><td>${rev(x.sec)}</td><td>${rev(x.hash)}</td>
+    <td><span class="mirror ${d.mir}">${mirName(d.mir)}</span></td>
+    ${memoCell(x.memo)}
+  </tr>`;}).join('');
+  return `<div class="subtabs platsub">
+      <button class="subtab tk ${p==='tk'?'active':''}" data-plat="tk">틱톡</button>
+      <button class="subtab ig ${p==='ig'?'active':''}" data-plat="ig">인스타</button></div>
+    <div class="tscroll"><table><thead><tr><th>진행사</th><th>크리에이터</th><th>${tag} 닉</th><th>콘텐츠①</th><th>콘텐츠②</th><th>음원</th><th>음원구간</th><th>해시태그</th><th>미러링</th><th class="memo-col">${p==='tk'?'틱톡':'인스타'} 비고<span class="memo-new">NEW</span></th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="demo-note">💡 <b>플랫폼별 비고</b>: 지금 마스터는 계정당 비고 1개(공유)라 틱톡·인스타 상황을 따로 못 적어요. 위처럼 <b>틱톡/인스타 각각 비고</b>를 둬서 확장성 확보 — 마스터에 열 2개 추가하면 헤더기반 인덱싱이 자동 인식.</div>`;
+}
+function viewGarden(){
+  const p=state.plat, tag=p==='tk'?'<span class="plat-tag tk">TikTok</span>':'<span class="plat-tag ig">Instagram</span>';
+  const rows=D.map(d=>{const x=d[p]; const need=x.fol<1000; return `<tr>
+    <td>${coChip(d.co)}</td><td class="nick"><b>${d.nick}</b></td><td class="handle"><a href="#">${x.h}</a></td>
+    <td class="num">${nf(x.fol)}</td>
+    <td>${need?'<span class="chip needs">가드닝 필요</span>':'<span class="chip ok">충분</span>'}</td>
+    <td>${need?`<button class="btn small">${nf(1000-x.fol)}명 충전</button>`:'<span class="cmuted">—</span>'}</td>
+  </tr>`;}).join('');
+  return `<div class="subtabs platsub">
+      <button class="subtab tk ${p==='tk'?'active':''}" data-plat="tk">틱톡</button>
+      <button class="subtab ig ${p==='ig'?'active':''}" data-plat="ig">인스타</button></div>
+    <div class="tscroll"><table><thead><tr><th>진행사</th><th>크리에이터</th><th>${tag} 닉</th><th class="num">팔로워</th><th>상태</th><th>충전</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="demo-note">🌱 LUN8은 <b>틱톡·인스타 팔로워를 각각</b> 관리해요. 플랫폼별로 1,000 미만이면 가드닝 대상. (베이온 가드닝 로직 그대로, 플랫폼만 2개)</div>`;
+}
+function viewDeliver(){
+  const rows=[];
+  D.forEach(d=>['tk','ig'].forEach(p=>{ const x=d[p]; if(!x.c1) return;
+    const ok=done(x); const platTag=p==='tk'?'<span class="plat-tag tk">TT</span>':'<span class="plat-tag ig">IG</span>';
+    const st= ok?'<span class="status-ok">검수완료</span>': (x.snd==='f'||x.sec==='f'||x.hash==='f'?'<span class="status-wait">수정요청 대기</span>':'<span class="status-mid">검수중</span>');
+    const note= ok? (x.v && parseInt(x.v.replace(/,/g,''))>=10000 ? `${x.v}조회수` : '') : '검수 미완료 — 납품일 확정 기입';
+    rows.push(`<tr><td class="nick"><b>${d.nick}</b></td><td>${platTag}</td><td>${cont(x.c1)}</td><td>${st}</td>${memoCell(note)}</tr>`);
+  }));
+  return `<div class="bar"><div class="summary">납품 대상 <b>${rows.length}</b>건 <span class="cmuted">(검수완료 + 업로드된 미검수분 포함)</span></div></div>
+    <div class="tscroll"><table><thead><tr><th>크리에이터</th><th>플랫폼</th><th>콘텐츠</th><th>검수</th><th class="memo-col">비고<span class="memo-new">납품시트 기입</span></th></tr></thead><tbody>${rows.join('')}</tbody></table></div>
+    <div class="demo-note">📦 <b>납품 규칙</b>: 검수완료뿐 아니라 <b>업로드된 것 전부 납품</b>(어차피 검수될 것). 미검수분은 비고에 <b>"수정요청 대기"</b> 식으로 표기해 납품일에 확정. (55건 중 1건 수정대기여도 빼지 않음)</div>`;
+}
+function viewSettle(){
+  const rows=D.map(d=>{const s=settle(d); const sd=d.settle; return `<tr>
+    <td>${coChip(d.co)}</td><td class="nick"><b>${d.nick}</b></td><td>${sd.pay}</td>
+    <td class="num"><span class="amt" title="${s.bd}">${nf(s.amt)}엔<span class="tag ${s.tag[0]}">${s.tag[1]}</span></span></td>
+    <td><label class="best-chk"><input type="checkbox" ${sd.best?'checked':''}> 최우수</label></td>
+    <td><span class="chip ${sd.paid?'ok':'needs'}">${sd.paid?'입금':'미입금'}</span></td>
+    ${memoCell(sd.memo)}
+  </tr>`;}).join('');
+  const total=D.reduce((a,d)=>a+settle(d).amt,0);
+  return `<div class="bar"><div class="summary">정산 총액 <b>${nf(total)}엔</b> · 미입금 <b>4</b>명</div></div>
+    <div class="tscroll"><table><thead><tr><th>진행사</th><th>크리에이터</th><th>정산방식</th><th class="num">정산 금액</th><th>최우수</th><th>입금</th><th class="memo-col">정산 비고</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="demo-note">💰 <b>금액 자동계산</b>(마우스 올리면 내역): 참여 5천/1.2만 + 최우수 1만 + 추천 3천×N, <b>3만 cap</b>. 특별케이스는 <b>수동입력=수식 무시</b>(하늘 8,000엔). <b>등급(메가/일반) 삭제</b> — 앞엔 금액 하나만.</div>`;
+}
+const VIEWS={ recruit:viewRecruit, upload:viewUpload, garden:viewGarden, deliver:viewDeliver, settle:viewSettle };
+const state={ view:'upload', plat:'tk' };
+function stats(){
+  const tk=D.filter(d=>done(d.tk)).length, ig=D.filter(d=>done(d.ig)).length, pay=D.filter(d=>!d.settle.paid).length;
+  document.getElementById('s-tk').innerHTML=`${tk} <span style="font-size:13px;color:var(--faint)">/ 200</span>`;
+  document.getElementById('s-ig').innerHTML=`${ig} <span style="font-size:13px;color:var(--faint)">/ 100</span>`;
+  document.getElementById('s-pay').textContent=pay;
+}
+function render(){ document.getElementById('content').innerHTML=VIEWS[state.view](); }
+document.getElementById('nav').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return;
+  document.querySelectorAll('#nav .tab').forEach(t=>t.classList.remove('active'));b.classList.add('active');state.view=b.dataset.view;state.plat='tk';render();});
+document.getElementById('content').addEventListener('click',e=>{const s=e.target.closest('.subtab');if(!s)return;state.plat=s.dataset.plat;render();});
+document.getElementById('camp').addEventListener('change',e=>{ if(e.target.value==='bayonn') alert('시안: 베이온 선택 시 기존 단일플랫폼(틱톡) 화면으로 — 같은 앱, 캠페인만 전환'); e.target.value='lun8'; });
+stats(); render();
+</script>
+</body>
+</html>

@@ -368,109 +368,6 @@ th.ghost-h { color:var(--gray-ink); }
   .sim-grid { grid-template-columns:1fr; }
   .mform .row2 { flex-direction:column; }
 }
-/* ── UI 피드백 반영 ── */
-/* 주차 칩은 '펼치기 버튼'이 아니라 '필터'다. 눌린 상태가 보여야 해서 .on 을 준다. */
-.wchips { gap:10px; flex-wrap:nowrap; align-items:stretch; margin-top:10px; }
-.wchip { flex:1 1 0; min-width:0; gap:3px; }
-.wchip.on { border-color:var(--ink); background:var(--line2); }
-.wchip .ws { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-/* 링크는 칩과 같은 줄 오른쪽 — 카드가 세로로 길어지지 않게 가로를 채운다. */
-.wchips .linkbtn { flex:0 0 auto; align-self:center; margin-left:auto; }
-@media (max-width:720px){ .wchips { flex-wrap:wrap; } .wchip { flex:1 1 45%; } .wchips .linkbtn { margin-left:0; } }
-/* 펼친 일자 스트립 — 구조는 그대로 두고 여백만 줄인다. */
-.dstrip { gap:14px; margin-top:10px; }
-.dgrp { gap:4px; }
-.wchips-foot { margin-top:8px; }
-/* 기준·규칙 설명 = 약관처럼. 뷰 맨 아래, 작고 흐리게 — 굳이 안 읽어도 되게. */
-.finenote { font-size:11.5px; color:var(--faint); line-height:1.6; margin:18px 0 0; padding-top:10px; border-top:1px dashed var(--line); }
-.finenote b { color:var(--muted); font-weight:700; }
-
-/* ── 매뉴얼(문의 응대) · 가이드(캠페인 사양) ────────────────────────────── */
-.nav-sep { height: 1px; background: var(--line); margin: 8px 6px; }
-
-/* 매뉴얼 */
-.msearch { flex: 1; min-width: 200px; font-family: var(--sans); font-size: 15px; padding: 9px 13px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--card); color: var(--ink); }
-.msearch:focus { border-color: var(--accent); outline: none; }
-#qaList { display: flex; flex-direction: column; gap: 12px; }
-.qa { background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
-.qa-h { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line2); }
-.qa-h b { font-size: 15.5px; font-weight: 700; letter-spacing: -0.01em; }
-.qa-cat { flex-shrink: 0; font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); }
-.qa-b { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line2); }
-.qa-a { background: var(--card); padding: 13px 18px 16px; display: flex; flex-direction: column; gap: 8px; }
-.qa-l { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.qa-l span { font-size: 11.5px; font-weight: 700; color: var(--faint); letter-spacing: .04em; text-transform: uppercase; }
-.qa-a pre { font-family: var(--sans); font-size: 14px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; color: var(--ink); margin: 0; }
-@media (max-width: 900px) { .qa-b { grid-template-columns: 1fr; } }
-
-/* 가이드 */
-.gspec { width: 100%; background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); border-collapse: separate; border-spacing: 0; overflow: hidden; margin-bottom: 18px; }
-.gspec th { width: 130px; text-align: left; font-size: 13px; font-weight: 700; color: var(--faint); padding: 12px 18px; background: var(--line2); border-bottom: 1px solid var(--line); }
-.gspec td { font-size: 14.5px; padding: 12px 18px; border-bottom: 1px solid var(--line); }
-.gspec tr:last-child th, .gspec tr:last-child td { border-bottom: none; }
-.gsecs { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 14px; align-items: start; }
-.gsec { background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 16px 20px 18px; }
-.gsec h3 { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 10px; }
-.gsec ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-.gsec li { font-size: 14px; line-height: 1.65; color: var(--muted); padding-left: 14px; position: relative; }
-.gsec li::before { content: ''; position: absolute; left: 0; top: .62em; width: 5px; height: 5px; border-radius: 50%; background: var(--line); }
-.gsec li b { color: var(--ink); font-weight: 700; }
-.todo { display: inline-block; font-size: .92em; font-weight: 700; padding: 0 6px; border-radius: 5px; background: var(--needs-bg); color: var(--needs-ink); }
-
-/* ── 의견 남기기 ─────────────────────────────────────────────────────────── */
-body.fb-picking #content *, body.fb-picking .topbar *, body.fb-picking .nav * { cursor: crosshair !important; }
-body.fb-picking #content *:hover { outline: 2px solid var(--accent); outline-offset: 1px; }
-.fb-panel { position: fixed; right: 18px; bottom: 18px; width: min(380px, calc(100vw - 36px)); max-height: 70vh;
-  background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 8px 40px rgba(20,20,35,.18);
-  display: flex; flex-direction: column; z-index: 60; }
-.fb-head { display: flex; align-items: center; gap: 8px; padding: 13px 16px; border-bottom: 1px solid var(--line2); }
-.fb-head b { font-size: 14px; }
-.fb-hint { flex: 1; font-size: 11.5px; color: var(--faint); }
-.fb-hint b { color: var(--accent-ink); }
-.fb-list { flex: 1; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
-.fb-item { position: relative; background: var(--bg); border-radius: 10px; padding: 9px 11px; }
-.fb-where { font-size: 11px; font-weight: 700; color: var(--accent-ink); margin-bottom: 5px; padding-right: 18px; word-break: break-all; }
-.fb-text { width: 100%; border: 1px solid var(--line); border-radius: 7px; padding: 6px 8px; font-family: var(--sans);
-  font-size: 13px; line-height: 1.5; resize: vertical; background: var(--card); color: var(--ink); }
-.fb-text:focus { border-color: var(--accent); outline: none; }
-.fb-del { position: absolute; top: 7px; right: 8px; border: none; background: none; cursor: pointer; color: var(--faint); font-size: 13px; padding: 2px 4px; }
-.fb-del:hover { color: var(--needs); }
-.fb-empty { text-align: center; font-size: 13px; color: var(--muted); line-height: 1.7; padding: 22px 10px; }
-.fb-foot { display: flex; align-items: center; gap: 7px; padding: 10px 13px; border-top: 1px solid var(--line2); flex-wrap: wrap; }
-.fb-note { font-size: 11px; color: var(--faint); }
-.plat-tag { font-size: 9.5px; font-weight: 800; padding: 1px 4px; border-radius: 4px; background: var(--accent-soft); color: var(--accent-ink); vertical-align: 1px; }
-
-/* 전역 th 대문자화가 한글 라벨을 깨서 여기서만 되돌린다 */
-.gspec th { text-transform:none; letter-spacing:normal; }
-.gspec tbody tr:hover { background:transparent; }
-.kempty { text-align:center; color:var(--muted); font-size:15px; padding:34px 16px; }
-
-.fb-new { border: 1.5px solid var(--accent); }
-.fb-row { display: flex; gap: 6px; margin-top: 7px; align-items: center; }
-.fb-name { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 7px; padding: 5px 8px; font-family: var(--sans); font-size: 12.5px; background: var(--card); color: var(--ink); }
-.fb-body { font-size: 13px; line-height: 1.55; color: var(--ink); white-space: pre-wrap; }
-.fb-meta { font-size: 11px; color: var(--faint); margin-top: 5px; display: flex; gap: 7px; align-items: center; }
-.fb-meta b { color: var(--ok-ink); }
-.fb-ok { margin-left: auto; border: none; background: none; cursor: pointer; font-family: var(--sans); font-size: 11px; font-weight: 700; color: var(--accent-ink); }
-.fb-done { opacity: .5; }
-.sim-basis { display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:12px; font-weight:700; color:var(--faint); margin-bottom:14px; }
-.sim-basis .cmuted { font-weight:600; }
-.notice { border:none; cursor:pointer; font-family:var(--sans); font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:999px; }
-.notice.sent { background:var(--ok-bg); color:var(--ok-ink); }
-.notice.unsent { background:var(--needs-bg); color:var(--needs-ink); }
-.fixdate { color:var(--ok-ink); }
-/* 업로드 일정 카드 밀도 — 정보량 대비 높이가 과했다. 숫자·여백·칸을 한 단계씩 줄인다. */
-.kpi.dstrip-card { padding:14px 18px 16px; }
-.kpi.dstrip-card .big { font-size:22px; margin-bottom:2px; }
-.kpi.dstrip-card .sub { font-size:12px; margin-bottom:0; }
-.dstrip-card .wchips { gap:8px; margin-top:10px; }
-.dstrip-card .wchip { padding:7px 13px; }
-.dstrip-card .wchip .wn { font-size:17px; }
-.dstrip-card .dstrip { gap:16px; margin-top:9px; }
-.dstrip-card .dgrp { gap:3px; }
-.dstrip-card .dday { width:42px; padding:4px 0 5px; }
-.dstrip-card .dday .dn { font-size:15px; }
-.dstrip-card .dcap { font-size:10.5px; }
 </style>
 </head>
 <body>
@@ -498,9 +395,6 @@ body.fb-picking #content *:hover { outline: 2px solid var(--accent); outline-off
       <button class="tab" data-view="garden"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg><span class="lb">가드닝</span><span class="cnt" id="c-garden">0</span></button>
       <button class="tab" data-view="deliver"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span class="lb">납품</span><span class="cnt" id="c-deliver">0</span></button>
       <button class="tab" data-view="settle"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span class="lb">정산</span><span class="cnt" id="c-settle">0</span></button>
-      <div class="nav-sep"></div>
-      <button class="tab" data-view="manual"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="lb">매뉴얼</span></button>
-      <button class="tab" data-view="guide"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span class="lb">가이드</span></button>
     </nav>
     <div class="side-foot">
       <span class="wbadge on" id="worker"><span class="hb"></span><span id="workerTxt">워커 온라인 · 방금</span></span>
@@ -516,7 +410,6 @@ body.fb-picking #content *:hover { outline: 2px solid var(--accent); outline-off
       </div>
       <div class="topbar-right">
         <div class="stats" id="stats"></div>
-        <button class="btn ghost" id="fbBtn" title="화면 아무 곳이나 눌러서 '여기 이런 기능·필터 있으면 좋겠다'를 남겨요">💬 <span id="fbCnt"></span></button>
         <button class="btn" id="btnSettings" title="설정 · 뷰 모드">⚙︎ 설정</button>
       </div>
     </header>
@@ -556,22 +449,6 @@ body.fb-picking #content *:hover { outline: 2px solid var(--accent); outline-off
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-<!-- 의견 남기기: 화면 요소를 집어서 "여기 이런 기능 있으면 좋겠다"를 적어두는 패널 -->
-<div class="fb-panel" id="fbPanel" hidden>
-  <div class="fb-head">
-    <b>의견 남기기</b>
-    <span class="fb-hint" id="fbHint">화면에서 <b>고칠 곳을 클릭</b>하세요</span>
-    <button class="btn small ghost" id="fbClose">닫기</button>
-  </div>
-  <div class="fb-list" id="fbList"></div>
-  <div class="fb-foot">
-    <button class="btn small" id="fbCopy">전체 복사</button>
-    <button class="btn small ghost" id="fbClear">전체 삭제</button>
-    <span class="fb-note">이 브라우저에만 저장돼요. 복사해서 공유하세요.</span>
-  </div>
-</div>
-
-<script src="/knowledge.js"></script>
 <script>
 /* ============ 아이콘 ============ */
 const svg = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
@@ -612,201 +489,104 @@ const CAMPAIGNS = {
        확보 115 = 시리아이 94(현재 틱톡48/인스타46) + 마루 21(요청함)
      즉 여유분 10건이 '미업로드 완충'이고, 이게 0이 되면 마루에 추가 요청이 들어가야 한다. */
   lun8:   { name:'LUN8 · SNEAKERS', plats:['tk','ig'], targets:{tk:50, ig:50}, settleCap:105,
-            secure:{ target:115, SIRIAI:94, MARU:21 }, sub:'댄스챌린지', scan:'—', sheet:'https://docs.google.com/spreadsheets/d/1PjiAHc7Zfonl1jXBPqzE8LmDBjCfAHcK6ycGUsLEcf8/edit',
+            secure:{ target:115, SIRIAI:94, MARU:21 }, sub:'댄스챌린지', scan:'2분 전', sheet:'https://docs.google.com/spreadsheets/d/LUN8_MASTER',
             weeks:[ { label:'1주차', share:0.60, days:['7/23','7/24','7/25','7/26','7/27','7/28'] },
                     { label:'2주차', share:0.40, days:['7/29','7/30','7/31','8/1','8/2','8/3','8/4'] } ],
-            spreadOverBy:3 },
-  // today 는 일부러 안 넣는다 — 목업에선 '지연'을 화면에 띄우려고 7/26에 묶어놨지만,
-  // 실서비스에서 남아 있으면 날짜가 영영 안 흘러가 지연 판정이 통째로 굳는다. TODAY()가 실제 날짜를 쓴다.
-  // 베이온은 제거 — 이 화면은 LUN8 전용이고, 데이터도 lun8 캠페인만 불러온다.
+            spreadOverBy:3,
+            today:'7/26' },   // 목업 전용 — '지연'(예정일 지났는데 미업로드)이 화면에 보이게. 실서비스는 실제 날짜를 쓴다.
+  bayonn: { name:'베이온 챌린지',    plats:['tk'],       targets:{tk:200},        settleCap:210, sub:'틱톡 전용',       scan:'1시간 전', sheet:'https://docs.google.com/spreadsheets/d/BAYONN_MASTER' },
 };
 
-/* ============ 데이터 (서버 API · 1행=1사람) ============ */
-/* 손으로 쓴 10명 + 34명 시드는 통째로 걷어냈다. 이제 화면의 유일한 출처는 마스터시트다. */
-let D = [];
-// 시트 행번호를 그대로 id로 쓰기 때문에, 화면에서 임시로 만드는 행은 행번호와 절대 겹치지 않게 멀리 띄운다.
-let nextId = 100000;
+/* ============ 데이터 (1행=1사람 · 로우데이터) ============ */
+const tkC = (h,id,lab)=>({label:lab, url:'https://www.tiktok.com/@'+h+'/video/765884'+id});
+const igC = (id,lab)=>({label:lab, url:'https://www.instagram.com/reel/Cx'+id+'/'});
+
+let D = [
+  { id:1, co:'MARU', nick:'박창호', plats:['tk','ig'], refBy:'', refCount:2, sched:'7/27', mir:'m1', memo:'', noUpload:false, oddsLow:false,
+    tk:{h:'@maru_changho', c1:tkC('maru_changho','1203','🎬 영상①'), c2:tkC('maru_changho','1204','🎬 영상②'), snd:'p',sec:'p',hash:'p', fol:15280, inFlight:0, views:'128,400', memo:'' },
+    ig:{h:'@maru.changho', c1:igC('A9kLp','🎬 릴스①'), c2:'', snd:'p',sec:'p',hash:'n', fol:8200, inFlight:0, views:'41,200', memo:'릴스 인사이트 비공개 → 조회수 수기확인' },
+    settle:{ pay:'아마존', best:true, override:null, paid:true, memo:'' } },
+
+  { id:2, co:'SIRIAI', nick:'유진', plats:['tk','ig'], refBy:'박창호', refCount:0, sched:'7/23', mir:'m1', memo:'재촬영 협의중', noUpload:false, oddsLow:false,
+    tk:{h:'@siri_yujin', c1:tkC('siri_yujin','2210','🎬 영상①'), c2:tkC('siri_yujin','2211','🎬 영상②'), snd:'p',sec:'f',hash:'p', fol:640, inFlight:0, views:'22,100', memo:'음원구간 어긋남 → 재업로드 요청함' },
+    ig:{h:'@siri.yujin', c1:'', c2:'', snd:'n',sec:'n',hash:'n', fol:1200, inFlight:0, views:'', memo:'' },
+    settle:{ pay:'구글', best:false, override:null, paid:false, memo:'' } },
+
+  { id:3, co:'SIRIAI', nick:'하늘', plats:['tk','ig'], refBy:'박창호', refCount:0, sched:'7/28', mir:'m1', memo:'', noUpload:false, oddsLow:false,
+    tk:{h:'@siri_haneul', c1:tkC('siri_haneul','3307','🎬 영상①'), c2:'', snd:'p',sec:'p',hash:'p', fol:9800, inFlight:0, views:'51,200', memo:'' },
+    ig:{h:'@siri.haneul', c1:igC('B2mQr','🎬 릴스①'), c2:'', snd:'p',sec:'p',hash:'p', fol:18600, inFlight:0, views:'33,900', memo:'' },
+    settle:{ pay:'애플', best:false, override:8000, paid:false, memo:'개별단가 8,000엔(급건 추가) — 자동수식 무시' } },
+
+  { id:4, co:'MARU', nick:'소다', plats:['tk','ig'], refBy:'', refCount:0, sched:'7/24', mir:'mx', memo:'마감 임박·연락 느림 → 업로드 불확실', noUpload:false, oddsLow:true,
+    tk:{h:'@melon_sooda', c1:'', c2:'', snd:'n',sec:'n',hash:'n', fol:890, inFlight:0, views:'', memo:'음원 다른 곡 → 확인중' },
+    ig:{h:'@melon.sooda', c1:'', c2:'', snd:'n',sec:'n',hash:'n', fol:400, inFlight:800, views:'', memo:'가드닝 800 진행중(remains 800)' },
+    settle:{ pay:'아마존', best:false, override:null, paid:false, memo:'' } },
+
+  { id:5, co:'SIRIAI', nick:'리아', plats:['tk'], refBy:'', refCount:0, sched:'', mir:'mx', memo:'연락 두절 · 업로드 확률 낮음 → 보류', noUpload:true, oddsLow:true,
+    tk:{h:'@siri_ria', c1:'', c2:'', snd:'n',sec:'n',hash:'n', fol:620, inFlight:0, views:'', memo:'예정일 미정 → 업로드 확인 후 가드닝' },
+    ig:null,
+    settle:{ pay:'구글', best:false, override:null, paid:false, memo:'' } },
+
+  { id:6, co:'MARU', nick:'카논', plats:['tk','ig'], refBy:'', refCount:3, sched:'7/31', mir:'m1', memo:'', noUpload:false, oddsLow:false,
+    tk:{h:'@kanon_dance', c1:tkC('kanon_dance','5509','🎬 영상①'), c2:'', snd:'p',sec:'p',hash:'p', fol:54300, inFlight:0, views:'210,500', memo:'' },
+    ig:{h:'@kanon.dance', c1:igC('C7nSt','🎬 릴스①'), c2:'', snd:'p',sec:'p',hash:'p', fol:33900, inFlight:0, views:'88,700', memo:'미러링 확인됨' },
+    settle:{ pay:'아마존', best:true, override:null, paid:true, memo:'' } },
+
+  { id:7, co:'SIRIAI', nick:'미유', plats:['tk'], refBy:'카논', refCount:0, sched:'7/25', mir:'mx', memo:'', noUpload:false, oddsLow:false,
+    tk:{h:'@siri_miyu', c1:tkC('siri_miyu','6610','🎬 영상①'), c2:'', snd:'p',sec:'p',hash:'p', fol:27400, inFlight:0, views:'61,900', memo:'' },
+    ig:null,
+    settle:{ pay:'애플', best:false, override:null, paid:true, memo:'' } },
+
+  { id:8, co:'MARU', nick:'렌', plats:['tk','ig'], refBy:'', refCount:0, sched:'8/3', mir:'mx', memo:'', noUpload:false, oddsLow:false,
+    tk:{h:'@maru_ren', c1:tkC('maru_ren','7711','🎬 영상①'), c2:'', snd:'n',sec:'n',hash:'n', fol:720, inFlight:0, views:'', memo:'업로드됨 · 검수 대기 · 팔로워 낮음' },
+    ig:{h:'@maru.ren', c1:igC('D1oUv','🎬 릴스①'), c2:'', snd:'n',sec:'n',hash:'n', fol:6300, inFlight:0, views:'', memo:'업로드됨 · 검수 대기' },
+    settle:{ pay:'구글', best:false, override:null, paid:false, memo:'' } },
+
+  { id:9, co:'SIRIAI', nick:'사쿠라', plats:['tk','ig'], refBy:'', refCount:1, sched:'7/25', mir:'m1', memo:'', noUpload:false, oddsLow:false,
+    tk:{h:'@siri_sakura', c1:tkC('siri_sakura','8812','🎬 영상①'), c2:'', snd:'p',sec:'p',hash:'p', fol:12100, inFlight:0, views:'44,300', memo:'' },
+    ig:{h:'@siri.sakura', c1:igC('E5pWx','🎬 릴스①'), c2:'', snd:'p',sec:'p',hash:'p', fol:9700, inFlight:0, views:'20,100', memo:'' },
+    settle:{ pay:'아마존', best:false, override:null, paid:false, memo:'' } },
+
+  { id:10, co:'MARU', nick:'하루', plats:['tk','ig'], refBy:'', refCount:0, sched:'8/4', mir:'mx', memo:'', noUpload:false, oddsLow:false,
+    tk:{h:'@maru_haru', c1:tkC('maru_haru','9913','🎬 영상①'), c2:'', snd:'p',sec:'p',hash:'p', fol:3300, inFlight:0, views:'15,600', memo:'' },
+    ig:{h:'@maru.haru', c1:'', c2:'', snd:'n',sec:'n',hash:'n', fol:2100, inFlight:0, views:'', memo:'' },
+    settle:{ pay:'애플', best:false, override:null, paid:false, memo:'' } },
+];
+let nextId = 100;
 const PAY_OPTS = ['아마존','구글','애플'];
 
-/* 같은 서버(3737)가 이 HTML을 서빙하므로 상대경로가 기본 — 포트를 바꿔도 따라온다.
-   file:// 로 파일을 직접 열었을 때만 로컬 워커 주소로 되돌아간다. */
-const API_URL = (location.protocol==='http:'||location.protocol==='https:')
-  ? '/api/data?campaign=lun8'
-  : 'http://localhost:3737/api/data?campaign=lun8';
+/* ── 목업 전용 시드 ──────────────────────────────────────────────────────────
+   위 10명은 업로드·검수·가드닝·정산 상태를 보여주려고 손으로 쓴 것이고,
+   여기서 34명을 더 채워 실제 마스터시트의 '업로드 예정일 분포'를 그대로 재현한다.
+   이게 없으면 10명이 하루 한 명씩 고르게 퍼져 있어서, 정작 보여줘야 할 쏠림이 화면에 안 나온다.
 
-/* 콤마 섞인 시트 문자열 → 숫자. 못 읽으면 0이 아니라 null이어야 한다 —
-   0으로 떨어뜨리면 '아직 안 스캔된 계정'이 '팔로워 0명'이 되어 가드닝 대상으로 잡히고 돈이 나간다. */
-function numOrNull(v){
-  if(typeof v==='number') return isFinite(v) ? v : null;
-  const t = String(v==null?'':v).replace(/[,\s]/g,'');
-  if(t==='') return null;
-  const n = Number(t);
-  return isFinite(n) ? n : null;
-}
-
-/* 시트 검수 문구 → 'p'(준수)/'f'(미준수)/'n'(미확인). 검사 순서가 곧 정확도다:
-   ① '미확인·확인중'을 맨 먼저 걸러낸다 — 아래 통과어 '확인'이 이 말을 삼켜 준수로 뒤집는다.
-   ② 실패를 통과보다 먼저 본다 — '미준수'가 '준수'를 통째로 품고 있다. 순서가 바뀌면
-      미준수 건이 검수완료로 둔갑해 그대로 납품·정산까지 흘러간다. */
-function revFlag(v){
-  const t = String(v==null?'':v).trim().toLowerCase();
-  if(t==='') return 'n';
-  if(/^(x|no|fail)$/.test(t)) return 'f';
-  if(/^(o|ok|v|pass)$/.test(t)) return 'p';
-  if(/미확인|확인중|확인 중|검토중|대기|보류/.test(t)) return 'n';
-  if(/미준수|미사용|다름|누락|불가|없음|아님/.test(t)) return 'f';
-  if(/준수|확인|완료|사용|맞음/.test(t)) return 'p';
-  return 'n';
-}
-
-/* 링크 한 개 → 콘텐츠 칸. 빈 값은 빈 객체가 아니라 '' 여야 한다 —
-   uploaded()가 c1 유무로 업로드를 판정하므로, 빈 객체를 넣으면 미업로드가 전부 업로드로 잡힌다. */
-function contentObj(url, label){
-  const u = String(url==null?'':url).trim();
-  return u ? { label: label, url: u } : '';
-}
-
-/* 플랫폼 한 벌(틱톡 또는 인스타) → 화면이 쓰는 모양.
-   src 는 브릿지 재배포 후엔 a.tk / a.ig, 재배포 전엔 평면 필드를 담은 account 자신이다.
-   두 모양의 필드명이 다르므로(current↔followers, contentLink↔contentA) 둘 다 받아 넘긴다. */
-function platBlock(src){
-  if(!src) return null;
-  const raw = String(src.handle==null?'':src.handle).trim();
-  const h = raw ? (raw.charAt(0)==='@' ? raw : '@'+raw) : String(src.link==null?'':src.link).trim();
-  const fol = src.current!=null ? numOrNull(src.current)
-            : (src.followers!=null ? numOrNull(src.followers) : numOrNull(src.sheetFollowers));
-  return {
-    h: h,
-    c1: contentObj(src.contentA!=null ? src.contentA : src.contentLink, '콘텐츠①'),
-    c2: contentObj(src.contentB, '콘텐츠②'),
-    snd: revFlag(src.soundOk), sec: revFlag(src.soundSection), hash: revFlag(src.hashtagOk),
-    fol: fol,
-    inFlight: numOrNull(src.inFlight) || 0,
-    views: String(src.views==null?'':src.views),
-    memo: String(src.memo==null?'':src.memo)
-  };
-}
-
-/* API account 한 줄 → 화면 D 한 줄.
-   ⚠️ 두 응답 모양을 모두 받는다. 브릿지 재배포 전에는 tk/ig 묶음이 없고 평면 필드뿐이라,
-   그 경우 계정 자체를 틱톡 한 벌로 읽는다(인스타는 null). 이렇게 해야 재배포 전에도 화면이 뜬다. */
-function fromApi(a){
-  const split = !!(a.tk || a.ig);
-  const tk = split ? platBlock(a.tk) : platBlock(a);
-  const ig = split ? platBlock(a.ig) : null;
-  const plats = [];
-  if(tk) plats.push('tk');
-  if(ig) plats.push('ig');
-  // 표시 이름은 사람 이름(creator) 우선. nick 은 틱톡 닉네임이라 화면에 핸들이 뜬다.
-  const nick = String((a.creator||a.nick)==null?'':(a.creator||a.nick)).trim();
-  return {
-    id: a.row,                                   // 시트 행번호 = 유일키
-    co: a.company==='MARU' ? 'MARU' : 'SIRIAI',
-    nick: nick || (tk && tk.h) || ('행 '+a.row),
-    plats: plats,
-    // 추천·미러링·업로드확률·정산방식은 아직 시트에서 안 올라온다. 가짜로 채우면 화면이 거짓말을 하므로
-    // 빈 값으로 둔다 — 빈 열 자동숨김이 알아서 해당 열을 감춘다.
-    refBy: '', refCount: 0,
-    sched: String(a.schedDate==null?'':a.schedDate).trim(),        // 크리에이터가 낸 희망일
-    fixed: String(a.fixedDate==null?'':a.fixedDate).trim(),         // 우리와 합의된 날짜 — 있으면 이게 기준
-    mir: 'mx',
-    memo: String(a.memo==null?'':a.memo),
-    noUpload: false, oddsLow: false,
-    notice: !!String(a.notice==null?'':a.notice).trim(),   // 확정메일 발송 여부 — 모집 탭에서 체크
-    tk: tk, ig: ig,
-    settle: { pay:'아마존', best:false, override:null,
-              paid: paidFlag(a.paid),
-              memo: a.paidDate ? ('지급일 '+a.paidDate) : '' }
-  };
-}
-
-/* 지급 여부 — 시트는 O/V/완료/TRUE 등 제각각이라 '비어 있지 않으면 지급'이 가장 안전하다.
-   단, 명시적 미지급 표기(x, 미지급…)는 지급으로 세면 안 되므로 따로 뺀다. */
-function paidFlag(v){
-  if(typeof v==='boolean') return v;
-  const t = String(v==null?'':v).trim().toLowerCase();
-  if(t==='') return false;
-  return !/^(x|0|false|no|미지급|미완료|대기)$/.test(t);
-}
-
-/* 서버의 best 목록을 최우수 체크로 옮긴다. 아직 빈 배열이라 원소 모양을 단정할 수 없어
-   행번호(숫자)와 {row:…} 객체를 둘 다 받아준다. */
-function applyBest(best){
-  if(!Array.isArray(best) || !best.length) return;
-  const ids = new Set(best.map(b=> (b && typeof b==='object') ? b.row : b)
-                          .filter(v=> v!=null).map(Number));
-  D.forEach(d=>{ if(ids.has(d.id)) d.settle.best = true; });
-}
-
-/* 스캔 시각을 '몇 분 전'으로. 시각 자체를 그대로 보여주면 지금 것인지 어제 것인지 매번 계산해야 한다. */
-function agoText(iso){
-  if(!iso) return '아직';
-  const t = new Date(iso).getTime();
-  if(!isFinite(t)) return '아직';
-  const m = Math.floor((Date.now()-t)/60000);
-  if(m < 1) return '방금';
-  if(m < 60) return m+'분 전';
-  const h = Math.floor(m/60);
-  return h < 24 ? (h+'시간 전') : (Math.floor(h/24)+'일 전');
-}
-
-/* 에러 배너 — 실패했는데 조용히 옛 화면을 계속 보여주는 게 제일 위험하다.
-   (마지막으로 받은 데이터는 지우지 않는다. 지우면 서버가 잠깐 끊길 때마다 화면이 백지가 된다.) */
-function showErr(msg){
-  let el = document.getElementById('errbar');
-  if(!el){
-    el = document.createElement('div');
-    el.id = 'errbar';
-    el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:90;background:#B3261E;color:#fff;'
-      + 'padding:9px 16px;font-size:13px;font-weight:700;text-align:center;line-height:1.5;font-family:var(--sans)';
-    document.body.appendChild(el);
-  }
-  el.textContent = msg;
-  el.hidden = false;
-}
-function clearErr(){ const el = document.getElementById('errbar'); if(el) el.hidden = true; }
-
-/* 마스터시트 스냅샷을 받아 D를 통째로 갈아끼운다. 부분 병합을 안 하는 이유:
-   시트에서 지워진 행이 화면에만 남는 유령 행을 만들지 않기 위해서. */
-async function loadData(){
-  try {
-    const r = await fetch(API_URL, { cache:'no-store' });
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    const j = await r.json();
-    const rows = Array.isArray(j.accounts) ? j.accounts : [];
-    D = rows.map(fromApi);
-    applyBest(j.best);
-    CAMPAIGNS.lun8.scan = agoText(j.scannedAt);
-    clearErr();
-    render();
-    return true;
-  } catch(err){
-    showErr('데이터를 못 불러왔어요 (' + (err && err.message ? err.message : err) + ') — 로컬 워커(3737)가 켜져 있는지 확인해 주세요. 아래 화면은 마지막으로 받은 내용입니다.');
-    if(!D.length){
-      document.getElementById('content').innerHTML =
-        '<div style="padding:64px 0;text-align:center;color:var(--muted);font-size:14.5px;line-height:1.7">'
-        + '불러오지 못했어요.<br><span style="font-size:13px">워커를 켜면 60초 안에 자동으로 다시 시도합니다.</span></div>';
+   기대값 — 48명 · 94건 (틱톡 48 / 인스타 46 · 예정일 있는 93건 + 미정 1건, 리아)
+   일자별 건: 7/23=14 7/24=14 7/25=7 7/26=10 7/27=6 7/28=6 | 7/29=0 7/30=8 7/31=4 8/1=8 8/2=6 8/3=4 8/4=6
+   → 몰린 날 4일(7/23·7/24·7/30·8/1) · 빈 날 1일(7/29) · 비율 57:36 = 61:39 (요청 60:40)
+   ⚠️ 마스터시트를 44행까지만 읽을 수 있어 뒷부분 예정일은 추정이다. 총계(94건·48/46)는 시트 요약과 일치.
+   실서비스 이식할 때는 이 블록만 통째로 지우면 된다. */
+(function seedMock(){
+  // [날짜, 양플랫폼 인원] — 위 10명이 이미 채운 몫을 뺀 나머지. 전원 틱톡+인스타.
+  const PLAN = [['7/23',6],['7/24',6],['7/25',2],['7/26',5],['7/27',2],['7/28',2],
+                ['7/30',4],['7/31',1],['8/1',4],['8/2',3],['8/3',1],['8/4',2]];
+  const NAMES = ['하루카','유이','리쿠','아오이','소라','칸나','히나','렌토','미오','유즈','케이','노아','사키','타쿠미',
+                 '메이','린','쇼타','아카리','유마','히로','나기','코하루','다이키','에마','쥰','미사키','류','치아키',
+                 '토모','유키','아사히','마이','케이타','시온'];
+  let n = 0;
+  PLAN.forEach(([day, both])=>{
+    for(let i=0;i<both;i++){
+      const ig = true, nick = NAMES[n % NAMES.length] + (n>=NAMES.length?('·'+n):'');
+      const key = 'm'+(n+11);
+      D.push({ id: nextId++, co: n%3===0 ? 'MARU' : 'SIRIAI', nick,
+        plats: ig?['tk','ig']:['tk'], refBy:'', refCount:0, sched:day, mir: ig?'m1':'mx',
+        memo:'', noUpload:false, oddsLow:false,
+        tk:{ h:'@'+key, c1:'', c2:'', snd:'n',sec:'n',hash:'n', fol: 1200 + (n*337)%48000, inFlight:0, views:'', memo:'' },
+        ig: ig ? { h:'@'+key+'.jp', c1:'', c2:'', snd:'n',sec:'n',hash:'n', fol: 1100 + (n*211)%26000, inFlight:0, views:'', memo:'' } : null,
+        settle:{ pay: PAY_OPTS[n%3], best:false, override:null, paid:false, memo:'' } });
+      n++;
     }
-    return false;
-  }
-}
-
-/* ============ 조회 전용 가드 ============
-   서버가 쓰기를 전부 423(readOnly)으로 막아둔 상태다. 그런데 화면에서만 값이 바뀌면
-   '저장된 줄 알았는데 60초 뒤 되돌아가는' 최악의 오해가 생긴다 → 손대기 전에 막고 어디서 고칠지 알려준다. */
-const RO_MSG = '지금은 조회 전용이에요 — 수정은 마스터시트에서';
-const RO_CLICK = '[data-edit],.rowedit,.cell-edit,.memo-cell,[data-paidtog],#btnExec,#btnRecScan,#btnUpScan,#btnPerf,#btnDeliver,#btnAddPerson,#apSave';
-function roBlockClick(e){
-  if(!e.target.closest(RO_CLICK)) return false;
-  toast(RO_MSG);
-  return true;
-}
-function roBlockChange(e){
-  if(!e.target.closest('[data-rev],[data-pay],[data-best]')) return false;
-  toast(RO_MSG);
-  render();   // 셀렉트가 바뀐 채로 남으면 저장된 것처럼 보인다 → 즉시 원래 값으로 되돌린다
-  return true;
-}
+  });
+})();
 
 /* ============ 가드닝 브레인 (src/garden.js 이식) ============ */
 /* 목표 1100까지 100단위 반올림 충전, 최소 1000 이상이면 대상 아님, inFlight(remains)는 차감. */
@@ -828,7 +608,7 @@ function gStat(d, p){
 }
 
 /* ============ 상태 ============ */
-const state = { view:'recruit', plat:'tk', raw:false, campaign:'lun8', worker:'online', addForm:false, gardenHold:true, simOpen:false, sim:null, simCampaign:null, sort:{}, day:null, week:null, stripOpen:false, upFilter:'all', noticeOnly:false, unfixedOnly:false };
+const state = { view:'recruit', plat:'tk', raw:false, campaign:'lun8', worker:'online', addForm:false, gardenHold:true, simOpen:false, sim:null, simCampaign:null, sort:{}, day:null, stripOpen:false, lateOnly:false };
 const cfg = ()=> CAMPAIGNS[state.campaign];
 const platsOn = ()=> cfg().plats;
 const hasIG = ()=> platsOn().includes('ig');
@@ -862,18 +642,10 @@ const WEEKS   = ()=> (cfg().weeks || []);
 const ALLDAYS = ()=> { const seen={}, out=[]; WEEKS().forEach(w=> (w.days||[]).forEach(d=>{ if(!seen[d]){ seen[d]=1; out.push(d); } })); return out; };
 /* 자유입력 예정일을 'M/D'로 정규화. '07/24' '7-24' '7월 24일' '7/24(협의)' → '7/24'. 실패하면 '' */
 function normDay(s){ const m = String(s==null?'':s).trim().match(/(\d{1,2})\s*[\/월.\-]\s*(\d{1,2})/); return m ? (+m[1])+'/'+(+m[2]) : ''; }
-/* 집계·필터의 기준 날짜 — 확정일이 있으면 그게 진짜다. 없으면 희망일로 임시 집계.
-   두 열을 만든 이유가 "누가 언제 바꿨나"를 남기는 것이므로, 기준은 항상 확정일 우선. */
-const effDay = d => (d.fixed || d.sched || '');
 function dayBucket(d){
-  const k = normDay(effDay(d));
+  const k = normDay(d.sched);
   if(k && ALLDAYS().indexOf(k)>=0) return k;
   return String(d.sched||'').trim()==='' ? '__unset' : '__off';   // 미정 / 일정 밖
-}
-/* 그 사람이 이 주차에 업로드하기로 한 사람인가. 주차 칩을 '펼치기'가 아니라 '필터'로 쓰기 위한 판정. */
-function inWeek(d, label){
-  const w = WEEKS().find(x=> x.label===label);
-  return w ? (w.days||[]).indexOf(dayBucket(d)) >= 0 : false;
 }
 /* 예정일 열 정렬값 — 문자열 비교면 '7/9' > '7/23'이 된다(자릿수 때문). 일정 순서로 세운다. */
 function schedKey(s){
@@ -882,7 +654,7 @@ function schedKey(s){
   const m = /^(\d{1,2})\/(\d{1,2})$/.exec(k);
   return m ? 900 + (+m[1])*100 + (+m[2]) : 9999;                  // 일정 밖 날짜 → 뒤, 미정 → 맨 뒤
 }
-/* 오늘 — 실제 날짜. config.today는 목업 연출용이었고 실서비스 config엔 없다(있으면 그 날짜로 굳는다). */
+/* 오늘 — 목업은 config.today로 고정(지연이 화면에 보이게), 실서비스는 실제 날짜. */
 const TODAY = ()=> cfg().today || (()=>{ const t=new Date(); return (t.getMonth()+1)+'/'+t.getDate(); })();
 const dayIdx = s => ALLDAYS().indexOf(normDay(s));
 /* 지연 = 예정일이 오늘보다 이전인데 아직 안 올라온 것. 예정일이 없거나 일정 밖이면 지연 판정 안 함. */
@@ -996,49 +768,50 @@ function hideNote(hiddenList){
   return `<div class="hidebadge raw">📋 마스터 원본 · 빈 열도 표시 (${hiddenList.length}개)</div>`;
 }
 
-/* 업로드 일정 — 기본은 주차 칩(=필터), 펼치면 일자 13칸. 몰림·빈날 판정은 화면에 안 띄운다(가이드라인 탭 소관). */
+/* 13칸 일자 스트립 — 몰린 날·빈 날만 드러낸다. 막대·눈금 없이 숫자와 색 3상태뿐. */
 function schedStrip(){
   if(!WEEKS().length) return '';                       // 주차 없는 캠페인(베이온)은 통째로 미표시
   const st = schedStats();
-  // 큰 숫자 = 그 날 예정 건수(시트와 그대로 대조됨). 이미 올라간 만큼은 '남음'으로만 덧붙인다 —
-  // 색으로 경고하지 않는 건, 손쓸 수 없는 과거까지 빨갛게 남는 걸 피하려는 것과 같은 이유다.
+  // 큰 숫자 = 그 날 예정 건수(시트와 그대로 대조됨). 색 판정만 '아직 안 올라온 건수'로 한다 —
+  // 예정으로 판정하면 이미 다 올라간 날을 캠페인 끝까지 빨갛게 경고하게 된다(손쓸 수 없는 과거를 경보로).
   const cell = x=>{
     const t = `${x.day} · 예정 ${x.geon}건 / ${x.myeong}명`
             + (x.geon!==x.left ? ` · 아직 ${x.left}건 남음` : '')
-            ;   // 몰림 기준 문구 제거 — 판정은 화면에 안 띄우기로(대표 지시)
-    return `<button class="dday${state.day===x.day?' on':''}" data-day="${x.day}" title="${esc(t)}">`
+            + ` · ${x.week} 하루 ${x.base}건 기준 · ${x.over}건부터 몰림`;
+    return `<button class="dday ${x.flag==='over'?'over':x.flag==='zero'?'zero':''}${state.day===x.day?' on':''}" data-day="${x.day}" title="${esc(t)}">`
          + `<span class="dd">${x.day}</span><span class="dn">${x.geon}</span>`
          + (x.geon!==x.left ? `<span class="dleft">${x.left} 남음</span>` : '') + `</button>`;
   };
   const grp = w=> `<div class="dgrp"><div class="ddays">${w.days.map(cell).join('')}</div>`
-    + `<div class="dcap">${esc(w.label)} ${w.days[0].day}–${w.days[w.days.length-1].day}</div></div>`;
+    + `<div class="dcap">${esc(w.label)} ${w.days[0].day}–${w.days[w.days.length-1].day} · 하루 ${w.base}건 기준 · <b>${w.over}건부터 몰림</b></div></div>`;
   const side = (key,label,o)=> o.geon
     ? `<button class="dday side${state.day===key?' on':''}" data-day="${key}" title="${esc(label)} ${o.myeong}명 · ${o.geon}건"><span class="dd">${label}</span><span class="dn">${o.geon}</span></button>`
     : '';
   const extras = side('__unset','미정',st.unset) + side('__off','일정 밖',st.off);
-  // 주차 칩 = 필터다(펼치기 아님). '1주차 57건'을 누르면 그 주차에 올린다고 한 사람이 표에 남아야 한다.
-  const wchip = w=>
-    `<button class="wchip${state.week===w.label?' on':''}" data-week="${esc(w.label)}">`
+  // 접힌 상태(기본) = 주차 2칸만. 펼치면 일자별 13칸. 매일 볼 건 주차 진도이고, 일자는 손댈 때만 필요하다.
+  const wchip = w=>{
+    const bad = w.days.filter(x=>x.flag==='over').length, zero = w.days.filter(x=>x.flag==='zero').length;
+    const note = [bad?`몰림 ${bad}일`:'', zero?`빈날 ${zero}일`:''].filter(Boolean).join(' · ') || '고르게';
+    return `<button class="wchip${bad||zero?' bad':''}" data-stripopen="1">`
       + `<span class="wl">${esc(w.label)}</span><span class="wn">${w.geon}<span class="of"> 건</span></span>`
-      + `<span class="ws">${w.days[0].day}–${w.days[w.days.length-1].day}</span></button>`;
-  // 미정도 주차 칩과 같은 모양·같은 줄. 세 줄(라벨/숫자/보조)을 맞춰야 높이가 어긋나지 않는다.
-  const unsetChip = st.unset.geon
-    ? `<button class="wchip${state.day==='__unset'?' on':''}" data-day="__unset">`
-      + `<span class="wl">예정일 미정</span><span class="wn">${st.unset.geon}<span class="of"> 건</span></span>`
-      + `<span class="ws">예정일 확인 필요</span></button>`
-    : '';
-  // 접힌 상태가 기본. 펼치면 일자 13칸만 나오고, 설명 문단은 두지 않는다.
-  // 주차 줄은 항상 있고, 펼치면 그 아래에 일자 줄이 붙는다(대체가 아니라 추가).
-  const toggle = `<button class="linkbtn" data-stripopen="${state.stripOpen?0:1}">${state.stripOpen?'▲ 일자 접기':'▼ 일자별'}</button>`;
-  const days = state.stripOpen
+      + `<span class="ws">${w.days[0].day}–${w.days[w.days.length-1].day} · ${note}</span></button>`;
+  };
+  const strip = state.stripOpen
     ? `<div class="dstrip">${st.weeks.map(grp).join('')}`
       + (extras ? `<div class="dgrp"><div class="ddays">${extras}</div><div class="dcap">예정일 확인 필요</div></div>` : '')
-      + `</div>`
-    : '';
-  const strip = `<div class="wchips">${st.weeks.map(wchip).join('')}${unsetChip}${toggle}</div>${days}`;
-  // 비율·몰림 판정은 화면에서 뺐다(가이드라인 탭 소관). 카드에는 주차별 건수만 남긴다.
-  return kpi('업로드 일정 · 건', st.dayTot, { ic:IC.clock, cls:'dstrip-card',
-    sub:'주차를 누르면 그 주차 사람만 아래 표에 남아요', extra:strip });
+      + `</div><div class="dstrip-rule">숫자는 그 날 <b>예정된 건수</b>(시트 그대로)예요. 빨간 표시는 <b>아직 안 올라온 건</b>으로만 판정하니, 이미 다 올라간 날은 저절로 조용해져요.`
+      + ` 칸을 누르면 그 날 사람만 아래 표에 남습니다. <button class="linkbtn" data-stripopen="0">▲ 주차만 보기</button></div>`
+    : `<div class="wchips">${st.weeks.map(wchip).join('')}`
+      + (st.unset.geon ? `<button class="wchip mini" data-day="__unset"><span class="wl">예정일 미정</span><span class="wn">${st.unset.geon}<span class="of"> 건</span></span></button>` : '')
+      + `<button class="linkbtn" data-stripopen="1">▼ 일자별 보기</button></div>`;
+  // 비율은 이미 요청에 맞아서 카드 주인공이 될 이유가 없다 → sub 한 줄로 강등
+  const shareTxt = st.weeks.map(w=> `${w.label} ${w.geon}건(${st.dayTot?Math.round(w.geon/st.dayTot*100):0}%)`).join(' · ');
+  const req = st.weeks.map(w=> Math.round((w.share||0)*100)+'%').join(':');
+  const head = (st.over.length || st.zero.length)
+    ? `${st.over.length}<span class="of"> 몰린 날</span> · ${st.zero.length}<span class="of"> 빈 날</span>`
+    : `고르게 분산<span class="of"> 됨</span>`;
+  return kpi('업로드 일정 · 건', head, { ic:IC.clock, two:true, cls:'dstrip-card',
+    sub:`${shareTxt} — 요청 ${req}`, extra:strip });
 }
 
 /* ============ 뷰: 모집 (상한 없음 · 명/건 구분) ============ */
@@ -1046,8 +819,6 @@ function viewRecruit(){
   let rows = D.filter(inCampaign);
   const all = rows;
   if(state.day && WEEKS().length) rows = rows.filter(d=> dayBucket(d)===state.day);
-  // 일자 필터가 걸려 있으면 그쪽이 우선 — 더 좁은 조건이라 둘을 겹치면 헷갈린다.
-  else if(state.week && WEEKS().length) rows = rows.filter(d=> inWeek(d, state.week));
   const platCol = { key:'plats', label:'플랫폼', hideable:true, empty:()=>false, sv:r=>r.plats.length,
     cell:r=>{ const on=r.plats.filter(p=>platsOn().includes(p));
       if(on.length>1) return `<span class="plat-pill both">틱톡+인스타</span>`;
@@ -1055,20 +826,14 @@ function viewRecruit(){
   const cols = [
     { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
-    { key:'tkh', label:'틱톡 닉네임', cls:'handle', grp:'tk', hideable:true, empty:r=>!r.tk, sv:r=>r.tk?r.tk.h:'', cell:r=> r.tk?`<a href="#" onclick="return false">${r.tk.h}</a>`:`<span class="emptydot">·</span>` },
+    { key:'tkh', label:'틱톡 닉', cls:'handle', grp:'tk', hideable:true, empty:r=>!r.tk, sv:r=>r.tk?r.tk.h:'', cell:r=> r.tk?`<a href="#" onclick="return false">${r.tk.h}</a>`:`<span class="emptydot">·</span>` },
     ...(hasIG() ? [
-      { key:'igh', label:'인스타 닉네임', cls:'handle', grp:'ig', hideable:true, empty:r=>!r.ig, sv:r=>r.ig?r.ig.h:'', cell:r=> r.ig?`<a href="#" onclick="return false">${r.ig.h}</a>`:`<span class="emptydot">·</span>` },
+      { key:'igh', label:'인스타 닉', cls:'handle', grp:'ig', hideable:true, empty:r=>!r.ig, sv:r=>r.ig?r.ig.h:'', cell:r=> r.ig?`<a href="#" onclick="return false">${r.ig.h}</a>`:`<span class="emptydot">·</span>` },
       platCol,
     ] : []),
-    { key:'notice', label:'확정메일', sv:r=> r.notice?1:0,
-      cell:r=> `<button class="notice ${r.notice?'sent':'unsent'}" data-notice="${r.id}">${r.notice?'발송':'미발송'}</button>` },
     { key:'refBy', label:'추천 출처', hideable:true, empty:r=>!r.refBy, sv:r=>r.refBy, cell:r=> r.refBy?`<span class="chip filling">${esc(r.refBy)} 추천</span>`:`<span class="emptydot">·</span>` },
     { key:'refCount', label:'추천 수', cls:'num', thcls:'num', hideable:true, empty:r=>!r.refCount, sv:r=>r.refCount||0, cell:r=> r.refCount?`<b>${r.refCount}</b>`:`<span class="emptydot">·</span>` },
-    { key:'sched', label:'예정일', hideable:true, empty:r=>!r.sched, sv:r=>schedKey(r.sched),
-      cell:r=> r.sched ? (r.fixed ? `<span class="cmuted">${esc(r.sched)}</span>` : `<b>${esc(r.sched)}</b>`) : `<span class="cmuted">미정</span>` },
-    { key:'fixed', label:'확정일', hideable:true, empty:r=>!r.fixed, sv:r=>schedKey(r.fixed),
-      cell:r=> r.fixed ? `<b class="fixdate">${esc(r.fixed)}</b>`
-                       : `<span class="chip stale">협의중</span>` },
+    { key:'sched', label:'업로드 예정일', hideable:true, empty:r=>!r.sched, sv:r=>schedKey(r.sched), cell:r=> r.sched?`<b>${esc(r.sched)}</b>`:`<span class="cmuted">미정</span>` },
     { key:'memo', label:'비고', hideable:true, empty:r=>!r.memo, sv:r=>r.memo||'', cell:r=>memoCell(r.id, r.memo) },
     { key:'edit', label:'', cell:r=>editBtn(r.id) },
   ];
@@ -1090,20 +855,11 @@ function viewRecruit(){
     ${hasIG() ? kpi('플랫폼 · 건', `${tkGeon}<span class="of"> 틱톡</span> · ${igGeon}<span class="of"> 인스타</span>`, { ic:IC.layers, two:true, sub:`콘텐츠 총 ${totGeon}건` }) : ''}
     ${schedStrip()}
   </div>`;
-  const unsent = all.filter(d=> !d.notice).length;
-  const unfixed = all.filter(d=> !d.fixed).length;
-  if(state.noticeOnly) rows = rows.filter(d=> !d.notice);
-  if(state.unfixedOnly) rows = rows.filter(d=> !d.fixed);
   const dayLabel = state.day==='__unset' ? '예정일 미정' : state.day==='__off' ? '캠페인 일정 밖' : state.day;
-  const filtLabel = state.day ? dayLabel : state.week;   // 주차 필터도 같은 줄로 알린다
-  const dayBar = ((state.day || state.week) && WEEKS().length)
-    ? `<div class="daybar"><b>${esc(filtLabel)}</b> ${rows.length}명 · ${rows.reduce((a,d)=>a+slots(d),0)}건만 보는 중 <button class="btn ghost small" id="dayClear">전체 보기</button></div>`
+  const dayBar = (state.day && WEEKS().length)
+    ? `<div class="daybar"><b>${esc(dayLabel)}</b> ${rows.length}명 · ${rows.reduce((a,d)=>a+slots(d),0)}건만 보는 중 <button class="btn ghost small" id="dayClear">전체 보기</button></div>`
     : '';
   const addBar = `<div class="bar">
-    <button class="btn small${state.noticeOnly?'':' primary'}" data-notice-f="0">전체</button>
-    <button class="btn small${state.noticeOnly?' primary':''}" data-notice-f="1">확정메일 미발송${unsent?` (${unsent})`:''}</button>
-    <button class="btn small${state.unfixedOnly?' primary':''}" data-unfixed="${state.unfixedOnly?0:1}">날짜 미확정${unfixed?` (${unfixed})`:''}</button>
-    <span class="spacer"></span>
     <button class="btn primary small" id="btnAddPerson">${IC.userplus} 인원 추가</button>
     <button class="btn small" id="btnRecScan">🔎 모집 스캔</button>
     <span class="spacer"></span>
@@ -1121,10 +877,9 @@ function viewRecruit(){
       </div>
     </div>` : '';
   const emptyMsg = state.day==='__unset' ? '예정일이 비어 있는 사람이 없어요.'
-    : state.day ? `${esc(dayLabel)}에 잡힌 사람이 없어요. 다른 날에서 이리로 옮길 사람을 찾아보세요.`
-    : state.week ? `${esc(state.week)}에 올린다고 한 사람이 없어요.` : undefined;
+    : state.day ? `${esc(dayLabel)}에 잡힌 사람이 없어요. 다른 날에서 이리로 옮길 사람을 찾아보세요.` : undefined;
   return kpis + dayBar + addBar + addFormHTML +
-    renderTable(cols, rows, {tableId:'recruit', emptyMsg, noHide: !!(state.day || state.week)}) +
+    renderTable(cols, rows, {tableId:'recruit', emptyMsg, noHide: !!state.day}) +
     `<div class="note-line">한 행 = 한 사람(<b>명</b>). 콘텐츠는 사람×플랫폼 = <b>건</b>이라 총 건수가 인원보다 많아요. 모집은 상한 없이 무제한 — 상한은 <b>정산 105건</b>(목표 100 + 오버부킹 5)만.</div>`;
 }
 
@@ -1135,12 +890,12 @@ function viewUploadAll(){
   const pairs = [];
   D.filter(inCampaign).forEach(d=> platsOn().forEach(p=>{ if(d[p]) pairs.push({ d, p, id:d.id+'|'+p }); }));
   let rows = pairs;
-  const f = upFilter(); if(f.test) rows = rows.filter(x=> f.test(x.d, x.p));
+  if(state.lateOnly) rows = rows.filter(x=> isLate(x.d, x.p));
   const cols = [
     { key:'co', label:'진행사', sv:r=>r.d.co, cell:r=>coChip(r.d.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.d.nick, cell:r=>nickCell(r.d) },
     { key:'plat', label:'플랫폼', sv:r=>r.p, cell:r=>`<span class="plat-pill ${r.p}">${pName(r.p)}</span>` },
-    { key:'h', label:'닉네임', cls:'handle', sv:r=>r[('d')][r.p].h, cell:r=>`<a href="#" onclick="return false">${esc(r.d[r.p].h)}</a>` },
+    { key:'h', label:'닉', cls:'handle', sv:r=>r[('d')][r.p].h, cell:r=>`<a href="#" onclick="return false">${esc(r.d[r.p].h)}</a>` },
     { key:'sched', label:'예정일', hideable:true, empty:r=>!r.d.sched, sv:r=>schedKey(r.d.sched),
       cell:r=> r.d.sched ? (isLate(r.d,r.p) ? `<span class="chip needs">${esc(r.d.sched)} 지남</span>` : `<b>${esc(r.d.sched)}</b>`) : `<span class="cmuted">미정</span>` },
     { key:'c1', label:'콘텐츠', hideable:true, empty:r=>!r.d[r.p].c1, sortable:false, cell:r=>contentCell(r.d[r.p].c1, r.p) },
@@ -1156,12 +911,12 @@ function viewUploadAll(){
   const kpis = `<div class="cards">
     ${kpi('업로드 · 건', ofTot(up, tot), { ic:IC.video, sub:`계약 목표 ${goal}건 · 모집 ${tot}건` })}
     ${kpi('검수완료 · 건', ofTot(rev, goal||tot), { ic:IC.check, sub:'음원·음원구간·해시태그 3칸 모두 준수' })}
-    ${kpi('일정 미준수 · 건', late, { ic:IC.clock, accent: late?'var(--needs)':undefined, sub:`예정일(${TODAY()} 기준)이 지났는데 아직 미업로드` })}
+    ${kpi('지연 · 건', late, { ic:IC.clock, accent: late?'var(--needs)':undefined, sub:`예정일(${TODAY()} 기준)이 지났는데 아직 미업로드` })}
     ${bufferKpi()}
   </div>`;
-  return platSubtabs() + kpis + filterBar(pairs, upScanBtn()) +
-    renderTable(cols, rows, {tableId:'upload-all', noHide: state.upFilter!=='all',
-      emptyMsg: upFilter().empty}) +
+  return platSubtabs() + kpis + lateBar(late) +
+    renderTable(cols, rows, {tableId:'upload-all', noHide: state.lateOnly,
+      emptyMsg: state.lateOnly ? '지연된 건이 없어요. 예정일을 넘긴 사람이 아직 없습니다.' : undefined}) +
     `<div class="note-line">한 행 = <b>1건</b>(사람×플랫폼). <b>미러링 금지</b>라 틱톡·인스타는 각각 다른 콘텐츠여야 해요 — 그래서 건 단위로 봅니다.</div>`;
 }
 /* 미업로드 완충 — 확보(115)에서 정산 상한(105)을 뺀 여유가 미업로드를 흡수한다.
@@ -1180,22 +935,11 @@ function bufferKpi(){
     + (gap > 0 ? ` · 확보 ${gap}건 미도착(마루 ${sec.MARU}건 요청중)` : '');
   return kpi('미업로드 완충 · 건', `${left}<span class="of"> 남음</span>`, { ic:IC.split, accent: left<0?'var(--needs)':(left<=2?'var(--warn)':undefined), sub });
 }
-/* 업로드 필터 줄 — 버튼을 배열로 관리한다. 자주 쓰는 필터('검수 필요' 등)를 나중에 붙일 때
-   이 배열에 한 줄만 추가하면 버튼·건수·빈 메시지가 한꺼번에 따라온다.
-   test(d,p) = 그 1건(사람×플랫폼)을 남길지. null 이면 전체. */
-const UP_FILTERS = [
-  { k:'all',  label:'전체', test:null },
-  { k:'late', label:'일정 미준수', test:(d,p)=> isLate(d,p), empty:'예정일을 넘긴 건이 없어요.' },
-];
-const upFilter = ()=> UP_FILTERS.find(f=> f.k===state.upFilter) || UP_FILTERS[0];
-const upScanBtn = ()=> `<button class="btn small" id="btnUpScan">🔎 업로드 스캔</button>`;
-/* pairs = [{d,p}] — 통합탭은 사람×플랫폼, 플랫폼탭은 그 플랫폼으로 미리 묶어서 넘긴다(건수 표기 공용). */
-function filterBar(pairs, extra){
-  const btns = UP_FILTERS.map(f=>{
-    const n = f.test ? pairs.filter(x=> f.test(x.d, x.p)).length : 0;
-    return `<button class="btn small${state.upFilter===f.k?' primary':''}" data-upf="${f.k}">${f.label}${f.test&&n?` (${n})`:''}</button>`;
-  }).join('');
-  return `<div class="bar">${btns}<span class="spacer"></span>${extra||''}</div>`;
+function lateBar(late){
+  return `<div class="bar">
+    <button class="btn small${state.lateOnly?'':' primary'}" data-late="0">전체</button>
+    <button class="btn small${state.lateOnly?' primary':''}" data-late="1">지연만${late?` (${late})`:''}</button>
+    <span class="spacer"></span><button class="btn small" id="btnUpScan">🔎 업로드 스캔</button></div>`;
 }
 
 function viewUpload(){
@@ -1203,11 +947,11 @@ function viewUpload(){
   const p = state.plat;
   let rows = D.filter(d=> d.plats.includes(p) && d[p]!==null);
   const allRows = rows;
-  const f = upFilter(); if(f.test) rows = rows.filter(d=> f.test(d,p));
+  if(state.lateOnly) rows = rows.filter(d=> isLate(d,p));
   const cols = [
     { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
-    { key:'h', label:pName(p)+' 닉네임', cls:'handle', grp:p, sv:r=>r[p].h, cell:r=>`<a href="#" onclick="return false">${r[p].h}</a>` },
+    { key:'h', label:pName(p)+' 닉', cls:'handle', grp:p, sv:r=>r[p].h, cell:r=>`<a href="#" onclick="return false">${r[p].h}</a>` },
     { key:'c1', label:'콘텐츠①', hideable:true, empty:r=>!r[p].c1, sortable:false, cell:r=>contentCell(r[p].c1, p) },
     { key:'c2', label:'콘텐츠②', hideable:true, empty:r=>!r[p].c2, sortable:false, cell:r=>contentCell(r[p].c2, p) },
     { key:'snd', label:'음원', hideable:true, empty:()=>false, sv:r=>r[p].snd, cell:r=>revSel(r[p].snd, r.id, 'snd', p) },
@@ -1226,12 +970,12 @@ function viewUpload(){
   const kpis = `<div class="cards">
     ${kpi('업로드 완료 · 건', ofTot(up, allRows.length), { ic:IC.video, sub:`목표 ${t[p]||'—'}건` })}
     ${kpi('검수 완료 · 건', ofTot(rev, up||allRows.length), { ic:IC.check, sub:'음원·음원구간·해시태그 3칸 모두 준수' })}
-    ${kpi('일정 미준수 · 건', late, { ic:IC.clock, accent: late?'var(--needs)':undefined, sub:`예정일(${TODAY()} 기준) 지났는데 미업로드` })}
+    ${kpi('지연 · 건', late, { ic:IC.clock, accent: late?'var(--needs)':undefined, sub:`예정일(${TODAY()} 기준) 지났는데 미업로드` })}
     ${bufferKpi()}
   </div>`;
-  const scanBar = filterBar(allRows.map(d=>({ d, p })), upScanBtn());
+  const scanBar = lateBar(late);
   const exNote = excluded ? `<div class="note-line">🎯 ${pName(p)} 미참여 <b>${excluded}명</b>은 이 탭에서 자동 숨김.</div>` : '';
-  return platSubtabs() + kpis + scanBar + exNote + renderTable(cols, rows, {tableId:'upload-'+p, noHide: state.upFilter!=='all', emptyMsg: upFilter().empty}) +
+  return platSubtabs() + kpis + scanBar + exNote + renderTable(cols, rows, {tableId:'upload-'+p, noHide: state.lateOnly, emptyMsg: state.lateOnly?'지연된 건이 없어요. 예정일을 넘긴 사람이 아직 없습니다.':undefined}) +
     `<div class="note-line">틱톡·인스타 모두 <b>집 IP·실제 크롬으로 자동 스캔</b>. 검수 3칸은 드롭다운으로 바로 고치고(수동=자동보다 우선), 행 전체는 <b>편집</b>으로.</div>`;
 }
 
@@ -1262,7 +1006,7 @@ function viewGarden(){
           : `<span class="emptydot">·</span>`; } },
     { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
-    { key:'h', label:pName(p)+' 닉네임', cls:'handle', grp:p, sv:r=>r[p].h, cell:r=>`<a href="#" onclick="return false">${r[p].h}</a>` },
+    { key:'h', label:pName(p)+' 닉', cls:'handle', grp:p, sv:r=>r[p].h, cell:r=>`<a href="#" onclick="return false">${r[p].h}</a>` },
     { key:'lk', label:'업로드 가능성', sv:r=>likelihood(r,p).rank, cell:r=>{ const l=likelihood(r,p); return `<span class="lk ${l.k}">${l.t}</span>`; } },
     { key:'fol', label:'현재 팔로워', cls:'num', thcls:'num', sv:r=> r[p].fol==null?-1:r[p].fol, cell:r=> r[p].fol==null?`<span class="cmuted">스캔 대기</span>`:nf(r[p].fol) },
     { key:'st', label:'상태', sv:r=>gStat(r,p).st, cell:r=> stChip(gStat(r,p).st) },
@@ -1279,9 +1023,9 @@ function viewGarden(){
   const filling = allCand.filter(d=>gStat(d,p).st==='filling');
   const needSum = targets.reduce((a,d)=> a+gStat(d,p).order, 0);
   const holdToggle = holds.length ? `<label class="toggle ${state.gardenHold?'on':''}" id="gardenHoldToggle"><span class="switch"></span><span>보류 ${holds.length}건 표시</span></label>` : '';
-  const execBar = `<div class="bar"><div class="summary">${pName(p)} 가드닝 대상 <b>${targets.length}</b>건 · 충전 합계 <b>${nf(needSum)}</b>명 ${filling.length?`<span class="cmuted">진행중 ${filling.length}건</span>`:''}</div><div class="spacer"></div>${holdToggle}<button class="btn danger" id="btnExec"${targets.length?'':' disabled'}>선택 집행</button></div>`;
+  const execBar = `<div class="bar"><div class="summary">${pName(p)} 가드닝 대상 <b>${targets.length}</b>건 · 충전 합계 <b>${nf(needSum)}</b>명 <span class="cmuted">(목표 ${nf(GTARGET)} · 최소 ${nf(GMIN)}${filling.length?` · 진행중 ${filling.length}건`:''})</span></div><div class="spacer"></div>${holdToggle}<button class="btn danger" id="btnExec"${targets.length?'':' disabled'}>선택 집행</button></div>`;
   return platSubtabs() + execBar + renderTable(cols, rows, { tableId:'garden-'+p, rowClass:r=> gStat(r,p).st==='hold'?'held':'' }) +
-    `<div class="finenote">충전량 = 목표 <b>${nf(GTARGET)}</b>까지 100단위 반올림(베이온 가드닝과 동일). <b>최소 ${nf(GMIN)} 미만</b>만 대상, 진행중 주문(remains)은 자동 차감. 마감임박·저확률 미업로드자는 <b>보류</b> → 업로드 확인 후 가드닝(자동 제외 X). 집행은 워커가 로컬 SMM 키로.</div>`;
+    `<div class="note-line">충전량 = 목표 <b>${nf(GTARGET)}</b>까지 100단위 반올림(베이온 가드닝과 동일). <b>최소 ${nf(GMIN)} 미만</b>만 대상, 진행중 주문(remains)은 자동 차감. 마감임박·저확률 미업로드자는 <b>보류</b> → 업로드 확인 후 가드닝(자동 제외 X). 집행은 워커가 로컬 SMM 키로.</div>`;
 }
 
 /* ============ 뷰: 납품 (플랫폼별 · 시트 하단탭 대비) ============ */
@@ -1338,39 +1082,19 @@ function settleCalc(d){
 }
 
 /* ============ 정산: 마진 시뮬 (진행사별 원고료 원가 반영) ============ */
-/* 기준별 진행사 건수. 확보·검수완료는 실제 데이터를 그대로 센다(비율 추정 아님). */
-function basisGeon(basis){
+function simDefaults(){
   const inC = D.filter(inCampaign);
-  const cnt = (co, f) => inC.filter(d=>d.co===co).reduce((a,d)=> a + platsOn().filter(p=> d[p] && f(d,p)).length, 0);
-  if(basis==='done')   return { M: cnt('MARU',(d,p)=>done(d[p])),        S: cnt('SIRIAI',(d,p)=>done(d[p])) };
-  if(basis==='secure') return { M: cnt('MARU',()=>true),                 S: cnt('SIRIAI',()=>true) };
-  // 목표 — 계약 인정상한을 현재 진행사 비율로 나눈다(마루 실물이 아직 안 왔을 수 있어 비율 추정)
-  const sM = cnt('MARU',()=>true), sS = cnt('SIRIAI',()=>true), sT = (sM+sS)||1;
-  const cap = cfg().settleCap || platsOn().reduce((a,p)=>a+(cfg().targets[p]||0),0) || sT;
-  const M = Math.round(cap*sM/sT);
-  return { M, S: cap-M };
-}
-function simDefaults(basis){
-  basis = basis || 'secure';                 // 기본은 '확보' — 지금 손에 쥔 것이 가장 현실적인 기준
-  const inC = D.filter(inCampaign);
-  const g = basisGeon(basis);
-  const scale = (g.M+g.S) / ((inC.reduce((a,d)=>a+slots(d),0))||1);
+  const geon = co => inC.filter(d=>d.co===co).reduce((a,d)=>a+slots(d),0);
+  // 목표 규모로 프리필: 진행사 비율(현재 로스터) × 캠페인 목표 건수. 수정 가능.
+  const dM=geon('MARU'), dS=geon('SIRIAI'), dT=(dM+dS)||1;
+  const targetTot = platsOn().reduce((a,p)=>a+(cfg().targets[p]||0),0) || dT;
+  const maruGeon = Math.round(targetTot*dM/dT), siGeon = targetTot-maruGeon;
   const refBonus = inC.reduce((a,d)=>a+(d.refCount||0)*3000,0);
   const winBonus = inC.filter(d=>d.settle.best).length*10000;
-  const bonus = Math.round((refBonus+winBonus)*scale);   // 보너스도 같은 기준으로 스케일
-  return { basis, maruGeon:g.M, siGeon:g.S, rev:150000, fx:9.3, maruFee:MARU_FEE, siFee:SIRIAI_FEE, bonus, garden:1000000, ops:1000000 };
+  const bonus = Math.round((refBonus+winBonus)*targetTot/dT); // 보너스도 목표 규모로 스케일
+  return { maruGeon, siGeon, rev:150000, fx:9.3, maruFee:MARU_FEE, siFee:SIRIAI_FEE, bonus, garden:1000000, ops:1000000 };
 }
-const BASIS = [['target','목표','계약 인정상한'],['secure','확보','지금 시트에 있는 건수'],['done','검수완료','실제 통과한 건수']];
-/* 기준을 바꾸면 건수·보너스만 다시 깔고, 사람이 손으로 고친 단가·환율·부대비용은 유지한다. */
-function setBasis(b){
-  const keep = state.sim || {};
-  const d = simDefaults(b);
-  state.sim = Object.assign(d, { rev:keep.rev ?? d.rev, fx:keep.fx ?? d.fx,
-    maruFee:keep.maruFee ?? d.maruFee, siFee:keep.siFee ?? d.siFee,
-    garden:keep.garden ?? d.garden, ops:keep.ops ?? d.ops });
-  render();
-}
-function ensureSim(){ if(!state.sim || state.simCampaign!==state.campaign){ state.sim=simDefaults('secure'); state.simCampaign=state.campaign; } }
+function ensureSim(){ if(!state.sim || state.simCampaign!==state.campaign){ state.sim=simDefaults(); state.simCampaign=state.campaign; } }
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const man = n => (Math.round(n/1000)/10).toLocaleString('ko-KR')+'만원';
 function simResult(){
@@ -1395,18 +1119,13 @@ function simSection(){
   </div>`;
   if(!state.simOpen) return `<div class="sim">${head}</div>`;
   const row=(k,lab,small,unit)=>`<div class="sim-ctl"><label>${lab}${small?`<small>${small}</small>`:''}</label><span><input type="number" class="sim-in" data-k="${k}" value="${s[k]}"><span class="cmuted" style="margin-left:6px">${unit}</span></span></div>`;
-  const cur = s.basis || 'secure';
-  const basisBar = `<div class="sim-basis">기준
-    ${BASIS.map(([k,lab,desc])=> `<button class="btn small${cur===k?' primary':''}" data-basis="${k}" title="${desc}">${lab}</button>`).join('')}
-    <span class="cmuted">${(BASIS.find(x=>x[0]===cur)||[])[2]||''} · 건수는 자동, 단가·부대비용은 직접 수정</span></div>`;
   const body = `<div class="sim-body">
-    ${basisBar}
     ${simHero()}
     <div class="sim-grid">
       <div>
         <div class="sim-grp">건수 · 매출</div>
-        ${row('maruGeon','마루 콘텐츠','기준값·수정가능','건')}
-        ${row('siGeon','시리아이 콘텐츠','기준값·수정가능','건')}
+        ${row('maruGeon','마루 콘텐츠','목표 규모·수정가능','건')}
+        ${row('siGeon','시리아이 콘텐츠','목표 규모·수정가능','건')}
         ${row('rev','업로드당 매출','PI 정산','원')}
         ${row('fx','환율','1엔 = ? 원','원')}
       </div>
@@ -1482,79 +1201,7 @@ function platSubtabs(){
     <button class="subtab tk ${state.plat==='tk'?'active':''}" data-plat="tk"><span class="dot"></span>틱톡 <span class="cmuted">자동 스캔</span></button>
     <button class="subtab ig ${state.plat==='ig'?'active':''}" data-plat="ig"><span class="dot"></span>인스타 <span class="cmuted">자동 스캔</span></button></div>`;
 }
-/* ============ 매뉴얼 · 가이드 ============
-   내용은 public/knowledge.js 하나뿐이다(MANUAL/GUIDE). 여기서 복붙하지 않는다 —
-   문구가 두 군데로 갈라지면 팀원마다 다른 답을 보내는 사고가 난다. */
-
-/* [확인필요] = 아직 사양이 안 채워진 자리. 눈에 띄게 세워서 그대로 못 나가게 한다.
-   esc() 뒤에 쓸 것(대괄호·한글이라 esc 후에도 문자열이 그대로다).
-   정규식 대신 split/join 을 쓴 건 이스케이프가 끼어들 여지를 없애기 위함. */
-const mark = s => String(s).split('[확인필요]').join('<span class="todo">[확인필요]</span>');
-
-/* 복사는 textContent 기준이라 위 뱃지 마크업이 섞이지 않는다. */
-function copyText(t, msg){
-  try {
-    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(()=>toast(msg),()=>toast(msg));
-    else toast(msg);
-  } catch(e){ toast(msg); }
-}
-const kMissing = f => '<div class="kempty">knowledge.js 를 못 읽었어요.<br>/knowledge.js 가 서버에서 열리는지 확인해주세요. (' + f + ')</div>';
-
-function viewManual(){
-  if(typeof MANUAL === 'undefined') return kMissing('MANUAL');
-  const cats = ['전체'].concat([...new Set(MANUAL.map(m=>m.cat))]);
-  const cards = MANUAL.map(function(m,i){
-    // data-hay 를 미리 박아둔다 — 검색할 때마다 원본 배열을 다시 훑지 않고 DOM 만 보면 된다.
-    const hay = esc((m.q+' '+m.cat+' '+m.ko+' '+m.ja).toLowerCase());
-    const ans = function(L,label){
-      return '<div class="qa-a"><div class="qa-l"><span>'+label+'</span>'
-        + '<button class="btn small copy-ans" data-t="ans-'+i+'-'+L+'">복사</button></div>'
-        + '<pre id="ans-'+i+'-'+L+'">'+mark(esc(m[L]))+'</pre></div>';
-    };
-    return '<div class="qa" data-cat="'+esc(m.cat)+'" data-hay="'+hay+'">'
-      + '<div class="qa-h"><span class="qa-cat">'+esc(m.cat)+'</span><b>'+esc(m.q)+'</b></div>'
-      + '<div class="qa-b">'+ans('ko','한국어')+ans('ja','日本語')+'</div></div>';
-  }).join('');
-  return '<div class="bar">'
-    + '<input id="mSearch" class="msearch" type="search" placeholder="질문·답변 내용으로 검색…" autocomplete="off" />'
-    + cats.map(function(c,i){ return '<button class="btn small m-f'+(i?'':' primary')+'" data-k="'+esc(c)+'">'+esc(c)+'</button>'; }).join('')
-    + '</div>'
-    + '<div class="note-line">문의가 오면 여기서 찾아 <b>복사</b>해서 그대로 답장하세요. 금액·기간·인정 여부는 팀원마다 답이 달라지면 그 자체가 사고예요.'
-    + '<br>빨간 <b>[확인필요]</b>는 실제 사양이 안 채워진 자리예요 — <b>그대로 보내지 마세요.</b></div>'
-    + '<div id="qaList">'+cards+'</div>'
-    + '<div class="kempty" id="qaEmpty" hidden>검색 결과가 없어요.</div>';
-}
-
-function viewGuide(){
-  if(typeof GUIDE === 'undefined') return kMissing('GUIDE');
-  const spec = GUIDE.spec.map(function(x){ return '<tr><th>'+esc(x.k)+'</th><td>'+mark(esc(x.v))+'</td></tr>'; }).join('');
-  // body 는 우리가 쓴 문구라 <b> 강조를 살려서 넣는다(사용자 입력이 아니다).
-  const secs = GUIDE.sections.map(function(x){
-    return '<section class="gsec"><h3>'+esc(x.title)
-      + (x.copy ? '<button class="btn small copy-lit" data-v="'+esc(x.copy)+'">복사</button>' : '')
-      + '</h3><ul>'+x.body.map(function(b){ return '<li>'+mark(b)+'</li>'; }).join('')+'</ul></section>';
-  }).join('');
-  return '<div class="note-line">'+esc(GUIDE.note)+' <b>· 갱신 '+esc(GUIDE.updated)+'</b></div>'
-    + '<table class="gspec"><tbody>'+spec+'</tbody></table>'
-    + '<div class="gsecs">'+secs+'</div>';
-}
-
-/* 검색·분류는 재렌더 없이 DOM 만 숨기고 보인다.
-   render() 를 태우면 입력칸이 새로 그려져 타이핑 중 포커스가 튄다. */
-function filterManual(){
-  const box = document.getElementById('mSearch');
-  const q = (box ? box.value : '').trim().toLowerCase();
-  const on = document.querySelector('#content .m-f.primary');
-  const cat = on ? on.dataset.k : '전체';
-  let shown = 0;
-  document.querySelectorAll('#qaList .qa').forEach(function(el){
-    const ok = (cat==='전체' || el.dataset.cat===cat) && (!q || el.dataset.hay.indexOf(q)>=0);
-    el.hidden = !ok; if(ok) shown++;
-  });
-  const em = document.getElementById('qaEmpty'); if(em) em.hidden = shown>0;
-}
-
-const VIEWS = { recruit:viewRecruit, upload:viewUpload, garden:viewGarden, deliver:viewDeliver, settle:viewSettle, manual:viewManual, guide:viewGuide };
+const VIEWS = { recruit:viewRecruit, upload:viewUpload, garden:viewGarden, deliver:viewDeliver, settle:viewSettle };
 
 function computeCounts(){
   const inC = D.filter(inCampaign);
@@ -1566,18 +1213,14 @@ function computeCounts(){
 }
 function renderStats(){
   const inC = D.filter(inCampaign);
-  // 전부 '건'(사람×플랫폼)으로 센다 — 계약 수량·정산이 건 기준이라 명으로 두면 매번 환산해야 한다.
-  const plats = platsOn();
-  const geon = f => inC.reduce((a,d)=> a + plats.filter(p=> d[p] && f(d,p)).length, 0);
-  const secured = geon(()=>true);
-  const upN  = geon((d,p)=> uploaded(d,p));
-  const revN = geon((d,p)=> done(d[p]));
-  const cap  = cfg().settleCap || 0;
+  const recruitN = inC.length;
+  const upN = inC.filter(anyUploaded).length;
+  const revN = inC.filter(reviewed).length;
   const stat=(k,v,small)=> `<div class="stat"><span class="k">${k}</span><span class="v"${small?' style="font-size:14px"':''}>${v}</span></div>`;
   let h = '';
-  h += stat('모집', `${secured}<small> 건 / ${(cfg().secure&&cfg().secure.target)||cap}</small>`);
-  h += stat('업로드', `${upN}<small> 건</small>`);
-  h += stat('검수완료', `${revN}<small> 건${cap?' / '+cap:''}</small>`);
+  h += stat('모집', `${recruitN}<small> 명</small>`);
+  h += stat('업로드', `${upN}<small> 명</small>`);
+  h += stat('검수완료 총', `${revN}<small> 명</small>`);
   h += stat('마지막 스캔', cfg().scan, true);
   document.getElementById('stats').innerHTML = h;
 }
@@ -1656,14 +1299,10 @@ function openRowEdit(id){
         <div class="row"><label class="h">틱톡 링크/닉</label><input class="inp" id="reTk" value="${d.tk?esc(d.tk.h):''}" placeholder="${d.tk?'':'미참여'}"></div>
         ${hasIG()?`<div class="row"><label class="h">인스타 링크/닉</label><input class="inp" id="reIg" value="${d.ig?esc(d.ig.h):''}" placeholder="${d.ig?'':'미참여'}"></div>`:''}
       </div>
-      <div class="row2">
-        <div class="row"><label class="h">예정일 <small>크리에이터 희망</small></label><input class="inp" id="reSched" value="${esc(d.sched||'')}" placeholder="예: 7/28"></div>
-        <div class="row"><label class="h">확정일 <small>합의된 날짜</small></label><input class="inp" id="reFixed" value="${esc(d.fixed||'')}" placeholder="합의되면 입력"></div>
-      </div>
-      ${schedHint(d)}
+      <div class="row"><label class="h">업로드 예정일</label><input class="inp" id="reSched" value="${esc(d.sched||'')}" placeholder="예: 7/28">${schedHint(d)}</div>
       <div class="row"><label class="h">비고 (일반 · 특이사항)</label><textarea class="inp" id="reMemo" placeholder="이 크리에이터 전반 메모">${esc(d.memo||'')}</textarea></div>
     </div>`;
-    save = ()=>{ d.co=selVal('reCo'); d.nick=val('reNick')||d.nick; d.sched=val('reSched'); d.fixed=val('reFixed'); d.memo=val('reMemo');
+    save = ()=>{ d.co=selVal('reCo'); d.nick=val('reNick')||d.nick; d.sched=val('reSched'); d.memo=val('reMemo');
       if(d.tk && val('reTk')) d.tk.h=val('reTk'); if(d.ig && val('reIg')) d.ig.h=val('reIg'); };
 
   } else if(state.view==='upload'){
@@ -1782,7 +1421,7 @@ function addCampaignModal(){
     const plats=[]; if(document.getElementById('ncTk').checked)plats.push('tk'); if(document.getElementById('ncIg').checked)plats.push('ig');
     if(!plats.length)plats.push('tk');
     const id='camp'+(Object.keys(CAMPAIGNS).length+1);
-    CAMPAIGNS[id]={ name, plats, targets: plats.length>1?{tk:50,ig:50}:{tk:100}, settleCap:105, sub: plats.length>1?'멀티플랫폼':pName(plats[0])+' 전용', scan:'아직', sheet:'' };
+    CAMPAIGNS[id]={ name, plats, targets: plats.length>1?{tk:50,ig:50}:{tk:100}, settleCap:105, sub: plats.length>1?'멀티플랫폼':pName(plats[0])+' 전용', scan:'아직', sheet:'https://docs.google.com/spreadsheets/d/NEW_MASTER' };
     state.campaign=id; if(!hasIG()) state.plat='tk';
     closeModal(); renderCampSelect(); render();
     toast(`캠페인 <b>${esc(name)}</b> 추가 — config 한 개로 끝. 대시보드 그대로 재사용해요.`);
@@ -1826,10 +1465,8 @@ function copyCampLink(){
 }
 function openMaster(){
   const url = cfg().sheet;
-  // 시트가 아직 없는 캠페인이면 빈 탭을 여는 대신 이유를 알려준다.
-  if(!url){ toast('이 캠페인은 마스터시트가 아직 연결되지 않았어요.'); return; }
   try { window.open(url,'_blank','noopener'); } catch(e){}
-  toast(`구글 마스터시트 열기 — <span style="font-family:var(--mono)">${esc(cfg().name)}</span>`);
+  toast(`구글 마스터시트 열기 — <span style="font-family:var(--mono)">${esc(cfg().name)}</span> (목업 링크)`);
 }
 
 /* ============ 설정 드로어 ============ */
@@ -1845,29 +1482,16 @@ document.getElementById('sideToggle').addEventListener('click', ()=> document.bo
 document.getElementById('nav').addEventListener('click', e=>{
   const b=e.target.closest('.tab'); if(!b) return;
   document.querySelectorAll('#nav .tab').forEach(t=>t.classList.remove('active'));
-  b.classList.add('active'); state.view=b.dataset.view; state.addForm=false; state.day=null; state.week=null; state.upFilter='all';
+  b.classList.add('active'); state.view=b.dataset.view; state.addForm=false; state.day=null; state.lateOnly=false;
   if(!hasIG()) state.plat='tk';
   render();
 });
 
 document.getElementById('content').addEventListener('click', e=>{
-  if(roBlockClick(e)) return;   // 조회 전용: 편집·집행·스캔은 여기서 끝낸다(아래 목업 핸들러까지 안 간다)
   const so=e.target.closest('[data-stripopen]'); if(so){ state.stripOpen = so.dataset.stripopen==='1'; render(); return; }
-  // 주차와 일자는 서로 배타 — 둘 다 켜지면 어느 쪽이 먹는지 화면에서 알 수 없다.
-  const nt=e.target.closest('[data-notice]');
-  if(nt){
-    const d=D.find(x=>x.id===+nt.dataset.notice);
-    if(d){ d.notice=!d.notice; render();
-      toast(d.notice ? '발송으로 표시했어요 — <b>마스터시트에도 적어주세요</b>(지금은 조회 전용이라 화면에만 남아요)'
-                     : '미발송으로 되돌렸어요 — 마스터시트에도 반영해주세요'); }
-    return;
-  }
-  const nf2=e.target.closest('[data-notice-f]'); if(nf2){ state.noticeOnly = nf2.dataset.noticeF==='1'; render(); return; }
-  const ufx=e.target.closest('[data-unfixed]'); if(ufx){ state.unfixedOnly = ufx.dataset.unfixed==='1'; render(); return; }
-  const wk=e.target.closest('[data-week]'); if(wk){ state.week = (state.week===wk.dataset.week) ? null : wk.dataset.week; state.day=null; render(); return; }
-  const uf=e.target.closest('[data-upf]'); if(uf){ state.upFilter = uf.dataset.upf; render(); return; }
-  const dy=e.target.closest('[data-day]'); if(dy){ state.day = (state.day===dy.dataset.day) ? null : dy.dataset.day; state.week=null; render(); return; }
-  if(e.target.closest('#dayClear')){ state.day=null; state.week=null; render(); return; }
+  const lt=e.target.closest('[data-late]'); if(lt){ state.lateOnly = lt.dataset.late==='1'; render(); return; }
+  const dy=e.target.closest('[data-day]'); if(dy){ state.day = (state.day===dy.dataset.day) ? null : dy.dataset.day; render(); return; }
+  if(e.target.closest('#dayClear')){ state.day=null; render(); return; }
   const th=e.target.closest('.th-sort'); if(th){ toggleSort(th.dataset.table, th.dataset.sort); return; }
   const ed=e.target.closest('[data-edit]'); if(ed){ openRowEdit(+ed.dataset.edit); return; }
   const pt=e.target.closest('[data-paidtog]'); if(pt){ const d=D.find(x=>x.id===+pt.dataset.paidtog); if(d){ d.settle.paid=!d.settle.paid; render(); } return; }
@@ -1881,12 +1505,10 @@ document.getElementById('content').addEventListener('click', e=>{
   if(e.target.closest('#btnExec')){ execModal(); return; }
   if(e.target.closest('#btnPerf')){ scanRequest('조회수'); return; }
   if(e.target.closest('#btnDeliver')){ toast(`검수완료·업로드분을 ${pName(state.plat)} 납품시트에 자동 기입 (중복 제외).`); return; }
-  const bs=e.target.closest('[data-basis]'); if(bs){ setBasis(bs.dataset.basis); return; }
   if(e.target.closest('#simHead')){ state.simOpen=!state.simOpen; render(); return; }
 });
 // 인라인 편집: 검수 셀렉트 / 정산방식 / 최우수 체크
 document.getElementById('content').addEventListener('change', e=>{
-  if(roBlockChange(e)) return;   // 조회 전용: 인라인 편집(검수·정산방식·최우수)도 막고 값을 되돌린다
   const rv=e.target.closest('[data-rev]'); if(rv){ const [id,field,p]=rv.dataset.rev.split('|'); const d=D.find(x=>x.id===+id); if(d&&d[p]){ d[p][field]=rv.value; render(); } return; }
   const py=e.target.closest('[data-pay]'); if(py){ const d=D.find(x=>x.id===+py.dataset.pay); if(d){ d.settle.pay=py.value; toast(`<b>${esc(d.nick)}</b> 정산방식 → ${py.value}`); } return; }
   const bt=e.target.closest('[data-best]'); if(bt){ const d=D.find(x=>x.id===+bt.dataset.best); if(d){ d.settle.best=bt.checked; render(); } return; }
@@ -1899,7 +1521,7 @@ document.getElementById('content').addEventListener('input', e=>{
 
 document.getElementById('camp').addEventListener('change', e=>{
   if(e.target.value==='__add'){ e.target.value=state.campaign; addCampaignModal(); return; }
-  state.campaign = e.target.value; if(!hasIG()) state.plat='tk'; state.addForm=false; state.day=null; state.week=null;
+  state.campaign = e.target.value; if(!hasIG()) state.plat='tk'; state.addForm=false; state.day=null;
   render();
 });
 document.getElementById('btnCampLink').addEventListener('click', copyCampLink);
@@ -1919,44 +1541,16 @@ document.getElementById('drawer').addEventListener('click', e=>{
 });
 document.getElementById('modal').addEventListener('click', e=>{ if(e.target.id==='modal') closeModalReset(); });
 
-/* 매뉴얼·가이드 전용 이벤트. 기존 #content 델리게이션에 끼워넣지 않고 별도 리스너로 붙인다 —
-   기존 뷰 동작을 한 줄도 안 건드리기 위함. 서로 다른 셀렉터라 충돌하지 않는다. */
-document.getElementById('content').addEventListener('click', e=>{
-  const f = e.target.closest('.m-f');
-  if(f){
-    document.querySelectorAll('#content .m-f').forEach(o=> o.classList.remove('primary'));
-    f.classList.add('primary'); filterManual(); return;
-  }
-  const ca = e.target.closest('.copy-ans');
-  if(ca){ const pre = document.getElementById(ca.dataset.t); copyText(pre?pre.textContent:'', '답변 복사됨 — 그대로 붙여넣으세요'); return; }
-  const cl = e.target.closest('.copy-lit');
-  if(cl){ copyText(cl.dataset.v, '복사됨'); return; }
-});
-document.getElementById('content').addEventListener('input', e=>{
-  if(e.target.id === 'mSearch') filterManual();
-});
-
-/* ============ 부팅 (딥링크 파싱 → 실데이터 로드) ============ */
-(async function boot(){
+/* ============ 부팅 (딥링크 파싱) ============ */
+(function boot(){
   try {
     const params = new URLSearchParams(location.search);
     const c = params.get('campaign');
     if(c && CAMPAIGNS[c]) state.campaign = c;
   } catch(e){}
   if(!hasIG()) state.plat='tk';
-  renderCampSelect(); renderWorker();
-  // 데이터가 오기 전에 render()를 부르면 '0명'짜리 빈 대시보드가 한 번 번쩍인다 → 로딩 문구부터 깔고 간다.
-  document.getElementById('content').innerHTML =
-    '<div style="padding:64px 0;text-align:center;color:var(--muted);font-size:14.5px">불러오는 중…</div>';
-  await loadData();
-  // 60초 자동 갱신. 모달이 열려 있으면 건너뛴다 — render()가 화면을 다시 그리는 동안
-  // 사용자가 보고 있던 모달의 근거 값이 소리 없이 바뀌어버리기 때문.
-  setInterval(()=>{
-    if(!document.getElementById('modal').hidden) return;
-    loadData();
-  }, 60000);
+  renderCampSelect(); renderWorker(); render();
 })();
 </script>
-<script src="/feedback.js"></script>
 </body>
 </html>
