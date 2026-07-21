@@ -42,6 +42,17 @@
 
   const say = (m) => (window.toast ? window.toast(m) : console.log(m));
 
+  // 시트가 'MM/dd HH:mm' 을 날짜로 자동 파싱해 되돌려주면 장문의 Date 문자열이 온다.
+  // 시트 서식을 텍스트로 바꾸려면 재배포가 필요해서, 읽는 쪽에서 짧게 정리한다.
+  const when = (v) => {
+    const s = String(v ?? '').trim();
+    if (!s) return '';
+    const d = new Date(s);
+    if (isNaN(d.getTime())) return s.slice(0, 16);
+    const p = (n) => String(n).padStart(2, '0');
+    return `${p(d.getMonth() + 1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  };
+
   async function load() {
     try {
       const r = await fetch(api(), { cache: 'no-store' });
@@ -70,7 +81,7 @@
       ? items.map((it) => `<div class="fb-item${it.done ? ' fb-done' : ''}">
           <div class="fb-where">${esc(it.where)}</div>
           <div class="fb-body">${esc(it.text)}</div>
-          <div class="fb-meta">${esc(it.who || '팀원')} · ${esc(it.at)}
+          <div class="fb-meta">${esc(it.who || '팀원')} · ${esc(when(it.at))}
             ${it.done ? '<b>완료</b>' : `<button class="fb-ok" data-done="${it.row}">완료 표시</button>`}</div>
         </div>`).join('')
       : (pending ? '' : `<div class="fb-empty">아직 없어요.<br><b>화면에서 고치고 싶은 곳을 클릭</b>하면 여기에 줄이 생깁니다.</div>`);

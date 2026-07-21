@@ -453,6 +453,8 @@ body.fb-picking #content *:hover { outline: 2px solid var(--accent); outline-off
 .fb-meta b { color: var(--ok-ink); }
 .fb-ok { margin-left: auto; border: none; background: none; cursor: pointer; font-family: var(--sans); font-size: 11px; font-weight: 700; color: var(--accent-ink); }
 .fb-done { opacity: .5; }
+.sim-basis { display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:12px; font-weight:700; color:var(--faint); margin-bottom:14px; }
+.sim-basis .cmuted { font-weight:600; }
 </style>
 </head>
 <body>
@@ -1298,19 +1300,39 @@ function settleCalc(d){
 }
 
 /* ============ 정산: 마진 시뮬 (진행사별 원고료 원가 반영) ============ */
-function simDefaults(){
+/* 기준별 진행사 건수. 확보·검수완료는 실제 데이터를 그대로 센다(비율 추정 아님). */
+function basisGeon(basis){
   const inC = D.filter(inCampaign);
-  const geon = co => inC.filter(d=>d.co===co).reduce((a,d)=>a+slots(d),0);
-  // 목표 규모로 프리필: 진행사 비율(현재 로스터) × 캠페인 목표 건수. 수정 가능.
-  const dM=geon('MARU'), dS=geon('SIRIAI'), dT=(dM+dS)||1;
-  const targetTot = platsOn().reduce((a,p)=>a+(cfg().targets[p]||0),0) || dT;
-  const maruGeon = Math.round(targetTot*dM/dT), siGeon = targetTot-maruGeon;
+  const cnt = (co, f) => inC.filter(d=>d.co===co).reduce((a,d)=> a + platsOn().filter(p=> d[p] && f(d,p)).length, 0);
+  if(basis==='done')   return { M: cnt('MARU',(d,p)=>done(d[p])),        S: cnt('SIRIAI',(d,p)=>done(d[p])) };
+  if(basis==='secure') return { M: cnt('MARU',()=>true),                 S: cnt('SIRIAI',()=>true) };
+  // 목표 — 계약 인정상한을 현재 진행사 비율로 나눈다(마루 실물이 아직 안 왔을 수 있어 비율 추정)
+  const sM = cnt('MARU',()=>true), sS = cnt('SIRIAI',()=>true), sT = (sM+sS)||1;
+  const cap = cfg().settleCap || platsOn().reduce((a,p)=>a+(cfg().targets[p]||0),0) || sT;
+  const M = Math.round(cap*sM/sT);
+  return { M, S: cap-M };
+}
+function simDefaults(basis){
+  basis = basis || 'secure';                 // 기본은 '확보' — 지금 손에 쥔 것이 가장 현실적인 기준
+  const inC = D.filter(inCampaign);
+  const g = basisGeon(basis);
+  const scale = (g.M+g.S) / ((inC.reduce((a,d)=>a+slots(d),0))||1);
   const refBonus = inC.reduce((a,d)=>a+(d.refCount||0)*3000,0);
   const winBonus = inC.filter(d=>d.settle.best).length*10000;
-  const bonus = Math.round((refBonus+winBonus)*targetTot/dT); // 보너스도 목표 규모로 스케일
-  return { maruGeon, siGeon, rev:150000, fx:9.3, maruFee:MARU_FEE, siFee:SIRIAI_FEE, bonus, garden:1000000, ops:1000000 };
+  const bonus = Math.round((refBonus+winBonus)*scale);   // 보너스도 같은 기준으로 스케일
+  return { basis, maruGeon:g.M, siGeon:g.S, rev:150000, fx:9.3, maruFee:MARU_FEE, siFee:SIRIAI_FEE, bonus, garden:1000000, ops:1000000 };
 }
-function ensureSim(){ if(!state.sim || state.simCampaign!==state.campaign){ state.sim=simDefaults(); state.simCampaign=state.campaign; } }
+const BASIS = [['target','목표','계약 인정상한'],['secure','확보','지금 시트에 있는 건수'],['done','검수완료','실제 통과한 건수']];
+/* 기준을 바꾸면 건수·보너스만 다시 깔고, 사람이 손으로 고친 단가·환율·부대비용은 유지한다. */
+function setBasis(b){
+  const keep = state.sim || {};
+  const d = simDefaults(b);
+  state.sim = Object.assign(d, { rev:keep.rev ?? d.rev, fx:keep.fx ?? d.fx,
+    maruFee:keep.maruFee ?? d.maruFee, siFee:keep.siFee ?? d.siFee,
+    garden:keep.garden ?? d.garden, ops:keep.ops ?? d.ops });
+  render();
+}
+function ensureSim(){ if(!state.sim || state.simCampaign!==state.campaign){ state.sim=simDefaults('secure'); state.simCampaign=state.campaign; } }
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const man = n => (Math.round(n/1000)/10).toLocaleString('ko-KR')+'만원';
 function simResult(){
@@ -1335,13 +1357,18 @@ function simSection(){
   </div>`;
   if(!state.simOpen) return `<div class="sim">${head}</div>`;
   const row=(k,lab,small,unit)=>`<div class="sim-ctl"><label>${lab}${small?`<small>${small}</small>`:''}</label><span><input type="number" class="sim-in" data-k="${k}" value="${s[k]}"><span class="cmuted" style="margin-left:6px">${unit}</span></span></div>`;
+  const cur = s.basis || 'secure';
+  const basisBar = `<div class="sim-basis">기준
+    ${BASIS.map(([k,lab,desc])=> `<button class="btn small${cur===k?' primary':''}" data-basis="${k}" title="${desc}">${lab}</button>`).join('')}
+    <span class="cmuted">${(BASIS.find(x=>x[0]===cur)||[])[2]||''} · 건수는 자동, 단가·부대비용은 직접 수정</span></div>`;
   const body = `<div class="sim-body">
+    ${basisBar}
     ${simHero()}
     <div class="sim-grid">
       <div>
         <div class="sim-grp">건수 · 매출</div>
-        ${row('maruGeon','마루 콘텐츠','목표 규모·수정가능','건')}
-        ${row('siGeon','시리아이 콘텐츠','목표 규모·수정가능','건')}
+        ${row('maruGeon','마루 콘텐츠','기준값·수정가능','건')}
+        ${row('siGeon','시리아이 콘텐츠','기준값·수정가능','건')}
         ${row('rev','업로드당 매출','PI 정산','원')}
         ${row('fx','환율','1엔 = ? 원','원')}
       </div>
@@ -1798,6 +1825,7 @@ document.getElementById('content').addEventListener('click', e=>{
   if(e.target.closest('#btnExec')){ execModal(); return; }
   if(e.target.closest('#btnPerf')){ scanRequest('조회수'); return; }
   if(e.target.closest('#btnDeliver')){ toast(`검수완료·업로드분을 ${pName(state.plat)} 납품시트에 자동 기입 (중복 제외).`); return; }
+  const bs=e.target.closest('[data-basis]'); if(bs){ setBasis(bs.dataset.basis); return; }
   if(e.target.closest('#simHead')){ state.simOpen=!state.simOpen; render(); return; }
 });
 // 인라인 편집: 검수 셀렉트 / 정산방식 / 최우수 체크
