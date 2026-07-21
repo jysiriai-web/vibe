@@ -52,6 +52,20 @@ const FIELD_HEADERS = {
   igLink: ['인스타링크', '인스타그램링크', 'instagram링크'],
   igNick: ['인스타닉네임', '인스타그램닉네임'],
 };
+// 플랫폼별로 두 벌 존재하는 항목. 접두어만 갈아끼워 같은 규칙으로 찾는다.
+var PLAT_FIELDS = ['nick', 'link', 'followers', 'gardening', 'contentA', 'contentB',
+                   'soundOk', 'soundSection', 'hashtagOk', 'views', 'likes', 'comments', 'shares', 'memo'];
+// 접두어별 헤더 이름(정규화 전 원문 기준). 예: ig + followers → '인스타 팔로워'
+var PLAT_LABEL = {
+  tk: { pre: '틱톡', name: '틱톡' },
+  ig: { pre: '인스타', name: '인스타' },
+};
+var PLAT_SUFFIX = {
+  nick: '닉네임', link: '링크', followers: '팔로워', gardening: '가드닝',
+  contentA: '콘텐츠①', contentB: '콘텐츠②', soundOk: '음원', soundSection: '음원구간',
+  hashtagOk: '해시태그', views: '조회수', likes: '좋아요', comments: '댓글', shares: '공유', memo: '비고',
+};
+var PLAT_COL = {};   // { tk:{field:col}, ig:{field:col} } — 해당 플랫폼 열이 없으면 그 키 자체가 없다
 var COL = shallowClone_(DEFAULT_COL); // 런타임에 헤더 기반으로 재해석됨 (initCols_)
 var _dataSheet = null;                // 데이터 탭 캐시 (initCols_ 가 채움)
 
@@ -81,6 +95,37 @@ function resolveColsFromHeaders_(headerRow) {
   }
   return map;
 }
+// 헤더행에서 '틱톡 X' / '인스타 X' 짝을 찾는다. 한 항목도 못 찾으면 그 플랫폼은 없는 것.
+function resolvePlatCols_(headerRow) {
+  var norm = headerRow.map(normH_), out = {};
+  for (var p in PLAT_LABEL) {
+    var map = {}, hit = 0;
+    for (var i = 0; i < PLAT_FIELDS.length; i++) {
+      var f = PLAT_FIELDS[i];
+      var idx = norm.indexOf(normH_(PLAT_LABEL[p].pre + PLAT_SUFFIX[f]));
+      if (idx >= 0) { map[f] = idx + 1; hit++; }
+    }
+    if (hit >= 3) out[p] = map;   // 3개 이상 잡혀야 '그 플랫폼이 실재한다'고 본다(오탐 방지)
+  }
+  return out;
+}
+// 한 행에서 플랫폼 한 벌 읽기. 열이 없으면 빈 문자열.
+function readPlat_(row, p) {
+  var m = PLAT_COL[p]; if (!m) return null;
+  var g = function (f) { return m[f] ? row[m[f] - 1] : ''; };
+  var link = String(g('link') || '');
+  var handle = p === 'ig' ? igHandleFrom_(link) : handleFrom_(link);
+  if (!handle && !String(g('nick') || '')) return null;   // 이 사람은 이 플랫폼 미참여
+  return {
+    handle: handle, nick: String(g('nick') || ''), link: link,
+    followers: g('followers'), gardening: String(g('gardening') || ''),
+    contentA: String(g('contentA') || ''), contentB: String(g('contentB') || ''),
+    soundOk: String(g('soundOk') || ''), soundSection: String(g('soundSection') || ''),
+    hashtagOk: String(g('hashtagOk') || ''), memo: String(g('memo') || ''),
+    views: g('views'), likes: g('likes'), comments: g('comments'), shares: g('shares'),
+  };
+}
+
 // 데이터 탭 + 헤더행 자동 탐지 → 전역 COL 재설정. doGet/doPost 시작에 1회.
 // 헤더행 = 상단 20행 중 link + (nick|company) 별칭이 함께 있는 행 (베이온 1행, LUN8 요약 아래 헤더행 등).
 function initCols_() {
@@ -91,11 +136,13 @@ function initCols_() {
     var top = sh.getRange(1, 1, Math.min(last, 20), lc).getValues();
     for (var r = 0; r < top.length; r++) {
       if (headerHasField_(top[r], 'link') && (headerHasField_(top[r], 'nick') || headerHasField_(top[r], 'company'))) {
-        _dataSheet = sh; COL = resolveColsFromHeaders_(top[r]); return;
+        _dataSheet = sh; COL = resolveColsFromHeaders_(top[r]); PLAT_COL = resolvePlatCols_(top[r]);
+        _colInfo.plats = {}; for (var pp in PLAT_COL) _colInfo.plats[pp] = Object.keys(PLAT_COL[pp]).length + '개 열';
+        return;
       }
     }
   }
-  _dataSheet = null; COL = shallowClone_(DEFAULT_COL);
+  _dataSheet = null; COL = shallowClone_(DEFAULT_COL); PLAT_COL = {};
   _colInfo = { bound: {}, fellBack: ['(헤더행 자체를 못 찾음 — 전부 폴백)'], headers: [] }; // 헤더 못 찾음 → 폴백(getSheet_ 가 예전 방식으로 탭 탐색)
 }
 
@@ -182,6 +229,9 @@ function readAccounts_() {
       likes: row[COL.likes - 1],
       comments: row[COL.comments - 1],
       shares: row[COL.shares - 1],
+      // 멀티플랫폼 마스터면 플랫폼별 한 벌씩. 없으면 null → 프론트가 단일 플랫폼으로 그린다.
+      tk: readPlat_(row, 'tk'),
+      ig: readPlat_(row, 'ig'),
     });
   }
   return out;
