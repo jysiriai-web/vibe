@@ -10,7 +10,7 @@ import { join } from 'node:path';
 export const OVERRIDE_FIELDS = ['contentA', 'soundOk', 'soundSection', 'hashtagOk'];
 // 대시보드에서 편집 허용하는 필드(화이트리스트). nick·link·notice·schedDate·memo 는
 // 자동스캔이 안 건드려서 잠금(OVERRIDE) 대상은 아니고 편집만 허용.
-export const EDITABLE_FIELDS = ['nick', 'link', 'notice', 'contentA', 'schedDate', 'fixedDate', 'soundOk', 'soundSection', 'hashtagOk', 'memo'];
+export const EDITABLE_FIELDS = ['nick', 'link', 'notice', 'contentA', 'schedDate', 'fixedDate', 'soundOk', 'soundSection', 'hashtagOk', 'memo', 'mirror'];
 
 // ── 마이그레이션 호환 계층 ──────────────────────────────────────────────
 // 기존 잠금은 베이온 열 번호를 키로 저장돼 있다: { "9": { "17": "...", "19": "..." } }.
