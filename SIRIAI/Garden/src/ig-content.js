@@ -37,7 +37,7 @@ function inWindow(post, since) {
   return new Date(post.takenAt).getTime() >= new Date(since).getTime();
 }
 
-export async function runIgContentScan(campaign, { onProgress, onWarmup, waitForGo, since = '', delayMs = 3000 } = {}) {
+export async function runIgContentScan(campaign, { onProgress, onWarmup, waitForGo, since = '', delayMs = 3000, limit = 0 } = {}) {
   const hashtags = campaign.campaignHashtags || [];
   const all = await getAccountsFromSheet(campaign.sheet);
   const accounts = all.map((a) => ({ ...a, igHandle: igHandleOf(a) })).filter((a) => a.igHandle && a.row);
@@ -49,7 +49,9 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
   })();
 
   // 이미 올린 게 확인된 계정은 다시 안 본다. 인스타 제한을 아끼고, 확정된 링크를 흔들지 않는다.
-  const targets = accounts.filter((a) => !(prev[a.igHandle] && prev[a.igHandle].uploaded));
+  const _targets = accounts.filter((a) => !(prev[a.igHandle] && prev[a.igHandle].uploaded));
+  // limit — 시험용. 프로필을 직접 여는 경로는 계정당 40초쯤 걸려서 전체를 돌면 30분이다.
+  const targets = limit > 0 ? _targets.slice(0, limit) : _targets;
 
   const detected = { ...prev };
   const cells = [];
