@@ -1548,7 +1548,7 @@ function renderStats(){
   const cap  = cfg().settleCap || 0;
   const stat=(k,v,small)=> `<div class="stat"><span class="k">${k}</span><span class="v"${small?' style="font-size:14px"':''}>${v}</span></div>`;
   let h = '';
-  h += stat('확보', `${secured}<small> 건 / ${(cfg().secure&&cfg().secure.target)||cap}</small>`);
+  h += stat('모집', `${secured}<small> 건 / ${(cfg().secure&&cfg().secure.target)||cap}</small>`);
   h += stat('업로드', `${upN}<small> 건</small>`);
   h += stat('검수완료', `${revN}<small> 건${cap?' / '+cap:''}</small>`);
   h += stat('마지막 스캔', cfg().scan, true);
