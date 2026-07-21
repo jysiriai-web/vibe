@@ -585,7 +585,7 @@ const CAMPAIGNS = {
        확보 115 = 시리아이 94(현재 틱톡48/인스타46) + 마루 21(요청함)
      즉 여유분 10건이 '미업로드 완충'이고, 이게 0이 되면 마루에 추가 요청이 들어가야 한다. */
   lun8:   { name:'LUN8 · SNEAKERS', plats:['tk','ig'], targets:{tk:50, ig:50}, settleCap:105,
-            secure:{ target:115, SIRIAI:94, MARU:21 }, sub:'댄스챌린지', scan:'—', sheet:'https://docs.google.com/spreadsheets/d/LUN8_MASTER',
+            secure:{ target:115, SIRIAI:94, MARU:21 }, sub:'댄스챌린지', scan:'—', sheet:'https://docs.google.com/spreadsheets/d/1PjiAHc7Zfonl1jXBPqzE8LmDBjCfAHcK6ycGUsLEcf8/edit',
             weeks:[ { label:'1주차', share:0.60, days:['7/23','7/24','7/25','7/26','7/27','7/28'] },
                     { label:'2주차', share:0.40, days:['7/29','7/30','7/31','8/1','8/2','8/3','8/4'] } ],
             spreadOverBy:3 },
@@ -1700,7 +1700,7 @@ function addCampaignModal(){
     const plats=[]; if(document.getElementById('ncTk').checked)plats.push('tk'); if(document.getElementById('ncIg').checked)plats.push('ig');
     if(!plats.length)plats.push('tk');
     const id='camp'+(Object.keys(CAMPAIGNS).length+1);
-    CAMPAIGNS[id]={ name, plats, targets: plats.length>1?{tk:50,ig:50}:{tk:100}, settleCap:105, sub: plats.length>1?'멀티플랫폼':pName(plats[0])+' 전용', scan:'아직', sheet:'https://docs.google.com/spreadsheets/d/NEW_MASTER' };
+    CAMPAIGNS[id]={ name, plats, targets: plats.length>1?{tk:50,ig:50}:{tk:100}, settleCap:105, sub: plats.length>1?'멀티플랫폼':pName(plats[0])+' 전용', scan:'아직', sheet:'' };
     state.campaign=id; if(!hasIG()) state.plat='tk';
     closeModal(); renderCampSelect(); render();
     toast(`캠페인 <b>${esc(name)}</b> 추가 — config 한 개로 끝. 대시보드 그대로 재사용해요.`);
@@ -1744,8 +1744,10 @@ function copyCampLink(){
 }
 function openMaster(){
   const url = cfg().sheet;
+  // 시트가 아직 없는 캠페인이면 빈 탭을 여는 대신 이유를 알려준다.
+  if(!url){ toast('이 캠페인은 마스터시트가 아직 연결되지 않았어요.'); return; }
   try { window.open(url,'_blank','noopener'); } catch(e){}
-  toast(`구글 마스터시트 열기 — <span style="font-family:var(--mono)">${esc(cfg().name)}</span> (목업 링크)`);
+  toast(`구글 마스터시트 열기 — <span style="font-family:var(--mono)">${esc(cfg().name)}</span>`);
 }
 
 /* ============ 설정 드로어 ============ */
