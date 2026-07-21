@@ -711,7 +711,9 @@ export async function handler(req, res) {
     if (CLOUD && /^\/worker(\.html)?$/i.test(path)) return send(res, 404, { error: 'not found' });
 
     // 정적 파일
-    const file = (path === '/' ? '/index.html' : path).replace(/^\/+/, '');
+    // 루트는 이 캠페인 대시보드로. 예전엔 index.html(옛 대시보드)이 떠서, 탭 이름이 같은
+    // 두 화면을 오가며 '왜 수정이 반영이 안 되냐'로 헤맸다. 옛 화면들은 _archive/ 로 옮겼다.
+    const file = (path === '/' ? '/lun8.html' : path).replace(/^\/+/, '');
     const fp = join(PUB, file);
     if (fp.startsWith(PUB) && existsSync(fp)) {
       return send(res, 200, readFileSync(fp), MIME[extname(fp)] || 'application/octet-stream');
