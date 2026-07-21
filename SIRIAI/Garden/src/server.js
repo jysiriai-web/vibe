@@ -739,17 +739,23 @@ export async function handler(req, res) {
   }
 }
 
-// 로컬(대표님 PC)에서만 포트를 잡는다. 클라우드는 api/index.js 가 handler 를 직접 호출.
+const server = createServer(handler);
+server.on('error', (e) => {
+  if (e.code === 'EADDRINUSE') console.error(`\n❌ 포트 ${PORT} 가 이미 사용 중이에요. 대시보드가 이미 켜져 있는지 확인하세요.\n`);
+  else console.error('\n❌ 서버 오류:', e.message, '\n');
+  process.exit(1);
+});
+
 if (!CLOUD) {
-  const server = createServer(handler);
-  server.on('error', (e) => {
-    if (e.code === 'EADDRINUSE') console.error(`\n❌ 포트 ${PORT} 가 이미 사용 중이에요. 대시보드가 이미 켜져 있는지 확인하세요.\n`);
-    else console.error('\n❌ 서버 오류:', e.message, '\n');
-    process.exit(1);
-  });
+  // 로컬은 127.0.0.1 로만 묶는다 — 같은 공유기의 다른 기기가 들어오지 못하게.
   server.listen(PORT, '127.0.0.1', () => {
     console.log(`\n🌱 가드닝 대시보드 실행 중: http://localhost:${PORT}`);
     console.log(`   (이 창을 닫으면 대시보드가 꺼져요. 종료: Ctrl+C)\n`);
     if (process.platform === 'win32' && !process.env.NO_OPEN) exec(`start "" "http://localhost:${PORT}"`);
   });
 }
+
+// Vercel 이 이 파일을 진입점으로 잡는다. 그때는 서버가 아니라 '함수'를 기대한다 —
+// default export 가 없으면 Invalid export found in module 로 모든 요청이 500 이 된다.
+// (api/index.js 도 같은 handler 를 내보낸다. 어느 쪽이 진입점이 되든 동작하게 둘 다 둔다)
+export default handler;
