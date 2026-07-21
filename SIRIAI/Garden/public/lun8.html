@@ -490,6 +490,13 @@ body.fb-picking #content *:hover { outline: 2px solid var(--accent); outline-off
 .dstrip-card .wchip.warn { background:var(--warn-bg); border-color:#f2ddb4; }
 .dstrip-card .wchip.warn b, .dstrip-card .wchip.warn .wn { color:var(--warn-ink); }
 .dstrip-card .dstrip { margin-top:12px; }
+/* 업로드 일정 — 라벨과 주차 칩이 한 줄. 접힌 상태에서 두 줄이 되지 않게. */
+.ds-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.ds-row .kpi-top { margin:0; flex-shrink:0; }
+.dstrip-card .dday .dn i { font-style:normal; font-size:9.5px; font-weight:700; color:var(--faint); margin-left:1px; }
+.dstrip-card .dday.over .dn i { color:var(--needs-ink); }
+/* 플랫폼 칩이 좁은 화면에서 '틱톡 + 인'/'스타' 로 쪼개지던 것 방지 */
+.plat-pill { white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -1034,13 +1041,13 @@ function schedStrip(){
             + (x.geon!==x.left ? ` · 아직 ${x.left}건 남음` : '')
             ;   // 몰림 기준 문구 제거 — 판정은 화면에 안 띄우기로(대표 지시)
     return `<button class="dday${state.day===x.day?' on':''}" data-day="${x.day}" title="${esc(t)}">`
-         + `<span class="dd">${x.day}</span><span class="dn">${x.geon}</span>`
+         + `<span class="dd">${x.day}</span><span class="dn">${x.geon}<i>건</i></span>`
          + (x.geon!==x.left ? `<span class="dleft">${x.left} 남음</span>` : '') + `</button>`;
   };
   const grp = w=> `<div class="dgrp"><div class="ddays">${w.days.map(cell).join('')}</div>`
     + `<div class="dcap">${esc(w.label)} ${w.days[0].day}–${w.days[w.days.length-1].day}</div></div>`;
   const side = (key,label,o)=> o.geon
-    ? `<button class="dday side${state.day===key?' on':''}" data-day="${key}" title="${esc(label)} ${o.myeong}명 · ${o.geon}건"><span class="dd">${label}</span><span class="dn">${o.geon}</span></button>`
+    ? `<button class="dday side${state.day===key?' on':''}" data-day="${key}" title="${esc(label)} ${o.myeong}명 · ${o.geon}건"><span class="dd">${label}</span><span class="dn">${o.geon}<i>건</i></span></button>`
     : '';
   const extras = side('__unset','미정',st.unset) + side('__off','일정 밖',st.off);
   // 주차 칩 = 필터다(펼치기 아님). '1주차 57건'을 누르면 그 주차에 올린다고 한 사람이 표에 남아야 한다.
@@ -1064,11 +1071,11 @@ function schedStrip(){
     : '';
   // kpi() 를 안 쓰고 직접 짠다 — 총 건수를 오른쪽에 크게 세우고 주차는 한 줄 칩으로 줄이는
   // 배치가 필요한데, kpi 는 '라벨/큰숫자/설명'이 세로로 쌓이는 틀이라 가운데가 비어 버린다.
+  // 라벨과 주차 칩을 한 줄에. 총계(94)는 뺐다 — 주차 합이 곧 총계라 같은 숫자를 두 번 보여줄 뿐이다.
   return `<div class="kpi dstrip-card">
-    <div class="ds-top">
-      <div class="ds-l"><div class="kpi-top"><span class="kpi-ic">${IC.clock}</span><span class="lab">업로드 일정</span></div>
-        <div class="ds-chips">${st.weeks.map(wchip).join('')}${unsetChip}${toggle}</div></div>
-      <div class="ds-r"><span class="ds-n">${st.dayTot}</span><span class="ds-u">건</span></div>
+    <div class="ds-row">
+      <div class="kpi-top"><span class="kpi-ic">${IC.clock}</span><span class="lab">업로드 일정</span></div>
+      ${st.weeks.map(wchip).join('')}${unsetChip}${toggle}
     </div>${days}</div>`;
 }
 
@@ -1081,8 +1088,9 @@ function viewRecruit(){
   else if(state.week && WEEKS().length) rows = rows.filter(d=> inWeek(d, state.week));
   const platCol = { key:'plats', label:'플랫폼', hideable:true, empty:()=>false, sv:r=>r.plats.length,
     cell:r=>{ const on=r.plats.filter(p=>platsOn().includes(p));
+      // '전용'은 뺀다 — 한 플랫폼만 적혀 있으면 그게 곧 전용이라 군더더기다.
       if(on.length>1) return `<span class="plat-pill both">틱톡+인스타</span>`;
-      return `<span class="plat-pill ${on[0]}">${on[0]==='tk'?'틱톡 전용':'인스타 전용'}</span>`; } };
+      return `<span class="plat-pill ${on[0]}">${on[0]==='tk'?'틱톡':'인스타'}</span>`; } };
   const cols = [
     { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
