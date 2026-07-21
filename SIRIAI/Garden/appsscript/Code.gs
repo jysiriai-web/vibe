@@ -602,7 +602,8 @@ function doPost(e) {
       // (사람이 손으로 고친 값도 그대로 보존)
       var g = sh.getRange(u.row, COL.gardening);
       if (!String(g.getValue() || '').trim()) {
-        g.setValue(u.followers < MIN_FOLLOWERS ? '가드닝 대상' : '가드닝 불필요');
+        // 시트 드롭다운 어휘와 정확히 맞춘다 — 안 맞으면 유효성 경고가 뜨고 집계도 어긋난다.
+        g.setValue(u.followers < MIN_FOLLOWERS ? '대상' : '불필요');
       }
       n++;
     }
@@ -615,6 +616,7 @@ function doPost(e) {
         case 'setupLun8':               out = setupLun8(); break;
         case 'buildLun8Docs':           out = buildLun8Docs(); break;
         case 'fixLun8Colors':           out = fixLun8Colors(); break;
+        case 'fixLun8Gardening':        out = fixLun8Gardening(); break;
         default: return json_({ error: '허용되지 않은 작업: ' + ran });
       }
       return json_({ ok: true, ran: ran, result: out || '완료', setupRan: true });

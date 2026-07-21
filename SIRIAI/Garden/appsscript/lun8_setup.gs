@@ -24,6 +24,7 @@ function onOpen() {
     .addItem('③ 확정일 열 추가 — 처음 한 번', 'addLun8ConfirmedDate')
     .addSeparator()
     .addItem('응대 매뉴얼 · 가이드라인 탭 만들기', 'buildLun8Docs')
+    .addItem('가드닝 열 정리 (값 통일·색·인스타 오염 청소)', 'fixLun8Gardening')
     .addItem('색상 고치기 (조건부서식 → 교차색상, 하이라이트 되게)', 'fixLun8Colors')
     .addToUi();
 }
@@ -595,4 +596,71 @@ function buildLun8Docs() {
     (made.length && kept.length ? ' / ' : '') +
     (kept.length ? '이미 내용이 있어 그대로 둠: ' + kept.join(', ') : '') +
     '. [확인필요] 자리를 채우면 완성입니다.');
+}
+
+/**
+ * 가드닝 열 정리 — 값 통일 + 색. LUN8 메뉴 또는 원격(setup) 실행.
+ *  ① '가드닝 대상/불필요'(옛 표기) → '대상/불필요'(드롭다운 어휘)
+ *  ② 드롭다운을 대상/불필요로 재설정
+ *  ③ 조건부서식: 대상=빨강, 불필요=초록
+ *  ④ 인스타 전용(틱톡 링크 없음)인데 스캔이 잘못 채운 틱톡 닉네임/팔로워/가드닝을 비운다
+ *     — 틱톡 스캐너가 인스타 핸들로 긁어 엉뚱한 값을 넣었던 흔적.
+ */
+function fixLun8Gardening() {
+  var t = function (v) { return String(v == null ? '' : v).trim(); };
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName('LUN8_마스터') || ss.getActiveSheet();
+  var hRow = lun8Head_(sh), DS = hRow + 1, LAST = 408;
+  var hv = sh.getRange(hRow, 1, 1, sh.getLastColumn()).getValues()[0];
+  var col = function (n) { for (var i = 0; i < hv.length; i++) if (t(hv[i]) === n) return i + 1; return 0; };
+
+  var out = [];
+  ['틱톡 가드닝', '인스타 가드닝'].forEach(function (name) {
+    var c = col(name); if (!c) return;
+    var rg = sh.getRange(DS, c, LAST - DS + 1, 1), v = rg.getValues(), n = 0;
+    for (var i = 0; i < v.length; i++) {
+      var x = t(v[i][0]); if (!x) continue;
+      var w = /불필요/.test(x) ? '불필요' : /대상/.test(x) ? '대상' : x;
+      if (w !== x) { v[i][0] = w; n++; }
+    }
+    if (n) rg.setValues(v);
+    // 드롭다운 재설정 — 값과 어휘가 어긋나면 유효성 경고가 뜬다
+    try {
+      rg.setDataValidation(SpreadsheetApp.newDataValidation()
+        .requireValueInList(['대상', '불필요'], true).setAllowInvalid(true).build());
+    } catch (e) {}
+    out.push(name + ' ' + n + '건 정리');
+  });
+
+  // 조건부서식 — 가드닝 열에만. 기존 같은 규칙은 걷어내고 다시 건다(중복 방지).
+  var rules = sh.getConditionalFormatRules(), keep = [], targets = [];
+  ['틱톡 가드닝', '인스타 가드닝'].forEach(function (name) { var c = col(name); if (c) targets.push(c); });
+  rules.forEach(function (r) {
+    var hit = r.getRanges().some(function (g) { return targets.indexOf(g.getColumn()) >= 0 && g.getLastRow() >= DS; });
+    if (!hit) keep.push(r);
+  });
+  targets.forEach(function (c) {
+    var rg = sh.getRange(DS, c, LAST - DS + 1, 1);
+    keep.push(SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo('대상')
+      .setBackground('#FDECEC').setFontColor('#C1272D').setRanges([rg]).build());
+    keep.push(SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo('불필요')
+      .setBackground('#E6F7F1').setFontColor('#067A52').setRanges([rg]).build());
+  });
+  sh.setConditionalFormatRules(keep);
+  out.push('색 규칙 ' + (targets.length * 2) + '개');
+
+  // 인스타 전용인데 틱톡 열이 채워진 행 청소
+  var cTkL = col('틱톡 링크'), cTkN = col('틱톡 닉네임'), cTkF = col('틱톡 팔로워'), cTkG = col('틱톡 가드닝');
+  var cIgL = col('인스타 링크'), cleaned = 0;
+  if (cTkL && cIgL) {
+    var n2 = LAST - DS + 1;
+    var tkL = sh.getRange(DS, cTkL, n2, 1).getValues(), igL = sh.getRange(DS, cIgL, n2, 1).getValues();
+    for (var i = 0; i < n2; i++) {
+      if (t(tkL[i][0]) || !t(igL[i][0])) continue;   // 틱톡 링크가 있거나 인스타도 없으면 대상 아님
+      [cTkN, cTkF, cTkG].forEach(function (c) { if (c && t(sh.getRange(DS + i, c).getValue())) { sh.getRange(DS + i, c).setValue(''); cleaned++; } });
+    }
+  }
+  out.push('인스타 전용 오염 ' + cleaned + '칸 청소');
+
+  lun8Toast_(ss, '✅ 가드닝 정리 — ' + out.join(' · '));
 }

@@ -18,7 +18,12 @@ function prevCurrents(campaign) {
 }
 
 export async function runSync(campaign, { onProgress, full = false } = {}) {
-  const accounts = await getAccountsFromSheet(campaign.sheet);
+  const all = await getAccountsFromSheet(campaign.sheet);
+  // 틱톡 스캐너는 틱톡 계정만 본다. 인스타 전용(plat==='ig')은 틱톡 링크가 없으므로
+  // 긁을 대상도 아니고, 긁으면 인스타 핸들로 검색해 엉뚱한 값을 틱톡 열에 쓴다.
+  const accounts = all.filter((a) => a.plat !== 'ig');
+  const igOnly = all.length - accounts.length;
+  if (igOnly) console.log('[스캔] 인스타 전용 ' + igOnly + '명 제외 (틱톡 계정 없음)');
   const prev = prevCurrents(campaign);
   // 시트 모드면 시트 주문 기준(로컬만 보면 대상이 어긋남). 시트를 못 읽으면 로컬로 폴백.
   let _ords; try { _ords = await readOrders(campaign); } catch { _ords = localOrders(campaign); }
