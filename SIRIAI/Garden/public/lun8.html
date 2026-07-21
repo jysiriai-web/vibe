@@ -1154,7 +1154,8 @@ function viewRecruit(){
     <button class="btn small${state.noticeOnly?' primary':''}" data-notice-f="1">확정메일 미발송${unsent?` (${unsent})`:''}</button>
     <button class="btn small${state.unfixedOnly?' primary':''}" data-unfixed="${state.unfixedOnly?0:1}">날짜 미확정${unfixed?` (${unfixed})`:''}</button>
     <span class="spacer"></span>
-    <button class="btn primary small" id="btnAddPerson">${IC.userplus} 인원 추가</button>
+    <button class="btn small" id="btnAddPerson">${IC.userplus} 인원 추가</button>
+    <button class="btn small" id="btnReload">↻ 새로고침</button>
     <button class="btn small" id="btnRecScan">🔎 모집 스캔</button>
     <span class="spacer"></span>
   </div>`;
@@ -1929,6 +1930,7 @@ document.getElementById('content').addEventListener('click', e=>{
   if(e.target.closest('#btnAddPerson')){ state.addForm=true; render(); return; }
   if(e.target.closest('#apCancel')){ state.addForm=false; render(); return; }
   if(e.target.closest('#apSave')){ addPersonSave(); return; }
+  if(e.target.closest('#btnReload')){ loadData(); toast('시트에서 다시 읽는 중…'); return; }
   if(e.target.closest('#btnRecScan')){ scanRequest('모집'); return; }
   if(e.target.closest('#btnUpScan')){ scanRequest('업로드'); return; }
   if(e.target.closest('#gardenHoldToggle')){ state.gardenHold=!state.gardenHold; render(); return; }
@@ -1980,7 +1982,11 @@ document.getElementById('drawer').addEventListener('click', e=>{
   if(e.target.id==='drawer'){ closeDrawer(); return; }
   const v=e.target.closest('#viewSeg button'); if(v){ state.raw=v.dataset.raw==='1'; state.day=null; syncViewSeg(); render(); return; }
 });
-document.getElementById('modal').addEventListener('click', e=>{ if(e.target.id==='modal') closeModalReset(); });
+let _mdOnBg=false;
+// 텍스트를 드래그해 선택하다 마우스를 창 밖에서 떼면 click 이 배경에서 발생해 창이 닫혔다.
+// '누르기 시작한 곳'이 배경일 때만 닫는다.
+document.getElementById('modal').addEventListener('mousedown', e=>{ _mdOnBg = (e.target.id==='modal'); });
+document.getElementById('modal').addEventListener('click', e=>{ if(e.target.id==='modal' && _mdOnBg) closeModalReset(); });
 
 /* 매뉴얼·가이드 전용 이벤트. 기존 #content 델리게이션에 끼워넣지 않고 별도 리스너로 붙인다 —
    기존 뷰 동작을 한 줄도 안 건드리기 위함. 서로 다른 셀렉터라 충돌하지 않는다. */
@@ -2017,7 +2023,7 @@ document.getElementById('content').addEventListener('input', e=>{
   setInterval(()=>{
     if(!document.getElementById('modal').hidden) return;
     loadData();
-  }, 60000);
+  }, 20000);   // 20초 — 시트에서 고친 값이 1분이나 안 보이면 고장난 줄 안다
 })();
 </script>
 <script src="/feedback.js"></script>
