@@ -984,7 +984,9 @@ function memoCell(id, text){
   const t=(text||'').trim();
   return `<button class="memo-cell${t?'':' empty'}" data-edit="${id}" title="행 편집">${t?esc(t):'＋ 비고'}</button>`;
 }
-function editBtn(id){ return `<button class="rowedit" data-edit="${id}">${IC.edit}편집</button>`; }
+// plat: 통합 탭처럼 한 행이 특정 플랫폼을 가리킬 때 그 플랫폼을 함께 넘긴다.
+// 안 넘기면 모달이 state.plat('all')로 플랫폼을 찾다 '미참여'로 튕긴다.
+function editBtn(id, plat){ return `<button class="rowedit" data-edit="${id}"${plat?` data-editp="${plat}"`:''}>${IC.edit}편집</button>`; }
 
 /* ============ 정렬 (열 헤더 클릭 · 오름/내림) ============ */
 function cellSortVal(col, r){
@@ -1206,12 +1208,12 @@ function viewUploadAll(){
     { key:'h', label:'닉네임', cls:'handle', sv:r=>r[('d')][r.p].h, cell:r=>`${acctLink(r.d[r.p].h, r.p)}` },
     { key:'sched', label:'예정일', hideable:true, empty:r=>!r.d.sched, sv:r=>schedKey(r.d.sched),
       cell:r=> r.d.sched ? (isLate(r.d,r.p) ? `<span class="chip needs">${esc(r.d.sched)} 지남</span>` : `<b>${esc(r.d.sched)}</b>`) : `<span class="cmuted">미정</span>` },
-    { key:'c1', label:'콘텐츠', hideable:true, empty:r=>!r.d[r.p].c1, sortable:false, cell:r=>contentCell(r.d[r.p].c1, r.p) },
+    { key:'c1', label:'콘텐츠', sortable:false, cell:r=>contentCell(r.d[r.p].c1, r.p) },
     { key:'st', label:'상태', sv:r=> uploaded(r.d,r.p) ? (done(r.d[r.p])?2:1) : 0,
       cell:r=> !uploaded(r.d,r.p) ? (isLate(r.d,r.p)?'<span class="chip needs">지연</span>':'<span class="chip stale">대기</span>')
              : done(r.d[r.p]) ? '<span class="chip ok">검수완료</span>' : '<span class="chip fill">검수대기</span>' },
     { key:'memo', label:'비고', hideable:true, empty:r=>!r.d[r.p].memo, sv:r=>r.d[r.p].memo||'', cell:r=>memoCell(r.d.id, r.d[r.p].memo) },
-    { key:'edit', label:'', cell:r=>editBtn(r.d.id) },
+    { key:'edit', label:'', cell:r=>editBtn(r.d.id, r.p) },
   ];
   const tot = pairs.length, up = pairs.filter(x=>uploaded(x.d,x.p)).length;
   const rev = pairs.filter(x=>done(x.d[x.p])).length, late = pairs.filter(x=>isLate(x.d,x.p)).length;
@@ -1272,7 +1274,7 @@ function viewUpload(){
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
     { key:'h', label:pName(p)+' 닉네임', cls:'handle', grp:p, sv:r=>r[p].h, cell:r=>`${acctLink(r[p].h, p)}` },
     { key:'sched', label:'예정일', hideable:true, empty:r=>!r.sched, sv:r=>schedKey(r.sched), cell:r=> r.sched ? (isLate(r,p)?`<span class="chip needs">${esc(r.sched)} 지남</span>`:`<b>${esc(r.sched)}</b>`) : `<span class="cmuted">미정</span>` },
-    { key:'c1', label:'콘텐츠①', hideable:true, empty:r=>!r[p].c1, sortable:false, cell:r=>contentCell(r[p].c1, p) },
+    { key:'c1', label:'콘텐츠①', sortable:false, cell:r=>contentCell(r[p].c1, p) },
     { key:'c2', label:'콘텐츠②', hideable:true, empty:r=>!r[p].c2, sortable:false, cell:r=>contentCell(r[p].c2, p) },
     { key:'snd', label:'음원', hideable:true, empty:()=>false, sv:r=>r[p].snd, cell:r=>revSel(r[p].snd, r.id, 'snd', p) },
     { key:'sec', label:'음원구간', hideable:true, empty:()=>false, sv:r=>r[p].sec, cell:r=>revSel(r[p].sec, r.id, 'sec', p) },
@@ -1378,7 +1380,7 @@ function viewGardenAll(){
         if(r.g.st==='hold')   return `<span class="cmuted">${nf(r.g.order)} <small>업로드 시</small></span>`;
         if(r.g.st==='filling')return `<span class="cmuted">진행중 ${nf(r.d[r.p].inFlight)}</span>`;
         return `<span class="emptydot">·</span>`; } },
-    { key:'edit', label:'', cell:r=>editBtn(r.d.id) },
+    { key:'edit', label:'', cell:r=>editBtn(r.d.id, r.p) },
   ];
   // 보류 토글은 '지금 걸러진 것'이 아니라 '전체에 보류가 몇 건인지'를 세야 한다(꺼도 숫자가 남게)
   let holdN = 0; D.filter(inCampaign).forEach(d=> platsOn().forEach(p=>{ if(d[p] && gStat(d,p).st==='hold') holdN++; }));
@@ -1748,9 +1750,11 @@ const selVal = id => { const e=document.getElementById(id); return e?e.value:'';
 function revEditSel(id, cur){ return `<select class="inp" id="${id}">${[['n','미확인'],['p','준수'],['f','미준수']].map(([v,l])=>`<option value="${v}"${v===cur?' selected':''}>${l}</option>`).join('')}</select>`; }
 
 /* ============ 행 편집 — 각 탭별 독립(현재 탭 필드만) ============ */
-function openRowEdit(id){
+function openRowEdit(id, rowPlat){
   const d = D.find(x=>x.id===id); if(!d) return;
-  const p = state.plat;
+  // 행이 플랫폼을 알려주면 그걸 쓴다. 통합 탭('all')에서 안 알려주면 이 사람이 참여하는 첫 플랫폼.
+  const p = (rowPlat && d[rowPlat]) ? rowPlat
+    : (state.plat!=='all' ? state.plat : (platsOn().find(x=>d[x]) || state.plat));
   const TABN = { recruit:'모집', upload:'업로드', garden:'가드닝', deliver:'납품', settle:'정산' }[state.view];
   let body='', save=()=>{};
 
@@ -1982,7 +1986,7 @@ document.getElementById('content').addEventListener('click', e=>{
   const dy=e.target.closest('[data-day]'); if(dy){ state.day = (state.day===dy.dataset.day) ? null : dy.dataset.day; state.week=null; render(); return; }
   if(e.target.closest('#dayClear')){ state.day=null; state.week=null; render(); return; }
   const th=e.target.closest('.th-sort'); if(th){ toggleSort(th.dataset.table, th.dataset.sort); return; }
-  const ed=e.target.closest('[data-edit]'); if(ed){ openRowEdit(+ed.dataset.edit); return; }
+  const ed=e.target.closest('[data-edit]'); if(ed){ openRowEdit(+ed.dataset.edit, ed.dataset.editp||''); return; }
   const pt=e.target.closest('[data-paidtog]'); if(pt){ const d=D.find(x=>x.id===+pt.dataset.paidtog); if(d){ d.settle.paid=!d.settle.paid; render(); } return; }
   const s=e.target.closest('.subtab'); if(s){ state.plat=s.dataset.plat; render(); return; }
   if(e.target.closest('#btnAddPerson')){ state.addForm=true; render(); return; }
