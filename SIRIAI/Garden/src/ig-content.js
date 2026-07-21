@@ -1,0 +1,128 @@
+// 인스타 업로드 스캔 — 최근 게시물 캡션에서 캠페인 해시태그를 찾아 콘텐츠 링크·해시태그 검수를 채운다.
+//
+// 틱톡(content-core)과 다른 점:
+//   · 게시물 목록이 프로필 API 한 번에 딸려 온다 — 계정마다 영상 페이지를 열 필요가 없다.
+//   · 작성자 가드가 필요 없다. 이 API 는 '그 계정이 올린 것'만 준다(틱톡은 리포스트가 섞여 왔다).
+//   · 음원은 자동 판정이 안 된다 — 릴스는 지정 음원을 써도 표기가 '오리지널 오디오'로 바뀐다. 사람이 본다.
+//   · 조회수도 안 온다(instagram.js 주석 참고) — 좋아요·댓글만 쓴다.
+import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { getAccountsFromSheet, pushCellsToSheet } from './sheet.js';
+import { launchIgBrowser, openIgFetcher, fetchIgProfileRetry, sleep } from './instagram.js';
+import { igHandleOf } from './ig-sync.js';
+
+const LATEST = 'ig-detected.json';
+
+// 캡션에서 해시태그만 뽑는다. 인스타는 한글·일본어 태그가 그대로 들어간다.
+export function tagsOfCaption(caption) {
+  const out = new Set();
+  String(caption || '').replace(/#([^\s#@.,!?()[\]{}"'…]+)/g, (_, t) => { out.add(t.toLowerCase()); return ''; });
+  return out;
+}
+
+// 이 게시물이 캠페인 콘텐츠인가. 태그가 2개 이상 설정돼 있으면 2개 이상 맞아야 한다 —
+// #SNEAKERS 같은 흔한 단일 태그 하나로 무관한 게시물을 캠페인 콘텐츠로 오인하지 않게.
+export function matchPost(post, hashtags) {
+  const wanted = (hashtags || []).map((h) => String(h).toLowerCase().replace(/^#/, ''));
+  if (!wanted.length) return { hit: false, matched: [] };
+  const tags = tagsOfCaption(post.caption);
+  const matched = wanted.filter((w) => tags.has(w));
+  const need = wanted.length >= 2 ? 2 : 1;
+  return { hit: matched.length >= need, matched, all: matched.length === wanted.length };
+}
+
+// 캠페인 기간 안의 게시물만 본다. 예전 게시물에 우연히 태그가 있어도 이번 콘텐츠가 아니다.
+function inWindow(post, since) {
+  if (!since || !post.takenAt) return true;
+  return new Date(post.takenAt).getTime() >= new Date(since).getTime();
+}
+
+export async function runIgContentScan(campaign, { onProgress, onWarmup, waitForGo, since = '', delayMs = 3000 } = {}) {
+  const hashtags = campaign.campaignHashtags || [];
+  const all = await getAccountsFromSheet(campaign.sheet);
+  const accounts = all.map((a) => ({ ...a, igHandle: igHandleOf(a) })).filter((a) => a.igHandle && a.row);
+
+  const prev = (() => {
+    const p = join(campaign.dataDir, LATEST);
+    if (!existsSync(p)) return {};
+    try { return JSON.parse(readFileSync(p, 'utf8')).detected || {}; } catch { return {}; }
+  })();
+
+  // 이미 올린 게 확인된 계정은 다시 안 본다. 인스타 제한을 아끼고, 확정된 링크를 흔들지 않는다.
+  const targets = accounts.filter((a) => !(prev[a.igHandle] && prev[a.igHandle].uploaded));
+
+  const detected = { ...prev };
+  const cells = [];
+  let apiDead = false, stopped = '';
+
+  if (targets.length) {
+    const b = await launchIgBrowser({ onWarmup, waitForGo });
+    try {
+      const page = await openIgFetcher(b.ctx);
+      for (let i = 0; i < targets.length; i++) {
+        const a = targets[i];
+        // ⚠️ 업로드 감지는 게시물 목록이 필요하다 → 페이지 방식으로 대체할 수 없다.
+        //    API 가 막히면 여기서 멈춘다. 남은 계정을 헛돌리지 않고 '나중에 다시'로 남긴다.
+        if (apiDead) { stopped = 'API 가 막혀서 중단했어요 — 조금 뒤에 다시 눌러주세요.'; break; }
+        let p = null;
+        try { p = await fetchIgProfileRetry(page, a.igHandle); }
+        catch (e) {
+          if (e.code === 'LOGGEDOUT' || e.code === 'BLOCKED') { apiDead = true; stopped = 'API 가 막혀서 중단했어요 — 조금 뒤에 다시 눌러주세요.'; break; }
+          detected[a.igHandle] = { uploaded: false, scanFailed: true, error: e.message };
+          if (onProgress) onProgress({ done: i + 1, total: targets.length, handle: a.igHandle, failed: true, error: e.message });
+          await sleep(delayMs); continue;
+        }
+
+        const hits = (p.posts || []).filter((x) => inWindow(x, since)).map((x) => ({ post: x, m: matchPost(x, hashtags) })).filter((x) => x.m.hit);
+        // 여러 개면 가장 오래된 것이 ①, 그다음이 ② — 올린 순서가 곧 콘텐츠 번호다.
+        hits.sort((x, y) => new Date(x.post.takenAt || 0) - new Date(y.post.takenAt || 0));
+
+        if (hits.length) {
+          const first = hits[0];
+          detected[a.igHandle] = {
+            uploaded: true,
+            link: first.post.link,
+            link2: hits[1] ? hits[1].post.link : '',
+            hashtagOk: first.m.all,
+            matched: first.m.matched,
+            likes: first.post.likes,
+            comments: first.post.comments,
+            takenAt: first.post.takenAt,
+          };
+          cells.push({ row: a.row, field: 'ig.contentA', value: first.post.link });
+          if (hits[1]) cells.push({ row: a.row, field: 'ig.contentB', value: hits[1].post.link });
+          // 해시태그는 '전부 들어갔나'로 판정한다. 일부만 맞으면 미준수 — 사람이 보고 요청해야 한다.
+          cells.push({ row: a.row, field: 'ig.hashtagOk', value: first.m.all ? '준수' : '미준수' });
+          if (first.post.likes != null) cells.push({ row: a.row, field: 'ig.likes', value: first.post.likes });
+          if (first.post.comments != null) cells.push({ row: a.row, field: 'ig.comments', value: first.post.comments });
+        } else {
+          detected[a.igHandle] = { uploaded: false, checkedAt: new Date().toISOString(), postsSeen: (p.posts || []).length };
+        }
+        if (onProgress) onProgress({ done: i + 1, total: targets.length, handle: a.igHandle, uploaded: hits.length > 0 });
+        if (i < targets.length - 1) await sleep(delayMs);
+      }
+    } finally { try { await b.browser.close(); } catch {} }
+  }
+
+  let written = 0, writeError = '';
+  if (cells.length) {
+    try { written = await pushCellsToSheet(campaign.sheet, cells); }
+    catch (e) { writeError = e.message; }
+  }
+
+  const uploadedN = Object.values(detected).filter((d) => d && d.uploaded).length;
+  const out = {
+    ranAt: new Date().toISOString(),
+    total: accounts.length,
+    scannedCount: targets.length,
+    uploaded: uploadedN,
+    written,
+    writeError,
+    stopped,
+    hashtags,
+    detected,
+  };
+  mkdirSync(campaign.dataDir, { recursive: true });
+  writeFileSync(join(campaign.dataDir, LATEST), JSON.stringify(out, null, 2));
+  return out;
+}

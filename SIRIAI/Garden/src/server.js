@@ -13,6 +13,7 @@ import { runAutoRefill, refillServiceIds, REFILL_WINDOW_DAYS } from './refill.js
 import { getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet, syncRecruitToSheet, deliverToSheet, readFeedbackFromSheet, addFeedbackToSheet, markFeedbackDone } from './sheet.js';
 import { scanAccounts, buildPlan, placeOrders, findService } from './execute-core.js';
 import { runIgSync } from './ig-sync.js';
+import { runIgContentScan } from './ig-content.js';
 import { runSync } from './sync-core.js';
 import { runContentScan, judgeOneLink, scanOneProfile } from './content-core.js';
 import { checkExitLocation } from './tiktok-videos.js';
@@ -39,6 +40,7 @@ let contentScanState = { running: false, done: 0, total: 0, up: 0, written: 0, e
 // 캠페인별 SMM 캐시 — 잔액·주문상태 갱신을 매 로드마다 치지 않고 30초 스로틀. { balance, balanceAt, ordersAt }
 const smmCache = new Map();
 const SMM_TTL = 30000;
+let igContentState = null;   // 인스타 업로드 스캔 진행상황
 let igScanState = null;   // 인스타 스캔 진행상황 — 워커 화면이 폴링한다
 let scanConfirmResolve = null; // '스캔 시작' 확인을 기다리는 promise 의 resolver (로봇 인증 게이트)
 let scanResumeResolve = null; // 막혔을 때 '재개/중지'를 기다리는 resolver (VPN 바꾸기 게이트)
@@ -534,6 +536,26 @@ export async function handler(req, res) {
       }
     }
     if (path === '/api/ig-scan-status') return send(res, 200, igScanState || { phase: 'idle' });
+
+    // 인스타 업로드 스캔 — 캡션에서 캠페인 해시태그를 찾아 콘텐츠 링크·검수를 채운다.
+    // 게시물 목록이 필요해 API 경로로만 된다(프로필 페이지엔 안 온다) → 막히면 중단하고 나중에 재개.
+    if (path === '/api/ig-content-scan' && req.method === 'POST') {
+      if (CLOUD) return send(res, 501, { error: '인스타 업로드 스캔은 대표님 PC 에서만 돌아요(크롬 창이 필요해요).' });
+      igContentState = { phase: 'confirm', done: 0, total: 0 };
+      try {
+        const out = await runIgContentScan(campaign, {
+          since: url.searchParams.get('since') || '',
+          onWarmup: () => { igContentState.phase = 'login'; },
+          onProgress: (p) => { igContentState = { phase: 'scan', done: p.done, total: p.total, handle: p.handle, uploaded: p.uploaded }; },
+        });
+        igContentState = { phase: 'done', done: out.scannedCount, total: out.total };
+        return send(res, 200, { ok: true, ...out, detected: undefined });
+      } catch (e) {
+        igContentState = { phase: 'error', error: e.message };
+        return send(res, 500, { error: e.message });
+      }
+    }
+    if (path === '/api/ig-content-status') return send(res, 200, igContentState || { phase: 'idle' });
 
     if (path === '/api/plan' && req.method === 'POST') {
       const svc = serviceOf(campaign);
