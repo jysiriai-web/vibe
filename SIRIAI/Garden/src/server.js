@@ -12,6 +12,7 @@ import { refreshOrders, inFlightFor } from './orders.js';
 import { runAutoRefill, refillServiceIds, REFILL_WINDOW_DAYS } from './refill.js';
 import { getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet, syncRecruitToSheet, deliverToSheet, readFeedbackFromSheet, addFeedbackToSheet, markFeedbackDone } from './sheet.js';
 import { scanAccounts, buildPlan, placeOrders, findService } from './execute-core.js';
+import { runIgSync } from './ig-sync.js';
 import { runSync } from './sync-core.js';
 import { runContentScan, judgeOneLink, scanOneProfile } from './content-core.js';
 import { checkExitLocation } from './tiktok-videos.js';
@@ -38,6 +39,7 @@ let contentScanState = { running: false, done: 0, total: 0, up: 0, written: 0, e
 // 캠페인별 SMM 캐시 — 잔액·주문상태 갱신을 매 로드마다 치지 않고 30초 스로틀. { balance, balanceAt, ordersAt }
 const smmCache = new Map();
 const SMM_TTL = 30000;
+let igScanState = null;   // 인스타 스캔 진행상황 — 워커 화면이 폴링한다
 let scanConfirmResolve = null; // '스캔 시작' 확인을 기다리는 promise 의 resolver (로봇 인증 게이트)
 let scanResumeResolve = null; // 막혔을 때 '재개/중지'를 기다리는 resolver (VPN 바꾸기 게이트)
 
@@ -509,6 +511,29 @@ export async function handler(req, res) {
       }
       return send(res, 200, { ok: true, scannedAt: scanLatest(campaign).ranAt, scannedCount: sync.scannedCount, nicksWritten: sync.nicksWritten, refill, accounts: await buildAccounts(campaign, orders), orders: markStale(orders) });
     }
+
+    // 인스타 모집 스캔 — 팔로워·닉네임을 인스타 열에 채운다. 틱톡 스캔(/api/scan)과 별개다:
+    // 브라우저를 띄우고, 실패 모드도 다르다(로봇인증 vs 로그인 만료).
+    if (path === '/api/ig-scan' && req.method === 'POST') {
+      if (CLOUD) return send(res, 501, { error: '인스타 스캔은 대표님 PC 에서만 돌아요(크롬 창이 필요해요).' });
+      igScanState = { phase: 'confirm', done: 0, total: 0, startedAt: new Date().toISOString() };
+      try {
+        const out = await runIgSync(campaign, {
+          full: url.searchParams.get('full') === '1',
+          onWarmup: () => { igScanState.phase = 'login'; },
+          onProgress: (p) => {
+            if (p.note) { igScanState.note = p.note; return; }
+            igScanState.phase = 'scan'; igScanState.done = p.done; igScanState.total = p.total; igScanState.handle = p.handle;
+          },
+        });
+        igScanState = { phase: 'done', done: out.scannedCount, total: out.total };
+        return send(res, 200, { ok: true, ...out, accounts: undefined });
+      } catch (e) {
+        igScanState = { phase: 'error', error: e.message };
+        return send(res, 500, { error: e.message });
+      }
+    }
+    if (path === '/api/ig-scan-status') return send(res, 200, igScanState || { phase: 'idle' });
 
     if (path === '/api/plan' && req.method === 'POST') {
       const svc = serviceOf(campaign);

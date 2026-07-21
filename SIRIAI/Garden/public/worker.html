@@ -36,23 +36,29 @@
     <div class="wk-status" id="status">상태 불러오는 중…</div>
 
     <div class="wk-card">
-      <button class="btn primary wk-btn" id="btnScan">① 모집 스캔</button>
-      <p class="wk-desc">전체 계정의 <b>팔로워·닉네임</b>을 다시 확인해 마스터시트에 채워요.<br>크롬 창이 뜨면 로봇 인증만 통과시켜 주세요. 계정 수에 따라 <b>3~10분</b>.</p>
+      <button class="btn primary wk-btn" id="btnScan">① 틱톡 모집 스캔</button>
+      <p class="wk-desc">틱톡 계정의 <b>팔로워·닉네임</b>을 마스터시트 틱톡 열에 채워요.<br>크롬 창이 뜨면 로봇 인증만 통과시켜 주세요. 계정 수에 따라 <b>3~10분</b>.</p>
     </div>
 
     <div class="wk-card">
-      <button class="btn wk-btn" id="btnContent">② 업로드 스캔</button>
+      <button class="btn wk-btn" id="btnIgScan">② 인스타 모집 스캔</button>
+      <p class="wk-desc">인스타 계정의 <b>팔로워·닉네임</b>을 인스타 열에 채워요.<br>처음 한 번만 크롬 창에서 <b>인스타 로그인</b>이 필요하고, 그다음부터는 창이 잠깐 떴다 사라져요. <b>3~8분</b>.</p>
+      <div class="wk-sub" id="igPanel" hidden></div>
+    </div>
+
+    <div class="wk-card">
+      <button class="btn wk-btn" id="btnContent">③ 업로드 스캔</button>
       <p class="wk-desc">계정마다 <b>영상을 올렸는지</b> 확인하고 음원·해시태그·조회수를 채워요.<br>크롬 창에서 로봇 인증을 끝낸 뒤 아래 [스캔 시작]을 누르면 시작돼요. <b>5~15분</b>.</p>
       <div class="wk-sub" id="scanPanel" hidden></div>
     </div>
 
     <div class="wk-card">
-      <button class="btn wk-btn" id="btnExec">③ 가드닝 집행 <span class="wk-money">돈 나감</span></button>
+      <button class="btn wk-btn" id="btnExec">④ 가드닝 집행 <span class="wk-money">돈 나감</span></button>
       <p class="wk-desc">팔로워가 목표에 모자란 계정에 <b>주문을 넣어요</b>. 먼저 금액이 적힌 확인 창이 뜨고, 확정해야만 나갑니다. <b>1분 내외</b>.</p>
     </div>
 
     <div class="wk-card">
-      <button class="btn wk-btn" id="btnIp">④ 나가는 IP 확인</button>
+      <button class="btn wk-btn" id="btnIp">⑤ 나가는 IP 확인</button>
       <p class="wk-desc">지금 스캔이 <b>어느 나라 IP</b>로 나가는지 봐요. VPN이 걸렸는지 확인할 때. <b>10초</b>.</p>
     </div>
 
@@ -146,7 +152,36 @@
       });
     }
 
-    // ② 업로드 스캔 ──────────────────────────────────────────────────────────
+    // ② 인스타 모집 스캔 ────────────────────────────────────────────────────
+    // 로그인이 필요하면 서버가 phase='login' 을 준다 → 크롬 창에서 로그인하라고 안내.
+    // API 가 막히면 서버가 프로필 페이지 방식으로 알아서 전환하고 note 로 알려준다.
+    function igScan() {
+      if (busy) return;
+      setBusy(true);
+      say('인스타 모집 스캔 시작 — 크롬 창이 떠요.');
+      var el = $('#igPanel');
+      var timer = setInterval(function () {
+        fetch('/api/ig-scan-status?campaign=' + CAMP).then(function (r) { return r.json(); }).then(function (st) {
+          if (!st) return;
+          if (st.phase === 'login') { el.hidden = false; el.innerHTML = '<span class="wk-note">크롬 창에서 <b>인스타에 로그인</b>해 주세요 — 로그인되면 바로 시작해요.</span>'; }
+          else if (st.phase === 'scan') { el.hidden = false; el.innerHTML = '<span class="wk-note">진행 <b>' + (st.done || 0) + '/' + (st.total || '?') + '</b>' + (st.handle ? ' · @' + esc(st.handle) : '') + (st.note ? ' · ' + esc(st.note) : '') + '</span>'; }
+          else { el.hidden = true; }
+        }).catch(function () {});
+      }, 1500);
+      api('/api/ig-scan?campaign=' + CAMP, { method: 'POST' }).catch(netErr).then(function (r) {
+        clearInterval(timer); el.hidden = true;
+        setBusy(false);
+        if (!r || r.error) return fail(r, '인스타 모집 스캔');
+        var msg = '인스타 모집 스캔 완료 — ' + (r.scannedCount != null ? r.scannedCount : '?') + '개 · 시트 ' + (r.written || 0) + '칸 기입';
+        if (r.failures && r.failures.length) msg += ' · 실패 ' + r.failures.length + '건';
+        say(msg, r.failures && r.failures.length ? '' : 'ok');
+        if (r.writeError) say('⚠️ 시트 쓰기: ' + r.writeError, 'err');
+        showDone();
+        loadStatus();
+      });
+    }
+
+    // ③ 업로드 스캔 ──────────────────────────────────────────────────────────
     // 서버 규약: POST /api/content-scan → status 폴링(phase: confirm=로봇인증 대기,
     // scan=진행중, blocked=틱톡이 막음) → confirm / pause / resume / stop.
     function contentScan() {
@@ -276,6 +311,7 @@
     }
 
     $('#btnScan').addEventListener('click', scan);
+    $('#btnIgScan').addEventListener('click', igScan);
     $('#btnContent').addEventListener('click', contentScan);
     $('#btnExec').addEventListener('click', openExec);
     $('#btnIp').addEventListener('click', checkIp);

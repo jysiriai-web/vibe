@@ -41,6 +41,7 @@ export async function runIgSync(campaign, { onProgress, onWarmup, waitForGo, ful
   const targets = limit > 0 ? _targets.slice(0, limit) : _targets;
 
   const results = [];
+  let apiDead = false;   // API 가 한 번 막히면 그 판 내내 페이지 방식으로 간다
   let browser = null;
   if (targets.length) {
     const b = await launchIgBrowser({ onWarmup, waitForGo });
@@ -49,27 +50,32 @@ export async function runIgSync(campaign, { onProgress, onWarmup, waitForGo, ful
       const page = await openIgFetcher(b.ctx);
       for (let i = 0; i < targets.length; i++) {
         const a = targets[i];
-        try {
-          const p = await fetchIgProfileRetry(page, a.igHandle);
-          results.push({ row: a.row, handle: a.igHandle, followers: p.followers, name: p.name, isPrivate: p.isPrivate, posts: p.posts });
-          if (onProgress) onProgress({ done: i + 1, total: targets.length, handle: a.igHandle, followers: p.followers });
-        } catch (err) {
-          let e = err;
-          // 일부 계정은 API 가 인스타 내부 오류(400)를 뱉는다 — 프로필 페이지로 우회한다.
-          // 팔로워·이름만 얻고 게시물은 못 얻지만, 모집 스캔엔 그걸로 충분하다.
-          if (e.code === 'HTTP' || e.code === 'FETCH') {
-            try {
-              const p2 = await fetchIgProfileViaPage(b.ctx, a.igHandle);
-              results.push({ row: a.row, handle: a.igHandle, followers: p2.followers, name: p2.name, isPrivate: false, posts: [], via: 'page' });
-              if (onProgress) onProgress({ done: i + 1, total: targets.length, handle: a.igHandle, followers: p2.followers, via: 'page' });
-              if (i < targets.length - 1) await sleep(delayMs);
-              continue;
-            } catch (e2) { e = e2.code === 'NOTFOUND' ? e : e2; }
+        let p = null, via = 'api', err = null;
+        // ① API 먼저 — 팔로워뿐 아니라 게시물·캡션까지 한 번에 온다(업로드 감지에 쓴다).
+        //    apiDead 면 건너뛴다: 한 번 막힌 엔드포인트를 계속 두드리면 제한만 길어진다.
+        if (!apiDead) {
+          try { p = await fetchIgProfileRetry(page, a.igHandle); }
+          catch (e) {
+            err = e;
+            // 401/403/429 = 속도 제한. 이 판은 API 를 접고 남은 계정은 전부 페이지로 간다.
+            if (e.code === 'LOGGEDOUT' || e.code === 'BLOCKED') {
+              apiDead = true;
+              if (onProgress) onProgress({ note: 'API 가 막혀 프로필 페이지 방식으로 전환합니다' });
+            }
           }
-          results.push({ row: a.row, handle: a.igHandle, followers: null, error: e.message, code: e.code || '' });
-          if (onProgress) onProgress({ done: i + 1, total: targets.length, handle: a.igHandle, failed: true, error: e.message });
-          // 로그인이 풀렸으면 남은 계정도 전부 실패한다 — 헛돌지 말고 멈춘다.
-          if (e.code === 'LOGGEDOUT') break;
+        }
+        // ② 페이지 직접 열기 — 사람이 프로필을 넘겨보는 것과 같은 경로라 훨씬 덜 막힌다.
+        //    팔로워·이름만 얻고 게시물은 못 얻지만, 모집 스캔엔 그걸로 충분하다.
+        if (!p) {
+          try { p = await fetchIgProfileViaPage(b.ctx, a.igHandle); via = 'page'; }
+          catch (e2) { err = err && e2.code === 'NOTFOUND' ? err : e2; }
+        }
+        if (p) {
+          results.push({ row: a.row, handle: a.igHandle, followers: p.followers, name: p.name, isPrivate: !!p.isPrivate, posts: p.posts || [], via });
+          if (onProgress) onProgress({ done: i + 1, total: targets.length, handle: a.igHandle, followers: p.followers, via });
+        } else {
+          results.push({ row: a.row, handle: a.igHandle, followers: null, error: err ? err.message : '실패', code: (err && err.code) || '' });
+          if (onProgress) onProgress({ done: i + 1, total: targets.length, handle: a.igHandle, failed: true, error: err ? err.message : '실패' });
         }
         if (i < targets.length - 1) await sleep(delayMs);
       }
