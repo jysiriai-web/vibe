@@ -148,7 +148,13 @@ function render() {
 
 const chip = (s) => `<span class="chip ${s}">${STATUS[s] || s}</span>`;
 // 핸들은 시트에서 오므로 이스케이프한다(속성 인젝션 방지). 정상 핸들엔 변화 없음.
-const link = (h) => `<a href="https://www.tiktok.com/@${encodeURIComponent(String(h ?? ''))}" target="_blank">@${esc(h)}</a>`;
+// 계정 링크. 인스타 전용 크리에이터(plat:'ig')는 틱톡 주소로 열면 안 되므로 주소를 갈아끼운다.
+// 주문·비용 표처럼 계정 객체가 없는 곳은 핸들만 넘어와서 기존대로 틱톡으로 본다(가드닝=틱톡이라 맞음).
+const link = (h, plat) => {
+  const s = encodeURIComponent(String(h ?? ''));
+  const ig = plat === 'ig';
+  return `<a href="${ig ? 'https://www.instagram.com/' + s : 'https://www.tiktok.com/@' + s}" target="_blank">${ig ? '' : '@'}${esc(h)}${ig ? ' <span class="plat-tag">IG</span>' : ''}</a>`;
+};
 const coChip = (c) => (c ? `<span class="co co-${c === 'MARU' ? 'maru' : c === 'SIRIAI' ? 'siriai' : 'x'}">${c}</span>` : '');
 // 검수 드롭다운. col=19 음원 / 20 음원구간 / 21 해시태그. 선택 즉시 저장(낙관적 반영).
 function revChip(a, col) {
@@ -277,7 +283,7 @@ function viewRecruit(accts) {
   const rows = list.map((a) => `<tr${nt && !noticeSent(a) ? ' class="row-alert"' : ''}>
     <td>${coChip(a.company)}</td>
     <td class="nick">${a.nick ? esc(a.nick) : '<span class="muted">—</span>'} <button class="cell-edit${a.nick ? '' : ' prompt'}" data-kind="nick" data-row="${a.row}" data-val="${esc(a.nick || '')}">${a.nick ? '✎' : '입력'}</button></td>
-    <td class="handle">${link(a.handle)} <button class="cell-edit" data-kind="link" data-row="${a.row}" data-val="${esc(a.link || ('https://www.tiktok.com/@' + a.handle))}">✎</button></td>
+    <td class="handle">${link(a.handle, a.plat)} <button class="cell-edit" data-kind="link" data-row="${a.row}" data-val="${esc(a.link || ('https://www.tiktok.com/@' + a.handle))}">✎</button></td>
     <td class="num">${a.current == null ? '' : fmt(a.current)} <button class="cell-edit${a.current == null ? ' prompt' : ''}" data-kind="fol" data-row="${a.row}" data-val="${a.current ?? ''}">${a.current == null ? '입력' : '✎'}</button></td>
     <td>${chip(a.status)}</td>${nt ? noticeCell(a) : ''}${memoCell(a)}</tr>`).join('');
   return `<div class="cards">
@@ -322,7 +328,7 @@ function viewUpload(accts) {
     const cls = [reviewPending(a) ? 'row-alert' : '', isFail ? 'scan-failed' : ''].filter(Boolean).join(' ');
     return `<tr${cls ? ` class="${cls}"` : ''}${isFail ? ` data-failh="${esc(a.handle)}" title="지난 스캔에서 이 계정을 못 봤어요 (틱톡 차단). 확인했으면 클릭해서 표시를 지우세요."` : ''}>
     <td>${coChip(a.company)}</td>
-    <td class="handle">${link(a.handle)}${isFail ? ' <span class="chip warn scanfail-tag">스캔 실패</span>' : ''}</td>
+    <td class="handle">${link(a.handle, a.plat)}${isFail ? ' <span class="chip warn scanfail-tag">스캔 실패</span>' : ''}</td>
     ${schedCell(a)}
     <td>${uploaded(a) ? (reviewPending(a) ? '<span class="chip needs">검수대기</span>' : '<span class="chip ok">검수완료</span>') : '<span class="chip error">미업로드</span>'}</td>
     <td>${uploaded(a)
@@ -419,7 +425,7 @@ function viewNeeds(accts) {
   }, 'order', 'desc');
   const rows = sortedNeeds.map((a) => `<tr>
     ${isCloud() ? '' : `<td><input type="checkbox" class="pick" data-h="${a.handle}" aria-label="집행 선택 @${a.handle}"${state.unpicked.has(a.handle) ? '' : ' checked'}></td>`}
-    <td class="handle">${link(a.handle)}</td><td class="num">${fmt(a.current)}</td><td class="num">${fmt(a.order)}</td><td class="num">${cost(a)}</td></tr>`).join('');
+    <td class="handle">${link(a.handle, a.plat)}</td><td class="num">${fmt(a.current)}</td><td class="num">${fmt(a.order)}</td><td class="num">${cost(a)}</td></tr>`).join('');
   const bar = isCloud()
     ? `<div class="bar"><div class="summary">가드닝 필요 <b>${needs.length}</b>개</div></div>`
     : `<div class="bar"><div class="summary">가드닝 필요 <b>${needs.length}</b>개 · 선택 <b id="selQty">0</b>명 · 예상 <b id="selCost">₩0</b></div><div class="spacer"></div><button class="btn danger" id="execBtn">선택 집행</button></div>`;
@@ -557,7 +563,7 @@ function viewDeliver(accts) {
   }, 'v', 'desc');
   const rows = list.map((a) => `<tr>
     <td><button class="star ${state.best.includes(a.handle) ? 'on' : ''}" data-h="${a.handle}" title="SIRIAI 베스트" aria-pressed="${state.best.includes(a.handle)}" aria-label="SIRIAI 베스트 @${a.handle}">★</button></td>
-    <td class="handle">${link(a.handle)}</td>
+    <td class="handle">${link(a.handle, a.plat)}</td>
     <td class="num">${a.v == null ? '—' : fmt(a.v)}</td><td class="num">${a.l == null ? '—' : fmt(a.l)}</td>
     <td class="num">${a.c == null ? '—' : fmt(a.c)}</td><td class="num">${a.sh == null ? '—' : fmt(a.sh)}</td>
     <td><a href="${esc(a.contentLink)}" target="_blank">영상</a></td>${memoCell(a)}</tr>`).join('');

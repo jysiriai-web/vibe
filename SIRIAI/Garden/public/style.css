@@ -307,3 +307,4 @@ body.fb-picking #content *:hover { outline: 2px solid var(--accent); outline-off
 .fb-empty { text-align: center; font-size: 13px; color: var(--muted); line-height: 1.7; padding: 22px 10px; }
 .fb-foot { display: flex; align-items: center; gap: 7px; padding: 10px 13px; border-top: 1px solid var(--line2); flex-wrap: wrap; }
 .fb-note { font-size: 11px; color: var(--faint); }
+.plat-tag { font-size: 9.5px; font-weight: 800; padding: 1px 4px; border-radius: 4px; background: var(--accent-soft); color: var(--accent-ink); vertical-align: 1px; }

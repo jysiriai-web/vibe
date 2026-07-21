@@ -18,6 +18,7 @@ const DEFAULT_COL = {
   soundOk: 19, soundSection: 20, hashtagOk: 21, memo: 22,
   campaignDone: 23, paid: 24, paidDate: 25, contentB: 26,
   views: 27, likes: 28, comments: 29, shares: 30,
+  igLink: 0, igNick: 0,   // 0 = 이 마스터엔 없는 열 → 폴백하지 않고 '없음'으로 둔다(베이온은 틱톡 전용)
 };
 // 필드 → 헤더 별칭(선호 순서, 정규화 정확일치). 새 캠페인 헤더가 다르면 여기에 별칭만 추가.
 // ⚠️ schedDate: 베이온은 '예정일'을 헤더상 '검수 특이사항' 열(18)에 기입 → 그 별칭 포함.
@@ -48,6 +49,8 @@ const FIELD_HEADERS = {
   likes: ['좋아요', '틱톡좋아요'],
   comments: ['댓글', '틱톡댓글'],
   shares: ['공유', '틱톡공유'],
+  igLink: ['인스타링크', '인스타그램링크', 'instagram링크'],
+  igNick: ['인스타닉네임', '인스타그램닉네임'],
 };
 var COL = shallowClone_(DEFAULT_COL); // 런타임에 헤더 기반으로 재해석됨 (initCols_)
 var _dataSheet = null;                // 데이터 탭 캐시 (initCols_ 가 채움)
@@ -72,9 +75,9 @@ function resolveColsFromHeaders_(headerRow) {
   for (var f in DEFAULT_COL) {
     var col = 0, al = FIELD_HEADERS[f] || [];
     for (var a = 0; a < al.length && !col; a++) { var idx = norm.indexOf(normH_(al[a])); if (idx >= 0) col = idx + 1; }
-    if (!col) { col = DEFAULT_COL[f]; _colInfo.fellBack.push(f); }
+    if (!col) { col = DEFAULT_COL[f]; if (col) _colInfo.fellBack.push(f); }
     map[f] = col;
-    _colInfo.bound[f] = { col: col, header: _colInfo.headers[col - 1] || '(빈 열)' };
+    if (col) _colInfo.bound[f] = { col: col, header: _colInfo.headers[col - 1] || '(빈 열)' };
   }
   return map;
 }
@@ -102,6 +105,11 @@ function dateStr_(v) {
   return String(v == null ? '' : v).trim();
 }
 
+function igHandleFrom_(link) {
+  var m = String(link || '').match(/instagram\.com\/([A-Za-z0-9._]+)/i);
+  var h = m ? m[1] : '';
+  return /^(p|reel|reels|stories|tv|explore|s|accounts)$/i.test(h) ? '' : h;
+}
 function handleFrom_(link) {
   var m = String(link || '').match(/@([A-Za-z0-9._]+)/);
   return m ? m[1] : '';
@@ -140,8 +148,12 @@ function readAccounts_() {
   var out = [];
   for (var i = 0; i < v.length; i++) {
     var row = v[i];
-    var handle = handleFrom_(row[COL.link - 1]);
-    if (!handle) continue;
+    var tkHandle = handleFrom_(row[COL.link - 1]);
+    var igLink = COL.igLink ? String(row[COL.igLink - 1] || '') : '';
+    var igHandle = igLink ? igHandleFrom_(igLink) : '';
+    var handle = tkHandle || igHandle;
+    if (!handle) continue;                       // 둘 다 없으면 크리에이터 행이 아님(요약·빈 행)
+    var plat = tkHandle ? (igHandle ? 'both' : 'tk') : 'ig';
     var c = String(row[COL.contentA - 1] || row[COL.contentB - 1] || '');
     out.push({
       row: i + 1,
@@ -149,6 +161,10 @@ function readAccounts_() {
       nick: String(row[COL.nick - 1] || ''),
       handle: handle,
       link: String(row[COL.link - 1] || ''),
+      plat: plat,                                 // tk / ig / both — 프론트가 계정 링크 주소를 고를 때 쓴다
+      igHandle: igHandle,
+      igNick: COL.igNick ? String(row[COL.igNick - 1] || '') : '',
+      igLink: igLink,
       sheetFollowers: row[COL.followers - 1],
       gardening: String(row[COL.gardening - 1] || ''), // 가드닝 대상여부 — 최초 기록 후 불변(읽기 전용)
       language: String(row[COL.language - 1] || ''),
