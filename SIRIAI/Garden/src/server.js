@@ -234,6 +234,17 @@ export async function handler(req, res) {
     const campaign = campId ? getCampaign(campId) : listCampaigns()[0];
     if (!campaign) return send(res, 404, { error: '캠페인 없음' });
 
+    // ── 읽기 전용 캠페인 안전장치 ──────────────────────────────────────────
+    // 되쓰기 좌표가 아직 열 번호 하드코딩이라(베이온 기준), 열 배치가 다른 마스터에 쓰면
+    // 에러 없이 엉뚱한 열을 덮어쓴다. 예) 링크 저장은 4열 → LUN8에선 '이메일'.
+    // 필드명 기반 되쓰기로 바꾸기 전까지, 새 캠페인은 readOnly:true 로 조회만 연다.
+    if (campaign.readOnly && req.method === 'POST') {
+      return send(res, 423, {
+        error: `${campaign.name}은(는) 아직 '조회 전용'이에요. 수정은 마스터시트에서 해주세요.\n(되쓰기 좌표를 필드명 기반으로 바꾸는 작업이 끝나면 열립니다 — 지금 쓰면 엉뚱한 열을 덮어써요.)`,
+        readOnly: true,
+      });
+    }
+
     if (path === '/api/data' && req.method === 'GET') {
       // 시트 모드면 계정+주문+검수잠금+베스트를 한 번에 (왕복 1회)
       const all = await readAll(campaign);
@@ -259,7 +270,7 @@ export async function handler(req, res) {
       const accounts = await buildAccounts(campaign, orders, { accounts: all.accounts, overrides: all.overrides });
       return send(res, 200, {
         campaign: { id: campaign.id, name: campaign.name, group: campaign.group },
-        config: { target: campaign.target, min: campaign.min, krwPerUsd: await effectiveRate(), staleDays: getStaleDays(), hasKey: !!smm, confirmNotice: !!campaign.confirmNotice, execPwRequired: !!EXEC_PW, stateMode: stateMode(), cloud: CLOUD,
+        config: { target: campaign.target, min: campaign.min, krwPerUsd: await effectiveRate(), staleDays: getStaleDays(), hasKey: !!smm, confirmNotice: !!campaign.confirmNotice, execPwRequired: !!EXEC_PW, stateMode: stateMode(), cloud: CLOUD, readOnly: !!campaign.readOnly,
           service: svc ? { id: svc.service, name: svc.name, rate: svc.rate } : { id: campaign.serviceId, name: `#${campaign.serviceId}`, rate: 0 } },
         balance, scannedAt: scanLatest(campaign).ranAt, accounts, orders: markStale(orders), best: all.best,
         scanFailures: scanFailures(campaign), // 지난 업로드 스캔에서 못 본 계정 — 업로드 탭 하이라이트용

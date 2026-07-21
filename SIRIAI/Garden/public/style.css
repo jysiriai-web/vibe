@@ -285,3 +285,25 @@ th.sortable.sorted { color: var(--accent); }
 .gsec li::before { content: ''; position: absolute; left: 0; top: .62em; width: 5px; height: 5px; border-radius: 50%; background: var(--line); }
 .gsec li b { color: var(--ink); font-weight: 700; }
 .todo { display: inline-block; font-size: .92em; font-weight: 700; padding: 0 6px; border-radius: 5px; background: var(--needs-bg); color: var(--needs-ink); }
+
+/* ── 의견 남기기 ─────────────────────────────────────────────────────────── */
+body.fb-picking #content *, body.fb-picking .topbar *, body.fb-picking .nav * { cursor: crosshair !important; }
+body.fb-picking #content *:hover { outline: 2px solid var(--accent); outline-offset: 1px; }
+.fb-panel { position: fixed; right: 18px; bottom: 18px; width: min(380px, calc(100vw - 36px)); max-height: 70vh;
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 8px 40px rgba(20,20,35,.18);
+  display: flex; flex-direction: column; z-index: 60; }
+.fb-head { display: flex; align-items: center; gap: 8px; padding: 13px 16px; border-bottom: 1px solid var(--line2); }
+.fb-head b { font-size: 14px; }
+.fb-hint { flex: 1; font-size: 11.5px; color: var(--faint); }
+.fb-hint b { color: var(--accent-ink); }
+.fb-list { flex: 1; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.fb-item { position: relative; background: var(--bg); border-radius: 10px; padding: 9px 11px; }
+.fb-where { font-size: 11px; font-weight: 700; color: var(--accent-ink); margin-bottom: 5px; padding-right: 18px; word-break: break-all; }
+.fb-text { width: 100%; border: 1px solid var(--line); border-radius: 7px; padding: 6px 8px; font-family: var(--sans);
+  font-size: 13px; line-height: 1.5; resize: vertical; background: var(--card); color: var(--ink); }
+.fb-text:focus { border-color: var(--accent); outline: none; }
+.fb-del { position: absolute; top: 7px; right: 8px; border: none; background: none; cursor: pointer; color: var(--faint); font-size: 13px; padding: 2px 4px; }
+.fb-del:hover { color: var(--needs); }
+.fb-empty { text-align: center; font-size: 13px; color: var(--muted); line-height: 1.7; padding: 22px 10px; }
+.fb-foot { display: flex; align-items: center; gap: 7px; padding: 10px 13px; border-top: 1px solid var(--line2); flex-wrap: wrap; }
+.fb-note { font-size: 11px; color: var(--faint); }
