@@ -2022,12 +2022,6 @@ document.getElementById('camp').addEventListener('change', e=>{
 document.getElementById('btnCampLink').addEventListener('click', copyCampLink);
 document.getElementById('btnMaster').addEventListener('click', openMaster);
 
-document.getElementById('worker').addEventListener('click', ()=>{
-  state.worker = state.worker==='online' ? 'offline' : 'online';
-  renderWorker();
-  toast(state.worker==='online' ? '🟢 워커 온라인 — 밀린 스캔·집행을 이어서 처리합니다.' : '🔴 PC 꺼짐 — 스캔·집행은 대기. 조회·검수·비고는 계속 됩니다.');
-});
-
 document.getElementById('btnSettings').addEventListener('click', openDrawer);
 document.getElementById('drawerX').addEventListener('click', closeDrawer);
 document.getElementById('drawer').addEventListener('click', e=>{
