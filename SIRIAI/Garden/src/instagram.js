@@ -214,6 +214,56 @@ export async function fetchIgProfileViaPage(ctx, handleRaw, { timeout = 60000 } 
   } finally { try { await page.close(); } catch {} }
 }
 
+// ── 폴백: 게시물 목록을 화면에서 직접 읽기 ────────────────────────────────
+// API 가 막히면 업로드 감지가 통째로 멈춘다(게시물 목록이 API 로만 온다). 그래서 사람이
+// 하는 것과 같은 경로를 둔다 — 프로필을 열어 최근 게시물 링크를 줍고, 그 게시물을 열어
+// 캡션을 읽는다. 계정당 페이지를 여러 번 열어 느리지만, 막혔을 때 멈추는 것보다 낫다.
+//
+// max: 몇 개까지 볼지. 캠페인 기간 콘텐츠만 찾으면 되므로 최근 몇 개면 충분하다.
+export async function fetchIgPostsViaPage(ctx, handleRaw, { max = 6, timeout = 60000 } = {}) {
+  const handle = toIgHandle(handleRaw);
+  const page = await ctx.newPage();
+  try {
+    await page.goto(`https://www.instagram.com/${handle}/`, { waitUntil: 'domcontentloaded', timeout });
+    await page.waitForTimeout(3500);
+    // 그리드의 게시물 링크. 순서가 곧 최신순이다.
+    const links = await page.evaluate((n) => {
+      const seen = [];
+      document.querySelectorAll('a[href*="/p/"], a[href*="/reel/"]').forEach((a) => {
+        const m = a.getAttribute('href').match(/\/(p|reel)\/([A-Za-z0-9_-]+)/);
+        if (!m) return;
+        const key = m[2];
+        if (!seen.some((x) => x.shortcode === key)) seen.push({ shortcode: key, kind: m[1] });
+      });
+      return seen.slice(0, n);
+    }, max);
+
+    const posts = [];
+    for (const l of links) {
+      try {
+        await page.goto(`https://www.instagram.com/${l.kind}/${l.shortcode}/`, { waitUntil: 'domcontentloaded', timeout });
+        await page.waitForTimeout(2200);
+        const info = await page.evaluate(() => {
+          const og = document.querySelector('meta[property="og:description"]');
+          const t = document.querySelector('time[datetime]');
+          return { desc: og ? og.content || '' : '', dt: t ? t.getAttribute('datetime') : '' };
+        });
+        posts.push({
+          shortcode: l.shortcode,
+          link: `https://www.instagram.com/${l.kind}/${l.shortcode}/`,
+          isVideo: l.kind === 'reel',
+          // og:description 앞머리에 좋아요·댓글 수가 붙는 경우가 있다 — 해시태그만 쓰므로 그대로 둔다.
+          caption: info.desc,
+          views: null, likes: null, comments: null,
+          takenAt: info.dt || null,
+        });
+      } catch { /* 이 게시물만 건너뛴다 — 하나 못 봤다고 계정 전체를 포기하지 않는다 */ }
+      await sleep(1200);
+    }
+    return { handle, followers: null, name: '', isPrivate: false, postCount: null, posts, via: 'page' };
+  } finally { try { await page.close(); } catch {} }
+}
+
 // 재시도 래퍼 — 막힘(BLOCKED)은 기다렸다 다시, 계정 없음은 즉시 포기(다시 해도 없다)
 export async function fetchIgProfileRetry(page, handle, { retries = 2, delayMs = 4000 } = {}) {
   let last;

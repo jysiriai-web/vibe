@@ -8,7 +8,7 @@
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { getAccountsFromSheet, pushCellsToSheet } from './sheet.js';
-import { launchIgBrowser, openIgFetcher, fetchIgProfileRetry, sleep } from './instagram.js';
+import { launchIgBrowser, openIgFetcher, fetchIgProfileRetry, fetchIgPostsViaPage, sleep } from './instagram.js';
 import { igHandleOf } from './ig-sync.js';
 
 const LATEST = 'ig-detected.json';
@@ -61,16 +61,30 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
       const page = await openIgFetcher(b.ctx);
       for (let i = 0; i < targets.length; i++) {
         const a = targets[i];
-        // ⚠️ 업로드 감지는 게시물 목록이 필요하다 → 페이지 방식으로 대체할 수 없다.
-        //    API 가 막히면 여기서 멈춘다. 남은 계정을 헛돌리지 않고 '나중에 다시'로 남긴다.
-        if (apiDead) { stopped = 'API 가 막혀서 중단했어요 — 조금 뒤에 다시 눌러주세요.'; break; }
-        let p = null;
-        try { p = await fetchIgProfileRetry(page, a.igHandle); }
-        catch (e) {
-          if (e.code === 'LOGGEDOUT' || e.code === 'BLOCKED') { apiDead = true; stopped = 'API 가 막혀서 중단했어요 — 조금 뒤에 다시 눌러주세요.'; break; }
-          detected[a.igHandle] = { uploaded: false, scanFailed: true, error: e.message };
-          if (onProgress) onProgress({ done: i + 1, total: targets.length, handle: a.igHandle, failed: true, error: e.message });
-          await sleep(delayMs); continue;
+        let p = null, via = 'api';
+        // ① API — 게시물 목록이 한 번에 온다. 막혔으면(apiDead) 건너뛰고 바로 페이지로.
+        if (!apiDead) {
+          try { p = await fetchIgProfileRetry(page, a.igHandle); }
+          catch (e) {
+            if (e.code === 'LOGGEDOUT' || e.code === 'BLOCKED') {
+              apiDead = true;
+              if (onProgress) onProgress({ note: 'API 가 막혀 프로필을 직접 열어 확인합니다 (느려요)' });
+            } else if (e.code === 'NOTFOUND') {
+              detected[a.igHandle] = { uploaded: false, scanFailed: true, error: e.message };
+              if (onProgress) onProgress({ done: i + 1, total: targets.length, handle: a.igHandle, failed: true, error: e.message });
+              await sleep(delayMs); continue;
+            }
+          }
+        }
+        // ② 프로필을 직접 열어 최근 게시물을 하나씩 확인한다 — 사람이 하는 것과 같은 경로.
+        //    느리지만 막혔을 때 스캔 전체가 멈추는 것보다 낫다.
+        if (!p) {
+          try { p = await fetchIgPostsViaPage(b.ctx, a.igHandle); via = 'page'; }
+          catch (e) {
+            detected[a.igHandle] = { uploaded: false, scanFailed: true, error: e.message };
+            if (onProgress) onProgress({ done: i + 1, total: targets.length, handle: a.igHandle, failed: true, error: e.message });
+            await sleep(delayMs); continue;
+          }
         }
 
         const hits = (p.posts || []).filter((x) => inWindow(x, since)).map((x) => ({ post: x, m: matchPost(x, hashtags) })).filter((x) => x.m.hit);
@@ -85,6 +99,7 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
             link2: hits[1] ? hits[1].post.link : '',
             hashtagOk: first.m.all,
             matched: first.m.matched,
+            via,
             likes: first.post.likes,
             comments: first.post.comments,
             takenAt: first.post.takenAt,
