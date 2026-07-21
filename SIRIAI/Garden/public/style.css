@@ -308,3 +308,11 @@ body.fb-picking #content *:hover { outline: 2px solid var(--accent); outline-off
 .fb-foot { display: flex; align-items: center; gap: 7px; padding: 10px 13px; border-top: 1px solid var(--line2); flex-wrap: wrap; }
 .fb-note { font-size: 11px; color: var(--faint); }
 .plat-tag { font-size: 9.5px; font-weight: 800; padding: 1px 4px; border-radius: 4px; background: var(--accent-soft); color: var(--accent-ink); vertical-align: 1px; }
+.fb-new { border: 1.5px solid var(--accent); }
+.fb-row { display: flex; gap: 6px; margin-top: 7px; align-items: center; }
+.fb-name { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 7px; padding: 5px 8px; font-family: var(--sans); font-size: 12.5px; background: var(--card); color: var(--ink); }
+.fb-body { font-size: 13px; line-height: 1.55; color: var(--ink); white-space: pre-wrap; }
+.fb-meta { font-size: 11px; color: var(--faint); margin-top: 5px; display: flex; gap: 7px; align-items: center; }
+.fb-meta b { color: var(--ok-ink); }
+.fb-ok { margin-left: auto; border: none; background: none; cursor: pointer; font-family: var(--sans); font-size: 11px; font-weight: 700; color: var(--accent-ink); }
+.fb-done { opacity: .5; }

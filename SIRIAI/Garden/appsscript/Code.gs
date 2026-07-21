@@ -187,6 +187,37 @@ function getSheet_() {
   return sheets[0];
 }
 
+// 의견 탭 — 없으면 만든다. 팀원이 쓸 때마다 탭이 있는지 신경 쓰게 하지 않기 위함.
+function feedbackSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName('의견');
+  if (!sh) {
+    sh = ss.insertSheet('의견');
+    sh.getRange(1, 1, 1, 5).setValues([['시각', '남긴 사람', '화면 위치', '내용', '상태']]);
+    sh.getRange(1, 1, 1, 5).setFontWeight('bold').setBackground('#211A33').setFontColor('#F3EEE2');
+    sh.setFrozenRows(1);
+    [140, 110, 260, 520, 80].forEach(function (w, i) { sh.setColumnWidth(i + 1, w); });
+    sh.getRange(2, 1, sh.getMaxRows() - 1, 5).setVerticalAlignment('top').setWrap(true);
+  }
+  return sh;
+}
+function appendFeedback_(who, where, text) {
+  var sh = feedbackSheet_();
+  var ts = Utilities.formatDate(new Date(), 'Asia/Seoul', 'MM/dd HH:mm');
+  sh.appendRow([ts, String(who || '팀원'), String(where || ''), String(text || ''), '']);
+}
+function readFeedback_() {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('의견');
+  if (!sh || sh.getLastRow() < 2) return [];
+  var v = sh.getRange(2, 1, sh.getLastRow() - 1, 5).getValues(), out = [];
+  for (var i = 0; i < v.length; i++) {
+    if (!String(v[i][2] || '').trim() && !String(v[i][3] || '').trim()) continue;
+    out.push({ row: i + 2, at: String(v[i][0] || ''), who: String(v[i][1] || ''),
+               where: String(v[i][2] || ''), text: String(v[i][3] || ''), done: !!String(v[i][4] || '').trim() });
+  }
+  return out;
+}
+
 function readAccounts_() {
   var sh = getSheet_();
   var last = sh.getLastRow();
@@ -427,6 +458,7 @@ function doGet(e) {
     var action = e.parameter.action || 'list';
     if (action === 'list') return json_({ accounts: readAccounts_(), colmap: COL, colinfo: _colInfo });
     if (action === 'orders') return json_({ orders: readOrders_() });
+    if (action === 'feedback') return json_({ feedback: readFeedback_() });
     if (action === 'state') return json_(readState_());
     if (action === 'bundle') {
       var s = readState_();
@@ -568,6 +600,18 @@ function doPost(e) {
         g.setValue(u.followers < MIN_FOLLOWERS ? '가드닝 대상' : '가드닝 불필요');
       }
       n++;
+    }
+    // 의견 남기기 — 팀이 화면에서 남긴 개선 요청. 별도 탭이라 마스터 데이터와 안 섞인다.
+    if (body.feedback) {
+      var fb = body.feedback;
+      appendFeedback_(fb.who, fb.where, fb.text);
+      return json_({ ok: true, feedbackSaved: true });   // 표식 — 옛 배포는 이걸 못 주므로 서버가 거짓 성공을 걸러낸다
+    }
+    if (body.feedbackDone) {   // 처리 완료 표시 (행번호)
+      var fsh = feedbackSheet_();
+      var fr = Number(body.feedbackDone);
+      if (fr > 1 && fr <= fsh.getLastRow()) fsh.getRange(fr, 5).setValue('완료');
+      return json_({ ok: true, feedbackSaved: true });
     }
     // 임의 셀 쓰기 [{row, col, value}] — 콘텐츠 링크·검수·조회수 되쓰기용
     var cells = body.cells || [];

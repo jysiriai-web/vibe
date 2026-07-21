@@ -68,3 +68,18 @@ export async function pushCellsToSheet(sheet, cells) {
   ensure(sheet);
   return (await bridgePost(sheet, { cells })).updated || 0;
 }
+
+// 의견 남기기 — 마스터 데이터와 분리된 '의견' 탭. 읽기전용 캠페인에서도 열려 있다.
+export async function readFeedbackFromSheet(sheet) {
+  ensure(sheet);
+  const data = await bridgeCall(`${sheet.url}?action=feedback&token=${encodeURIComponent(sheet.token)}`, {});
+  return data.feedback || [];
+}
+export async function addFeedbackToSheet(sheet, feedback) {
+  ensure(sheet);
+  return await bridgePost(sheet, { feedback });
+}
+export async function markFeedbackDone(sheet, row) {
+  ensure(sheet);
+  return await bridgePost(sheet, { feedbackDone: row });
+}

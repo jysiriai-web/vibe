@@ -10,7 +10,7 @@ import { createSmm } from './smm.js';
 import { classify } from './garden.js';
 import { refreshOrders, inFlightFor } from './orders.js';
 import { runAutoRefill, refillServiceIds, REFILL_WINDOW_DAYS } from './refill.js';
-import { getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet, syncRecruitToSheet, deliverToSheet } from './sheet.js';
+import { getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet, syncRecruitToSheet, deliverToSheet, readFeedbackFromSheet, addFeedbackToSheet, markFeedbackDone } from './sheet.js';
 import { scanAccounts, buildPlan, placeOrders, findService } from './execute-core.js';
 import { runSync } from './sync-core.js';
 import { runContentScan, judgeOneLink, scanOneProfile } from './content-core.js';
@@ -238,11 +238,34 @@ export async function handler(req, res) {
     // 되쓰기 좌표가 아직 열 번호 하드코딩이라(베이온 기준), 열 배치가 다른 마스터에 쓰면
     // 에러 없이 엉뚱한 열을 덮어쓴다. 예) 링크 저장은 4열 → LUN8에선 '이메일'.
     // 필드명 기반 되쓰기로 바꾸기 전까지, 새 캠페인은 readOnly:true 로 조회만 연다.
-    if (campaign.readOnly && req.method === 'POST') {
+    // 의견은 예외 — 마스터 데이터가 아니라 별도 '의견' 탭에만 쌓인다.
+    // 화면을 못 고치는 사람일수록 의견은 남겨야 하므로 읽기전용에서도 열어둔다.
+    if (campaign.readOnly && req.method === 'POST' && path !== '/api/feedback') {
       return send(res, 423, {
         error: `${campaign.name}은(는) 아직 '조회 전용'이에요. 수정은 마스터시트에서 해주세요.\n(되쓰기 좌표를 필드명 기반으로 바꾸는 작업이 끝나면 열립니다 — 지금 쓰면 엉뚱한 열을 덮어써요.)`,
         readOnly: true,
       });
+    }
+
+    // ── 의견 남기기 ── 마스터 데이터가 아니라 별도 '의견' 탭. 팀 전체가 같은 목록을 본다.
+    if (path === '/api/feedback' && req.method === 'GET') {
+      try { return send(res, 200, { feedback: await readFeedbackFromSheet(campaign.sheet) }); }
+      catch (e) { return send(res, 502, { error: '의견을 못 읽었어요: ' + e.message }); }
+    }
+    if (path === '/api/feedback' && req.method === 'POST') {
+      const b = await readBody(req);
+      const text = String(b.text || '').trim();
+      if (b.done) {
+        try { await markFeedbackDone(campaign.sheet, Number(b.done)); return send(res, 200, { ok: true }); }
+        catch (e) { return send(res, 502, { error: '완료 표시 실패: ' + e.message }); }
+      }
+      if (!text) return send(res, 400, { error: '내용이 비어 있어요' });
+      try {
+        // 옛 브릿지는 모르는 요청을 조용히 삼키고 성공처럼 답한다 → 표식을 확인해 거짓 성공을 막는다.
+        const r = await addFeedbackToSheet(campaign.sheet, { who: String(b.who || '팀원').slice(0, 30), where: String(b.where || '').slice(0, 200), text: text.slice(0, 2000) });
+        if (!r || !r.feedbackSaved) return send(res, 502, { error: '마스터시트 브릿지가 의견 기능을 아직 몰라요. Apps Script 를 최신 Code.gs 로 재배포해 주세요.' });
+        return send(res, 200, { ok: true });
+      } catch (e) { return send(res, 502, { error: '의견을 못 남겼어요: ' + e.message }); }
     }
 
     if (path === '/api/data' && req.method === 'GET') {
