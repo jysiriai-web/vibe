@@ -21,28 +21,33 @@ const DEFAULT_COL = {
 };
 // 필드 → 헤더 별칭(선호 순서, 정규화 정확일치). 새 캠페인 헤더가 다르면 여기에 별칭만 추가.
 // ⚠️ schedDate: 베이온은 '예정일'을 헤더상 '검수 특이사항' 열(18)에 기입 → 그 별칭 포함.
+// ⚠️ 별칭은 '공백 제거 후 정확일치'다. 부분일치가 아니다.
+//    그래서 멀티플랫폼 마스터(LUN8: '틱톡 팔로워'·'인스타 팔로워')는 '팔로워'로 안 잡히고
+//    조용히 DEFAULT_COL(베이온 좌표)로 폴백해 엉뚱한 열을 읽었다(2026-07-21 실측: 21개 중 16개 오매칭).
+//    → 플랫폼 접두어가 붙은 이름을 별칭에 넣는다. 계정 모델이 단일 플랫폼이라 '틱톡'을 기준으로 잡는다.
+//    순서가 곧 우선순위이므로 베이온의 무접두 이름을 앞에 둔다(기존 캠페인 영향 0).
 const FIELD_HEADERS = {
   company: ['진행사', '회사', '소속'],
   nick: ['닉네임', '크리에이터', '채널명', '이름'],
   link: ['계정링크', '틱톡링크', '계정', '링크'],
-  followers: ['팔로워', '팔로워수'],
-  gardening: ['가드닝대상여부', '가드닝', '가드닝대상'],
+  followers: ['팔로워', '팔로워수', '틱톡팔로워'],
+  gardening: ['가드닝대상여부', '가드닝', '가드닝대상', '틱톡가드닝'],
   language: ['언어', '국가'],
-  notice: ['안내여부', '안내', '공지'],
-  contentA: ['콘텐츠', '업로드링크', '콘텐츠1', '콘텐츠①', '영상링크'],
+  notice: ['안내여부', '안내', '공지', '확정메일'],
+  contentA: ['콘텐츠', '업로드링크', '콘텐츠1', '콘텐츠①', '영상링크', '틱톡콘텐츠①', '틱톡콘텐츠1'],
   schedDate: ['업로드예정일', '예정일', '검수특이사항'],
-  soundOk: ['음원'],
-  soundSection: ['음원구간', '구간'],
-  hashtagOk: ['해시태그', '해시태그여부'],
-  memo: ['비고', '메모'],
+  soundOk: ['음원', '틱톡음원'],
+  soundSection: ['음원구간', '구간', '틱톡음원구간'],
+  hashtagOk: ['해시태그', '해시태그여부', '틱톡해시태그'],
+  memo: ['비고', '메모', '틱톡비고'],
   campaignDone: ['캠페인완료', '완료여부'],
-  paid: ['정산여부', '정산', '지급여부'],
-  paidDate: ['정산일', '지급일'],
-  contentB: ['콘텐츠2', '콘텐츠②', '추가콘텐츠'],
-  views: ['조회수', '조회'],
-  likes: ['좋아요'],
-  comments: ['댓글'],
-  shares: ['공유'],
+  paid: ['정산여부', '정산', '지급여부', '입금여부'],
+  paidDate: ['정산일', '지급일', '입금일'],
+  contentB: ['콘텐츠2', '콘텐츠②', '추가콘텐츠', '틱톡콘텐츠②', '틱톡콘텐츠2'],
+  views: ['조회수', '조회', '틱톡조회수'],
+  likes: ['좋아요', '틱톡좋아요'],
+  comments: ['댓글', '틱톡댓글'],
+  shares: ['공유', '틱톡공유'],
 };
 var COL = shallowClone_(DEFAULT_COL); // 런타임에 헤더 기반으로 재해석됨 (initCols_)
 var _dataSheet = null;                // 데이터 탭 캐시 (initCols_ 가 채움)
@@ -57,12 +62,19 @@ function headerHasField_(headerRow, field) {
   return false;
 }
 // headerRow → { field: col }. 별칭 정확일치(선호순), 못 찾으면 DEFAULT_COL 폴백.
+// ⚠️ 폴백은 '안전한 기본값'이 아니라 '조용한 오배치'다 — 열 배치가 다른 마스터에서는
+//    엉뚱한 열을 읽고 쓴다. 그래서 어떤 필드가 폴백했는지, 실제로 무슨 헤더에 붙었는지를
+//    _colInfo 로 남겨 응답에 싣는다. 눈으로 1분이면 검증된다.
+var _colInfo = { bound: {}, fellBack: [], headers: [] };
 function resolveColsFromHeaders_(headerRow) {
   var norm = headerRow.map(normH_), map = {};
+  _colInfo = { bound: {}, fellBack: [], headers: headerRow.map(function (h) { return String(h == null ? '' : h).trim(); }) };
   for (var f in DEFAULT_COL) {
     var col = 0, al = FIELD_HEADERS[f] || [];
     for (var a = 0; a < al.length && !col; a++) { var idx = norm.indexOf(normH_(al[a])); if (idx >= 0) col = idx + 1; }
-    map[f] = col || DEFAULT_COL[f];
+    if (!col) { col = DEFAULT_COL[f]; _colInfo.fellBack.push(f); }
+    map[f] = col;
+    _colInfo.bound[f] = { col: col, header: _colInfo.headers[col - 1] || '(빈 열)' };
   }
   return map;
 }
@@ -80,7 +92,8 @@ function initCols_() {
       }
     }
   }
-  _dataSheet = null; COL = shallowClone_(DEFAULT_COL); // 헤더 못 찾음 → 폴백(getSheet_ 가 예전 방식으로 탭 탐색)
+  _dataSheet = null; COL = shallowClone_(DEFAULT_COL);
+  _colInfo = { bound: {}, fellBack: ['(헤더행 자체를 못 찾음 — 전부 폴백)'], headers: [] }; // 헤더 못 찾음 → 폴백(getSheet_ 가 예전 방식으로 탭 탐색)
 }
 
 // 셀 값이 Date 객체면 M/D 로, 텍스트면 그대로. ("7/8" 이 시트에서 날짜로 파싱돼 Date 로 오는 경우 대비)
@@ -346,12 +359,12 @@ function doGet(e) {
     if ((e.parameter.token || '') !== TOKEN) return json_({ error: 'unauthorized' });
     initCols_(); // 헤더 기반으로 열 매핑 해석 (COL 재설정) — colmap 으로 노출해 검증 가능
     var action = e.parameter.action || 'list';
-    if (action === 'list') return json_({ accounts: readAccounts_(), colmap: COL });
+    if (action === 'list') return json_({ accounts: readAccounts_(), colmap: COL, colinfo: _colInfo });
     if (action === 'orders') return json_({ orders: readOrders_() });
     if (action === 'state') return json_(readState_());
     if (action === 'bundle') {
       var s = readState_();
-      return json_({ accounts: readAccounts_(), orders: readOrders_(), overrides: s.overrides, best: s.best, colmap: COL });
+      return json_({ accounts: readAccounts_(), orders: readOrders_(), overrides: s.overrides, best: s.best, colmap: COL, colinfo: _colInfo });
     }
     return json_({ error: 'unknown action' });
   } catch (err) {
