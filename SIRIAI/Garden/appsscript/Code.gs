@@ -638,6 +638,16 @@ function doPost(e) {
     for (var j = 0; j < cells.length; j++) {
       var c = cells[j];
       var col = 0;
+      // 'ig.soundOk' 처럼 플랫폼을 지정한 필드 — PLAT_COL 에서 그 플랫폼 열을 찾는다.
+      var dot = c.field ? String(c.field).indexOf('.') : -1;
+      if (dot > 0) {
+        var pf = c.field.slice(0, dot), ff = c.field.slice(dot + 1);
+        col = (PLAT_COL[pf] && PLAT_COL[pf][ff]) || 0;
+        if (!col) { skipped.push(c.field); continue; }   // 그 플랫폼 열이 이 마스터엔 없다
+        if (!c.row) continue;
+        sh.getRange(c.row, col).setValue(c.value);
+        n++; continue;
+      }
       if (c.field) {
         // 헤더에서 못 찾아 폴백한 필드 = 어느 열인지 모르는 것. 쓰면 엉뚱한 열을 덮어쓴다 → 거부.
         if (_colInfo.fellBack && _colInfo.fellBack.indexOf(c.field) >= 0) { skipped.push(c.field); continue; }

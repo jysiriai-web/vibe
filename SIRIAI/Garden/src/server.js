@@ -327,15 +327,20 @@ export async function handler(req, res) {
       // 되쓰기 키는 필드명. 열 번호는 마스터마다 달라(베이온 4=계정링크, LUN8 4=이메일) 쓰면 안 된다.
       // 옛 화면(캐시된 app.js)이 col 로 보내는 경우만 베이온 좌표로 해석해 준다 —
       // 그렇게 얻은 필드도 아래 화이트리스트를 똑같이 통과해야 한다.
-      const field = body.field ? String(body.field) : (LEGACY_COL_FIELD[Number(body.col)] || '');
+      let field = body.field ? String(body.field) : (LEGACY_COL_FIELD[Number(body.col)] || '');
+      // 'ig.soundOk' 같은 플랫폼 지정 필드 — 접두어를 떼고 화이트리스트를 검사한다.
+      const dot = field.indexOf('.');
+      const baseField = dot > 0 ? field.slice(dot + 1) : field;
+      const platPrefix = dot > 0 ? field.slice(0, dot) : '';
+      if (platPrefix && !['tk', 'ig'].includes(platPrefix)) return send(res, 400, { error: '플랫폼은 tk/ig 만' });
       const value = body.value == null ? '' : String(body.value);
-      if (!row || !EDITABLE_FIELDS.includes(field)) return send(res, 400, { error: `row/field(${EDITABLE_FIELDS.join('·')}) 필요` });
+      if (!row || !EDITABLE_FIELDS.includes(baseField)) return send(res, 400, { error: `row/field(${EDITABLE_FIELDS.join('·')}) 필요` });
       // 계정 링크는 @핸들이 있어야 함 — 없으면 시트 읽을 때 그 행이 통째로 사라짐(계정 소실 방지)
-      if (field === 'link' && !/@[A-Za-z0-9._]+/.test(value)) return send(res, 400, { error: '계정 링크에 @사용자명이 필요합니다 (예: tiktok.com/@user)' });
+      if (baseField === 'link' && platPrefix !== 'ig' && !/@[A-Za-z0-9._]+/.test(value)) return send(res, 400, { error: '계정 링크에 @사용자명이 필요합니다 (예: tiktok.com/@user)' });
       try {
         await pushCellsToSheet(campaign.sheet, [{ row, field, value }]);
         // 검수/콘텐츠 필드: 값 있으면 수동 잠금, '미확인'(빈값)이면 잠금 해제(자동 관리에 반환). nick 은 잠금 무관.
-        const w = (OVERRIDE_FIELDS.includes(field) && !value.trim())
+        const w = (OVERRIDE_FIELDS.includes(baseField) && !value.trim())
           ? await clearOverrideStore(campaign, row, field)
           : await setOverrideStore(campaign, row, field, value);
         // 잠금이 어디에도 안 남으면 스캔이 이 셀을 덮어쓸 수 있다 → 조용히 넘기지 않는다.

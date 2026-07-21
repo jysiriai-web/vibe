@@ -820,18 +820,29 @@ async function loadData(){
 /* ============ 조회 전용 가드 ============
    서버가 쓰기를 전부 423(readOnly)으로 막아둔 상태다. 그런데 화면에서만 값이 바뀌면
    '저장된 줄 알았는데 60초 뒤 되돌아가는' 최악의 오해가 생긴다 → 손대기 전에 막고 어디서 고칠지 알려준다. */
-const RO_MSG = '지금은 조회 전용이에요 — 수정은 마스터시트에서';
-const RO_CLICK = '[data-edit],.rowedit,.cell-edit,.memo-cell,[data-paidtog],#btnExec,#btnRecScan,#btnUpScan,#btnPerf,#btnDeliver,#btnAddPerson,#apSave';
-function roBlockClick(e){
-  if(!e.target.closest(RO_CLICK)) return false;
-  toast(RO_MSG);
-  return true;
-}
-function roBlockChange(e){
-  if(!e.target.closest('[data-rev],[data-pay],[data-best]')) return false;
-  toast(RO_MSG);
-  render();   // 셀렉트가 바뀐 채로 남으면 저장된 것처럼 보인다 → 즉시 원래 값으로 되돌린다
-  return true;
+/* 조회 전용 해제됨. 이제 실제로 시트에 쓴다.
+   ⚠️ 플랫폼별로 두 벌인 항목(검수·콘텐츠·비고)은 'tk.' / 'ig.' 를 붙여 어느 벌인지 지정한다 —
+      안 붙이면 인스타를 고쳐도 틱톡 열에 써진다. */
+function roBlockClick(){ return false; }
+function roBlockChange(){ return false; }
+
+const REV_TEXT = { p:'준수', f:'미준수', n:'' };   // 시트 드롭다운 어휘
+let saving = 0;
+async function saveField(row, field, value){
+  saving++;
+  try {
+    const r = await fetch('/api/cell?campaign=lun8', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ row, field, value }) });
+    const j = await r.json();
+    if(j.error) throw new Error(j.error);
+    toast('저장됨 — <b>' + esc(field) + '</b>');
+    return true;
+  } catch(e){
+    // 실패를 조용히 넘기면 '화면엔 바뀌었는데 시트엔 없는' 상태가 된다. 되돌리고 알린다.
+    toast('저장 실패: ' + esc(e.message));
+    loadData();
+    return false;
+  } finally { saving--; }
 }
 
 /* ============ 가드닝 브레인 (src/garden.js 이식) ============ */
@@ -1702,7 +1713,13 @@ function openRowEdit(id){
       ${schedHint(d)}
       <div class="row"><label class="h">비고 (일반 · 특이사항)</label><textarea class="inp" id="reMemo" placeholder="이 크리에이터 전반 메모">${esc(d.memo||'')}</textarea></div>
     </div>`;
-    save = ()=>{ d.co=selVal('reCo'); d.nick=val('reNick')||d.nick; d.sched=val('reSched'); d.fixed=val('reFixed'); d.memo=val('reMemo');
+    save = ()=>{
+      // 바뀐 칸만 시트에 쓴다 — 전부 쓰면 안 건드린 칸의 수식·서식까지 값으로 덮는다.
+      const was={sched:d.sched,fixed:d.fixed,memo:d.memo,nick:d.nick};
+      d.co=selVal('reCo'); d.nick=val('reNick')||d.nick; d.sched=val('reSched'); d.fixed=val('reFixed'); d.memo=val('reMemo');
+      if(d.sched!==was.sched) saveField(d.id,'schedDate',d.sched);
+      if(d.fixed!==was.fixed) saveField(d.id,'fixedDate',d.fixed);
+      if(d.memo!==was.memo)   saveField(d.id,'tk.memo',d.memo);
       if(d.tk && val('reTk')) d.tk.h=val('reTk'); if(d.ig && val('reIg')) d.ig.h=val('reIg'); };
 
   } else if(state.view==='upload'){
@@ -1896,9 +1913,7 @@ document.getElementById('content').addEventListener('click', e=>{
   const nt=e.target.closest('[data-notice]');
   if(nt){
     const d=D.find(x=>x.id===+nt.dataset.notice);
-    if(d){ d.notice=!d.notice; render();
-      toast(d.notice ? '발송으로 표시했어요 — <b>마스터시트에도 적어주세요</b>(지금은 조회 전용이라 화면에만 남아요)'
-                     : '미발송으로 되돌렸어요 — 마스터시트에도 반영해주세요'); }
+    if(d){ d.notice=!d.notice; render(); saveField(d.id, 'notice', d.notice?'발송완료':''); }
     return;
   }
   const nf2=e.target.closest('[data-notice-f]'); if(nf2){ state.noticeOnly = nf2.dataset.noticeF==='1'; render(); return; }
@@ -1926,7 +1941,16 @@ document.getElementById('content').addEventListener('click', e=>{
 // 인라인 편집: 검수 셀렉트 / 정산방식 / 최우수 체크
 document.getElementById('content').addEventListener('change', e=>{
   if(roBlockChange(e)) return;   // 조회 전용: 인라인 편집(검수·정산방식·최우수)도 막고 값을 되돌린다
-  const rv=e.target.closest('[data-rev]'); if(rv){ const [id,field,p]=rv.dataset.rev.split('|'); const d=D.find(x=>x.id===+id); if(d&&d[p]){ d[p][field]=rv.value; render(); } return; }
+  const rv=e.target.closest('[data-rev]'); if(rv){
+    const [id,f,p]=rv.dataset.rev.split('|'); const d=D.find(x=>x.id===+id);
+    if(d&&d[p]){
+      d[p][f]=rv.value; render();
+      // 화면 필드명(snd/sec/hash) → 시트 필드명. 플랫폼 접두어를 반드시 붙인다 —
+      // 안 붙이면 인스타 검수를 고쳐도 틱톡 열에 써진다.
+      const SHEET_F={snd:'soundOk',sec:'soundSection',hash:'hashtagOk'};
+      saveField(+id, p+'.'+SHEET_F[f], REV_TEXT[rv.value]);
+    }
+    return; }
   const py=e.target.closest('[data-pay]'); if(py){ const d=D.find(x=>x.id===+py.dataset.pay); if(d){ d.settle.pay=py.value; toast(`<b>${esc(d.nick)}</b> 정산방식 → ${py.value}`); } return; }
   const bt=e.target.closest('[data-best]'); if(bt){ const d=D.find(x=>x.id===+bt.dataset.best); if(d){ d.settle.best=bt.checked; render(); } return; }
 });
