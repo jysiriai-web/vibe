@@ -10,7 +10,8 @@
     "sync": "node scripts/sync.js",
     "execute": "node scripts/execute.js",
     "orders": "node scripts/orders.js",
-    "dashboard": "node src/server.js"
+    "dashboard": "node src/server.js",
+    "env:vercel": "node scripts/make-vercel-env.js"
   },
   "optionalDependencies": {
     "playwright": "^1.61.1"

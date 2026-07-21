@@ -2,5 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "outputDirectory": "public",
   "installCommand": "npm install --omit=optional",
+  "redirects": [{ "source": "/worker.html", "destination": "/lun8.html", "permanent": false }],
   "rewrites": [{ "source": "/api/:path*", "destination": "/api/index" }]
 }

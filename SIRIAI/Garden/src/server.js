@@ -641,6 +641,11 @@ export async function handler(req, res) {
       return send(res, 200, { ok: true, sheetWarn: w.sheet === 'fail' ? '시트에 아직 안 올라갔어요(로컬엔 저장됨)' : undefined });
     }
 
+    // 작업 콘솔(worker.html)은 대표님 PC 전용 — 클라우드에선 '없는 파일'처럼 404.
+    // 팀원이 URL 을 알아도 못 열게. (Vercel 은 public/ 을 CDN 이 직접 서빙하므로
+    //  vercel.json 의 redirects 가 실질 방어선이고, 이건 핸들러가 서빙하는 경우의 이중 방어다.)
+    if (CLOUD && /^\/worker(\.html)?$/i.test(path)) return send(res, 404, { error: 'not found' });
+
     // 정적 파일
     const file = (path === '/' ? '/index.html' : path).replace(/^\/+/, '');
     const fp = join(PUB, file);

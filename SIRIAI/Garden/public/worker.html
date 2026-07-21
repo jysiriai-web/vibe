@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>가드닝 작업 콘솔 — 대표님 PC 전용</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    /* 공유 대시보드와 같은 토큰(style.css)을 쓰고, 이 화면에만 필요한 것만 여기 둔다 */
+    .wk { max-width: 680px; margin: 0 auto; padding: 26px 20px 70px; }
+    .wk-warn { background: var(--warn-bg); color: var(--warn-ink); border: 1px solid var(--warn); border-radius: 10px; padding: 10px 14px; font-size: 13.5px; font-weight: 700; }
+    .wk-h { display: flex; align-items: center; gap: 9px; margin: 22px 0 6px; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+    .wk-status { font-size: 14px; color: var(--muted); margin-bottom: 22px; font-variant-numeric: tabular-nums; }
+    .wk-status b { color: var(--ink); }
+    .wk-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 18px; margin-bottom: 13px; }
+    .wk-card .wk-btn { width: 100%; padding: 17px; font-size: 17px; }
+    .wk-desc { font-size: 13.5px; color: var(--muted); margin-top: 11px; line-height: 1.65; }
+    .wk-money { font-size: 12px; font-weight: 800; background: var(--needs-bg); color: var(--needs-ink); padding: 2px 9px; border-radius: 20px; margin-left: 6px; }
+    .wk-sub { display: flex; align-items: center; gap: 9px; margin-top: 13px; flex-wrap: wrap; }
+    .wk-note { font-size: 12.5px; color: var(--faint); }
+    .wk-log { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; margin-top: 22px; height: 210px; overflow-y: auto; font-size: 13.5px; line-height: 1.6; }
+    .wk-line { padding: 4px 0; border-bottom: 1px dashed var(--line2); }
+    .wk-line:last-child { border-bottom: none; }
+    .wk-line .t { color: var(--faint); font-variant-numeric: tabular-nums; margin-right: 9px; }
+    .wk-line.err { color: var(--needs-ink); }
+    .wk-line.ok { color: var(--ok-ink); font-weight: 700; }
+    .wk-done { display: block; margin-top: 16px; text-align: center; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wk">
+    <div class="wk-warn">이 화면은 대표님 PC 전용입니다 — 팀 공유 URL에서는 안 열려요.</div>
+    <div class="wk-h"><span class="leaf">🌱</span> 가드닝 작업 콘솔</div>
+    <div class="wk-status" id="status">상태 불러오는 중…</div>
+
+    <div class="wk-card">
+      <button class="btn primary wk-btn" id="btnScan">① 모집 스캔</button>
+      <p class="wk-desc">전체 계정의 <b>팔로워·닉네임</b>을 다시 확인해 마스터시트에 채워요.<br>크롬 창이 뜨면 로봇 인증만 통과시켜 주세요. 계정 수에 따라 <b>3~10분</b>.</p>
+    </div>
+
+    <div class="wk-card">
+      <button class="btn wk-btn" id="btnContent">② 업로드 스캔</button>
+      <p class="wk-desc">계정마다 <b>영상을 올렸는지</b> 확인하고 음원·해시태그·조회수를 채워요.<br>크롬 창에서 로봇 인증을 끝낸 뒤 아래 [스캔 시작]을 누르면 시작돼요. <b>5~15분</b>.</p>
+      <div class="wk-sub" id="scanPanel" hidden></div>
+    </div>
+
+    <div class="wk-card">
+      <button class="btn wk-btn" id="btnExec">③ 가드닝 집행 <span class="wk-money">돈 나감</span></button>
+      <p class="wk-desc">팔로워가 목표에 모자란 계정에 <b>주문을 넣어요</b>. 먼저 금액이 적힌 확인 창이 뜨고, 확정해야만 나갑니다. <b>1분 내외</b>.</p>
+    </div>
+
+    <div class="wk-card">
+      <button class="btn wk-btn" id="btnIp">④ 나가는 IP 확인</button>
+      <p class="wk-desc">지금 스캔이 <b>어느 나라 IP</b>로 나가는지 봐요. VPN이 걸렸는지 확인할 때. <b>10초</b>.</p>
+    </div>
+
+    <div class="wk-log" id="log" role="log" aria-live="polite"></div>
+    <a class="btn wk-done" id="doneLink" href="/lun8.html" target="_blank" rel="noopener" hidden>결과는 공유 대시보드에서 확인 →</a>
+  </div>
+
+  <div class="modal-bg" id="modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h2 id="modalTitle">가드닝 집행 확인</h2>
+      <div id="modalBody"></div>
+      <div class="modal-actions">
+        <button class="btn" id="modalCancel">취소</button>
+        <button class="btn danger" id="modalConfirm">집행 확정 (돈 나감)</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // LUN8 전용 콘솔 — 캠페인 고르는 UI 를 두지 않는다(고를 게 하나뿐인데 고르게 하면 실수만 는다)
+    var CAMP = 'lun8';
+    var $ = function (s) { return document.querySelector(s); };
+    var busy = false;          // 실행 중 재진입 금지 — 중복 스캔·중복 주문 방지
+    var krw = 1508.79;         // /api/data 로 갱신
+    var pwRequired = false;    // config.execPwRequired
+    var pendingHandles = [];   // 확인 모달에 보여준 계정 = 실제로 주문할 계정 (그 외엔 안 나감)
+
+    var fmt = function (n) { return n == null ? '—' : Number(n).toLocaleString(); };
+    var won = function (usd) { return usd == null ? '—' : '₩' + Math.round(Number(usd) * krw).toLocaleString(); };
+    var esc = function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); };
+
+    // 진행 로그 — 뭘 하고 있는지 안 보이면 사람이 불안해서 또 누른다. 그래서 화면에 쌓는다.
+    function say(msg, kind) {
+      var el = document.createElement('div');
+      el.className = 'wk-line' + (kind ? ' ' + kind : '');
+      el.innerHTML = '<span class="t">' + new Date().toTimeString().slice(0, 5) + '</span>' + msg;
+      var box = $('#log');
+      box.appendChild(el);
+      box.scrollTop = box.scrollHeight;
+    }
+    function setBusy(b) {
+      busy = b;
+      var bs = document.querySelectorAll('.wk-btn');
+      for (var i = 0; i < bs.length; i++) bs[i].disabled = b;
+    }
+    function showDone() { $('#doneLink').hidden = false; }
+    function api(path, opts) { return fetch(path, opts).then(function (r) { return r.json(); }); }
+    function netErr() { return { error: '네트워크 오류 — 서버(3737)가 켜져 있는지 보세요' }; }
+    function fail(r, what) {
+      var m = (r && r.error) ? r.error : '알 수 없는 오류';
+      // 지금 lun8 은 campaigns.json 에서 readOnly:true 라 POST 가 423 으로 막힌다. 원인을 그대로 알려준다.
+      if (r && r.readOnly) m += '\n(campaigns.json 의 lun8 readOnly 를 풀어야 이 작업이 됩니다)';
+      if (r && r.localOnly) m += '\n(이 화면은 대표님 PC의 로컬 서버에서 열어야 해요)';
+      say(what + ' 실패 — ' + esc(m).replace(/\n/g, '<br>'), 'err');
+    }
+    function timeAgo(iso) {
+      if (!iso) return '아직 스캔 안 함';
+      var diff = (Date.now() - new Date(iso)) / 60000;
+      if (diff < 1) return '방금';
+      if (diff < 60) return Math.floor(diff) + '분 전';
+      if (diff < 1440) return Math.floor(diff / 60) + '시간 전';
+      return Math.floor(diff / 1440) + '일 전';
+    }
+
+    // 상태 한 줄 — 마지막 스캔 / 잔액 / 가드닝 필요 건수. 이 화면에서 표는 안 보여준다.
+    function loadStatus() {
+      return api('/api/data?campaign=' + CAMP).then(function (d) {
+        if (d.config && d.config.krwPerUsd) krw = d.config.krwPerUsd;
+        pwRequired = !!(d.config && d.config.execPwRequired);
+        var needs = (d.accounts || []).filter(function (a) { return a.status === 'needs'; }).length;
+        $('#status').innerHTML = '마지막 스캔 <b>' + timeAgo(d.scannedAt) + '</b> · 잔액 <b>' + won(d.balance) + '</b> · 가드닝 필요 <b>' + needs + '건</b>';
+      }).catch(function () {
+        $('#status').textContent = '상태를 못 불러왔어요 — 로컬 서버가 켜져 있는지 확인해 주세요.';
+      });
+    }
+
+    // ① 모집 스캔 ────────────────────────────────────────────────────────────
+    function scan() {
+      if (busy) return;
+      setBusy(true);
+      say('모집 스캔 시작 — 크롬 창이 떠요. 로봇 인증이 보이면 통과시켜 주세요.');
+      api('/api/scan?campaign=' + CAMP + '&full=1', { method: 'POST' }).catch(netErr).then(function (r) {
+        setBusy(false);
+        if (!r || r.error) return fail(r, '모집 스캔');
+        var msg = '모집 스캔 완료 — ' + (r.scannedCount != null ? r.scannedCount : '?') + '개';
+        if (r.nicksWritten) msg += ' · 닉네임 ' + r.nicksWritten + '개 채움';
+        if (r.refill && r.refill.requested) msg += ' · ♻️ 리필 ' + r.refill.ok + '/' + r.refill.requested + '건 요청';
+        say(msg, 'ok');
+        showDone();
+        loadStatus();
+      });
+    }
+
+    // ② 업로드 스캔 ──────────────────────────────────────────────────────────
+    // 서버 규약: POST /api/content-scan → status 폴링(phase: confirm=로봇인증 대기,
+    // scan=진행중, blocked=틱톡이 막음) → confirm / pause / resume / stop.
+    function contentScan() {
+      if (busy) return;
+      setBusy(true);
+      say('업로드 스캔 시작 — 크롬 창이 하나 떠요.');
+      api('/api/content-scan?campaign=' + CAMP, { method: 'POST' }).catch(netErr).then(function (r) {
+        if (!r || r.error) { setBusy(false); return fail(r, '업로드 스캔'); }
+        var last = '';
+        var poll = setInterval(function () {
+          api('/api/content-scan/status').then(function (s) {
+            if (s.error) { clearInterval(poll); panel(null); setBusy(false); return fail(s, '업로드 스캔'); }
+            if (s.running) {
+              if (s.phase === 'confirm') {
+                if (last !== 'confirm') say('크롬 창에서 로봇 인증을 끝낸 뒤 아래 [스캔 시작]을 눌러 주세요.');
+                panel('confirm');
+              } else if (s.phase === 'blocked') {
+                if (last !== 'blocked') say('⚠️ 틱톡이 막는 것 같아요 (' + (s.done || 0) + '/' + (s.total || '?') + '까지 함). VPN을 바꾼 뒤 [재개]를 누르세요.', 'err');
+                panel('blocked', s);
+              } else {
+                if (last !== 'scan') say('스캔 중… 창을 닫지 마세요.');
+                panel('scan', s);
+              }
+              last = s.phase;
+              return;
+            }
+            clearInterval(poll); panel(null); setBusy(false);
+            if (s.stopped) say('⏹ 스캔 중지됨 — 여기까지 ' + (s.written || 0) + '칸 반영 (다시 누르면 남은 계정부터)');
+            else if (s.failed) say('업로드 스캔 완료 · ⚠️ ' + s.failed + '개는 못 봤어요 (다시 시도하세요)', 'err');
+            else say('업로드 스캔 완료 — 업로드 ' + s.up + '개 · 시트 ' + s.written + '칸 반영', 'ok');
+            showDone();
+            loadStatus();
+          }).catch(function () { /* 폴링 한 번 실패는 무시 — 다음 주기에 다시 묻는다 */ });
+        }, 2000);
+      });
+    }
+    // 스캔 보조 버튼(시작/중지/재개) — .wk-btn 이 아니어서 실행 중에도 눌린다(눌러야 하니까).
+    function panel(mode, info) {
+      var el = $('#scanPanel');
+      info = info || {};
+      if (!mode) { el.hidden = true; el.innerHTML = ''; el.dataset.mode = ''; return; }
+      el.hidden = false;
+      if (mode === 'scan' && el.dataset.mode === 'scan') { // 카운트만 갱신 — 패널을 다시 그리면 클릭을 방해한다
+        var c = $('#scanCount');
+        if (c) c.textContent = (info.done || 0) + '/' + (info.total || '?');
+        return;
+      }
+      if (el.dataset.mode === mode) return;
+      el.dataset.mode = mode;
+      if (mode === 'confirm') {
+        el.innerHTML = '<button class="btn primary" id="scanGo">스캔 시작</button><span class="wk-note">크롬 창에서 로봇 인증을 통과한 뒤 누르세요</span>';
+        bind('scanGo', '/api/content-scan/confirm', '시작하는 중…');
+      } else if (mode === 'scan') {
+        el.innerHTML = '<button class="btn" id="scanPause">■ 중지</button><span class="wk-note">진행 <b id="scanCount">' + (info.done || 0) + '/' + (info.total || '?') + '</b> · 크롬에 콘텐츠가 안 보이면 중지 → VPN 교체</span>';
+        bind('scanPause', '/api/content-scan/pause', '멈추는 중…');
+      } else {
+        el.innerHTML = '<button class="btn primary" id="scanResume">▶ 재개</button><button class="btn ghost" id="scanStop">■ 중지</button><span class="wk-note">VPN을 바꾼 뒤 재개하면 멈춘 데서 이어가요</span>';
+        bind('scanResume', '/api/content-scan/resume', '재개 중…');
+        bind('scanStop', '/api/content-scan/stop', '');
+      }
+    }
+    function bind(id, url, label) {
+      var b = $('#' + id);
+      if (!b) return;
+      b.addEventListener('click', function () {
+        b.disabled = true;
+        if (label) b.textContent = label;
+        api(url, { method: 'POST' }).catch(function () {});
+      });
+    }
+
+    // ③ 가드닝 집행 ──────────────────────────────────────────────────────────
+    // 계획(/api/plan) → 금액 확인 모달 → 확정(/api/execute). 돈이 나가므로 확인+비번 없이는 절대 안 감.
+    function openExec() {
+      if (busy) return;
+      setBusy(true);
+      say('가드닝 계획 확인 중…');
+      api('/api/plan?campaign=' + CAMP, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
+        .catch(netErr).then(function (plan) {
+          setBusy(false);
+          if (!plan || plan.error) return fail(plan, '계획 확인');
+          if (!plan.toOrder || !plan.toOrder.length) return say('주문할 게 없어요 — 지금은 다 채워져 있어요.');
+          if (plan.krwPerUsd) krw = plan.krwPerUsd;
+          pendingHandles = plan.toOrder.map(function (o) { return o.handle; });
+          var html = plan.toOrder.map(function (o) {
+            return '<div class="plan-row"><span>@' + esc(o.handle) + ' <span style="color:var(--muted)">(현재 ' + fmt(o.current) + ')</span></span><span class="mono">' + fmt(o.qty) + '명 · ' + won(o.cost) + '</span></div>';
+          }).join('');
+          html += '<div class="plan-total"><span>총 ' + plan.toOrder.length + '개 · ' + fmt(plan.totalQty) + '명</span><span>' + won(plan.totalCost) + '</span></div>';
+          html += '<div class="note">서비스 #' + esc(plan.service ? plan.service.id : '?') + ' · 잔액 ' + won(plan.balance) + ' · 집행 직전 최신 팔로워로 재확인 후 주문돼요.</div>';
+          if (pwRequired) html += '<div class="pw-row"><label for="execPw">집행 비번</label><input type="password" id="execPw" inputmode="numeric" autocomplete="off" placeholder="돈 나가는 확정 — 비번 입력"></div>';
+          $('#modalBody').innerHTML = html;
+          $('#modal').hidden = false;
+          (pwRequired ? $('#execPw') : $('#modalCancel')).focus();
+          if (pwRequired) $('#execPw').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); doExec(); } });
+        });
+    }
+    function doExec() {
+      var pw = $('#execPw') ? $('#execPw').value : '';
+      if (pwRequired && !pw) { $('#execPw').focus(); return; } // 비번 비면 모달을 유지 — 닫아버리면 처음부터 다시 해야 한다
+      $('#modal').hidden = true;
+      setBusy(true);
+      say('주문 넣는 중… 창을 닫지 마세요.');
+      api('/api/execute?campaign=' + CAMP, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ handles: pendingHandles, confirm: true, password: pw }) })
+        .catch(netErr).then(function (r) {
+          setBusy(false);
+          if (!r || r.error) return fail(r, '가드닝 집행');
+          say((r.placed || []).length ? '✅ ' + r.placed.length + '개 주문 완료' : '주문할 게 없었어요', 'ok');
+          showDone();
+          loadStatus();
+        });
+    }
+    function closeModal() { $('#modal').hidden = true; }
+
+    // ④ 나가는 IP ───────────────────────────────────────────────────────────
+    // campaign 파라미터를 붙이지 않는다 — 출구 IP는 캠페인과 무관하고,
+    // 캠페인을 붙이면 조회전용(readOnly) 게이트에 걸려 확인조차 못 하게 된다.
+    function checkIp() {
+      if (busy) return;
+      setBusy(true);
+      say('나가는 IP 확인 중… (크롬 창이 잠깐 떠요)');
+      api('/api/exit-ip', { method: 'POST' }).catch(netErr).then(function (r) {
+        setBusy(false);
+        if (!r || !r.ok) return fail(r, 'IP 확인');
+        var where = [r.country, r.region, r.city].filter(Boolean).join(' · ') || '알 수 없음';
+        say('🌐 지금 [' + esc(where) + '] 로 나가요 (IP ' + esc(r.ip || '?') + ')' + (r.proxied ? ' · 프록시 적용됨' : ''), 'ok');
+      });
+    }
+
+    $('#btnScan').addEventListener('click', scan);
+    $('#btnContent').addEventListener('click', contentScan);
+    $('#btnExec').addEventListener('click', openExec);
+    $('#btnIp').addEventListener('click', checkIp);
+    $('#modalCancel').addEventListener('click', closeModal);
+    $('#modalConfirm').addEventListener('click', doExec);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('#modal').hidden) closeModal(); });
+    $('#modal').addEventListener('click', function (e) { if (e.target.id === 'modal') closeModal(); });
+    // 실행 중 새로고침·창닫기 방지 — 스캔·주문이 중간에 끊기면 상태가 애매해진다
+    window.addEventListener('beforeunload', function (e) { if (busy) { e.preventDefault(); e.returnValue = ''; } });
+
+    say('작업 콘솔 준비됨. 위에서 할 일을 골라 주세요.');
+    loadStatus();
+  </script>
+</body>
+</html>
