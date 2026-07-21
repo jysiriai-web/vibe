@@ -85,7 +85,9 @@ export async function launchIgBrowser({ warmup = true, onWarmup, waitForGo } = {
   const { chromium } = await import('playwright');
   const proxy = igProxyFromEnv();
   const browser = await chromium.launch({ headless: false, ...(proxy ? { proxy } : {}) });
-  const base = { userAgent: UA, viewport: { width: 1280, height: 900 }, locale: 'ja-JP' };
+    // 한국어. 틱톡 스캐너는 일본 크리에이터 콘텐츠를 받으려고 ja-JP 를 쓰지만,
+  // 인스타는 받는 데이터가 언어와 무관하다 — 대표님이 직접 조작하는 창이니 한국어가 맞다.
+  const base = { userAgent: UA, viewport: { width: 1280, height: 900 }, locale: 'ko-KR' };
   let ctx;
   try {
     ctx = await browser.newContext(existsSync(SESSION_PATH) ? { ...base, storageState: SESSION_PATH } : base);
@@ -174,6 +176,42 @@ export async function fetchIgProfile(page, handleRaw, { timeout = 25000 } = {}) 
     postCount: (u.edge_owner_to_timeline_media || {}).count ?? null,
     posts,
   };
+}
+
+// ── 폴백: 프로필 페이지의 og:description ──────────────────────────────────
+// 일부 계정(비즈니스/프로 계정으로 보인다)에서 web_profile_info 가 HTTP 400 을 뱉는다.
+// 인스타 내부 오류다 — "Asset asset://laser.provider/ig_business_category_subvertical".
+// 계정은 멀쩡히 있고(프로필 페이지 200) og:description 에 팔로워가 그대로 적혀 있다.
+// 46명 중 7명이 여기 걸렸으므로 그냥 포기할 수 없다.
+//
+// 대신 게시물 목록은 못 얻는다(이 경로엔 안 들어있다) → 팔로워·이름만 채우고 posts 는 빈 배열.
+export async function fetchIgProfileViaPage(ctx, handleRaw, { timeout = 60000 } = {}) {
+  const handle = toIgHandle(handleRaw);
+  const page = await ctx.newPage();
+  try {
+    await page.goto(`https://www.instagram.com/${handle}/`, { waitUntil: 'domcontentloaded', timeout });
+    await page.waitForTimeout(3500);
+    const meta = await page.evaluate(() => {
+      const m = document.querySelector('meta[property="og:description"]');
+      return m ? m.content || '' : '';
+    });
+    // "팔로워 9,365명, 팔로잉 1,040명, 게시물 173개 - CHIKARA(@chikara1201)님의 …"
+    // 로케일이 ko-KR 이라 한국어지만, 다른 로케일도 받도록 숫자 위치로도 잡는다.
+    const mk = meta.match(/팔로워\s*([\d,.]+)\s*명/) || meta.match(/([\d,.]+)\s*Followers/i);
+    if (!mk) { const e = new Error('프로필 페이지에서도 팔로워를 못 찾음'); e.code = 'NOTFOUND'; throw e; }
+    const followers = Number(String(mk[1]).replace(/[,.]/g, ''));
+    const nm = meta.match(/-\s*(.+?)\s*\(@/);
+    const pc = meta.match(/게시물\s*([\d,.]+)\s*개/) || meta.match(/([\d,.]+)\s*Posts/i);
+    return {
+      handle,
+      followers: Number.isFinite(followers) ? followers : null,
+      name: nm ? nm[1] : '',
+      isPrivate: false,
+      postCount: pc ? Number(String(pc[1]).replace(/[,.]/g, '')) : null,
+      posts: [],          // 이 경로로는 못 가져온다 — 업로드 감지는 API 경로가 돌아와야 한다
+      via: 'page',
+    };
+  } finally { try { await page.close(); } catch {} }
 }
 
 // 재시도 래퍼 — 막힘(BLOCKED)은 기다렸다 다시, 계정 없음은 즉시 포기(다시 해도 없다)
