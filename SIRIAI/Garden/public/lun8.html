@@ -670,6 +670,14 @@ body.nav-collapsed .side-btn { justify-content:center; }
 .cpair { display:flex; flex-direction:column; gap:4px; }
 .cpair .cp { display:flex; align-items:center; gap:6px; font-size:12px; }
 .cpair .cp .pmark { margin:0; }
+/* 미러링은 계약 위반, '따로 촬영'이 정상 — 색이 그걸 말해야 한다 */
+select.mirror.m1 { background:var(--needs-bg); color:var(--needs-ink); border-color:var(--needs); font-weight:800; }
+select.mirror.m0 { background:var(--ok-bg); color:var(--ok-ink); border-color:#bfe9d7; font-weight:800; }
+select.mirror.mx { color:var(--muted); }
+/* 하위탭 플랫폼 로고 — 모집탭 표엔 있는데 하위탭엔 없어 짝이 안 맞았다 */
+.subtab .pmark { width:12px; height:12px; margin:0 5px 0 0; vertical-align:-1px; }
+.subtab.tk .pmark { color:#15171a; }
+.subtab.ig .pmark { color:#d62976; }
 </style>
 </head>
 <body>
@@ -1418,11 +1426,11 @@ function viewRecruit(){
   if(state.day && WEEKS().length) rows = rows.filter(d=> dayBucket(d)===state.day);
   // 일자 필터가 걸려 있으면 그쪽이 우선 — 더 좁은 조건이라 둘을 겹치면 헷갈린다.
   else if(state.week && WEEKS().length) rows = rows.filter(d=> inWeek(d, state.week));
+  // 플랫폼은 하위탭으로 고르므로 표에서는 로고만 — 글자 칩은 자리만 먹는다.
   const platCol = { key:'plats', label:'플랫폼', hideable:true, empty:()=>false, sv:r=>r.plats.length,
-    cell:r=>{ const on=r.plats.filter(p=>platsOn().includes(p));
-      // '전용'은 뺀다 — 한 플랫폼만 적혀 있으면 그게 곧 전용이라 군더더기다.
-      if(on.length>1) return `<span class="plat-pill both">틱톡+인스타</span>`;
-      return `<span class="plat-pill ${on[0]}">${on[0]==='tk'?'틱톡':'인스타'}</span>`; } };
+    cell:r=>platIcons(r) };
+  // 하위탭이 플랫폼을 거른다(업로드탭과 같은 방식).
+  if(state.plat==='tk' || state.plat==='ig') rows = rows.filter(d=> d[state.plat]);
   const cols = [
     { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
@@ -1477,8 +1485,7 @@ function viewRecruit(){
   const tkN = all.filter(d=>d.tk).length, igN = all.filter(d=>d.ig).length;
   const addBar = `<div class="bar">
     <button class="btn small${(state.noticeOnly||state.unfixedOnly||state.platOnly)?'':' primary'}" data-notice-f="0">전체</button>
-    <button class="btn small pf tk${state.platOnly==='tk'?' on':''}" data-platf="tk">${PLAT_MARK.tk}틱톡 ${tkN}</button>
-    <button class="btn small pf ig${state.platOnly==='ig'?' on':''}" data-platf="ig">${PLAT_MARK.ig}인스타 ${igN}</button>
+
     <button class="btn small${state.noticeOnly?' primary':''}" data-notice-f="1">확정메일 미발송${unsent?` (${unsent})`:''}</button>
     <button class="btn small${state.unfixedOnly?' primary':''}" data-unfixed="${state.unfixedOnly?0:1}">날짜 미확정${unfixed?` (${unfixed})`:''}</button>
     <span id="hideSlot"></span>
@@ -1504,7 +1511,7 @@ function viewRecruit(){
   const emptyMsg = state.day==='__unset' ? '예정일이 비어 있는 사람이 없어요.'
     : state.day ? `${esc(dayLabel)}에 잡힌 사람이 없어요. 다른 날에서 이리로 옮길 사람을 찾아보세요.`
     : state.week ? `${esc(state.week)}에 올린다고 한 사람이 없어요.` : undefined;
-  return kpis + dayBar + addBar + addFormHTML +
+  return kpis + platSubtabs() + dayBar + addBar + addFormHTML +
     renderTable(cols, rows, {tableId:'recruit', emptyMsg, noHide: !!(state.day || state.week)}) +
     `<div class="note-line">한 행 = 한 사람(<b>명</b>). 콘텐츠는 사람×플랫폼 = <b>건</b>이라 총 건수가 인원보다 많아요. 모집은 상한 없이 무제한 — 상한은 <b>정산 105건</b>(목표 100 + 오버부킹 5)만.</div>`;
 }
@@ -1520,15 +1527,13 @@ function viewUploadAll(){
   const rows = D.filter(inCampaign).filter(dayWeekPass).filter(d=> platsOn().some(p=>d[p]));
   const cols = [
     ...(LOCAL.on ? [{ key:'spick', label:sPickAllBox(), sortable:false,
-      cell:r=> platsOn().filter(p=>r[p]).map(p=>
-        `<input type="checkbox" data-spick="${p}:${esc(r[p].h)}"${scanPick.has(p+':'+r[p].h)?' checked':''} title="${pName(p)}">`).join(' ') }] : []),
+      // 사람 단위로 고른다. 어느 플랫폼을 긁을지는 화면이 판단한다(아래 scanTargetsOf).
+      cell:r=> scanTargetsOf(r).length
+        ? `<input type="checkbox" data-spick="row:${r.id}"${scanPick.has('row:'+r.id)?' checked':''}>`
+        : '<span class="emptydot">·</span>' }] : []),
     { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
     { key:'plats', label:'플랫폼', sv:r=>r.plats.length, cell:r=>platIcons(r) },
-    { key:'sched', label:'예정일', sv:r=>schedKey(effDay(r)),
-      cell:r=>{ const day = r.fixed && !isFixedState(r.fixed) ? r.fixed : r.sched;
-        if(!day) return '<span class="cmuted">미정</span>';
-        return r.fixed && !isFixedState(r.fixed) ? `<b class="fixdate">${esc(day)}</b>` : `<b>${esc(day)}</b>`; } },
     // 콘텐츠는 플랫폼별로 나란히 — 두 영상을 같은 줄에서 열어야 미러링을 본다.
     { key:'content', label:'콘텐츠', sortable:false, cell:r=>
       `<div class="cpair">${platsOn().filter(p=>r[p]).map(p=>
@@ -1538,7 +1543,15 @@ function viewUploadAll(){
         `<span class="cp">${PLAT_MARK[p]?`<i class="pmark ${p}">${PLAT_MARK[p]}</i>`:''}${upStateCell(r,p)}</span>`).join('')}</div>` },
     { key:'mir', label:'미러링', sv:r=>r.mir,
       cell:r=> r.plats.length<2 ? '<span class="cmuted">해당 없음</span>'
-        : `<select class="rev-sel mirror ${r.mir}" data-mir="${r.id}">${[['mx','미확인'],['m1','미러링'],['m0','별개']].map(([v,l])=>`<option value="${v}"${v===r.mir?' selected':''}>${l}</option>`).join('')}</select>` },
+        // 미러링은 계약 위반이고 '따로 촬영'이 정상이다. 이름과 색이 그걸 말해야 한다 —
+        // '별개'는 중립적이라 무엇이 좋은 상태인지 안 보였다.
+        : `<select class="rev-sel mirror ${r.mir}" data-mir="${r.id}">${[['mx','미확인'],['m1','미러링 ⚠'],['m0','따로 촬영']].map(([v,l])=>`<option value="${v}"${v===r.mir?' selected':''}>${l}</option>`).join('')}</select>` },
+    // 날짜는 미러링 뒤로. 앞쪽은 '올라왔나·같은 영상인가'를 보는 자리고,
+    // 날짜는 그다음에 챙기는 것이다. 확정일은 모집탭에서 여기로 옮겼다 —
+    // 날짜를 다시 잡는 일은 업로드를 쫓는 사람 몫이다.
+    { key:'sched', label:'예정일', sv:r=>schedKey(r.sched),
+      cell:r=> r.sched ? `<b>${esc(r.sched)}</b>` : '<span class="cmuted">미정</span>' },
+    { key:'fixed', label:'확정일', sv:r=>String(r.fixed||''), cell:r=>fixedCell(r) },
     { key:'edit', label:'', cell:r=>editBtn(r.id) },
   ];
   const pairs = [];
@@ -1612,6 +1625,12 @@ const upScanBtn = ()=> `<button class="btn small" id="btnUpScan">🔎 업로드 
    전체는 46계정 30분이라 '오늘 올리는 몇 명'만 보고 싶을 때 쓴다.
    로컬에서만 보인다: 스캔은 대표님 PC 에서만 돈다. */
 const scanPick = new Set();
+/* 이 사람에게서 아직 스캔할 게 남은 플랫폼. 이미 올라온 건 다시 긁지 않는다 —
+   시간도 아깝고, 확정된 링크를 흔들 이유도 없다.
+   사람은 '이 사람 확인해줘'만 고르면 되고, 어느 쪽을 볼지는 화면이 정한다. */
+function scanTargetsOf(d){
+  return platsOn().filter(p=> d[p] && !uploaded(d,p));
+}
 // 표 머리의 전체 선택. 가드닝과 같은 방식 — 하나라도 꺼져 있으면 '중간' 표시로 둔다.
 const sPickAllBox = () => '<input type="checkbox" id="sPickAll" title="전체 선택 / 해제">';
 function syncScanAll(){
@@ -1637,7 +1656,15 @@ async function runPickScan(btn){
   if(!scanPick.size) return toast('표에서 스캔할 사람을 먼저 골라주세요.');
   // 플랫폼마다 스캐너가 다르다(틱톡=영상목록, 인스타=게시물). 갈라서 각각 보낸다.
   const by = { tk:[], ig:[] };
-  scanPick.forEach(v=>{ const i=v.indexOf(':'); const p=v.slice(0,i), h=v.slice(i+1); if(by[p]) by[p].push(h); });
+  scanPick.forEach(v=>{
+    const i = v.indexOf(':'), pre = v.slice(0, i), rest = v.slice(i + 1);
+    if(pre === 'row'){
+      // 사람으로 고른 것 — 아직 안 올라온 플랫폼만 편다.
+      const d = D.find(x=> String(x.id) === rest);
+      if(d) scanTargetsOf(d).forEach(p=> by[p] && by[p].push(d[p].h));
+    } else if(by[pre]) by[pre].push(rest);
+  });
+  if(!by.tk.length && !by.ig.length) return toast('고른 사람은 이미 다 올라왔어요 — 스캔할 게 없습니다.');
   btn.disabled = true; btn.textContent = '스캔 중…';
   const done = [];
   try {
@@ -2105,12 +2132,21 @@ function gardenSvcNote(){
     <b>#${esc(String(SERVICE.id))}</b> · ${esc(per)}<small> / 1,000명</small>
     <span class="svc-n">${esc(String(SERVICE.name||'').replace(/[^\x20-\x7E가-힣·\[\]]/g,'').trim().slice(0,34))}</span></span>`;
 }
+// 하위탭에 그 플랫폼 인원수. 모집탭에서만 — 업로드탭은 건수를 카드에서 이미 보여준다.
+function platCountLab(p){
+  if(state.view!=='recruit') return '';
+  const n = D.filter(inCampaign).filter(d=> d[p]).length;
+  return n ? ` <span class="cmuted">${n}</span>` : '';
+}
 function platSubtabs(){
   if(!hasIG()) return `<div class="note-line">🎯 이 캠페인은 <b>틱톡 전용</b> — 인스타 하위탭·열은 자동 숨김. <span class="muted">(config plats:['tk'])</span></div>`;
+  // 모집탭은 '건 단위'가 아니라 사람 단위라 라벨을 달리한다. 나머지 구조는 같게 —
+  // 탭을 옮겨도 같은 자리에서 같은 방식으로 쓰게.
+  const allLab = state.view==='recruit' ? '전체' : '통합 <span class="cmuted">건 단위</span>';
   return `<div class="subtabs" id="platSub">
-    <button class="subtab all ${state.plat==='all'?'active':''}" data-plat="all"><span class="dot"></span>통합 <span class="cmuted">건 단위</span></button>
-    <button class="subtab tk ${state.plat==='tk'?'active':''}" data-plat="tk"><span class="dot"></span>틱톡</button>
-    <button class="subtab ig ${state.plat==='ig'?'active':''}" data-plat="ig"><span class="dot"></span>인스타</button>
+    <button class="subtab all ${state.plat==='all'?'active':''}" data-plat="all"><span class="dot"></span>${allLab}</button>
+    <button class="subtab tk ${state.plat==='tk'?'active':''}" data-plat="tk"><i class="pmark tk">${PLAT_MARK.tk}</i>틱톡${platCountLab('tk')}</button>
+    <button class="subtab ig ${state.plat==='ig'?'active':''}" data-plat="ig"><i class="pmark ig">${PLAT_MARK.ig}</i>인스타${platCountLab('ig')}</button>
     ${state.view==='upload' ? `<button class="subtab late ${state.plat==='late'?'active':''}" data-plat="late"><span class="dot"></span>일정 미준수 <span class="cmuted">${lateCount()}건</span></button>` : ''}
     ${state.view==='garden' ? `<button class="subtab hist ${state.plat==='hist'?'active':''}" data-plat="hist"><span class="dot"></span>집행 이력 <span class="cmuted">${ORDERS.length}건</span></button>` : ''}
     ${gardenSvcNote()}<span id="hideSlot" class="sub-hide"></span>${state.view==='upload'?scanPickBtn():''}</div>`;
