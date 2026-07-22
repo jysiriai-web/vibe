@@ -568,20 +568,52 @@ td.mono, th.mono { font-family:var(--mono); font-size:12px; }
   background:var(--card); color:var(--muted); border:1px solid var(--line); }
 .chipf.on { background:var(--ink); color:var(--paper,#fff); border-color:var(--ink); }
 .qa-note { font-size:12.5px; color:var(--muted); margin-bottom:14px; }
-.qa-list { background:var(--card); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); overflow:hidden; }
-.qa { border-bottom:1px solid var(--line2); }
-.qa:last-child { border-bottom:none; }
+/* 한 줄짜리 리스트는 폭 넓은 화면에서 질문 오른쪽이 통째로 빈다. 카드 2열로 깐다. */
+.qa-list { display:grid; grid-template-columns:repeat(auto-fill, minmax(420px, 1fr)); gap:11px; align-items:start; }
+.qa { background:var(--card); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); }
+.qa[open] { border-color:var(--accent); }
 .qa-h { display:flex; align-items:center; gap:10px; padding:13px 16px; cursor:pointer; list-style:none; }
 .qa-h::-webkit-details-marker { display:none; }
 .qa-h::before { content:'▸'; color:var(--faint); font-size:11px; flex-shrink:0; transition:transform .12s; }
 .qa[open] .qa-h::before { transform:rotate(90deg); }
-.qa-h b { flex:1; font-size:13.5px; font-weight:700; }
+.qa-h b { flex:1; font-size:13.5px; font-weight:700; line-height:1.45; }
 .qa-h .copy-ans { opacity:0; flex-shrink:0; }
 .qa:hover .qa-h .copy-ans, .qa[open] .qa-h .copy-ans { opacity:1; }
 .qa-p { margin:0; padding:2px 16px 16px 40px; font:inherit; font-size:13px; line-height:1.7; color:var(--muted);
   white-space:pre-wrap; word-break:break-word; }
 .qa-cat { font-size:10.5px; font-weight:800; letter-spacing:.03em; background:var(--accent-soft); color:var(--accent-ink);
   padding:2px 8px; border-radius:20px; flex-shrink:0; }
+/* 가이드 — 카드 격자(8개+)는 위계가 없다. 왼쪽 목차 + 문서 한 장. */
+.gwrap { display:grid; grid-template-columns:180px 1fr; gap:26px; align-items:start; }
+.gtoc { position:sticky; top:16px; display:flex; flex-direction:column; gap:2px; }
+.gtoc-t { font-size:11px; font-weight:800; letter-spacing:.05em; color:var(--faint); text-transform:uppercase; margin-bottom:6px; }
+.gnav { font-size:12.5px; color:var(--muted); text-decoration:none; padding:5px 9px; border-radius:7px; }
+.gnav:hover { background:var(--line2); color:var(--ink); }
+.gsecs { display:block; }
+.gsec { background:var(--card); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow);
+  padding:18px 20px; margin-bottom:13px; scroll-margin-top:16px; }
+.gsec h3 { display:flex; align-items:center; gap:10px; margin:0 0 10px; font-size:15px; font-weight:800; }
+.gsec ul { margin:0; padding-left:18px; }
+.gsec li { font-size:13px; line-height:1.75; color:var(--muted); margin-bottom:5px; }
+.gsec li b { color:var(--ink); }
+/* 안 정해진 것 모음 — 사방에 흩어두면 몇 개인지 세어야 한다 */
+.gtodo { background:var(--needs-bg); border:1px solid var(--needs); border-radius:12px; padding:13px 16px; margin-bottom:14px; font-size:12.5px; color:var(--needs-ink); }
+.gtodo b { font-weight:800; }
+.gtodo ul { margin:8px 0 0; padding-left:18px; }
+.gtodo li { line-height:1.7; }
+.gtodo-s { font-weight:700; opacity:.75; margin-right:5px; }
+@media (max-width:900px){ .gwrap { grid-template-columns:1fr; } .gtoc { position:static; flex-direction:row; flex-wrap:wrap; } }
+/* 사이드바 하단 — 자주 안 쓰는 것은 아래로(설정·의견). 상단바는 '지금 숫자'만 남긴다. */
+.side-foot { margin-top:auto; padding:10px 8px 12px; display:flex; flex-direction:column; gap:4px; border-top:1px solid var(--line2); }
+.side-btn { display:flex; align-items:center; gap:9px; width:100%; padding:8px 10px; border:0; border-radius:9px;
+  background:none; font:inherit; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; text-align:left; }
+.side-btn:hover { background:var(--line2); color:var(--ink); }
+.side-foot #localBadge:not(:empty) { padding:2px 2px 6px; }
+.side-foot .lbadge { font-size:11.5px; padding:4px 9px; }
+body.nav-collapsed .sb-l, body.nav-collapsed .side-foot .lbadge { display:none; }
+body.nav-collapsed .side-btn { justify-content:center; }
+/* 상단바가 비었으니 숫자에 자리를 준다 */
+.topbar-right .stats { gap:22px; }
 </style>
 </head>
 <body>
@@ -609,6 +641,11 @@ td.mono, th.mono { font-family:var(--mono); font-size:12px; }
       <button class="tab" data-view="guide"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span class="lb">가이드</span></button>
     </nav>
     <div class="side-foot">
+      <span id="localBadge"></span>
+      <button class="side-btn" id="fbBtn" title="화면 아무 곳이나 눌러서 의견을 남겨요">💬 <span class="sb-l">의견</span><span id="fbCnt"></span></button>
+      <button class="side-btn" id="btnSettings" title="설정 · 뷰 모드">⚙︎ <span class="sb-l">설정</span></button>
+    </div>
+    <div class="side-foot">
     </div>
   </aside>
 
@@ -620,10 +657,7 @@ td.mono, th.mono { font-family:var(--mono); font-size:12px; }
         <button class="btn small ghost" id="btnMaster" title="구글 마스터시트 열기">📄 마스터시트</button>
       </div>
       <div class="topbar-right">
-        <span id="localBadge"></span>
         <div class="stats" id="stats"></div>
-        <button class="btn ghost" id="fbBtn" title="화면 아무 곳이나 눌러서 '여기 이런 기능·필터 있으면 좋겠다'를 남겨요">💬 의견<span id="fbCnt"></span></button>
-        <button class="btn" id="btnSettings" title="설정 · 뷰 모드">⚙︎ 설정</button>
       </div>
     </header>
     <main id="content"></main>
@@ -1042,6 +1076,13 @@ function gPickAllBox(){
 }
 const gKey = (id,p) => id + '|' + p;
 const gPicked = (id,p) => !gOff.has(gKey(id,p));
+// 일정 스트립 선택(일자·주차)을 통과하는가. 여러 탭이 같은 규칙을 써야 숫자가 안 어긋난다.
+function dayWeekPass(d){
+  if(!WEEKS().length) return true;
+  if(state.day) return dayBucket(d)===state.day;
+  if(state.week) return inWeek(d, state.week);
+  return true;
+}
 const emptyRow = (n,msg='조건에 맞는 계정이 없어요.')=> `<tr class="empty-tr"><td colspan="${n}">${msg}</td></tr>`;
 
 /* ============ 업로드 일정(주차·일자) ============
@@ -1383,7 +1424,9 @@ function viewRecruit(){
    각각 다른 콘텐츠이므로, 건 단위로 봐야 진짜 진도가 보인다. */
 function viewUploadAll(){
   const pairs = [];
-  D.filter(inCampaign).forEach(d=> platsOn().forEach(p=>{ if(d[p]) pairs.push({ d, p, id:d.id+'|'+p }); }));
+  // 일정 스트립에서 고른 날짜·주차를 여기서도 적용한다. 예전엔 모집탭만 읽어서
+  // 업로드탭에선 눌러도 표가 그대로였다(스트립만 그려놓고 연결을 안 했다).
+  D.filter(inCampaign).filter(dayWeekPass).forEach(d=> platsOn().forEach(p=>{ if(d[p]) pairs.push({ d, p, id:d.id+'|'+p }); }));
   let rows = pairs;
   const f = upFilter(); if(f.test) rows = rows.filter(x=> f.test(x.d, x.p));
   const cols = [
@@ -1508,7 +1551,7 @@ function viewUpload(){
   if(state.plat==='late') return viewUploadLate();
   if(state.plat==='all') return viewUploadAll();
   const p = state.plat;
-  let rows = D.filter(d=> d.plats.includes(p) && d[p]!==null);
+  let rows = D.filter(d=> d.plats.includes(p) && d[p]!==null).filter(dayWeekPass);
   const allRows = rows;
   const f = upFilter(); if(f.test) rows = rows.filter(d=> f.test(d,p));
   const cols = [
@@ -1952,16 +1995,38 @@ function viewManual(){
 
 function viewGuide(){
   if(typeof GUIDE === 'undefined') return kMissing('GUIDE');
-  const spec = GUIDE.spec.map(function(x){ return '<tr><th>'+esc(x.k)+'</th><td>'+mark(esc(x.v))+'</td></tr>'; }).join('');
-  // body 는 우리가 쓴 문구라 <b> 강조를 살려서 넣는다(사용자 입력이 아니다).
-  const secs = GUIDE.sections.map(function(x){
-    return '<section class="gsec"><h3>'+esc(x.title)
+  // 사양 값은 우리가 쓴 문구다(사용자 입력이 아님). esc 로 감싸면 <a>·<b> 가 글자로 샌다 —
+  // 실제로 음원 링크가 태그째 화면에 노출됐다. mark() 만 태워 강조·링크를 살린다.
+  const spec = GUIDE.spec.map(function(x){
+    return '<tr><th>'+esc(x.k)+'</th><td>'+mark(x.v)+'</td></tr>'; }).join('');
+
+  // [확인필요]가 카드 사방에 흩어져 있으면 무엇이 안 정해졌는지 세어야 한다. 맨 위에 모은다.
+  const todos = [];
+  GUIDE.sections.forEach(function(x){ x.body.forEach(function(b){
+    if(String(b).indexOf('[확인필요]') >= 0) todos.push({ sec:x.title, line:String(b).replace(/<[^>]+>/g,'').trim() }); }); });
+  const todoBox = todos.length
+    ? '<div class="gtodo"><b>아직 안 정해진 것 '+todos.length+'개</b> — 크리에이터에게 답하기 전에 대표님께 확인하세요.<ul>'
+      + todos.map(function(t){ return '<li><span class="gtodo-s">'+esc(t.sec)+'</span> '+esc(t.line.slice(0,70))+'</li>'; }).join('')
+      + '</ul></div>'
+    : '';
+
+  // 카드 격자는 8개가 넘어가면 무엇이 중요한지 위계가 사라진다. 목차 + 문서 한 장으로.
+  const toc = GUIDE.sections.map(function(x,i){
+    return '<a class="gnav" href="#gs'+i+'">'+esc(x.title)+'</a>'; }).join('');
+  const secs = GUIDE.sections.map(function(x,i){
+    return '<section class="gsec" id="gs'+i+'"><h3>'+esc(x.title)
       + (x.copy ? '<button class="btn small copy-lit" data-v="'+esc(x.copy)+'">복사</button>' : '')
       + '</h3><ul>'+x.body.map(function(b){ return '<li>'+mark(b)+'</li>'; }).join('')+'</ul></section>';
   }).join('');
-  return '<div class="note-line">'+esc(GUIDE.note)+' <b>· 갱신 '+esc(GUIDE.updated)+'</b></div>'
-    + '<table class="gspec"><tbody>'+spec+'</tbody></table>'
-    + '<div class="gsecs">'+secs+'</div>';
+
+  return '<div class="gwrap">'
+    + '<aside class="gtoc"><div class="gtoc-t">목차</div>'+toc+'</aside>'
+    + '<div class="gmain">'
+    +   '<div class="note-line">'+esc(GUIDE.note)+' <b>· 갱신 '+esc(GUIDE.updated)+'</b></div>'
+    +   todoBox
+    +   '<table class="gspec"><tbody>'+spec+'</tbody></table>'
+    +   '<div class="gsecs">'+secs+'</div>'
+    + '</div></div>';
 }
 
 /* 검색·분류는 재렌더 없이 DOM 만 숨기고 보인다.
