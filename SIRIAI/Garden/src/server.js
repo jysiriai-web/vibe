@@ -22,7 +22,7 @@ import { getMarketUsdKrw } from './fx.js';
 import { EDITABLE_FIELDS, OVERRIDE_FIELDS, LEGACY_COL_FIELD, reviewText } from './overrides.js';
 // 상태 계층 — GARDEN_STATE=sheet 면 시트가 진실, 기본(local)은 지금까지처럼 로컬 파일.
 import { CLOUD, isLocalOnly, cloudConfigError } from './cloud.js';
-import { mode as stateMode, readOrders, writeOrders, readOverrides, setOverrideStore, clearOverrideStore, readBest, toggleBest, readAll, pendingState } from './store.js';
+import { mode as stateMode, readOrders, writeOrders, updateOrders, readOverrides, setOverrideStore, clearOverrideStore, readBest, toggleBest, readAll, pendingState } from './store.js';
 
 loadEnv();
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -324,9 +324,15 @@ export async function handler(req, res) {
       const sc = smmCache.get(campaign.id) || {};
       if (smm && (!sc.ordersAt || now - sc.ordersAt > SMM_TTL)) {
         try {
-          const before = JSON.stringify(orders);
-          orders = await refreshOrders(smm, orders);
-          if (JSON.stringify(orders) !== before) { const w = await writeOrders(campaign, orders); if (w.sheet === 'fail') console.error("[상태폴링] 시트 기록 실패(로컬엔 저장됨):", w.sheetError); }
+          // 락 안에서 다시 읽는다 — 읽고 multiStatus 를 기다리는 수 초 사이에 남이
+          // 종료·포기한 주문이 낡은 스냅샷으로 되살아나는 걸 막는다(돈 기록).
+          const u = await updateOrders(campaign, async (cur) => {
+            const before = JSON.stringify(cur);
+            const next = await refreshOrders(smm, cur);
+            return JSON.stringify(next) === before ? undefined : next;
+          });
+          orders = u.orders;
+          if (u.w && u.w.sheet === 'fail') console.error("[상태폴링] 시트 기록 실패(로컬엔 저장됨):", u.w.sheetError);
           sc.ordersAt = now;
         } catch {}
       }
@@ -406,7 +412,7 @@ export async function handler(req, res) {
       const full = url.searchParams.get('full') === '1';
       const perf = url.searchParams.get('perf') === '1'; // 조회수 스캔(납품 탭) — 업로드된 계정만 갱신
       // phase: 'confirm' = 크롬 창 떠서 로봇 인증 후 '스캔 시작' 대기 중, 'scan' = 실제로 긁는 중
-      contentScanState = { running: true, phase: 'starting', mode: perf ? 'perf' : full ? 'full' : 'upload', done: 0, total: 0, up: 0, written: 0, failed: 0, pauseRequested: false, error: null, ranAt: null };
+      contentScanState = { running: true, phase: 'starting', mode: perf ? 'perf' : full ? 'full' : 'upload', done: 0, total: 0, up: 0, written: 0, failed: 0, pauseRequested: false, error: null, writeError: null, ranAt: null };
       // 확인 게이트: onWarmup 이 오면 phase=confirm, 사람이 /confirm 누르면 goPromise resolve → 스캔 착수
       const goPromise = new Promise((resolve) => { scanConfirmResolve = resolve; });
       runContentScan(campaign, {
@@ -428,7 +434,7 @@ export async function handler(req, res) {
           return action; // 'resume' | 'stop'
         },
       })
-        .then((r) => { contentScanState = { running: false, mode: perf ? 'perf' : full ? 'full' : 'upload', done: r.total, total: r.total, up: r.up, written: r.written, failed: r.failed, failedHandles: r.failedHandles, stopped: r.stopped, error: null, ranAt: new Date().toISOString() }; })
+        .then((r) => { contentScanState = { running: false, mode: perf ? 'perf' : full ? 'full' : 'upload', done: r.total, total: r.total, up: r.up, written: r.written, writeError: r.writeError || null, failed: r.failed, failedHandles: r.failedHandles, stopped: r.stopped, error: null, ranAt: new Date().toISOString() }; })
         .catch((e) => { contentScanState = { running: false, done: 0, total: 0, up: 0, written: 0, failed: 0, error: e.message, ranAt: null }; })
         .finally(() => { scanConfirmResolve = null; scanResumeResolve = null; });
       return send(res, 200, { started: true });
@@ -556,7 +562,7 @@ export async function handler(req, res) {
           if (r.requested) { await writeOrders(campaign, orders); refill = r; }
         } catch (e) { console.error('[자동리필] 실패(스캔은 정상):', (e && e.message) || e); }
       }
-      return send(res, 200, { ok: true, scannedAt: scanLatest(campaign).ranAt, scannedCount: sync.scannedCount, nicksWritten: sync.nicksWritten, refill, accounts: await buildAccounts(campaign, orders), orders: markStale(orders) });
+      return send(res, 200, { ok: true, scannedAt: scanLatest(campaign).ranAt, scannedCount: sync.scannedCount, scanTried: sync.scanTried, scanFailed: sync.scanFailed, writeError: sync.writeError || null, nicksWritten: sync.nicksWritten, refill, accounts: await buildAccounts(campaign, orders), orders: markStale(orders) });
     }
 
     // 인스타 모집 스캔 — 팔로워·닉네임을 인스타 열에 채운다. 틱톡 스캔(/api/scan)과 별개다:
@@ -728,35 +734,38 @@ export async function handler(req, res) {
     if (path === '/api/order/close' && req.method === 'POST') {
       if (!smm) return send(res, 400, { error: 'SMM 키 없음' });
       const body = await readBody(req);
-      let orders = await readOrders(campaign);
-      const o = orders.find((x) => String(x.id) === String(body.orderId));
-      if (!o) return send(res, 404, { error: '주문 없음' });
-      // 현재 배송 상태 스냅샷 (실제 배송량·과금 보존 — null/빈값을 0 으로 덮지 않음)
-      try {
-        const st = (await smm.multiStatus([o.id]))[String(o.id)];
-        if (st && !st.error) {
-          const r = (st.remains == null || String(st.remains).trim() === '') ? NaN : Number(st.remains);
-          if (Number.isFinite(r)) o.remains = r;
-          const sc = (st.start_count == null || String(st.start_count).trim() === '') ? NaN : Number(st.start_count);
-          if (Number.isFinite(sc)) o.startCount = sc;
-          if (st.charge != null && st.charge !== '') o.charge = st.charge;
-          o.status = st.status;
-        }
-      } catch {}
-      // 패널이 취소를 '실제로' 받아줬는지 건별 응답으로 확인한다. HTTP 200 이라고 취소된 게 아니다.
-      let cancelled = false;
-      let cancelError = '';
-      try {
-        const [c] = await smm.cancel([o.id]);
-        cancelled = !!(c && c.ok);
-        if (c && !c.ok) cancelError = c.error || '패널이 취소를 거절했어요';
-      } catch (e) { cancelError = String((e && e.message) || e); }
-      o.closed = true;
-      o.cancelled = cancelled; // 취소 성공 여부. 실패(false)면 inFlightFor 가 계속 진행중으로 카운트(재주문 차단).
-      o.cancelError = cancelError || undefined;
-      o.cancelStuck = false; // 새 종료 시도 → 오류표시 초기화(유예 지나도 배송 계속하면 스캔이 재표기).
-      o.closedAt = new Date().toISOString();
-      const w = await writeOrders(campaign, orders);
+      let notFound = false, cancelled = false, cancelError = '';
+      // 읽기→수정→저장을 한 락 안에서. 안 그러면 20초 폴링이 그 사이에 끼어들어
+      // 방금 찍은 closed 를 낡은 값으로 되돌린다.
+      const { w } = await updateOrders(campaign, async (orders) => {
+        const o = orders.find((x) => String(x.id) === String(body.orderId));
+        if (!o) { notFound = true; return undefined; }
+        // 현재 배송 상태 스냅샷 (실제 배송량·과금 보존 — null/빈값을 0 으로 덮지 않음)
+        try {
+          const st = (await smm.multiStatus([o.id]))[String(o.id)];
+          if (st && !st.error) {
+            const r = (st.remains == null || String(st.remains).trim() === '') ? NaN : Number(st.remains);
+            if (Number.isFinite(r)) o.remains = r;
+            const sc = (st.start_count == null || String(st.start_count).trim() === '') ? NaN : Number(st.start_count);
+            if (Number.isFinite(sc)) o.startCount = sc;
+            if (st.charge != null && st.charge !== '') o.charge = st.charge;
+            o.status = st.status;
+          }
+        } catch {}
+        // 패널이 취소를 '실제로' 받아줬는지 건별 응답으로 확인한다. HTTP 200 이라고 취소된 게 아니다.
+        try {
+          const [c] = await smm.cancel([o.id]);
+          cancelled = !!(c && c.ok);
+          if (c && !c.ok) cancelError = c.error || '패널이 취소를 거절했어요';
+        } catch (e) { cancelError = String((e && e.message) || e); }
+        o.closed = true;
+        o.cancelled = cancelled; // 취소 성공 여부. 실패(false)면 inFlightFor 가 계속 진행중으로 카운트(재주문 차단).
+        o.cancelError = cancelError || undefined;
+        o.cancelStuck = false; // 새 종료 시도 → 오류표시 초기화(유예 지나도 배송 계속하면 스캔이 재표기).
+        o.closedAt = new Date().toISOString();
+        return orders;
+      });
+      if (notFound) return send(res, 404, { error: '주문 없음' });
       if (!w.durable) return send(res, 500, { error: '종료 처리 기록에 실패했어요. 다시 시도해 주세요.' });
       if (w.sheet === 'fail') console.error("[종료] 시트 기록 실패(로컬엔 저장됨):", w.sheetError);
       return send(res, 200, { ok: true, cancelled, cancelError: cancelError || undefined, sheetWarn: w.sheet === 'fail' ? '시트에 아직 안 올라갔어요(로컬엔 저장됨)' : undefined });
@@ -767,32 +776,38 @@ export async function handler(req, res) {
     if (path === '/api/order/refill' && req.method === 'POST') {
       if (!smm) return send(res, 400, { error: 'SMM 키 없음 (대표님 PC에서만 됨)' });
       const body = await readBody(req);
-      let orders = await readOrders(campaign);
-      const o = orders.find((x) => String(x.id) === String(body.orderId));
-      if (!o) return send(res, 404, { error: '주문 없음' });
-      let result;
-      try { [result] = await smm.refill([o.id]); }
-      catch (e) { return send(res, 502, { error: '리필 요청 실패: ' + String((e && e.message) || e) }); }
-      o.refillAt = new Date().toISOString();
-      if (result && result.ok) { o.refillId = result.refillId; o.refillError = undefined; }
-      else { o.refillError = (result && result.error) || '패널이 리필을 거절했어요'; }
-      const w = await writeOrders(campaign, orders);
+      let notFound = false, reqError = '', result;
+      const { orders: after, w } = await updateOrders(campaign, async (orders) => {
+        const o = orders.find((x) => String(x.id) === String(body.orderId));
+        if (!o) { notFound = true; return undefined; }
+        try { [result] = await smm.refill([o.id]); }
+        catch (e) { reqError = String((e && e.message) || e); return undefined; }
+        o.refillAt = new Date().toISOString();
+        if (result && result.ok) { o.refillId = result.refillId; o.refillError = undefined; }
+        else { o.refillError = (result && result.error) || '패널이 리필을 거절했어요'; }
+        return orders;
+      });
+      if (notFound) return send(res, 404, { error: '주문 없음' });
+      if (reqError) return send(res, 502, { error: '리필 요청 실패: ' + reqError });
       if (!w.durable) return send(res, 500, { error: '리필 기록에 실패했어요. 다시 시도해 주세요.' });
-      return send(res, 200, { ok: !!(result && result.ok), refillId: result && result.refillId, error: result && result.error, orders: markStale(orders) });
+      return send(res, 200, { ok: !!(result && result.ok), refillId: result && result.refillId, error: result && result.error, orders: markStale(after) });
     }
 
     // 주문 포기 — 배송 중이라 취소가 안 먹혀도, 이 주문을 접고 계정을 재가드닝 가능하게(inFlightFor 제외).
     // 돈 안 나감(재주문은 별도 집행+비번). smm 취소를 마지막으로 한 번 더 시도(환불 여지)하되 결과와 무관하게 포기 처리.
     if (path === '/api/order/abandon' && req.method === 'POST') {
       const body = await readBody(req);
-      let orders = await readOrders(campaign);
-      const o = orders.find((x) => String(x.id) === String(body.orderId));
-      if (!o) return send(res, 404, { error: '주문 없음' });
-      if (smm) { try { await smm.cancel([o.id]); } catch {} } // 마지막 취소 시도(환불 가능하면)
-      o.abandoned = true;
-      o.abandonedAt = new Date().toISOString();
-      o.cancelStuck = false;
-      const w = await writeOrders(campaign, orders);
+      let notFound = false;
+      const { w } = await updateOrders(campaign, async (orders) => {
+        const o = orders.find((x) => String(x.id) === String(body.orderId));
+        if (!o) { notFound = true; return undefined; }
+        if (smm) { try { await smm.cancel([o.id]); } catch {} } // 마지막 취소 시도(환불 가능하면)
+        o.abandoned = true;
+        o.abandonedAt = new Date().toISOString();
+        o.cancelStuck = false;
+        return orders;
+      });
+      if (notFound) return send(res, 404, { error: '주문 없음' });
       if (!w.durable) return send(res, 500, { error: '포기 기록에 실패했어요. 다시 시도해 주세요.' });
       if (w.sheet === 'fail') console.error("[포기] 시트 기록 실패(로컬엔 저장됨):", w.sheetError);
       return send(res, 200, { ok: true, sheetWarn: w.sheet === 'fail' ? '시트에 아직 안 올라갔어요(로컬엔 저장됨)' : undefined });

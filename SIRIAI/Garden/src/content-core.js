@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { getAccountsFromSheet, pushCellsToSheet } from './sheet.js';
 import { detectCampaign, videoIdFromLink } from './content-detect.js';
 import { launchBrowser, fetchVideos, fetchVideoByLink, warmContext, closeWarm } from './tiktok-videos.js';
-import { isLocked } from './overrides.js';
+import { isLockedField } from './overrides.js';
 import { readOverrides } from './store.js';
 
 function prevDetected(campaign) {
@@ -31,7 +31,7 @@ export async function judgeOneLink(campaign, { row, handle, link }) {
   const overrides = await readOverrides(campaign);
   const cells = [];
   // 키는 전부 필드명(브릿지가 헤더에서 실제 열을 찾는다). 옛 열번호(17·19·21·27~30)는 베이온 전용 좌표였다.
-  const putIf = (field, value) => { if (!isLocked(overrides, row, field)) cells.push({ row, field, value }); };
+  const putIf = (field, value) => { if (!isLockedField(overrides, row, field, 'tk')) cells.push({ row, field, value }); };
   putIf('contentA', d.contentLink || link);
   if (cfg.soundId) putIf('soundOk', reviewText(d.soundOk));
   if (cfg.hashtags.length) putIf('hashtagOk', reviewText(d.hashtagOk));
@@ -51,7 +51,7 @@ export async function judgeOneLink(campaign, { row, handle, link }) {
     writeFileSync(p, JSON.stringify(cur, null, 2));
   } catch {}
 
-  return { uploaded: d.uploaded, soundOk: d.soundOk, hashtagOk: d.hashtagOk, views: d.views, written };
+  return { uploaded: d.uploaded, soundOk: d.soundOk, hashtagOk: d.hashtagOk, views: d.views, written, writeError };
 }
 
 // 미업로드 계정 하나만 확인 — 전체 스캔 대신 이 프로필 한 장만 열어 업로드/검수/성과 판정.
@@ -88,7 +88,7 @@ export async function scanOneProfile(campaign, { row, handle }) {
   if (d.uploaded && row) {
     const overrides = await readOverrides(campaign);
     const cells = [];
-    const putIf = (field, value) => { if (!isLocked(overrides, row, field)) cells.push({ row, field, value }); };
+    const putIf = (field, value) => { if (!isLockedField(overrides, row, field, 'tk')) cells.push({ row, field, value }); };
     putIf('contentA', d.contentLink);
     if (cfg.soundId) putIf('soundOk', reviewText(d.soundOk));
     if (cfg.hashtags.length) putIf('hashtagOk', reviewText(d.hashtagOk));
@@ -110,7 +110,13 @@ const jitter = () => 900 + Math.floor(Math.random() * 1700); // 계정 간 0.9~2
 // only: 특정 계정만 — '오늘 올리는 몇 명'만 확인할 때. 전체를 길게 돌 이유가 없다.
 export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo, onBlocked, shouldPause, full = false, perf = false, concurrency = 1, only } = {}) {
   const cfg = { hashtags: campaign.campaignHashtags || [], soundId: campaign.campaignSoundId || '' };
-  const accounts = await getAccountsFromSheet(campaign.sheet);
+  const all = await getAccountsFromSheet(campaign.sheet);
+  // 틱톡 스캐너는 틱톡 계정만 본다(sync-core 와 같은 규칙). 브릿지는 틱톡 핸들이 없으면
+  // handle 칸에 인스타 핸들을 넣어주기 때문에, 안 거르면 인스타 핸들로 틱톡을 뒤지다
+  // 연속 실패 3건에 걸려 '틱톡이 막았다'며 스캔 전체가 서 버린다.
+  const accounts = all.filter((a) => a.plat !== 'ig');
+  const igOnly = all.length - accounts.length;
+  if (igOnly) console.log('[업로드 스캔] 인스타 전용 ' + igOnly + '명 제외 (틱톡 계정 없음)');
   const prev = prevDetected(campaign);
 
   // 대상 선택:
@@ -216,7 +222,7 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
   // 수동 잠금(overrides)된 검수/콘텐츠 필드(contentA·soundOk·soundSection·hashtagOk)는 덮어쓰지 않음 = '수동 우선'.
   const overrides = await readOverrides(campaign); // 시트 모드면 브릿지에서 — 팀이 잠근 셀을 워커가 덮어쓰지 않게
   const cells = [];
-  const putIf = (r, field, value) => { if (!isLocked(overrides, r, field)) cells.push({ row: r, field, value }); };
+  const putIf = (r, field, value) => { if (!isLockedField(overrides, r, field, 'tk')) cells.push({ row: r, field, value }); };
   for (const a of targets) {
     const d = detected[a.handle];
     if (!d || !d.uploaded || !a.row) continue;
@@ -266,6 +272,8 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
     up: totalUp,
     newUp,
     written,
+    // 형제 함수 scanOneProfile 은 이미 돌려주고 있었다 — 여기만 빠져서 '시트 0칸 반영 ✅' 로 보였다.
+    writeError,
     failed: failedHandles.size,
     failedHandles: [...failedHandles].slice(0, 8),
     stopped,

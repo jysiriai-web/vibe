@@ -15,7 +15,9 @@ export const REVIEW_NO = '미준수';
 export const REVIEW_UNKNOWN = '';           // 시트에선 빈칸 = 미확인
 export const reviewText = (pass) => (pass ? REVIEW_OK : REVIEW_NO);
 
-export const OVERRIDE_FIELDS = ['contentA', 'soundOk', 'soundSection', 'hashtagOk'];
+// contentB 는 인스타 콘텐츠②(미러/추가). 스캔이 채우고 사람도 고치는 칸이라 잠금 대상이다.
+// 조회수(views)는 일부러 뺐다 — 계속 자라는 숫자라 한번 잠그면 영영 멈춘다.
+export const OVERRIDE_FIELDS = ['contentA', 'contentB', 'soundOk', 'soundSection', 'hashtagOk'];
 // 대시보드에서 편집 허용하는 필드(화이트리스트). nick·link·notice·schedDate·memo 는
 // 자동스캔이 안 건드려서 잠금(OVERRIDE) 대상은 아니고 편집만 허용.
 export const EDITABLE_FIELDS = ['nick', 'link', 'notice', 'contentA', 'schedDate', 'fixedDate', 'soundOk', 'soundSection', 'hashtagOk', 'memo', 'mirror',
@@ -86,4 +88,18 @@ export function clearOverride(dataDir, row, field) {
 export function isLocked(overrides, row, field) {
   const r = overrides[String(row)];
   return !!(r && Object.prototype.hasOwnProperty.call(r, String(field)));
+}
+
+// 플랫폼이 둘로 갈린 뒤로 화면은 잠금을 항상 접두어로 보낸다('tk.hashtagOk').
+// 그런데 스캔 쪽은 맨 필드명으로 물었다 → 사람이 고친 칸을 다음 스캔이 그대로 덮어썼다.
+// 저장은 접두어 그대로, 조회는 접두어판과 맨판 둘 다 — 베이온에 쌓인 옛 잠금도 살려야 한다.
+export function isLockedField(overrides, row, field, plat) {
+  return isLocked(overrides, row, field) || (!!plat && isLocked(overrides, row, plat + '.' + field));
+}
+
+// 'tk.hashtagOk' → 'hashtagOk'. 화이트리스트 검사는 항상 이 맨 이름으로 한다.
+export function baseFieldOf(field) {
+  const f = String(field);
+  const dot = f.indexOf('.');
+  return dot > 0 ? f.slice(dot + 1) : f;
 }

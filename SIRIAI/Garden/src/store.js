@@ -14,7 +14,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { loadOrders as fileLoadOrders, saveOrders as fileSaveOrders } from './orders.js';
-import { loadOverrides as fileLoadOverrides, OVERRIDE_FIELDS, normalizeOverrides } from './overrides.js';
+import { loadOverrides as fileLoadOverrides, OVERRIDE_FIELDS, normalizeOverrides, baseFieldOf } from './overrides.js';
 import { getAccountsFromSheet } from './sheet.js';
 import { getOrders, putOrders, getState, putOverrides, putBest, getBundle } from './state.js';
 import { eq } from './state-diff.js';
@@ -82,24 +82,67 @@ async function repairOrders(campaign, r) {
   return r.merged;
 }
 
-export async function readOrders(campaign) {
+// ⚠️ 락 없는 내부판. 반드시 withLock(`${id}:orders`) 안에서만 불러라.
+// (withLock 은 재진입이 안 된다 — 같은 키를 안에서 또 잡으면 그 자리에서 멈춘다.)
+async function readOrdersUnlocked(campaign) {
   if (!isSheet()) return localOrders(campaign);
   const remote = await getOrders(campaign.sheet); // 원칙 ③: 실패하면 throw
   return repairOrders(campaign, reconcileOrders(campaign, remote));
 }
 
+export function readOrders(campaign) {
+  return withLock(`${campaign.id}:orders`, () => readOrdersUnlocked(campaign));
+}
+
+// 내가 못 본 id 는 남긴다. 같은 id 는 호출부(방금 계산한 쪽)가 이긴다.
+// 이게 없으면 20초 폴링이 낡은 배열로 방금 나간 주문을 통째로 지운다 — 돈은 나갔는데 기록이 없어진다.
+function mergeById(base, incoming) {
+  const out = incoming.slice();
+  const ids = new Set(out.map((o) => String(o.id)));
+  for (const o of base) if (o && o.id != null && !ids.has(String(o.id))) out.push(o);
+  return out;
+}
+
 // 원칙 ①: 절대 throw 하지 않는다. 로컬·시트를 각각 독립 시도.
 // durable=false → 어디에도 기록 못 함(과금됐다면 즉시 배치를 멈춰야 하는 상황).
-export async function writeOrders(campaign, orders) {
+async function writeOrdersUnlocked(campaign, orders) {
   const out = { local: 'fail', sheet: 'skip', durable: false };
-  try { fileSaveOrders(campaign.dataDir, orders); out.local = 'ok'; }
+  // 쓰기 직전의 pending 표식을 기억해 둔다. 내 쓰기가 도는 사이 남이 새로 찍은 표식까지
+  // 지워버리면, 그쪽의 read-repair 가 영영 안 돌아 시트가 조용히 뒤처진다.
+  const seenAt = (readPending(campaign).orders || {}).at || null;
+  const merged = mergeById(localOrders(campaign), orders);
+  try { fileSaveOrders(campaign.dataDir, merged); out.local = 'ok'; }
   catch (e) { out.localError = String((e && e.message) || e); }
   if (isSheet()) {
-    try { await putOrders(campaign.sheet, orders); out.sheet = 'ok'; clearPending(campaign, 'orders'); }
-    catch (e) { out.sheet = 'fail'; out.sheetError = String((e && e.message) || e); markPending(campaign, 'orders', out.sheetError); }
+    try {
+      await putOrders(campaign.sheet, merged);
+      out.sheet = 'ok';
+      const now = (readPending(campaign).orders || {}).at || null;
+      if (now === seenAt) clearPending(campaign, 'orders');
+    } catch (e) { out.sheet = 'fail'; out.sheetError = String((e && e.message) || e); markPending(campaign, 'orders', out.sheetError); }
   }
   out.durable = out.local === 'ok' || out.sheet === 'ok';
+  out.orders = merged;
   return out;
+}
+
+// 집행(execute-core)만은 락을 잡지 않고 이 공개판을 쓴다 — 집행은 수 분이라
+// 락을 쥐면 그동안 대시보드 폴링이 통째로 멈춘다. 병합 + 조건부 clearPending 만으로
+// '남이 방금 넣은 주문이 지워지는' 사고는 막힌다.
+export function writeOrders(campaign, orders) {
+  return writeOrdersUnlocked(campaign, orders);
+}
+
+// 읽기→수정→저장을 한 락 안에서. 주문(돈) 배열을 고치는 곳은 전부 이걸 써라.
+// fn(orders) 가 돌려준 배열을 저장하고, undefined 를 돌려주면 저장하지 않는다.
+export function updateOrders(campaign, fn) {
+  return withLock(`${campaign.id}:orders`, async () => {
+    const orders = await readOrdersUnlocked(campaign);
+    const next = await fn(orders);
+    if (next === undefined) return { orders, w: { sheet: 'skip', durable: true, orders } };
+    const w = await writeOrdersUnlocked(campaign, next);
+    return { orders: w.orders, w };
+  });
 }
 
 // ── 검수잠금(overrides) — 원칙 ④: 잠금을 잃지 않는 쪽이 안전 ──
@@ -144,8 +187,11 @@ async function writeOverrides(campaign, ov) {
 }
 
 // 잠금 키 = 필드명(브릿지 Code.gs 의 COL 키). 열 번호는 마스터마다 달라서 키로 쓸 수 없다.
+// 화이트리스트는 접두어를 뗀 이름으로 보고, 저장은 화면이 보낸 이름 그대로 한다.
+// (예전엔 'tk.hashtagOk' 가 화이트리스트에 없어 아무것도 안 쓰고 durable:true 를 돌려줬다
+//  → 화면엔 '저장됨', 파일엔 아무것도. 조용한 실패의 전형이었다.)
 export function setOverrideStore(campaign, row, field, value) {
-  if (!OVERRIDE_FIELDS.includes(String(field))) return Promise.resolve({ sheet: 'skip', durable: true });
+  if (!OVERRIDE_FIELDS.includes(baseFieldOf(field))) return Promise.resolve({ sheet: 'skip', durable: true });
   return withLock(`${campaign.id}:ov`, async () => {
     const ov = await readOverrides(campaign);
     const r = String(row);

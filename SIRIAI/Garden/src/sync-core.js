@@ -41,8 +41,10 @@ export async function runSync(campaign, { onProgress, full = false } = {}) {
 
   // 시트 되쓰기: 새로 스캔한 것만
   const updates = scanned.filter((a) => a.current != null).map((a) => ({ row: a.row, followers: a.current }));
-  let written = 0;
-  try { written = await pushFollowersToSheet(campaign.sheet, updates); } catch {}
+  let written = 0, writeError = null;
+  // 조용히 삼키면 '스캔 완료 N개' 라고 답하면서 시트엔 한 칸도 안 들어간다.
+  try { written = await pushFollowersToSheet(campaign.sheet, updates); }
+  catch (e) { writeError = String((e && e.message) || e); }
 
   // 닉네임 자동채움(#8): 시트 닉이 비어있고 스크랩으로 잡힌 것만 nick 필드에 되쓰기
   // (3열 고정이었다 → 마스터마다 닉 열 위치가 달라 필드명으로 바꿈)
@@ -50,7 +52,10 @@ export async function runSync(campaign, { onProgress, full = false } = {}) {
     .filter((a) => a.row && a.scrapedNick && !String(a.nick || '').trim())
     .map((a) => ({ row: a.row, field: 'nick', value: a.scrapedNick }));
   let nicksWritten = 0;
-  if (nickCells.length) { try { nicksWritten = await pushCellsToSheet(campaign.sheet, nickCells); } catch {} }
+  if (nickCells.length) {
+    try { nicksWritten = await pushCellsToSheet(campaign.sheet, nickCells); }
+    catch (e) { if (!writeError) writeError = String((e && e.message) || e); }
+  }
 
   // 병합: 이번에 실제 숫자를 받았으면 그 값, 아니면(스캔 안 함 or 스캔 실패=null) 이전 값 유지.
   //  ⚠️ 스캔했지만 실패한 계정은 scannedCur 에 키가 null 로 들어온다. 예전엔 그 null 로
@@ -69,7 +74,11 @@ export async function runSync(campaign, { onProgress, full = false } = {}) {
     min: campaign.min,
     written,
     nicksWritten,
-    scannedCount: targets.length,
+    // 예전엔 targets.length 였다 — 전건 실패해도 '완료 N개' 로 보였다. 실제로 값을 받은 수만 센다.
+    scannedCount: scanned.filter((a) => a.current != null).length,
+    scanTried: targets.length,
+    scanFailed: scanned.filter((a) => a.current == null).length,
+    writeError,
     total: accounts.length,
     accounts: mergedAccounts,
   };

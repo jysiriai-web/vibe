@@ -234,9 +234,12 @@
         setBusy(false);
         if (!r || r.error) return fail(r, '모집 스캔');
         var msg = '모집 스캔 완료 — ' + (r.scannedCount != null ? r.scannedCount : '?') + '개';
+        // scannedCount 는 이제 '실제로 숫자를 받은 수'다. 시도했는데 못 받은 건 따로 알린다.
+        if (r.scanFailed) msg += ' · ⚠️ ' + r.scanFailed + '개는 못 봤어요';
         if (r.nicksWritten) msg += ' · 닉네임 ' + r.nicksWritten + '개 채움';
         if (r.refill && r.refill.requested) msg += ' · ♻️ 리필 ' + r.refill.ok + '/' + r.refill.requested + '건 요청';
-        say(msg, 'ok');
+        say(msg, r.scanFailed ? '' : 'ok');
+        if (r.writeError) say('⚠️ 시트 쓰기: ' + r.writeError, 'err');
         showDone();
         loadStatus();
       });
@@ -331,8 +334,11 @@
               return;
             }
             clearInterval(poll); panel(null); setBusy(false);
+            // 시트 쓰기 실패를 맨 앞에 둔다 — 뒤에 두면 '완료 ✅' 아래 묻혀서 아무도 안 본다.
+            if (s.writeError) say('⚠️ 스캔은 끝났는데 시트에 못 썼어요 — ' + s.writeError, 'err');
             if (s.stopped) say('⏹ 스캔 중지됨 — 여기까지 ' + (s.written || 0) + '칸 반영 (다시 누르면 남은 계정부터)');
             else if (s.failed) say('업로드 스캔 완료 · ⚠️ ' + s.failed + '개는 못 봤어요 (다시 시도하세요)', 'err');
+            else if (s.writeError) say('업로드 스캔 완료 — 업로드 ' + s.up + '개 (시트 반영은 위 오류 확인)', '');
             else say('업로드 스캔 완료 — 업로드 ' + s.up + '개 · 시트 ' + s.written + '칸 반영', 'ok');
             showDone();
             loadStatus();

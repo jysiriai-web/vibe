@@ -9,6 +9,9 @@ _overnight/
 _archive/
 appsscript/
 scripts/
+# 작업 콘솔은 아예 안 올린다. vercel.json 의 리다이렉트는 /worker.html 만 정확히 매치해서
+# /worker.html/ 와 /worker%2Ehtml 로 그냥 열렸다 — 막는 것보다 없는 게 확실하다.
+public/worker.html
 featuring_emails/
 node_modules/
 .vercel/
