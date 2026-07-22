@@ -1435,11 +1435,17 @@ function viewRecruit(){
     { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
     { key:'email', label:'이메일', cls:'mail', hideable:true, empty:r=>!r.email, sv:r=>r.email||'', cell:r=>mailCell(r.email) },
-    { key:'tkh', label:'틱톡 닉네임', cls:'handle', grp:'tk', hideable:true, empty:r=>!r.tk, sv:r=>r.tk?r.tk.h:'', cell:r=> r.tk?`${acctLink(r.tk.h, "tk")}`:`<span class="emptydot">·</span>` },
-    ...(hasIG() ? [
+    // 하위탭이 한 플랫폼이면 그쪽 열만 남긴다 — 인스타 탭에서 틱톡 닉네임 열은 볼 이유가 없다.
+    ...(state.plat==='ig' ? [] : [{ key:'tkh', label:'틱톡 닉네임', cls:'handle', grp:'tk', hideable:true, empty:r=>!r.tk, sv:r=>r.tk?r.tk.h:'', cell:r=> r.tk?`${acctLink(r.tk.h, "tk")}`:`<span class="emptydot">·</span>` },
+      { key:'tkf', label:'틱톡 팔로워', cls:'num', thcls:'num', grp:'tk', hideable:true, empty:r=>!(r.tk&&r.tk.fol), sv:r=>(r.tk&&r.tk.fol)||-1,
+        cell:r=> (r.tk&&r.tk.fol!=null)?nf(r.tk.fol):'<span class="emptydot">·</span>' }]),
+    ...(hasIG() && state.plat!=='tk' ? [
       { key:'igh', label:'인스타 닉네임', cls:'handle', grp:'ig', hideable:true, empty:r=>!r.ig, sv:r=>r.ig?r.ig.h:'', cell:r=> r.ig?`${acctLink(r.ig.h, "ig")}`:`<span class="emptydot">·</span>` },
-      platCol,
+      { key:'igf', label:'인스타 팔로워', cls:'num', thcls:'num', grp:'ig', hideable:true, empty:r=>!(r.ig&&r.ig.fol), sv:r=>(r.ig&&r.ig.fol)||-1,
+        cell:r=> (r.ig&&r.ig.fol!=null)?nf(r.ig.fol):'<span class="emptydot">·</span>' },
     ] : []),
+    // 플랫폼 하위탭에서는 플랫폼 열이 군더더기다 — 하위탭이 이미 말하고 있다.
+    ...(state.plat==='all' ? [platCol] : []),
     { key:'notice', label:'확정메일', sv:r=> r.notice?1:0,
       cell:r=> `<button class="notice ${r.notice?'sent':'unsent'}" data-notice="${r.id}">${r.notice?'발송':'미발송'}</button>` },
     { key:'refBy', label:'추천 출처', hideable:true, empty:r=>!r.refBy, sv:r=>r.refBy, cell:r=> r.refBy?`<span class="chip filling">${esc(r.refBy)} 추천</span>`:`<span class="emptydot">·</span>` },
@@ -1542,6 +1548,8 @@ function viewUploadAll(){
     { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
     { key:'plats', label:'플랫폼', sv:r=>r.plats.length, cell:r=>platIcons(r) },
+    // 연락은 여기서 시작한다 — 모집탭으로 갔다 오지 않게 이메일을 같이 둔다.
+    { key:'email', label:'이메일', cls:'mail', hideable:true, empty:r=>!r.email, sv:r=>r.email||'', cell:r=>mailCell(r.email) },
     // 콘텐츠는 플랫폼별로 나란히 — 두 영상을 같은 줄에서 열어야 미러링을 본다.
     { key:'content', label:'콘텐츠', sortable:false, cell:r=>
       `<div class="cpair">${platsOn().filter(p=>r[p]).map(p=>
@@ -2376,12 +2384,8 @@ function openRowEdit(id, rowPlat){
       <div class="row2">
         <div class="row"><label class="h">예정일 <small>크리에이터 희망</small></label>
           <input class="inp" type="date" id="reSched" value="${esc(mdToISO(d.sched))}"></div>
-        <div class="row"><label class="h">확정일 <small>합의된 날짜 · 또는 진행상태</small></label>
-          <input class="inp" type="date" id="reFixed" value="${esc(mdToISO(d.fixed))}"${isFixedState(d.fixed)?' disabled':''}>
-          <div class="fxst" id="reFixedState" data-v="${esc(isFixedState(d.fixed)?d.fixed:'')}">
-            ${FIXED_STATES.map(v=>`<button type="button" class="fxbtn${d.fixed===v?' on':''}" data-fx="${esc(v)}">${esc(v)}</button>`).join('')}
-            <span class="fxnote">날짜 대신 진행상태를 넣을 수 있어요 — 다시 누르면 해제돼요.</span>
-          </div></div>
+        <div class="row"><label class="h">확정일</label>
+          <div class="cmuted" style="padding-top:9px;font-size:12.5px">업로드탭에서 고쳐요 — 날짜를 다시 잡는 건 업로드를 쫓는 사람 몫이에요.</div></div>
       </div>
       ${schedHint(d)}
       <div class="row"><label class="h">비고 (일반 · 특이사항)</label><textarea class="inp" id="reMemo" placeholder="이 크리에이터 전반 메모">${esc(d.memo||'')}</textarea></div>
@@ -2391,9 +2395,7 @@ function openRowEdit(id, rowPlat){
       const was={sched:d.sched,fixed:d.fixed,memo:d.memo,nick:d.nick};
       d.co=selVal('reCo'); d.nick=val('reNick')||d.nick; d.memo=val('reMemo');
       d.sched = isoToMD(val('reSched'));
-      // 확정일은 '상태' 가 '날짜' 를 이긴다 — 드랍한 사람에게 날짜가 남아 있으면 다시 기다리게 된다.
-      const _fxs = (document.getElementById('reFixedState')||{}).dataset;
-      d.fixed = (_fxs && _fxs.v) ? _fxs.v : isoToMD(val('reFixed'));
+      // 확정일은 업로드탭 소관 — 여기선 건드리지 않는다.
       if(d.sched!==was.sched) saveField(d.id,'schedDate',d.sched);
       if(d.fixed!==was.fixed) saveField(d.id,'fixedDate',d.fixed);
       if(d.memo!==was.memo)   saveField(d.id,'memo',d.memo);   // 일반 비고(연락 섹션). 틱톡/인스타 비고는 업로드탭 소관.
@@ -2415,12 +2417,22 @@ function openRowEdit(id, rowPlat){
       </div>
       <div class="row"><label class="h">미러링</label>
         <select class="inp" id="reMir">${[['m1','미러링 ⚠'],['m0','오리지널'],['mx','미확인']].map(([v,l])=>`<option value="${v}"${v===d.mir?' selected':''}>${l}</option>`).join('')}</select></div>
+      <div class="row2">
+        <div class="row"><label class="h">예정일 <small>크리에이터 희망</small></label>
+          <input class="inp" type="date" id="reSched" value="${esc(mdToISO(d.sched))}"></div>
+        <div class="row"><label class="h">확정일 <small>합의된 날짜 · 또는 진행상태</small></label>
+          <input class="inp" type="date" id="reFixed" value="${esc(mdToISO(d.fixed))}"${isFixedState(d.fixed)?' disabled':''}>
+          <div class="fxst" id="reFixedState" data-v="${esc(isFixedState(d.fixed)?d.fixed:'')}">
+            ${FIXED_STATES.map(v=>`<button type="button" class="fxbtn${d.fixed===v?' on':''}" data-fx="${esc(v)}">${esc(v)}</button>`).join('')}
+            <span class="fxnote">날짜 대신 진행상태를 넣을 수 있어요 — 다시 누르면 해제돼요.</span>
+          </div></div>
+      </div>
       <div class="row"><label class="h">${pName(p)} 비고</label><textarea class="inp" id="rePMemo" placeholder="${pName(p)} 특이사항">${esc(x.memo||'')}</textarea></div>
     </div>`;
     // ⚠️ 예전엔 여기서 화면 객체만 고쳤다 — 시트엔 안 써져서 닫으면 사라지고,
     //    20초 자동 새로고침이 오면 눈앞에서 되돌아갔다. 바뀐 칸만 실제로 저장한다.
     //    플랫폼별 값은 반드시 'tk.'/'ig.' 접두어 — 안 붙이면 인스타를 고쳐도 틱톡 열에 써진다.
-    const was = { h:x.h, c1:x.c1?x.c1.url:'', c2:x.c2?x.c2.url:'', snd:x.snd, sec:x.sec, hash:x.hash, mir:d.mir, memo:x.memo||'' };
+    const was = { h:x.h, c1:x.c1?x.c1.url:'', c2:x.c2?x.c2.url:'', snd:x.snd, sec:x.sec, hash:x.hash, mir:d.mir, memo:x.memo||'', sched:d.sched||'', fixed:d.fixed||'' };
     save = ()=>{
       if(val('reH')) x.h=val('reH');
       const c1=val('reC1'); x.c1 = c1?{label:x.c1?x.c1.label:'🎬 영상①', url:c1}:'';
@@ -2434,6 +2446,12 @@ function openRowEdit(id, rowPlat){
       if(x.hash!==was.hash)      saveField(d.id, p+'.hashtagOk',  REV_TEXT[x.hash]);
       if(x.memo!==was.memo)      saveField(d.id, p+'.memo', x.memo);
       if(d.mir!==was.mir)        saveField(d.id, 'mirror', {m1:'미러링',m0:'오리지널',mx:''}[d.mir]);
+      // 날짜는 사람 단위 값이라 접두어가 없다(틱톡·인스타가 같은 날짜를 쓴다).
+      const _sc = isoToMD(val('reSched'));
+      if(_sc !== (was.sched||'')) { d.sched = _sc; saveField(d.id, 'schedDate', _sc); }
+      const _fxs = (document.getElementById('reFixedState')||{}).dataset;
+      const _fx = (_fxs && _fxs.v) ? _fxs.v : isoToMD(val('reFixed'));
+      if(_fx !== (was.fixed||'')) { d.fixed = _fx; saveField(d.id, 'fixedDate', _fx); }
     };
 
   } else if(state.view==='garden'){
