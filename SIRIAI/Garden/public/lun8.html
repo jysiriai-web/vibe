@@ -561,10 +561,18 @@ td.mono, th.mono { font-family:var(--mono); font-size:12px; }
 /* 매뉴얼 — 접힌 목록. 15개를 다 펼쳐두면 스크롤 벽이 되고, 팀은 보통 한 개만 찾는다. */
 .qa-top { display:flex; gap:10px; align-items:center; margin-bottom:10px; flex-wrap:wrap; }
 .qa-top .msearch { flex:1; min-width:220px; }
-.qa-lang { display:inline-flex; background:var(--line2); border-radius:9px; padding:3px; gap:2px; }
-.qa-lang .lang { border:0; background:none; font:inherit; font-size:12.5px; font-weight:700; color:var(--muted);
-  padding:5px 12px; border-radius:7px; cursor:pointer; }
-.qa-lang .lang.on { background:var(--card); color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.06); }
+/* 카테고리 아이콘 — 글자만 있으면 훑을 때 다 비슷해 보인다 */
+.qa-ic { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; flex-shrink:0;
+  border-radius:7px; background:var(--accent-soft); color:var(--accent-ink); font-size:12px; font-weight:800; }
+.cf-ic { margin-right:5px; opacity:.7; }
+/* 펼치면 한·일 둘 다. 토글로 오가면 '일본어로 보내고 한국어로 확인'이 한 번에 안 된다 */
+.qa-b { padding:0 14px 14px 14px; display:grid; gap:9px; }
+.qa-one { border:1px solid var(--line2); border-radius:10px; overflow:hidden; }
+.qa-one.ja { border-color:var(--accent); }
+.qa-lb { display:flex; align-items:center; justify-content:space-between; padding:7px 12px; background:var(--paper,#fafbfc);
+  font-size:11.5px; font-weight:800; color:var(--muted); border-bottom:1px solid var(--line2); }
+.qa-one pre { margin:0; padding:11px 13px; font:inherit; font-size:12.5px; line-height:1.7; color:var(--muted);
+  white-space:pre-wrap; word-break:break-word; }
 .qa-cats { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
 .chipf { font:inherit; font-size:12.5px; font-weight:700; padding:5px 12px; border-radius:20px; cursor:pointer;
   background:var(--card); color:var(--muted); border:1px solid var(--line); }
@@ -581,8 +589,7 @@ td.mono, th.mono { font-family:var(--mono); font-size:12px; }
 .qa-h b { flex:1; font-size:13.5px; font-weight:700; line-height:1.45; }
 .qa-h .copy-ans { opacity:0; flex-shrink:0; }
 .qa:hover .qa-h .copy-ans, .qa[open] .qa-h .copy-ans { opacity:1; }
-.qa-p { margin:0; padding:2px 16px 16px 40px; font:inherit; font-size:13px; line-height:1.7; color:var(--muted);
-  white-space:pre-wrap; word-break:break-word; }
+
 .qa-cat { font-size:10.5px; font-weight:800; letter-spacing:.03em; background:var(--accent-soft); color:var(--accent-ink);
   padding:2px 8px; border-radius:20px; flex-shrink:0; }
 /* 가이드 — 카드 격자(8개+)는 위계가 없다. 왼쪽 목차 + 문서 한 장. */
@@ -2072,30 +2079,39 @@ function copyText(t, msg){
 }
 const kMissing = f => '<div class="kempty">knowledge.js 를 못 읽었어요.<br>/knowledge.js 가 서버에서 열리는지 확인해주세요. (' + f + ')</div>';
 
+// 카테고리 아이콘 — 글자만 있으면 훑을 때 다 비슷해 보인다. 모양이 먼저 눈에 걸리게.
+const CAT_ICON = { '음원':'♪', '해시태그':'#', '업로드':'↑', '계정':'@', '정산':'₩', '기타':'…' };
+
 function viewManual(){
   if(typeof MANUAL === 'undefined') return kMissing('MANUAL');
   const cats = ['전체'].concat([...new Set(MANUAL.map(m=>m.cat))]);
-  const L = state.qaLang || 'ja';   // 크리에이터 대부분이 일본인이라 기본은 일본어
   const items = MANUAL.map(function(m,i){
     const hay = esc((m.q+' '+m.cat+' '+m.ko+' '+m.ja).toLowerCase());
-    // 복사는 접힌 상태에서도 눌린다 — 대부분 열어보지도 않고 복사한다.
+    const ic = CAT_ICON[m.cat] || '·';
+    // 답은 일본어부터 — 크리에이터 대부분이 일본인이라 그대로 복사해 보내는 게 일본어다.
+    // 한국어는 아래 붙여 내용 확인용. 각각 따로 복사한다.
+    const one = function(L, label, cls){
+      return '<div class="qa-one '+cls+'">'
+        + '<div class="qa-lb"><span>'+label+'</span>'
+        +   '<button class="btn small copy-ans" data-t="ans-'+i+'-'+L+'">복사</button></div>'
+        + '<pre id="ans-'+i+'-'+L+'">'+mark(esc(m[L]))+'</pre></div>';
+    };
     return '<details class="qa" data-cat="'+esc(m.cat)+'" data-hay="'+hay+'">'
-      + '<summary class="qa-h"><span class="qa-cat">'+esc(m.cat)+'</span>'
+      + '<summary class="qa-h">'
+      +   '<span class="qa-ic" title="'+esc(m.cat)+'">'+ic+'</span>'
       +   '<b>'+esc(m.q)+'</b>'
-      +   '<button class="btn small copy-ans" data-t="ans-'+i+'" title="답변 복사">복사</button>'
+      +   '<button class="btn small copy-ans qa-quick" data-t="ans-'+i+'-ja" title="일본어 답변 복사">복사</button>'
       + '</summary>'
-      + '<pre class="qa-p" id="ans-'+i+'">'+mark(esc(m[L]))+'</pre>'
+      + '<div class="qa-b">'+one('ja','日本語','ja')+one('ko','한국어','ko')+'</div>'
       + '</details>';
   }).join('');
   return '<div class="qa-top">'
     + '<input id="mSearch" class="msearch" type="search" placeholder="질문·답변으로 검색…" autocomplete="off" />'
-    + '<div class="qa-lang">'
-    +   '<button class="lang'+(L==='ja'?' on':'')+'" data-qalang="ja">日本語</button>'
-    +   '<button class="lang'+(L==='ko'?' on':'')+'" data-qalang="ko">한국어</button>'
-    + '</div></div>'
+    + '</div>'
     + '<div class="qa-cats">' + cats.map(function(c,i){
-        return '<button class="chipf m-f'+(i?'':' on')+'" data-k="'+esc(c)+'">'+esc(c)+'</button>'; }).join('') + '</div>'
-    + '<div class="qa-note">문의가 오면 찾아서 <b>복사</b> → 그대로 답장. <b class="warn-t">[확인필요]</b>는 아직 안 정해진 자리라 그대로 보내면 안 돼요.</div>'
+        return '<button class="chipf m-f'+(i?'':' on')+'" data-k="'+esc(c)+'">'
+          + (i ? '<span class="cf-ic">'+(CAT_ICON[c]||'·')+'</span>' : '') + esc(c) + '</button>'; }).join('') + '</div>'
+    + '<div class="qa-note">문의가 오면 찾아서 <b>복사</b> → 그대로 답장. 목록의 <b>복사</b>는 일본어 답변이에요. <b class="warn-t">[확인필요]</b>는 아직 안 정해진 자리라 그대로 보내면 안 돼요.</div>'
     + '<div id="qaList" class="qa-list">'+items+'</div>'
     + '<div class="kempty" id="qaEmpty" hidden>검색 결과가 없어요.</div>';
 }
@@ -2584,8 +2600,6 @@ document.getElementById('content').addEventListener('click', e=>{
     if(d){ d.notice=!d.notice; render(); saveField(d.id, 'notice', d.notice?'발송완료':''); }
     return;
   }
-  { const lg = e.target.closest('[data-qalang]');
-    if(lg){ state.qaLang = lg.dataset.qalang; render(); return; } }
   const nf2=e.target.closest('[data-notice-f]');
   if(nf2){
     state.noticeOnly = nf2.dataset.noticeF==='1';
@@ -2718,7 +2732,13 @@ document.getElementById('content').addEventListener('click', e=>{
     f.classList.add('primary'); filterManual(); return;
   }
   const ca = e.target.closest('.copy-ans');
-  if(ca){ const pre = document.getElementById(ca.dataset.t); copyText(pre?pre.textContent:'', '답변 복사됨 — 그대로 붙여넣으세요'); return; }
+  if(ca){
+    // summary 안의 버튼은 누르면 details 가 열린다. 복사만 하려는 것이라 막는다.
+    e.preventDefault();
+    const pre = document.getElementById(ca.dataset.t);
+    copyText(pre?pre.textContent:'', '답변 복사됨 — 그대로 붙여넣으세요');
+    return;
+  }
   const cl = e.target.closest('.copy-lit');
   if(cl){ copyText(cl.dataset.v, '복사됨'); return; }
 });
