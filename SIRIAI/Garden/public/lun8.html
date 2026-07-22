@@ -993,6 +993,12 @@ function fixedCell(d){
   if(v === '확정메일 발송') return '<span class="chip wait">답 대기</span>';
   return `<b>${esc(v)}</b>`;
 }
+/* 가드닝 선택 — 기본은 전부 켬(예전 동작 유지). 사람이 끈 것만 기억한다.
+   '켠 것을 기억'하면 스캔으로 대상이 늘 때마다 새 사람이 꺼진 채로 들어와, 켜는 걸 잊으면 조용히 빠진다.
+   돈 쓰는 화면에서는 '빠뜨림'이 '더 나감'보다 낫지만, 목록에 보이는데 안 나가는 쪽이 더 헷갈린다. */
+const gOff = new Set();
+const gKey = (id,p) => id + '|' + p;
+const gPicked = (id,p) => !gOff.has(gKey(id,p));
 const emptyRow = (n,msg='조건에 맞는 계정이 없어요.')=> `<tr class="empty-tr"><td colspan="${n}">${msg}</td></tr>`;
 
 /* ============ 업로드 일정(주차·일자) ============
@@ -1483,7 +1489,7 @@ function viewGarden(){
   const stChip = st => ({ target:'<span class="chip needs">가드닝 대상</span>', hold:'<span class="chip stale">보류 · 업로드 대기</span>', filling:'<span class="lk sched">채워지는 중</span>', scan:'<span class="cmuted">스캔 대기</span>' }[st] || '');
   const cols = [
     { key:'pick', label:'', sortable:false, cell:r=>{ const g=gStat(r,p);
-        return g.st==='target'?`<input type="checkbox" checked onclick="return false">`
+        return g.st==='target'?`<input type="checkbox" data-gpick="${r.id}|${p}"${gPicked(r.id,p)?' checked':''}>`
           : g.st==='hold'?`<span class="cmuted" title="업로드 확인 후 가드닝">보류</span>`
           : `<span class="emptydot">·</span>`; } },
     { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
@@ -1524,7 +1530,7 @@ function viewGardenAll(){
   const rows = pairs.slice().sort((a,b)=> (stRank[b.g.st]-stRank[a.g.st]) || ((a.d[a.p].fol||0)-(b.d[b.p].fol||0)));
   const stChip = st => ({ target:'<span class="chip needs">가드닝 대상</span>', hold:'<span class="chip stale">보류 · 업로드 대기</span>', filling:'<span class="lk sched">채워지는 중</span>', scan:'<span class="cmuted">스캔 대기</span>' }[st] || '');
   const cols = [
-    { key:'pick', label:'', sortable:false, cell:r=> r.g.st==='target'?`<input type="checkbox" checked onclick="return false">`
+    { key:'pick', label:'', sortable:false, cell:r=> r.g.st==='target'?`<input type="checkbox" data-gpick="${r.d.id}|${r.p}"${gPicked(r.d.id,r.p)?' checked':''}>`
         : r.g.st==='hold'?`<span class="cmuted" title="업로드 확인 후 가드닝">보류</span>` : `<span class="emptydot">·</span>` },
     { key:'co', label:'진행사', sv:r=>r.d.co, cell:r=>coChip(r.d.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.d.nick, cell:r=>nickCell(r.d) },
@@ -2107,23 +2113,85 @@ function addCampaignModal(){
 function closeModalReset(){ closeModal(); renderCampSelect(); }
 
 /* ============ 가드닝 집행 ============ */
-function execModal(){
-  const p=state.plat;
-  const needs = D.filter(d=> d.plats.includes(p) && d[p]!==null && gStat(d,p).st==='target');
-  if(!needs.length) return;
-  const totalQty = needs.reduce((a,d)=> a+gStat(d,p).order, 0);
-  const body = needs.map(d=>{ const g=gStat(d,p); return `<div class="plan-row"><span>@${d[p].h.replace('@','')} <span class="cmuted">(현재 ${nf(d[p].fol)} → ${nf(g.projected)})</span></span><span>${nf(g.order)}명</span></div>`; }).join('')
-    + `<div class="plan-total"><span>총 ${needs.length}개</span><span>${nf(totalQty)}명 충전</span></div>`
-    + `<div class="note-line" style="margin-top:14px">목표 ${nf(GTARGET)}까지 100단위 반올림 충전(베이온 방식). 클라우드엔 SMM 키가 없어요 → 이 집행은 <b>요청만 시트에 기록</b>되고, 워커가 로컬 키로 실제 집행합니다.</div>`
-    + `<div class="pw-row"><label>집행 비번</label><input type="password" placeholder="돈 나가는 확정" value="••••"></div>`;
+// 체크를 끌 때마다 '몇 건 · 몇 명'이 바로 바뀌어야 한다. 안 그러면 무엇을 집행하는지 모르고 누른다.
+function updateGardenSum(){
+  const picks = gardenPicks();
+  const n = picks.length, sum = picks.reduce((a,x)=> a + x.order, 0);
+  const el = document.querySelector('#content .summary');
+  if(el){
+    const b = el.querySelectorAll('b');
+    if(b[0]) b[0].textContent = n;
+    if(b[1]) b[1].textContent = nf(sum);
+  }
+  const btn = document.getElementById('btnExec');
+  if(btn) btn.disabled = !n;
+}
+// 지금 켜져 있는 가드닝 대상. 화면에 보이는 것만 센다 — 안 보이는 걸 집행하면 안 된다.
+function gardenPicks(){
+  const out = [];
+  D.filter(inCampaign).forEach(d=> platsOn().forEach(p=>{
+    if(!d[p]) return;
+    const g = gStat(d,p);
+    if(g.st!=='target') return;
+    if(state.plat!=='all' && state.plat!==p) return;
+    if(!gPicked(d.id,p)) return;
+    out.push({ d, p, handle:d[p].h, order:g.order });
+  }));
+  return out;
+}
+/* 가드닝 집행. 예전엔 토스트만 띄우고 아무 것도 안 했다 — 눌러도 돈이 안 나가는데
+   '요청했다'고 말하니, 한 명만 급히 채우려면 패널에서 손으로 주문할 수밖에 없었다.
+   이제 체크한 것만 실제로 집행한다.
+
+   클라우드(팀 URL)에는 SMM 키가 없어 서버가 400 으로 거절한다 — 그 문구를 그대로 보여준다.
+   돈은 대표님 PC 에서만 나간다는 뜻이고, 그게 설계다. */
+async function execModal(){
+  const picks = gardenPicks();
+  if(!picks.length) return toast('선택된 계정이 없어요.');
+  const handles = picks.map(x=>x.handle.replace('@',''));
+
+  openModal('집행 확인 (가드닝)', '<div class="note-line">금액을 확인하는 중…</div>', '');
+  let plan;
+  try {
+    const r = await fetch('/api/plan?campaign=' + state.campaign, { method:'POST',
+      headers:{'Content-Type':'application/json'}, body: JSON.stringify({ handles }) });
+    plan = await r.json();
+    if(plan.error) throw new Error(plan.error);
+  } catch(e){ closeModal(); return toast('금액 확인 실패: ' + esc(e.message)); }
+
+  const list = (plan.toOrder||[]);
+  if(!list.length){ closeModal(); return toast('지금 주문할 게 없어요 — 이미 채워졌거나 진행중이에요.'); }
+
+  const won = n => Math.round(n * (plan.krwPerUsd||1400)).toLocaleString('ko-KR') + '원';
+  const body = list.map(o=>
+      `<div class="plan-row"><span>@${esc(o.handle)} <span class="cmuted">(현재 ${nf(o.current)})</span></span><span>${nf(o.qty)}명 · ${won(o.cost)}</span></div>`).join('')
+    + `<div class="plan-total"><span>총 ${list.length}개 · ${nf(plan.totalQty)}명</span><span>${won(plan.totalCost)}</span></div>`
+    + (plan.errored && plan.errored.length
+        ? `<div class="note-line" style="margin-top:10px"><b>제외 ${plan.errored.length}건</b> — ${plan.errored.map(x=>'@'+esc(x.handle)+(x.reason?' ('+esc(x.reason)+')':'')).join(', ')}</div>` : '')
+    + `<div class="note-line" style="margin-top:12px">집행 직전에 최신 팔로워로 다시 확인한 뒤 주문돼요. 잔액 ${plan.balance!=null?won(plan.balance):'—'}.</div>`
+    + `<div class="pw-row"><label for="execPw">집행 비번</label><input type="password" id="execPw" autocomplete="off" placeholder="돈 나가는 확정 — 비번 입력"></div>`;
+
   openModal('집행 확인 (가드닝)', body,
-    `<button class="btn ghost" onclick="closeModal()">취소</button><button class="btn danger" id="execConfirm">집행 요청 (워커로 전달)</button>`);
-  document.getElementById('execConfirm').addEventListener('click',()=>{
-    closeModal();
-    toast(`집행 요청을 시트에 기록했어요 · 워커가 로컬 SMM 키로 처리합니다.`);
+    `<button class="btn ghost" onclick="closeModal()">취소</button><button class="btn danger" id="execConfirm">집행 확정 (돈 나감)</button>`);
+
+  document.getElementById('execConfirm').addEventListener('click', async (ev)=>{
+    const btn = ev.currentTarget;
+    btn.disabled = true; btn.textContent = '주문 중…';
+    try {
+      const r = await fetch('/api/execute?campaign=' + state.campaign, { method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ confirm:true, handles, password:(document.getElementById('execPw')||{}).value||'' }) });
+      const j = await r.json();
+      if(j.error) throw new Error(j.error);
+      closeModal();
+      toast('집행 완료 — <b>' + (j.placed?j.placed.length:0) + '건</b> 주문했어요.');
+      loadData();
+    } catch(e){
+      btn.disabled = false; btn.textContent = '집행 확정 (돈 나감)';
+      toast('집행 실패: ' + esc(e.message));
+    }
   });
 }
-
 /* ============ 스캔 ============ */
 // 모집시트(지원 응답) → 마스터시트 동기화. 새로 지원한 사람을 마스터에 넣는다.
 // 예전엔 토스트만 띄우고 아무 것도 안 했다 — 눌러도 안 들어오는데 성공했다고 말하니
@@ -2222,6 +2290,11 @@ document.getElementById('content').addEventListener('click', e=>{
   { const b = e.target.closest('#btnRecScan'); if(b){ syncRecruit(b); return; } }
   if(e.target.closest('#btnUpScan')){ scanRequest('업로드'); return; }
   if(e.target.closest('#gardenHoldToggle')){ state.gardenHold=!state.gardenHold; render(); return; }
+  { const gp = e.target.closest('[data-gpick]');
+    if(gp){ const k = gp.dataset.gpick;
+      if(gp.checked) gOff.delete(k); else gOff.add(k);
+      updateGardenSum();          // 표는 그대로 두고 합계만 고친다 — 누를 때마다 표가 튀면 못 쓴다
+      return; } }
   if(e.target.closest('#btnExec')){ execModal(); return; }
   if(e.target.closest('#btnPerf')){ scanRequest('조회수'); return; }
   if(e.target.closest('#btnDeliver')){ toast(`검수완료·업로드분을 ${pName(state.plat)} 납품시트에 자동 기입 (중복 제외).`); return; }
