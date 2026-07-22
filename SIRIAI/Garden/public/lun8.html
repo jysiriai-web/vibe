@@ -1232,7 +1232,7 @@ function viewRecruit(){
     <button class="btn small${state.unfixedOnly?' primary':''}" data-unfixed="${state.unfixedOnly?0:1}">날짜 미확정${unfixed?` (${unfixed})`:''}</button>
     <span id="hideSlot"></span>
     <span class="bar-right">
-      <button class="btn small" id="btnRecScan">🔎 모집 스캔</button>
+      <button class="btn small" id="btnRecScan" title="지원 응답시트에서 새로 지원한 사람을 마스터시트로 가져와요">⬇ 모집 가져오기</button>
       <button class="btn small" id="btnAddPerson">${IC.userplus} 인원 추가</button>
       <button class="btn small" id="btnReload">↻ 새로고침</button>
     </span>
@@ -2002,8 +2002,23 @@ function execModal(){
 }
 
 /* ============ 스캔 ============ */
-function scanRequest(kind){
-  toast(`${kind} 스캔 요청을 시트에 기록했어요 — 워커가 집 IP·실제 크롬으로 시작합니다.`);
+// 모집시트(지원 응답) → 마스터시트 동기화. 새로 지원한 사람을 마스터에 넣는다.
+// 예전엔 토스트만 띄우고 아무 것도 안 했다 — 눌러도 안 들어오는데 성공했다고 말하니
+// 팀이 기다리다 Apps Script 를 직접 열었다. 실제로 부르고, 결과를 그대로 말한다.
+async function syncRecruit(btn){
+  if(btn){ btn.disabled = true; btn.dataset.t = btn.textContent; btn.textContent = '가져오는 중…'; }
+  try {
+    const r = await fetch('/api/sync-recruit?campaign=' + state.campaign, { method:'POST' });
+    const j = await r.json();
+    if(j.error) throw new Error(j.error);
+    if(j.added > 0) toast('모집시트에서 <b>' + j.added + '명</b> 가져왔어요.');
+    else toast('새로 지원한 사람이 없어요 — 마스터시트가 이미 최신이에요.');
+    loadData();
+  } catch(e){
+    toast('모집 가져오기 실패: ' + esc(e.message));
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = btn.dataset.t || '모집 가져오기'; }
+  }
 }
 
 /* ============ 딥링크 · 마스터시트 ============ */
@@ -2073,7 +2088,7 @@ document.getElementById('content').addEventListener('click', e=>{
   if(e.target.closest('#apCancel')){ state.addForm=false; render(); return; }
   if(e.target.closest('#apSave')){ addPersonSave(); return; }
   if(e.target.closest('#btnReload')){ loadData(); toast('시트에서 다시 읽는 중…'); return; }
-  if(e.target.closest('#btnRecScan')){ scanRequest('모집'); return; }
+  { const b = e.target.closest('#btnRecScan'); if(b){ syncRecruit(b); return; } }
   if(e.target.closest('#btnUpScan')){ scanRequest('업로드'); return; }
   if(e.target.closest('#gardenHoldToggle')){ state.gardenHold=!state.gardenHold; render(); return; }
   if(e.target.closest('#btnExec')){ execModal(); return; }

@@ -36,8 +36,13 @@ async function bridgeCall(url, opts, tries = 3) {
   throw lastErr || new Error('브릿지 호출 실패');
 }
 
+// 토큰을 본문과 URL 양쪽에 싣는다.
+// Apps Script 의 /exec 는 POST 에 302 로 답하는데, fetch 가 그걸 따라가면 규격상
+// POST→GET 으로 바뀌며 본문이 버려진다 → 본문에만 토큰이 있으면 unauthorized 가 뜬다.
+// (쓰기 자체는 리다이렉트 전에 끝나 있어서 '써졌는데 실패라고 보고'하는 상태가 된다)
 const bridgePost = (sheet, payload) =>
-  bridgeCall(sheet.url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: sheet.token, ...payload }) });
+  bridgeCall(`${sheet.url}?token=${encodeURIComponent(sheet.token)}`,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: sheet.token, ...payload }) });
 
 export async function getAccountsFromSheet(sheet) {
   ensure(sheet);
@@ -54,7 +59,26 @@ export async function pushFollowersToSheet(sheet, updates) {
 // 모집시트 → 마스터 자동 동기화 요청. sync = { sheetId, company, linkCol }.
 export async function syncRecruitToSheet(sheet, sync) {
   ensure(sheet);
-  return await bridgePost(sheet, { sync });
+  // 구글이 POST 응답을 리다이렉트로 돌리면 doGet 결과(계정 목록)가 돌아온다.
+  // doPost 는 이미 돈 뒤라 '실패'라고 말하면 거짓말이다 — 행 수를 직접 세서 판정한다.
+  const before = (await getAccountsFromSheet(sheet)).length;
+  let r;
+  try { r = await bridgePost(sheet, { sync }); }
+  catch (e) { r = { _err: e.message }; }
+  if (r && r.added !== undefined) return r;              // 정상 응답
+  const after = (await getAccountsFromSheet(sheet)).length;
+  const added = Math.max(0, after - before);
+  if (added > 0) return { added, handles: [], viaCount: true };
+  if (r && r._err) throw new Error(r._err);
+  // 늘지 않았다 = 새 지원자가 없었거나 브릿지가 sync 를 모른다. 둘을 구분해 알린다.
+  if (r && r.accounts) return { added: 0, handles: [], viaCount: true };
+  return { added: undefined };
+}
+
+// 시트에 심어둔 셋업 함수를 원격 실행. 이름은 Code.gs 의 화이트리스트에만 있는 것만 통한다.
+export async function runSheetSetup(sheet, name) {
+  ensure(sheet);
+  return await bridgePost(sheet, { setup: name });
 }
 
 // 검수완료 콘텐츠 → 납품시트(다른 스프레드시트)에 기입. deliver = { sheetId, rows:[{nick,link,contentLink,viewNote}] }.

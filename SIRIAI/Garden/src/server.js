@@ -10,7 +10,7 @@ import { createSmm } from './smm.js';
 import { classify } from './garden.js';
 import { refreshOrders, inFlightFor } from './orders.js';
 import { runAutoRefill, refillServiceIds, REFILL_WINDOW_DAYS } from './refill.js';
-import { getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet, syncRecruitToSheet, deliverToSheet, readFeedbackFromSheet, addFeedbackToSheet, markFeedbackDone } from './sheet.js';
+import { runSheetSetup, getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet, syncRecruitToSheet, deliverToSheet, readFeedbackFromSheet, addFeedbackToSheet, markFeedbackDone } from './sheet.js';
 import { scanAccounts, buildPlan, placeOrders, findService, tiktokOnly } from './execute-core.js';
 import { runIgSync } from './ig-sync.js';
 import { runIgContentScan } from './ig-content.js';
@@ -463,6 +463,13 @@ export async function handler(req, res) {
 
     // 모집시트(마루 등) → 마스터 자동 동기화: 계정 URL 추출·정리 후 새 계정만 마스터에 추가
     if (path === '/api/sync-recruit' && req.method === 'POST') {
+      // 브릿지의 원시 sync(linkCol 필요)가 아니라 시트에 있는 셋업 함수를 부른다.
+      // 그쪽은 헤더 이름으로 열을 찾고 틱톡·인스타·이메일·추천인까지 처리한다 —
+      // 사람이 시트 메뉴에서 손으로 돌리던 바로 그 로직이라 결과가 어긋나지 않는다.
+      if (campaign.recruitSetupFn) {
+        const r = await runSheetSetup(campaign.sheet, campaign.recruitSetupFn);
+        return send(res, 200, { ok: true, ran: campaign.recruitSetupFn, result: r && r.result });
+      }
       const sheets = campaign.recruitSheets || [];
       if (!sheets.length) return send(res, 400, { error: '이 캠페인엔 모집시트 설정이 없어요 (campaigns.json recruitSheets)' });
       let added = 0;
