@@ -19,7 +19,7 @@ import { runContentScan, judgeOneLink, scanOneProfile } from './content-core.js'
 import { checkExitLocation } from './tiktok-videos.js';
 import { listCampaigns, getCampaign, getFx, setCalibration, setFallbackRate, getStaleDays, setService } from './campaigns.js';
 import { getMarketUsdKrw } from './fx.js';
-import { EDITABLE_FIELDS, OVERRIDE_FIELDS, LEGACY_COL_FIELD } from './overrides.js';
+import { EDITABLE_FIELDS, OVERRIDE_FIELDS, LEGACY_COL_FIELD, reviewText } from './overrides.js';
 // 상태 계층 — GARDEN_STATE=sheet 면 시트가 진실, 기본(local)은 지금까지처럼 로컬 파일.
 import { CLOUD, isLocalOnly, cloudConfigError } from './cloud.js';
 import { mode as stateMode, readOrders, writeOrders, readOverrides, setOverrideStore, clearOverrideStore, readBest, toggleBest, readAll, pendingState } from './store.js';
@@ -115,7 +115,7 @@ async function buildAccounts(campaign, orders, pre = {}) {
     list = (latest.accounts || latest.results || []).map((a) => ({ ...a, current: a.current }));
   }
   // 콘텐츠·검수·성과 병합 — 우선순위: 수동잠금(overrides) > 시트값 > 자동감지(detected).
-  // 시트는 텍스트 상태("사용 확인"/"음원 다름" 등)를 그대로 보존(프론트가 판정).
+  // 시트 어휘는 준수/미준수/빈칸(미확인) 셋뿐이다(overrides.js REVIEW_*). 그대로 보존한다.
   const det = loadDetected(campaign);
   const ov = pre.overrides || (await readOverrides(campaign));
   const hasV = (v) => !!(v != null && String(v).trim());
@@ -128,8 +128,9 @@ async function buildAccounts(campaign, orders, pre = {}) {
       // (열 번호 '19'/'21' 로 보내던 것 → 필드명. 프론트 app.js 도 같이 바뀐다)
       const autoFields = [];
       if (!hasV(m.contentLink)) m.contentLink = d.contentLink;
-      if (!hasV(m.soundOk)) { m.soundOk = d.soundOk ? '사용 확인' : '음원 다름'; autoFields.push('soundOk'); }
-      if (!hasV(m.hashtagOk)) { m.hashtagOk = d.hashtagOk ? '확인 완료' : '해시태그 누락'; autoFields.push('hashtagOk'); }
+      // 화면에도 시트와 같은 어휘를 쓴다. 여기만 다르면 팀이 '준수'와 '확인 완료'를 다른 뜻으로 읽는다.
+      if (!hasV(m.soundOk)) { m.soundOk = reviewText(d.soundOk); autoFields.push('soundOk'); }
+      if (!hasV(m.hashtagOk)) { m.hashtagOk = reviewText(d.hashtagOk); autoFields.push('hashtagOk'); }
       if (!hasV(m.views)) { m.views = d.views; m.likes = d.likes; m.comments = d.comments; m.shares = d.shares; }
       m.autoDetected = true;
       if (autoFields.length) m.autoFields = autoFields;

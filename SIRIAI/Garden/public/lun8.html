@@ -1003,6 +1003,11 @@ function fixedCell(d){
    '켠 것을 기억'하면 스캔으로 대상이 늘 때마다 새 사람이 꺼진 채로 들어와, 켜는 걸 잊으면 조용히 빠진다.
    돈 쓰는 화면에서는 '빠뜨림'이 '더 나감'보다 낫지만, 목록에 보이는데 안 나가는 쪽이 더 헷갈린다. */
 const gOff = new Set();
+// 표 머리의 전체 선택. 하나라도 꺼져 있으면 체크가 풀린 상태로 보여야 한다 —
+// 켜져 보이는데 일부만 나가면 무엇을 집행하는지 모르고 누른다.
+function gPickAllBox(){
+  return '<input type="checkbox" id="gPickAll" title="전체 선택 / 해제">';
+}
 const gKey = (id,p) => id + '|' + p;
 const gPicked = (id,p) => !gOff.has(gKey(id,p));
 const emptyRow = (n,msg='조건에 맞는 계정이 없어요.')=> `<tr class="empty-tr"><td colspan="${n}">${msg}</td></tr>`;
@@ -1495,7 +1500,7 @@ function viewGarden(){
 
   const stChip = st => ({ target:'<span class="chip needs">가드닝 대상</span>', hold:'<span class="chip stale">보류 · 업로드 대기</span>', filling:'<span class="lk sched">채워지는 중</span>', scan:'<span class="cmuted">스캔 대기</span>' }[st] || '');
   const cols = [
-    { key:'pick', label:'', sortable:false, cell:r=>{ const g=gStat(r,p);
+    { key:'pick', label:gPickAllBox(), sortable:false, cell:r=>{ const g=gStat(r,p);
         return g.st==='target'?`<input type="checkbox" data-gpick="${r.id}|${p}"${gPicked(r.id,p)?' checked':''}>`
           : g.st==='hold'?`<span class="cmuted" title="업로드 확인 후 가드닝">보류</span>`
           : `<span class="emptydot">·</span>`; } },
@@ -1538,7 +1543,7 @@ function viewGardenAll(){
   const rows = pairs.slice().sort((a,b)=> (stRank[b.g.st]-stRank[a.g.st]) || ((a.d[a.p].fol||0)-(b.d[b.p].fol||0)));
   const stChip = st => ({ target:'<span class="chip needs">가드닝 대상</span>', hold:'<span class="chip stale">보류 · 업로드 대기</span>', filling:'<span class="lk sched">채워지는 중</span>', scan:'<span class="cmuted">스캔 대기</span>' }[st] || '');
   const cols = [
-    { key:'pick', label:'', sortable:false, cell:r=> r.g.st==='target'?`<input type="checkbox" data-gpick="${r.d.id}|${r.p}"${gPicked(r.d.id,r.p)?' checked':''}>`
+    { key:'pick', label:gPickAllBox(), sortable:false, cell:r=> r.g.st==='target'?`<input type="checkbox" data-gpick="${r.d.id}|${r.p}"${gPicked(r.d.id,r.p)?' checked':''}>`
         : r.g.st==='hold'?`<span class="cmuted" title="업로드 확인 후 가드닝">보류</span>` : `<span class="emptydot">·</span>` },
     { key:'co', label:'진행사', sv:r=>r.d.co, cell:r=>coChip(r.d.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.d.nick, cell:r=>nickCell(r.d) },
@@ -1920,6 +1925,7 @@ function render(){
   // 빈열 배지는 표를 그린 뒤에야 값이 정해진다 → 자리에 나중에 꽂는다
   const _hs=document.getElementById('hideSlot'); if(_hs) _hs.innerHTML=_lastHideNote;
   const _dn=document.getElementById('dayNoteSlot'); if(_dn) _dn.innerHTML=_lastDayNote;
+  syncPickAll();   // 표를 다시 그리면 머리 체크도 다시 맞춘다
   if(state.view==='settle' && state.simOpen) updateSim();
   renderStats(); renderNav();
 }
@@ -2155,6 +2161,15 @@ function closeModalReset(){ closeModal(); renderCampSelect(); }
 
 /* ============ 가드닝 집행 ============ */
 // 체크를 끌 때마다 '몇 건 · 몇 명'이 바로 바뀌어야 한다. 안 그러면 무엇을 집행하는지 모르고 누른다.
+// 머리 체크박스를 아래 상태에 맞춘다. 일부만 켜졌으면 '중간' 표시(indeterminate).
+function syncPickAll(){
+  const all = [...document.querySelectorAll('[data-gpick]')];
+  const box = document.getElementById('gPickAll');
+  if(!box || !all.length) return;
+  const on = all.filter(b=>b.checked).length;
+  box.checked = on === all.length;
+  box.indeterminate = on > 0 && on < all.length;
+}
 function updateGardenSum(){
   const picks = gardenPicks();
   const n = picks.length, sum = picks.reduce((a,x)=> a + x.order, 0);
@@ -2331,9 +2346,19 @@ document.getElementById('content').addEventListener('click', e=>{
   { const b = e.target.closest('#btnRecScan'); if(b){ syncRecruit(b); return; } }
   if(e.target.closest('#btnUpScan')){ scanRequest('업로드'); return; }
   if(e.target.closest('#gardenHoldToggle')){ state.gardenHold=!state.gardenHold; render(); return; }
+  { const ga = e.target.closest('#gPickAll');
+    if(ga){
+      // 화면에 보이는 대상만 켜고 끈다 — 안 보이는 걸 켜면 모르고 집행된다.
+      document.querySelectorAll('[data-gpick]').forEach(b=>{
+        b.checked = ga.checked;
+        if(ga.checked) gOff.delete(b.dataset.gpick); else gOff.add(b.dataset.gpick);
+      });
+      updateGardenSum();
+      return; } }
   { const gp = e.target.closest('[data-gpick]');
     if(gp){ const k = gp.dataset.gpick;
       if(gp.checked) gOff.delete(k); else gOff.add(k);
+          syncPickAll();          // 하나라도 끄면 머리 체크도 풀린다
       updateGardenSum();          // 표는 그대로 두고 합계만 고친다 — 누를 때마다 표가 튀면 못 쓴다
       return; } }
   if(e.target.closest('#btnExec')){ execModal(); return; }

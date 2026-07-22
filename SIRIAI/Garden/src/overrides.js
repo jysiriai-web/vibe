@@ -7,6 +7,14 @@ import { join } from 'node:path';
 // 자동 스캔이 건드리는 검수/콘텐츠 '필드' — 이 필드들만 수동 우선 잠금 대상.
 // ⚠️ 열 번호가 아니라 필드명이다. 열 번호는 마스터마다 달라서(베이온 vs LUN8) 되쓰기 키로 못 쓴다.
 //    이름은 브릿지(appsscript/Code.gs DEFAULT_COL/FIELD_HEADERS) 키를 그대로 따른다.
+/* 검수 칸에 들어갈 수 있는 값. 마스터시트 드롭다운과 글자 하나까지 같아야 한다 —
+   다르면 셀이 '잘못된 값' 경고를 달고, 사람이 드롭다운으로 고치는 순간 어휘가 갈린다.
+   빈칸 = 미확인(아직 안 봄). 자동 스캔도 사람도 이 셋만 쓴다. */
+export const REVIEW_OK = '준수';
+export const REVIEW_NO = '미준수';
+export const REVIEW_UNKNOWN = '';           // 시트에선 빈칸 = 미확인
+export const reviewText = (pass) => (pass ? REVIEW_OK : REVIEW_NO);
+
 export const OVERRIDE_FIELDS = ['contentA', 'soundOk', 'soundSection', 'hashtagOk'];
 // 대시보드에서 편집 허용하는 필드(화이트리스트). nick·link·notice·schedDate·memo 는
 // 자동스캔이 안 건드려서 잠금(OVERRIDE) 대상은 아니고 편집만 허용.

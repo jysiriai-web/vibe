@@ -1,6 +1,7 @@
 // 콘텐츠·성과 스캔 공용 로직 — CLI(scan-content.js)와 대시보드 버튼(server.js)이 공유.
 // 최적화(#7): 아직 업로드 안 감지된 계정만 긁음. 이미 업로드된 건 이전 결과 유지. full=true면 전체 재스캔.
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
+import { reviewText } from './overrides.js';   // 검수 어휘는 한 곳에서만 정한다
 import { join } from 'node:path';
 import { getAccountsFromSheet, pushCellsToSheet } from './sheet.js';
 import { detectCampaign, videoIdFromLink } from './content-detect.js';
@@ -32,8 +33,8 @@ export async function judgeOneLink(campaign, { row, handle, link }) {
   // 키는 전부 필드명(브릿지가 헤더에서 실제 열을 찾는다). 옛 열번호(17·19·21·27~30)는 베이온 전용 좌표였다.
   const putIf = (field, value) => { if (!isLocked(overrides, row, field)) cells.push({ row, field, value }); };
   putIf('contentA', d.contentLink || link);
-  if (cfg.soundId) putIf('soundOk', d.soundOk ? '사용 확인' : '음원 다름');
-  if (cfg.hashtags.length) putIf('hashtagOk', d.hashtagOk ? '확인 완료' : '해시태그 누락');
+  if (cfg.soundId) putIf('soundOk', reviewText(d.soundOk));
+  if (cfg.hashtags.length) putIf('hashtagOk', reviewText(d.hashtagOk));
   cells.push({ row, field: 'views', value: d.views }, { row, field: 'likes', value: d.likes }, { row, field: 'comments', value: d.comments }, { row, field: 'shares', value: d.shares });
   let written = 0, writeError = null;
   try { written = await pushCellsToSheet(campaign.sheet, cells); }
@@ -89,8 +90,8 @@ export async function scanOneProfile(campaign, { row, handle }) {
     const cells = [];
     const putIf = (field, value) => { if (!isLocked(overrides, row, field)) cells.push({ row, field, value }); };
     putIf('contentA', d.contentLink);
-    if (cfg.soundId) putIf('soundOk', d.soundOk ? '사용 확인' : '음원 다름');
-    if (cfg.hashtags.length) putIf('hashtagOk', d.hashtagOk ? '확인 완료' : '해시태그 누락');
+    if (cfg.soundId) putIf('soundOk', reviewText(d.soundOk));
+    if (cfg.hashtags.length) putIf('hashtagOk', reviewText(d.hashtagOk));
     cells.push({ row, field: 'views', value: d.views }, { row, field: 'likes', value: d.likes }, { row, field: 'comments', value: d.comments }, { row, field: 'shares', value: d.shares });
     try { written = await pushCellsToSheet(campaign.sheet, cells); }
   catch (e) { writeError = String((e && e.message) || e); }   // 조용히 삼키면 '왜 0칸이지'를 아무도 못 푼다
@@ -221,9 +222,9 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
     const blank = (v) => !(v != null && String(v).trim());
     if (full || blank(a.contentLink)) putIf(r, 'contentA', d.contentLink);
     // 캠페인에 음원/해시태그 기준이 설정된 경우에만 판정을 쓴다.
-    // (기준이 없으면 d.soundOk/hashtagOk 가 무조건 false → '음원 다름'·'해시태그 누락'을 잘못 기록하게 됨)
-    if (cfg.soundId && (full || blank(a.soundOk))) putIf(r, 'soundOk', d.soundOk ? '사용 확인' : '음원 다름');
-    if (cfg.hashtags.length && (full || blank(a.hashtagOk))) putIf(r, 'hashtagOk', d.hashtagOk ? '확인 완료' : '해시태그 누락');
+    // (기준이 없으면 d.soundOk/hashtagOk 가 무조건 false → '미준수'를 잘못 기록하게 됨)
+    if (cfg.soundId && (full || blank(a.soundOk))) putIf(r, 'soundOk', reviewText(d.soundOk));
+    if (cfg.hashtags.length && (full || blank(a.hashtagOk))) putIf(r, 'hashtagOk', reviewText(d.hashtagOk));
     // 성과 수치는 항상 최신으로 갱신(이미 업로드된 계정도 조회수 증가 반영).
     // ⚠️ 예전엔 col 27~30 고정이었다 — LUN8 마스터에선 그 자리가 인스타 콘텐츠①·②·음원·음원구간이라
     //    조회수를 쓰면 콘텐츠 링크가 지워졌다. 필드명으로 바꾼 핵심 이유.
@@ -243,8 +244,8 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
     const d = detected[a.handle];
     if (!d || !d.uploaded) continue;
     if (blankV(a.contentLink)) putIf(a.row, 'contentA', d.contentLink);
-    if (cfg.soundId && blankV(a.soundOk)) putIf(a.row, 'soundOk', d.soundOk ? '사용 확인' : '음원 다름');
-    if (cfg.hashtags.length && blankV(a.hashtagOk)) putIf(a.row, 'hashtagOk', d.hashtagOk ? '확인 완료' : '해시태그 누락');
+    if (cfg.soundId && blankV(a.soundOk)) putIf(a.row, 'soundOk', reviewText(d.soundOk));
+    if (cfg.hashtags.length && blankV(a.hashtagOk)) putIf(a.row, 'hashtagOk', reviewText(d.hashtagOk));
   }
 
   let written = 0, writeError = null;
