@@ -629,8 +629,17 @@ body.nav-collapsed .side-btn { justify-content:center; }
 .sub-hide:empty { display:none; }
 .sub-hide .hidebadge { margin:0; }
 /* 하위탭 줄이 도구를 다 안는다 — 배지·선택 스캔이 한 줄에 들어가 표가 위로 붙는다 */
-.subtabs #btnPickScan { margin-left:10px; }
+/* 배지가 비면 .sub-hide 가 없어져 거기 걸린 auto 마진도 사라진다 →
+   버튼이 마지막 탭에 딱 붙었다. 버튼 자신이 오른쪽으로 밀리게 한다. */
+.subtabs #btnPickScan { margin-left:auto; }
+.sub-hide + #btnPickScan { margin-left:10px; }
 .sub-hide { margin-left:auto; }
+/* 일정 스트립이 어느 플랫폼 기준인지 색으로 — 숫자만 바뀌면 왜 줄었는지 모른다 */
+.dstrip-card.p-tk .kpi-ic { background:#15171a; color:#fff; }
+.dstrip-card.p-ig .kpi-ic { background:#fdeef5; color:#d62976; }
+.dstrip-card .kpi-ic svg { width:15px; height:15px; }
+.dstrip-card.p-tk .dday.on, .dstrip-card.p-tk .wchip.on { border-color:#15171a; }
+.dstrip-card.p-ig .dday.on, .dstrip-card.p-ig .wchip.on { border-color:#d62976; }
 </style>
 </head>
 <body>
@@ -1147,6 +1156,12 @@ function isLate(d, p){
 const lateSlots = d => platsOn().filter(p=> isLate(d,p)).length;
 
 /* excludeId: 편집 모달에서 '나를 뺀' 값이 필요할 때. 표시 숫자는 항상 나를 포함해 스트립과 일치시킨다. */
+/* 지금 화면이 보고 있는 플랫폼들. 하위탭이 특정 플랫폼이면 그것만 —
+   모집탭·통합탭처럼 플랫폼을 안 고른 화면은 전부. */
+function viewPlats(){
+  const p = state.plat;
+  return (p==='tk' || p==='ig') ? [p] : platsOn();
+}
 function schedStats(excludeId){
   const rows = D.filter(inCampaign).filter(d=> d.id!==excludeId);
   const byDay = {}; ALLDAYS().forEach(dy=> byDay[dy] = { day:dy, geon:0, left:0, myeong:0 });
@@ -1154,7 +1169,10 @@ function schedStats(excludeId){
   rows.forEach(d=>{
     const b = dayBucket(d);
     const t = b==='__unset' ? unset : b==='__off' ? off : byDay[b];
-    const g = slots(d), done = platsOn().filter(p=> uploaded(d,p)).length;
+    // 지금 보고 있는 플랫폼만 센다. 하위탭이 인스타인데 합계를 보여주면 표와 숫자가 어긋난다.
+    const ps = viewPlats();
+    const g = isDropped(d) ? 0 : ps.filter(p=> d[p]).length;
+    const done = ps.filter(p=> uploaded(d,p)).length;
     t.geon += g; t.left += (g - done); t.myeong += 1;
   });
   const overBy = cfg().spreadOverBy==null ? 3 : cfg().spreadOverBy;
@@ -1331,9 +1349,12 @@ function schedStrip(){
   // kpi() 를 안 쓰고 직접 짠다 — 총 건수를 오른쪽에 크게 세우고 주차는 한 줄 칩으로 줄이는
   // 배치가 필요한데, kpi 는 '라벨/큰숫자/설명'이 세로로 쌓이는 틀이라 가운데가 비어 버린다.
   // 라벨과 주차 칩을 한 줄에. 총계(94)는 뺐다 — 주차 합이 곧 총계라 같은 숫자를 두 번 보여줄 뿐이다.
-  return `<div class="kpi dstrip-card">
+  // 어느 플랫폼 기준인지 라벨에 붙인다 — 숫자만 바뀌면 왜 줄었는지 모른다.
+  const vp = viewPlats();
+  const oneP = vp.length===1 ? vp[0] : '';
+  return `<div class="kpi dstrip-card${oneP?' p-'+oneP:''}">
     <div class="ds-row">
-      <div class="kpi-top"><span class="kpi-ic">${IC.clock}</span><span class="lab">업로드 일정</span></div>
+      <div class="kpi-top"><span class="kpi-ic">${oneP?PLAT_MARK[oneP]:IC.clock}</span><span class="lab">${oneP?pName(oneP)+' 업로드 일정':'업로드 일정'}</span></div>
       ${st.weeks.map(wchip).join('')}${unsetChip}${toggle}
       <span id="dayNoteSlot"></span>
     </div>${days}</div>`;
