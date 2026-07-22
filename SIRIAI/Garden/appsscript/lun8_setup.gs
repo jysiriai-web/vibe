@@ -25,6 +25,7 @@ function onOpen() {
     .addItem('④ 일반 비고 열 추가 — 처음 한 번', 'addLun8Memo')
     .addSeparator()
     .addItem('응대 매뉴얼 · 가이드라인 탭 만들기', 'buildLun8Docs')
+    .addItem('드롭다운 어휘 맞추기 (미러링·우수 선정)', 'fixLun8Dropdowns')
     .addItem('요약 폭 정리 (합계 H:I · 진행율 당기기)', 'fixLun8Summary')
     .addItem('가드닝 열 정리 (값 통일·색·인스타 오염 청소)', 'fixLun8Gardening')
     .addItem('색상 고치기 (조건부서식 → 교차색상, 하이라이트 되게)', 'fixLun8Colors')
@@ -759,4 +760,59 @@ function fixLun8Summary() {
   });
 
   lun8Toast_(ss, '✅ 요약 정리 — 합계 H:I(2칸), 진행율 블록 ' + src + '열 → ' + DEST + '열로 ' + shift + '칸 당김.');
+}
+
+/**
+ * 드롭다운 어휘 맞추기 — 화면과 시트가 다른 말을 쓰면 사람이 고른 값과 스캔이 쓴 값이 갈린다.
+ *  · 미러링 여부: 미러링 / 오리지널 / 미확인
+ *  · 우수 선정: 우수 / (빈칸)   ← 체크박스를 드롭다운으로 바꾸면서 시트도 맞춘다
+ */
+function fixLun8Dropdowns() {
+  var t = function (v) { return String(v == null ? '' : v).trim(); };
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName('LUN8_마스터') || ss.getActiveSheet();
+  var HEAD_ROW = lun8Head_(sh);   // 헤더행은 요약 블록 아래라 고정값을 쓰면 안 된다
+  var head = sh.getRange(HEAD_ROW, 1, 1, sh.getLastColumn()).getValues()[0].map(function (v) { return t(v).replace(/\s+/g, ''); });
+  var find = function (kw) { for (var i = 0; i < head.length; i++) if (head[i].indexOf(kw) >= 0) return i + 1; return 0; };
+  var last = sh.getLastRow(), n = last - HEAD_ROW;
+  if (n < 1) { lun8Toast_(ss, '데이터 행이 없어요.'); return; }
+  var log = [];
+
+  // 미러링 — '별개' 로 적혀 있던 값을 '오리지널' 로 옮긴다(뜻은 같고 이름만 바뀐다).
+  var cMir = find('미러링');
+  if (cMir) {
+    var rg = sh.getRange(HEAD_ROW + 1, cMir, n, 1);
+    var vals = rg.getValues(), moved = 0;
+    for (var i = 0; i < vals.length; i++) if (t(vals[i][0]) === '별개') { vals[i][0] = '오리지널'; moved++; }
+    if (moved) rg.setValues(vals);
+    rg.setDataValidation(SpreadsheetApp.newDataValidation()
+      .requireValueInList(['미러링', '오리지널', '미확인'], true).setAllowInvalid(false).build());
+    log.push('미러링 드롭다운' + (moved ? ' (별개→오리지널 ' + moved + '건)' : ''));
+  }
+
+  // 우수 선정 — 없으면 만들고, 있으면 드롭다운만 다시 건다.
+  var cBest = find('우수');
+  if (!cBest) {
+    var cPaid = find('입금') || find('정산');
+    var at = cPaid || sh.getLastColumn();
+    sh.insertColumnAfter(at);
+    cBest = at + 1;
+    sh.getRange(HEAD_ROW, cBest).setValue('우수 선정')
+      .setFontWeight('bold').setHorizontalAlignment('center');
+    log.push('우수 선정 열 추가(' + cBest + ')');
+  }
+  var rb = sh.getRange(HEAD_ROW + 1, cBest, n, 1);
+  rb.setDataValidation(SpreadsheetApp.newDataValidation()
+    .requireValueInList(['우수', ''], true).setAllowInvalid(false).build());
+  // 고른 것만 눈에 걸리게. 빈칸은 조용히 둔다.
+  var rules = sh.getConditionalFormatRules().filter(function (r) {
+    return r.getRanges().every(function (x) { return x.getColumn() !== cBest; });
+  });
+  rules.push(SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo('우수')
+    .setBackground('#FFF8E1').setFontColor('#8A6100').setBold(true).setRanges([rb]).build());
+  sh.setConditionalFormatRules(rules);
+  log.push('우수 선정 드롭다운');
+
+  lun8Toast_(ss, '✅ ' + log.join(' · '));
+  return log.join(' · ');
 }
