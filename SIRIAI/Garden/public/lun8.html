@@ -1070,7 +1070,9 @@ function toast(msg){ const t=document.getElementById('toast'); t.innerHTML=msg; 
 function contentCell(c, p){
   if(!c) return `<span class="emptydot">·</span>`;
   if(state.raw) return `<span class="rawurl">${c.url}</span>`;
-  return `<a class="clink ${p==='ig'?'ig':''}" href="${c.url}" target="_blank" onclick="return false">${c.label}</a>`;
+  // onclick="return false" 가 남아 있어 링크가 안 열렸다 — 조회전용 시절 클릭을 막던 잔재다.
+  // 콘텐츠는 검수하려고 여는 것이라 열려야 한다. 주소는 시트에서 온 값이므로 이스케이프한다.
+  return `<a class="clink ${p==='ig'?'ig':''}" href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.label)}</a>`;
 }
 function memoCell(id, text){
   const t=(text||'').trim();
@@ -1976,10 +1978,24 @@ function openRowEdit(id, rowPlat){
         <select class="inp" id="reMir">${[['m1','미러링'],['m0','별개'],['mx','미확인']].map(([v,l])=>`<option value="${v}"${v===d.mir?' selected':''}>${l}</option>`).join('')}</select></div>
       <div class="row"><label class="h">${pName(p)} 비고</label><textarea class="inp" id="rePMemo" placeholder="${pName(p)} 특이사항">${esc(x.memo||'')}</textarea></div>
     </div>`;
-    save = ()=>{ if(val('reH')) x.h=val('reH');
+    // ⚠️ 예전엔 여기서 화면 객체만 고쳤다 — 시트엔 안 써져서 닫으면 사라지고,
+    //    20초 자동 새로고침이 오면 눈앞에서 되돌아갔다. 바뀐 칸만 실제로 저장한다.
+    //    플랫폼별 값은 반드시 'tk.'/'ig.' 접두어 — 안 붙이면 인스타를 고쳐도 틱톡 열에 써진다.
+    const was = { h:x.h, c1:x.c1?x.c1.url:'', c2:x.c2?x.c2.url:'', snd:x.snd, sec:x.sec, hash:x.hash, mir:d.mir, memo:x.memo||'' };
+    save = ()=>{
+      if(val('reH')) x.h=val('reH');
       const c1=val('reC1'); x.c1 = c1?{label:x.c1?x.c1.label:'🎬 영상①', url:c1}:'';
       const c2=val('reC2'); x.c2 = c2?{label:x.c2?x.c2.label:'🎬 영상②', url:c2}:'';
-      x.snd=selVal('reSnd'); x.sec=selVal('reSec'); x.hash=selVal('reHash'); d.mir=selVal('reMir'); x.memo=val('rePMemo'); };
+      x.snd=selVal('reSnd'); x.sec=selVal('reSec'); x.hash=selVal('reHash'); d.mir=selVal('reMir'); x.memo=val('rePMemo');
+      if(x.h!==was.h)            saveField(d.id, p+'.link', x.h);
+      if(c1!==was.c1)            saveField(d.id, p+'.contentA', c1);
+      if(c2!==was.c2)            saveField(d.id, p+'.contentB', c2);
+      if(x.snd!==was.snd)        saveField(d.id, p+'.soundOk',    REV_TEXT[x.snd]);
+      if(x.sec!==was.sec)        saveField(d.id, p+'.soundSection', REV_TEXT[x.sec]);
+      if(x.hash!==was.hash)      saveField(d.id, p+'.hashtagOk',  REV_TEXT[x.hash]);
+      if(x.memo!==was.memo)      saveField(d.id, p+'.memo', x.memo);
+      if(d.mir!==was.mir)        saveField(d.id, 'mirror', {m1:'미러링',m0:'별개',mx:''}[d.mir]);
+    };
 
   } else if(state.view==='garden'){
     if(!d[p]){ toast('이 크리에이터는 '+pName(p)+' 미참여예요.'); return; }
@@ -2003,7 +2019,15 @@ function openRowEdit(id, rowPlat){
       <div class="row"><label class="h">조회수</label><input class="inp" id="reViews" value="${esc(x.views||'')}" placeholder="예: 44,300"></div>
       <div class="row"><label class="h">납품 비고</label><textarea class="inp" id="rePMemo">${esc(x.memo||'')}</textarea></div>
     </div>`;
-    save = ()=>{ const c1=val('reC1'); if(c1) x.c1={label:x.c1?x.c1.label:'🎬 영상①', url:c1}; x.views=val('reViews'); x.memo=val('rePMemo'); };
+    // 납품 모달도 화면만 고치고 있었다. 바뀐 칸만 시트에 쓴다.
+    const wasD = { c1:x.c1?x.c1.url:'', views:x.views||'', memo:x.memo||'' };
+    save = ()=>{
+      const c1=val('reC1'); if(c1) x.c1={label:x.c1?x.c1.label:'🎬 영상①', url:c1};
+      x.views=val('reViews'); x.memo=val('rePMemo');
+      if(c1!==wasD.c1)         saveField(d.id, p+'.contentA', c1);
+      if(x.views!==wasD.views) saveField(d.id, p+'.views', x.views);
+      if(x.memo!==wasD.memo)   saveField(d.id, p+'.memo', x.memo);
+    };
 
   } else if(state.view==='settle'){
     const st=d.settle;
