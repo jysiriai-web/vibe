@@ -1,0 +1,15 @@
+# Vercel 에 올리지 않을 것. .gitignore 와 별개로 배포는 이 파일만 본다 —
+# 없으면 로컬 파일이 그대로 업로드된다(URL 로는 안 열리지만 남의 서버에 올라간다).
+.env
+.env.*
+campaigns.json
+data/
+_docs/
+_overnight/
+_archive/
+appsscript/
+scripts/
+featuring_emails/
+node_modules/
+.vercel/
+*.log
