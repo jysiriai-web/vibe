@@ -537,6 +537,14 @@ input.inp[type=date]:disabled { opacity:.45; }
 .daynote .btn { padding:4px 11px; font-size:12px; }
 @media (max-width:900px){ .daynote { margin-left:0; flex-basis:100%; margin-top:4px; } }
 /* 사이드바 마크 — 원본 비율 유지. 늘어나거나 잘리지 않게 */
+/* 플랫폼 필터 — 켜지면 그 플랫폼 색으로. 글자를 다시 읽지 않아도 무엇으로 걸렀는지 안다 */
+.btn.pf { display:inline-flex; align-items:center; gap:6px; }
+.btn.pf .pmark, .btn.pf svg { width:13px; height:13px; }
+.btn.pf svg { fill:currentColor; }
+.btn.pf.tk.on { background:#15171a; border-color:#15171a; color:#fff; }
+.btn.pf.ig.on { background:#d62976; border-color:#d62976; color:#fff; }
+.btn.pf.tk:not(.on) { color:#15171a; }
+.btn.pf.ig:not(.on) { color:#d62976; }
 </style>
 </head>
 <body>
@@ -900,7 +908,7 @@ function gStat(d, p){
 }
 
 /* ============ 상태 ============ */
-const state = { view:'recruit', plat:'all', raw:false, campaign:'lun8', worker:'online', addForm:false, gardenHold:true, simOpen:false, sim:null, simCampaign:null, sort:{}, day:null, week:null, stripOpen:false, upFilter:'all', noticeOnly:false, unfixedOnly:false };
+const state = { view:'recruit', plat:'all', platOnly:'', raw:false, campaign:'lun8', worker:'online', addForm:false, gardenHold:true, simOpen:false, sim:null, simCampaign:null, sort:{}, day:null, week:null, stripOpen:false, upFilter:'all', noticeOnly:false, unfixedOnly:false };
 const cfg = ()=> CAMPAIGNS[state.campaign];
 const platsOn = ()=> cfg().plats;
 const hasIG = ()=> platsOn().includes('ig');
@@ -1218,6 +1226,7 @@ function viewRecruit(){
   </div>`;
   const unsent = all.filter(d=> !d.notice).length;
   const unfixed = all.filter(d=> !d.fixed).length;
+  if(state.platOnly) rows = rows.filter(d=> d[state.platOnly]);
   if(state.noticeOnly) rows = rows.filter(d=> !d.notice);
   if(state.unfixedOnly) rows = rows.filter(d=> !d.fixed);
   const dayLabel = state.day==='__unset' ? '예정일 미정' : state.day==='__off' ? '캠페인 일정 밖' : state.day;
@@ -1226,8 +1235,11 @@ function viewRecruit(){
     ? `<span class="daynote"><b>${esc(filtLabel)}</b> ${rows.length}명 · ${rows.reduce((a,d)=>a+slots(d),0)}건만 보는 중<button class="btn ghost small" id="dayClear">전체 보기</button></span>`
     : '';
   const dayBar = '';   // 안내는 업로드 일정 카드 안(dayNoteSlot)으로 옮겼다
+  const tkN = all.filter(d=>d.tk).length, igN = all.filter(d=>d.ig).length;
   const addBar = `<div class="bar">
-    <button class="btn small${state.noticeOnly?'':' primary'}" data-notice-f="0">전체</button>
+    <button class="btn small${(state.noticeOnly||state.unfixedOnly||state.platOnly)?'':' primary'}" data-notice-f="0">전체</button>
+    <button class="btn small pf tk${state.platOnly==='tk'?' on':''}" data-platf="tk">${PLAT_MARK.tk}틱톡 ${tkN}</button>
+    <button class="btn small pf ig${state.platOnly==='ig'?' on':''}" data-platf="ig">${PLAT_MARK.ig}인스타 ${igN}</button>
     <button class="btn small${state.noticeOnly?' primary':''}" data-notice-f="1">확정메일 미발송${unsent?` (${unsent})`:''}</button>
     <button class="btn small${state.unfixedOnly?' primary':''}" data-unfixed="${state.unfixedOnly?0:1}">날짜 미확정${unfixed?` (${unfixed})`:''}</button>
     <span id="hideSlot"></span>
@@ -2066,7 +2078,13 @@ document.getElementById('content').addEventListener('click', e=>{
     if(d){ d.notice=!d.notice; render(); saveField(d.id, 'notice', d.notice?'발송완료':''); }
     return;
   }
-  const nf2=e.target.closest('[data-notice-f]'); if(nf2){ state.noticeOnly = nf2.dataset.noticeF==='1'; render(); return; }
+  const nf2=e.target.closest('[data-notice-f]');
+  if(nf2){
+    state.noticeOnly = nf2.dataset.noticeF==='1';
+    // '전체'는 말 그대로 전체다. 플랫폼·날짜 필터가 남아 있으면 눌러도 안 돌아온다.
+    if(nf2.dataset.noticeF==='0'){ state.platOnly=''; state.unfixedOnly=false; }
+    render(); return;
+  }
   const ufx=e.target.closest('[data-unfixed]'); if(ufx){ state.unfixedOnly = ufx.dataset.unfixed==='1'; render(); return; }
   const wk=e.target.closest('[data-week]'); if(wk){ state.week = (state.week===wk.dataset.week) ? null : wk.dataset.week; state.day=null; render(); return; }
   const uf=e.target.closest('[data-upf]'); if(uf){ state.upFilter = uf.dataset.upf; render(); return; }
@@ -2088,6 +2106,8 @@ document.getElementById('content').addEventListener('click', e=>{
   if(e.target.closest('#apCancel')){ state.addForm=false; render(); return; }
   if(e.target.closest('#apSave')){ addPersonSave(); return; }
   if(e.target.closest('#btnReload')){ loadData(); toast('시트에서 다시 읽는 중…'); return; }
+  { const pf = e.target.closest('[data-platf]');
+    if(pf){ const v = pf.dataset.platf; state.platOnly = (state.platOnly===v ? '' : v); render(); return; } }
   { const b = e.target.closest('#btnRecScan'); if(b){ syncRecruit(b); return; } }
   if(e.target.closest('#btnUpScan')){ scanRequest('업로드'); return; }
   if(e.target.closest('#gardenHoldToggle')){ state.gardenHold=!state.gardenHold; render(); return; }
