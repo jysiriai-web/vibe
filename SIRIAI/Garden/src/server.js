@@ -400,6 +400,8 @@ export async function handler(req, res) {
 
     // 콘텐츠 스캔 (대시보드 버튼) — 백그라운드 Playwright, 진행상황은 status 폴링
     if (path === '/api/content-scan' && req.method === 'POST') {
+      const _b = await readBody(req).catch(() => ({}));
+      const _only = (Array.isArray(_b.only) && _b.only) || (url.searchParams.get('only') || '').split(',').filter(Boolean);
       if (contentScanState.running) return send(res, 200, { running: true });
       const full = url.searchParams.get('full') === '1';
       const perf = url.searchParams.get('perf') === '1'; // 조회수 스캔(납품 탭) — 업로드된 계정만 갱신
@@ -408,7 +410,7 @@ export async function handler(req, res) {
       // 확인 게이트: onWarmup 이 오면 phase=confirm, 사람이 /confirm 누르면 goPromise resolve → 스캔 착수
       const goPromise = new Promise((resolve) => { scanConfirmResolve = resolve; });
       runContentScan(campaign, {
-        full, perf,
+        full, perf, only: _only,
         onWarmup: () => { contentScanState.phase = 'confirm'; },
         waitForGo: () => goPromise,
         onProgress: (p) => { if (contentScanState.phase !== 'blocked') contentScanState.phase = 'scan'; contentScanState.done = p.done; contentScanState.total = p.total; },

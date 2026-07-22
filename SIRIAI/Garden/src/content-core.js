@@ -107,7 +107,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const jitter = () => 900 + Math.floor(Math.random() * 1700); // 계정 간 0.9~2.6초 랜덤(사람처럼)
 // onBlocked({reason,done,total,failed}) → 'resume'|'stop' : 막혔을 때 멈추고 사용자를 기다림(VPN 바꾸고 재개).
 // shouldPause() → boolean : 사용자가 '중지'를 눌렀는지(수동). 계정 사이에서 멈춘다.
-export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo, onBlocked, shouldPause, full = false, perf = false, concurrency = 1 } = {}) {
+// only: 특정 계정만 — '오늘 올리는 몇 명'만 확인할 때. 전체를 길게 돌 이유가 없다.
+export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo, onBlocked, shouldPause, full = false, perf = false, concurrency = 1, only } = {}) {
   const cfg = { hashtags: campaign.campaignHashtags || [], soundId: campaign.campaignSoundId || '' };
   const accounts = await getAccountsFromSheet(campaign.sheet);
   const prev = prevDetected(campaign);
@@ -118,7 +119,12 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
   //    링크가 있는데 목록에 영상이 안 뜨던 계정도 여기서 영상 페이지 직접 열어(fetchVideoByLink) 채운다.
   //  · full(Shift+클릭): 전체 재스캔.
   const isUploaded = (a) => (prev[a.handle] && prev[a.handle].uploaded) || !!(a.contentLink && String(a.contentLink).trim());
-  const targets = full ? accounts : perf ? accounts.filter(isUploaded) : accounts.filter((a) => !isUploaded(a));
+  let targets = full ? accounts : perf ? accounts.filter(isUploaded) : accounts.filter((a) => !isUploaded(a));
+  // 특정 계정만 보라고 지정되면 그것만 — '오늘 올리는 몇 명'만 확인할 때.
+  if (Array.isArray(only) && only.length) {
+    const want = new Set(only.map((v) => String(v).replace(/^@/, '').toLowerCase()));
+    targets = targets.filter((a) => want.has(String(a.handle).toLowerCase()));
+  }
 
   // 인증 창 하나 먼저 띄우고 '스캔 시작'을 기다린다(대기 초과면 여기서 throw).
   const { browser, ctx } = await launchBrowser({ onWarmup, waitForGo }); // Playwright 미설치면 throw
