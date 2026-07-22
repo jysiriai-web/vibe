@@ -556,6 +556,32 @@ td.mono, th.mono { font-family:var(--mono); font-size:12px; }
 /* 내 PC 연결 배지 — 실제로 로컬 서버 응답을 확인했을 때만 뜬다(예전 가짜 배지와 다르다) */
 .lbadge { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700;
   background:var(--ok-bg); color:var(--ok-ink); border:1px solid #bfe9d7; border-radius:20px; padding:5px 11px; white-space:nowrap; }
+/* 매뉴얼 — 접힌 목록. 15개를 다 펼쳐두면 스크롤 벽이 되고, 팀은 보통 한 개만 찾는다. */
+.qa-top { display:flex; gap:10px; align-items:center; margin-bottom:10px; flex-wrap:wrap; }
+.qa-top .msearch { flex:1; min-width:220px; }
+.qa-lang { display:inline-flex; background:var(--line2); border-radius:9px; padding:3px; gap:2px; }
+.qa-lang .lang { border:0; background:none; font:inherit; font-size:12.5px; font-weight:700; color:var(--muted);
+  padding:5px 12px; border-radius:7px; cursor:pointer; }
+.qa-lang .lang.on { background:var(--card); color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.06); }
+.qa-cats { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+.chipf { font:inherit; font-size:12.5px; font-weight:700; padding:5px 12px; border-radius:20px; cursor:pointer;
+  background:var(--card); color:var(--muted); border:1px solid var(--line); }
+.chipf.on { background:var(--ink); color:var(--paper,#fff); border-color:var(--ink); }
+.qa-note { font-size:12.5px; color:var(--muted); margin-bottom:14px; }
+.qa-list { background:var(--card); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); overflow:hidden; }
+.qa { border-bottom:1px solid var(--line2); }
+.qa:last-child { border-bottom:none; }
+.qa-h { display:flex; align-items:center; gap:10px; padding:13px 16px; cursor:pointer; list-style:none; }
+.qa-h::-webkit-details-marker { display:none; }
+.qa-h::before { content:'▸'; color:var(--faint); font-size:11px; flex-shrink:0; transition:transform .12s; }
+.qa[open] .qa-h::before { transform:rotate(90deg); }
+.qa-h b { flex:1; font-size:13.5px; font-weight:700; }
+.qa-h .copy-ans { opacity:0; flex-shrink:0; }
+.qa:hover .qa-h .copy-ans, .qa[open] .qa-h .copy-ans { opacity:1; }
+.qa-p { margin:0; padding:2px 16px 16px 40px; font:inherit; font-size:13px; line-height:1.7; color:var(--muted);
+  white-space:pre-wrap; word-break:break-word; }
+.qa-cat { font-size:10.5px; font-weight:800; letter-spacing:.03em; background:var(--accent-soft); color:var(--accent-ink);
+  padding:2px 8px; border-radius:20px; flex-shrink:0; }
 </style>
 </head>
 <body>
@@ -924,7 +950,7 @@ function gStat(d, p){
 }
 
 /* ============ 상태 ============ */
-const state = { view:'recruit', plat:'all', platOnly:'', raw:false, campaign:'lun8', worker:'online', addForm:false, gardenHold:true, simOpen:false, sim:null, simCampaign:null, sort:{}, day:null, week:null, stripOpen:false, upFilter:'all', noticeOnly:false, unfixedOnly:false };
+const state = { view:'recruit', plat:'all', platOnly:'', qaLang:'ja', raw:false, campaign:'lun8', worker:'online', addForm:false, gardenHold:true, simOpen:false, sim:null, simCampaign:null, sort:{}, day:null, week:null, stripOpen:false, upFilter:'all', noticeOnly:false, unfixedOnly:false };
 const cfg = ()=> CAMPAIGNS[state.campaign];
 const platsOn = ()=> cfg().plats;
 const hasIG = ()=> platsOn().includes('ig');
@@ -1899,25 +1925,28 @@ const kMissing = f => '<div class="kempty">knowledge.js 를 못 읽었어요.<br
 function viewManual(){
   if(typeof MANUAL === 'undefined') return kMissing('MANUAL');
   const cats = ['전체'].concat([...new Set(MANUAL.map(m=>m.cat))]);
-  const cards = MANUAL.map(function(m,i){
-    // data-hay 를 미리 박아둔다 — 검색할 때마다 원본 배열을 다시 훑지 않고 DOM 만 보면 된다.
+  const L = state.qaLang || 'ja';   // 크리에이터 대부분이 일본인이라 기본은 일본어
+  const items = MANUAL.map(function(m,i){
     const hay = esc((m.q+' '+m.cat+' '+m.ko+' '+m.ja).toLowerCase());
-    const ans = function(L,label){
-      return '<div class="qa-a"><div class="qa-l"><span>'+label+'</span>'
-        + '<button class="btn small copy-ans" data-t="ans-'+i+'-'+L+'">복사</button></div>'
-        + '<pre id="ans-'+i+'-'+L+'">'+mark(esc(m[L]))+'</pre></div>';
-    };
-    return '<div class="qa" data-cat="'+esc(m.cat)+'" data-hay="'+hay+'">'
-      + '<div class="qa-h"><span class="qa-cat">'+esc(m.cat)+'</span><b>'+esc(m.q)+'</b></div>'
-      + '<div class="qa-b">'+ans('ko','한국어')+ans('ja','日本語')+'</div></div>';
+    // 복사는 접힌 상태에서도 눌린다 — 대부분 열어보지도 않고 복사한다.
+    return '<details class="qa" data-cat="'+esc(m.cat)+'" data-hay="'+hay+'">'
+      + '<summary class="qa-h"><span class="qa-cat">'+esc(m.cat)+'</span>'
+      +   '<b>'+esc(m.q)+'</b>'
+      +   '<button class="btn small copy-ans" data-t="ans-'+i+'" title="답변 복사">복사</button>'
+      + '</summary>'
+      + '<pre class="qa-p" id="ans-'+i+'">'+mark(esc(m[L]))+'</pre>'
+      + '</details>';
   }).join('');
-  return '<div class="bar">'
-    + '<input id="mSearch" class="msearch" type="search" placeholder="질문·답변 내용으로 검색…" autocomplete="off" />'
-    + cats.map(function(c,i){ return '<button class="btn small m-f'+(i?'':' primary')+'" data-k="'+esc(c)+'">'+esc(c)+'</button>'; }).join('')
-    + '</div>'
-    + '<div class="note-line">문의가 오면 여기서 찾아 <b>복사</b>해서 그대로 답장하세요. 금액·기간·인정 여부는 팀원마다 답이 달라지면 그 자체가 사고예요.'
-    + '<br>빨간 <b>[확인필요]</b>는 실제 사양이 안 채워진 자리예요 — <b>그대로 보내지 마세요.</b></div>'
-    + '<div id="qaList">'+cards+'</div>'
+  return '<div class="qa-top">'
+    + '<input id="mSearch" class="msearch" type="search" placeholder="질문·답변으로 검색…" autocomplete="off" />'
+    + '<div class="qa-lang">'
+    +   '<button class="lang'+(L==='ja'?' on':'')+'" data-qalang="ja">日本語</button>'
+    +   '<button class="lang'+(L==='ko'?' on':'')+'" data-qalang="ko">한국어</button>'
+    + '</div></div>'
+    + '<div class="qa-cats">' + cats.map(function(c,i){
+        return '<button class="chipf m-f'+(i?'':' on')+'" data-k="'+esc(c)+'">'+esc(c)+'</button>'; }).join('') + '</div>'
+    + '<div class="qa-note">문의가 오면 찾아서 <b>복사</b> → 그대로 답장. <b class="warn-t">[확인필요]</b>는 아직 안 정해진 자리라 그대로 보내면 안 돼요.</div>'
+    + '<div id="qaList" class="qa-list">'+items+'</div>'
     + '<div class="kempty" id="qaEmpty" hidden>검색 결과가 없어요.</div>';
 }
 
@@ -1940,7 +1969,7 @@ function viewGuide(){
 function filterManual(){
   const box = document.getElementById('mSearch');
   const q = (box ? box.value : '').trim().toLowerCase();
-  const on = document.querySelector('#content .m-f.primary');
+  const on = document.querySelector('#content .m-f.on');
   const cat = on ? on.dataset.k : '전체';
   let shown = 0;
   document.querySelectorAll('#qaList .qa').forEach(function(el){
@@ -2382,6 +2411,8 @@ document.getElementById('content').addEventListener('click', e=>{
     if(d){ d.notice=!d.notice; render(); saveField(d.id, 'notice', d.notice?'발송완료':''); }
     return;
   }
+  { const lg = e.target.closest('[data-qalang]');
+    if(lg){ state.qaLang = lg.dataset.qalang; render(); return; } }
   const nf2=e.target.closest('[data-notice-f]');
   if(nf2){
     state.noticeOnly = nf2.dataset.noticeF==='1';
@@ -2494,7 +2525,7 @@ document.getElementById('modal').addEventListener('click', e=>{ if(e.target.id==
 document.getElementById('content').addEventListener('click', e=>{
   const f = e.target.closest('.m-f');
   if(f){
-    document.querySelectorAll('#content .m-f').forEach(o=> o.classList.remove('primary'));
+    document.querySelectorAll('#content .m-f').forEach(o=> o.classList.remove('on'));
     f.classList.add('primary'); filterManual(); return;
   }
   const ca = e.target.closest('.copy-ans');
