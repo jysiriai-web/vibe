@@ -190,11 +190,28 @@ function markStale(orders) {
   });
 }
 
+// 배포 화면에서 이 로컬 서버를 부를 수 있게 허용할 출처. 우리 것만 연다 —
+// 아무 출처나 열면 다른 사이트가 방문자 PC 의 로컬 서버를 조종할 수 있다.
+// 정규식 대신 문자열 검사 — 이스케이프가 한 글자만 어긋나도 조용히 아무 출처나 열린다.
+// 여는 문을 다루는 코드는 읽어서 바로 맞는지 알 수 있어야 한다.
+function corsFor(origin) {
+  const o = String(origin || '');
+  if (!o) return '';
+  // 우리 배포본 (프리뷰 배포는 siriai-challenge-xxxx 형태로 붙는다)
+  if (o.startsWith('https://siriai-challenge') && o.endsWith('.vercel.app')) return o;
+  // 개발 중인 로컬 화면
+  if (o.startsWith('http://localhost:') || o.startsWith('http://127.0.0.1:')) return o;
+  return '';
+}
+
+let _origin = '';   // 지금 처리 중인 요청의 Origin. send 가 CORS 헤더를 붙일 때 쓴다.
 function send(res, code, body, type = 'application/json') {
   const t = type + (type.startsWith('text') || type === 'application/json' ? '; charset=utf-8' : '');
+  const allow = corsFor(_origin);
   // 캐시 금지 — 고친 화면이 안 바뀌어 "요청한 게 하나도 적용이 안 됐다"로 보이던 원인.
   // 매일 고치는 내부 도구라 캐시 이득보다 '새로고침했는데 옛 화면'이 훨씬 비싸다.
-  res.writeHead(code, { 'Content-Type': t, 'Cache-Control': 'no-store, must-revalidate', Pragma: 'no-cache' });
+  res.writeHead(code, Object.assign({ 'Content-Type': t, 'Cache-Control': 'no-store, must-revalidate', Pragma: 'no-cache' },
+    allow ? { 'Access-Control-Allow-Origin': allow, 'Access-Control-Allow-Headers': 'Content-Type', 'Vary': 'Origin' } : {}));
   res.end(typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body));
 }
 function readBody(req) {
@@ -208,6 +225,15 @@ function readBody(req) {
 
 // 요청 핸들러 — 로컬(http 서버)과 Vercel(서버리스 함수)이 같은 함수를 쓴다.
 export async function handler(req, res) {
+  _origin = req.headers.origin || '';
+  // 브라우저는 POST 전에 OPTIONS 로 먼저 물어본다. 여기서 허용을 답하지 않으면 요청 자체가 안 간다.
+  if (req.method === 'OPTIONS') {
+    const allow = corsFor(_origin);
+    res.writeHead(allow ? 204 : 403, allow
+      ? { 'Access-Control-Allow-Origin': allow, 'Access-Control-Allow-Methods': 'GET,POST,OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '600', Vary: 'Origin' }
+      : {});
+    return res.end();
+  }
   const url = new URL(req.url, 'http://localhost');
   const path = url.pathname;
   const campId = url.searchParams.get('campaign');
@@ -554,6 +580,9 @@ export async function handler(req, res) {
         return send(res, 500, { error: e.message });
       }
     }
+    // 배포 화면이 '여기가 대표님 PC 인가'를 확인하는 데 쓴다. 로컬에서만 뜨는 서버이므로
+    // 응답이 오면 곧 '이 브라우저가 있는 PC 에 서버가 있다'는 뜻이다. 팀원 PC 에선 응답이 없다.
+    if (path === '/api/ping') return send(res, 200, { ok: true, local: !CLOUD, campaign: campaign.id, hasKey: !!smm });
     if (path === '/api/ig-scan-status') return send(res, 200, igScanState || { phase: 'idle' });
     if (path === '/api/ig-scan/stop' && req.method === 'POST') { scanAbort.add('ig-scan'); return send(res, 200, { ok: true }); }
 
