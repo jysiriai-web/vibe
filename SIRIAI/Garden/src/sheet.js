@@ -47,6 +47,11 @@ const bridgePost = (sheet, payload) =>
 export async function getAccountsFromSheet(sheet) {
   ensure(sheet);
   const data = await bridgeCall(`${sheet.url}?action=list&token=${encodeURIComponent(sheet.token)}`, {});
+  // 헤더행을 못 찾았으면 브릿지가 '추측한 좌표'로 읽어 온 값이다. 쓰기는 이미 막혀 있으니
+  // 읽기도 같이 막는다 — 남의 열을 우리 값이라고 화면에 띄우는 게 더 위험하다.
+  if (data.colinfo && data.colinfo.headerFound === false) {
+    throw new Error('마스터 헤더행(계정링크 + 닉네임/진행사)을 못 찾았어요 — 열 위치를 몰라 값을 읽지 않았습니다. 시트 헤더 이름을 확인해 주세요.');
+  }
   return data.accounts || [];
 }
 
@@ -100,7 +105,9 @@ export async function pushCellsToSheet(sheet, cells) {
   const r = await bridgePost(sheet, { cells });
   // 브릿지가 필드를 못 알아들으면 skipped 로 돌려준다. 이걸 안 보면 '아무것도 안 써졌는데 성공'이 된다.
   if (r && Array.isArray(r.skipped) && r.skipped.length) {
-    throw new Error('마스터시트에서 이 항목의 열을 못 찾았어요: ' + [...new Set(r.skipped)].join(', ')
+    // 사유까지 붙인다 — '열을 못 찾았다' 하나로는 헤더 오타인지 플랫폼 열이 없는 건지 구분이 안 된다.
+    const why = Array.isArray(r.skipReasons) && r.skipReasons.length ? ' (' + [...new Set(r.skipReasons)].join(' / ') + ')' : '';
+    throw new Error('마스터시트에서 이 항목의 열을 못 찾았어요: ' + [...new Set(r.skipped)].join(', ') + why
       + ' — 시트 헤더 이름을 확인하거나 브릿지 별칭에 추가해야 합니다(엉뚱한 열을 덮어쓰지 않으려고 쓰기를 멈췄어요).');
   }
   // 리다이렉트로 POST 가 GET 이 되면 목록 응답(accounts)이 돌아온다 — 쓰기 결과가 아니다.

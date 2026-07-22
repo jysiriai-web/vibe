@@ -3,7 +3,9 @@
 //   CAMPAIGN=bayonn node scripts/orders.js
 import { loadEnv } from '../src/env.js';
 import { createSmm } from '../src/smm.js';
-import { loadOrders, saveOrders, refreshOrders } from '../src/orders.js';
+import { refreshOrders } from '../src/orders.js';
+// 로컬 파일만 보면 시트에 있는 주문이 현황에서 통째로 빠진다 — 서버와 같은 원장을 본다.
+import { readOrders, writeOrders } from '../src/store.js';
 import { defaultCampaign, getCampaign } from '../src/campaigns.js';
 
 loadEnv();
@@ -13,12 +15,23 @@ const key = process.env.SMMKINGS_API_KEY;
 if (!key) { console.error('\n❌ SMMKINGS_API_KEY 없음\n'); process.exit(1); }
 const smm = createSmm(key);
 
-let orders = loadOrders(campaign.dataDir);
+// 못 읽었는데 '기록 없음'으로 찍으면 진짜 없는 것과 구분이 안 된다 → 정직하게 실패로 끝낸다.
+let orders;
+try {
+  orders = await readOrders(campaign);
+} catch (e) {
+  console.error(`\n❌ 주문 기록을 읽지 못했어(${e.message}). 아래 현황은 믿을 수 없어서 출력하지 않아.\n`);
+  process.exit(1);
+}
 if (!orders.length) { console.log(`\n[${campaign.name}] 주문 기록 없음.\n`); process.exit(0); }
 
 console.log(`\n[${campaign.name}] ▶ 주문 상태 갱신 중...`);
 orders = await refreshOrders(smm, orders);
-saveOrders(campaign.dataDir, orders);
+{
+  const w = await writeOrders(campaign, orders);
+  if (!w.durable) console.error(`  ⚠️ 갱신한 상태를 저장하지 못했어: ${w.localError || ''} ${w.sheetError || ''}`);
+  else if (w.sheet === 'fail') console.error(`  ⚠️ 시트 기록 실패(로컬엔 저장됨): ${w.sheetError}`);
+}
 
 console.log('\n주문 현황:');
 for (const o of orders) {

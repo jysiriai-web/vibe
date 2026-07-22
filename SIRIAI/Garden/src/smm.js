@@ -16,28 +16,51 @@ export function createSmm(key, apiUrl) {
   }
   const url = apiUrl || process.env.SMM_API_URL || DEFAULT_URL;
 
+  // 오류에 kind/unknownCharge 표식을 단다.
+  // 돈이 안 나간 게 확실한 건 패널이 명시 거절한 kind:'panel' 하나뿐이다.
+  // 네트워크 끊김·비JSON 502 는 '패널이 주문을 만든 뒤 응답만 유실'과 구분할 수 없으므로
+  // unknownCharge=true 로 남겨 호출부가 이중지출을 판단할 수 있게 한다.
   async function req(params) {
     const body = new URLSearchParams({ key, ...params });
     let res, text;
     try {
       res = await fetch(url, {
         method: 'POST',
+        // undici 기본 타임아웃은 300초라 밤 배치가 통째로 매달린다.
+        signal: AbortSignal.timeout(30000),
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body.toString(),
       });
       text = await res.text();
     } catch (e) {
-      throw new Error(`SMM 네트워크 오류: ${e.message}`);
+      const err = new Error(`SMM 네트워크 오류: ${e.message}`);
+      err.kind = 'network';
+      err.unknownCharge = true;
+      throw err;
     }
     let json;
     try {
       json = JSON.parse(text);
     } catch {
-      throw new Error(
+      const err = new Error(
         `SMM 응답이 JSON 이 아님 (HTTP ${res.status}): ${text.slice(0, 300)}`
       );
+      err.kind = 'nonjson';
+      err.unknownCharge = true;
+      throw err;
     }
-    if (json && json.error) throw new Error(`SMM 오류: ${json.error}`);
+    // 패널이 4xx 로 '명시 거절 JSON' 을 주는 경우는 아래 panel 분기가 받게 비켜준다.
+    if (!res.ok && !(json && json.error)) {
+      const err = new Error(`SMM HTTP ${res.status}: ${text.slice(0, 300)}`);
+      err.kind = 'http5xx';
+      err.unknownCharge = true;
+      throw err;
+    }
+    if (json && json.error) {
+      const err = new Error(`SMM 오류: ${json.error}`);
+      err.kind = 'panel'; // 패널이 접수를 거절 = 과금 없음이 확실
+      throw err;
+    }
     return json;
   }
 

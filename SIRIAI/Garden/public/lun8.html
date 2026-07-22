@@ -749,7 +749,7 @@ select.best.on { background:#fff8e1; color:#8a6100; border-color:#f0d48a; font-w
     </div>
     <div class="set-group">
       <span class="set-lab">유연성</span>
-      <span class="set-desc">새 캠페인은 상단 드롭다운 <b>＋ 새 캠페인</b>(config 한 개), 새 인원은 모집 탭 <b>＋ 인원 추가</b>로. 개발자 없이 팀이 바로 바꿔요.</span>
+      <span class="set-desc">새 캠페인은 상단 드롭다운 <b>＋ 새 캠페인</b>에서 config 한 덩어리를 확인한 뒤 서버 campaigns.json 에 넣어요. 새 인원은 모집 탭 <b>⬇ 모집 가져오기</b>나 마스터시트 직접 추가 → <b>↻ 새로고침</b>.</span>
     </div>
   </div>
 </div>
@@ -832,8 +832,6 @@ const CAMPAIGNS = {
 /* ============ 데이터 (서버 API · 1행=1사람) ============ */
 /* 손으로 쓴 10명 + 34명 시드는 통째로 걷어냈다. 이제 화면의 유일한 출처는 마스터시트다. */
 let D = [];
-// 시트 행번호를 그대로 id로 쓰기 때문에, 화면에서 임시로 만드는 행은 행번호와 절대 겹치지 않게 멀리 띄운다.
-let nextId = 100000;
 const PAY_OPTS = ['아마존','구글','애플'];
 
 /* 같은 서버(3737)가 이 HTML을 서빙하므로 상대경로가 기본 — 포트를 바꿔도 따라온다.
@@ -877,20 +875,30 @@ function contentObj(url, label){
 /* 플랫폼 한 벌(틱톡 또는 인스타) → 화면이 쓰는 모양.
    src 는 브릿지 재배포 후엔 a.tk / a.ig, 재배포 전엔 평면 필드를 담은 account 자신이다.
    두 모양의 필드명이 다르므로(current↔followers, contentLink↔contentA) 둘 다 받아 넘긴다. */
-function platBlock(src){
+/* fb = 계정 최상위(account 자신). 서버가 계산해 최상위에만 붙이는 값들(inFlight·current·
+   detected.json 에서 채운 contentLink/soundOk/hashtagOk/views)이 tk/ig 묶음에는 없다 —
+   폴백을 안 주면 그 계산이 화면에서 통째로 버려져 '진행중 주문 0 · 영영 미업로드'가 된다.
+   틱톡 한 벌에만 넘긴다: 최상위는 틱톡 핸들 기준이라 인스타에 주면 남의 값이 샌다. */
+function platBlock(src, fb){
   if(!src) return null;
+  const F = fb || {};
+  // 빈 문자열도 건너뛰고 첫 실값을 고른다 — 폴백은 '이 한 벌에 값이 없을 때'만이어야 한다.
+  const pick = (...vs)=>{ for(const v of vs){ const s = String(v==null?'':v).trim(); if(s) return s; } return ''; };
   const raw = String(src.handle==null?'':src.handle).trim();
   const h = raw ? (raw.charAt(0)==='@' ? raw : '@'+raw) : String(src.link==null?'':src.link).trim();
-  const fol = src.current!=null ? numOrNull(src.current)
-            : (src.followers!=null ? numOrNull(src.followers) : numOrNull(src.sheetFollowers));
+  // 스캔값(current)이 시트 팔로워 열보다 최신이다.
+  const fol = numOrNull(src.current) ?? numOrNull(F.current)
+           ?? numOrNull(src.followers) ?? numOrNull(src.sheetFollowers);
   return {
     h: h,
-    c1: contentObj(src.contentA!=null ? src.contentA : src.contentLink, '콘텐츠①'),
-    c2: contentObj(src.contentB, '콘텐츠②'),
-    snd: revFlag(src.soundOk), sec: revFlag(src.soundSection), hash: revFlag(src.hashtagOk),
+    c1: contentObj(pick(src.contentA, src.contentLink, F.contentLink), '콘텐츠①'),
+    c2: contentObj(pick(src.contentB, F.contentB), '콘텐츠②'),
+    snd: revFlag(pick(src.soundOk, F.soundOk)),
+    sec: revFlag(pick(src.soundSection, F.soundSection)),
+    hash: revFlag(pick(src.hashtagOk, F.hashtagOk)),
     fol: fol,
-    inFlight: numOrNull(src.inFlight) || 0,
-    views: String(src.views==null?'':src.views),
+    inFlight: (numOrNull(src.inFlight) ?? numOrNull(F.inFlight)) || 0,
+    views: String(pick(src.views, F.views)),
     memo: String(src.memo==null?'':src.memo)
   };
 }
@@ -900,8 +908,8 @@ function platBlock(src){
    그 경우 계정 자체를 틱톡 한 벌로 읽는다(인스타는 null). 이렇게 해야 재배포 전에도 화면이 뜬다. */
 function fromApi(a){
   const split = !!(a.tk || a.ig);
-  const tk = split ? platBlock(a.tk) : platBlock(a);
-  const ig = split ? platBlock(a.ig) : null;
+  const tk = split ? platBlock(a.tk, a) : platBlock(a);
+  const ig = split ? platBlock(a.ig) : null;   // 인스타엔 최상위를 넘기지 않는다 — 최상위는 틱톡 핸들 기준이다
   const plats = [];
   if(tk) plats.push('tk');
   if(ig) plats.push('ig');
@@ -928,9 +936,12 @@ function fromApi(a){
     noUpload: false, oddsLow: false,
     notice: !!String(a.notice==null?'':a.notice).trim(),   // 확정메일 발송 여부 — 모집 탭에서 체크
     tk: tk, ig: ig,
-    settle: { pay:'아마존', best:false, override:null,
+    settle: { pay: PAY_OPTS.includes(String(a.pay||'').trim()) ? String(a.pay).trim() : '아마존',
+              best: !!String(a.best==null?'':a.best).trim(),
+              override: numOrNull(a.priceOverride),
               paid: paidFlag(a.paid),
-              memo: a.paidDate ? ('지급일 '+a.paidDate) : '' }
+              // 정산 비고 열이 따로 있으면 그걸 쓰고, 없으면 지급일이라도 보여준다.
+              memo: String(a.settleMemo||'').trim() || (a.paidDate ? ('지급일 '+a.paidDate) : '') }
   };
 }
 
@@ -1019,8 +1030,14 @@ function roBlockClick(){ return false; }
 function roBlockChange(){ return false; }
 
 const REV_TEXT = { p:'준수', f:'미준수', n:'' };   // 시트 드롭다운 어휘
+/* 시트 어휘는 글자 하나까지 맞아야 한다 — 다르면 드롭다운이 '잘못된 값' 경고를 달고,
+   사람이 시트에서 고른 값과 화면이 쓴 값이 갈린다. (우수 선정: 우수 / 빈칸) */
+const BEST_TEXT = on => (on ? '우수' : '');
+const PAID_MARK = '완료';
 let saving = 0;
 async function saveField(row, field, value){
+  // 시트에 없는 행(1행=머리, 화면에서 임시로 만든 10만번대)에 쓰면 브릿지가 범위 밖을 건드린다.
+  if(!(row > 1) || row >= 100000){ toast('이 행은 아직 시트에 없어요 — 마스터시트에 추가하고 ↻ 새로고침 해주세요.'); return false; }
   saving++;
   try {
     const r = await fetch('/api/cell?campaign=lun8', { method:'POST', headers:{'Content-Type':'application/json'},
@@ -1127,7 +1144,8 @@ const FIXED_STATES = ['확정메일 발송', '최종 드랍'];
 const isFixedState = v => FIXED_STATES.includes(String(v||'').trim());
 // 예정일(확정일 우선)에서 며칠 지났나. 음수면 아직 안 왔다.
 function daysLate(d, p){
-  const i = dayIdx(effDay(d)), t = dayIdx(TODAY());
+  // isLate 와 같은 기준이어야 '지연 목록에 있는데 경과가 오늘'이 안 생긴다.
+  const i = dayIdx(dueDay(d)), t = dayIdx(TODAY());
   return (i < 0 || t < 0) ? 0 : (t - i);
 }
 // 확정일 칸 — 날짜면 날짜, 진행상태면 그 상태를 색으로 구분한다.
@@ -1194,6 +1212,11 @@ function normDay(s){ const m = String(s==null?'':s).trim().match(/(\d{1,2})\s*[\
 /* 집계·필터의 기준 날짜 — 확정일이 있으면 그게 진짜다. 없으면 희망일로 임시 집계.
    두 열을 만든 이유가 "누가 언제 바꿨나"를 남기는 것이므로, 기준은 항상 확정일 우선. */
 const effDay = d => (d.fixed || d.sched || '');
+/* 지연 판정 기준일 — 확정일이 '날짜'일 때만 그게 기준이다.
+   확정일 칸에는 진행상태(확정메일 발송·최종 드랍)도 들어가는데 그건 날짜가 아니다.
+   그때 기준을 잃으면 '답 대기' 인원이 지연 목록에서 통째로 사라져 아무도 안 쫓게 된다
+   → 상태값이면 원래 희망일로 판정한다. */
+const dueDay = d => { const f = String(d.fixed||'').trim(); return (f && !isFixedState(f) && normDay(f)) ? f : (d.sched||''); };
 function dayBucket(d){
   const k = normDay(effDay(d));
   if(k && ALLDAYS().indexOf(k)>=0) return k;
@@ -1217,7 +1240,8 @@ const dayIdx = s => ALLDAYS().indexOf(normDay(s));
 /* 지연 = 예정일이 오늘보다 이전인데 아직 안 올라온 것. 예정일이 없거나 일정 밖이면 지연 판정 안 함. */
 function isLate(d, p){
   if(!WEEKS().length) return false;
-  const i = dayIdx(d.sched), t = dayIdx(TODAY());
+  // 희망일이 아니라 기준일로 본다 — 뒤로 합의한 사람을 '미준수'로 잡으면 완충 KPI 가 헛되이 깎인다.
+  const i = dayIdx(dueDay(d)), t = dayIdx(TODAY());
   if(i < 0 || t < 0 || i >= t) return false;
   return p ? (d[p] && !uploaded(d,p)) : platsOn().some(x=> d[x] && !uploaded(d,x));
 }
@@ -1521,7 +1545,8 @@ function viewRecruit(){
   const addFormHTML = state.addForm ? `
     <div class="addcard">
       <h4>${IC.userplus} 새 크리에이터 추가</h4>
-      <p class="addcard-desc">틱톡·인스타 <b>링크만</b> 넣으면 끝이에요. 팔로워·이름·닉네임은 <b>모집 스캔하면 자동으로 채워집니다.</b></p>
+      <p class="addcard-desc"><b>아직 이 화면에서는 마스터시트에 못 넣어요.</b> 새 크리에이터는 <b>⬇ 모집 가져오기</b>를 쓰거나
+        마스터시트에 직접 한 줄 추가한 뒤 <b>↻ 새로고침</b> 해주세요. (시트에 한 줄 넣는 서버 기능이 준비되면 여기서 바로 됩니다.)</p>
       <div class="addgrid">
         <div class="addfield"><label>진행사</label><select class="inp" id="apCo"><option>MARU</option><option>SIRIAI</option></select></div>
         <div class="addfield"><label>틱톡 링크</label><input class="inp wide" id="apTk" placeholder="tiktok.com/@handle"></div>
@@ -1573,7 +1598,8 @@ function viewUploadAll(){
     // 날짜는 미러링 뒤로. 앞쪽은 '올라왔나·같은 영상인가'를 보는 자리고,
     // 날짜는 그다음에 챙기는 것이다. 확정일은 모집탭에서 여기로 옮겼다 —
     // 날짜를 다시 잡는 일은 업로드를 쫓는 사람 몫이다.
-    { key:'sched', label:'예정일', sv:r=>schedKey(r.sched),
+    // 표시는 원본 희망일 그대로(옆에 확정일 열이 있어 둘을 비교하는 자리다). 정렬만 기준일로 — 안 그러면 순서와 지연이 어긋난다.
+    { key:'sched', label:'예정일', sv:r=>schedKey(dueDay(r)),
       cell:r=> r.sched ? `<b>${esc(r.sched)}</b>` : '<span class="cmuted">미정</span>' },
     { key:'fixed', label:'확정일', sv:r=>String(r.fixed||''), cell:r=>fixedCell(r) },
     { key:'edit', label:'', cell:r=>editBtn(r.id) },
@@ -1643,7 +1669,6 @@ const UP_FILTERS = [
   // 일정 미준수는 하위탭으로 옮겼다 — 필터와 하위탭이 같은 일을 하면 어느 쪽이 켜졌는지 헷갈린다.
 ];
 const upFilter = ()=> UP_FILTERS.find(f=> f.k===state.upFilter) || UP_FILTERS[0];
-const upScanBtn = ()=> `<button class="btn small" id="btnUpScan">🔎 업로드 스캔</button>`;
 /* pairs = [{d,p}] — 통합탭은 사람×플랫폼, 플랫폼탭은 그 플랫폼으로 미리 묶어서 넘긴다(건수 표기 공용). */
 /* 선택 스캔 — 표에서 고른 사람만 인스타 업로드 스캔을 돌린다.
    전체는 46계정 30분이라 '오늘 올리는 몇 명'만 보고 싶을 때 쓴다.
@@ -1712,6 +1737,33 @@ async function runPickScan(btn){
   } catch(e){ toast('스캔 실패: ' + esc(e.message)); }
   finally { btn.disabled = false; render(); }
 }
+/* 조회수 스캔 — 업로드된 계정의 조회수만 다시 긁는다(perf=1). 로컬 서버에서만 돈다.
+   예전엔 정의도 없는 scanRequest() 를 불러 버튼이 그냥 죽어 있었다(콘솔 오류 한 줄).
+   서버는 {started:true} 만 돌려주고 로봇인증 확인·진행률은 작업 콘솔에 있다 —
+   여기서 '완료'라고 말하면 거짓말이다. 시작됐다는 것까지만 말한다. */
+async function runPerfScan(btn){
+  btn.disabled = true; const t = btn.textContent; btn.textContent = '스캔 시작 중…';
+  try {
+    const r = await fetch(localApi('/api/content-scan?perf=1&campaign=' + state.campaign), { method:'POST' });
+    const j = await r.json();
+    if(j.error) throw new Error(j.error);
+    if(j.running) toast('이미 스캔이 돌고 있어요 — 작업 콘솔에서 진행상황을 봐주세요.');
+    else toast('조회수 스캔을 시작했어요 — 작업 콘솔에서 로봇인증을 확인하면 진행돼요.');
+  } catch(e){ toast('조회수 스캔 실패: ' + esc(e.message)); }
+  finally { btn.disabled = false; btn.textContent = t; }
+}
+/* 납품시트 기입 — 예전엔 fetch 없이 '자동 기입' 문구만 띄웠다.
+   실제로 부르고 서버가 센 건수를 그대로 말한다(납품시트 설정이 없는 캠페인이면 그 이유가 뜬다). */
+async function runDeliverWrite(btn){
+  btn.disabled = true; const t = btn.textContent; btn.textContent = '기입 중…';
+  try {
+    const r = await fetch('/api/deliver?campaign=' + state.campaign, { method:'POST' });
+    const j = await r.json();
+    if(j.error) throw new Error(j.error);
+    toast('납품시트에 <b>' + (j.added||0) + '건</b> 기입했어요 (검수완료 ' + (j.reviewedTotal||0) + '건 중, 중복 제외).');
+  } catch(e){ toast('납품 기입 실패: ' + esc(e.message)); }
+  finally { btn.disabled = false; btn.textContent = t; }
+}
 /* 업로드탭 도구줄. '전체' 하나만 남은 필터 버튼은 잔재라 뺐다 —
    고를 게 하나뿐인 필터는 필터가 아니다(일정 미준수는 하위탭으로 옮겼다).
    빈 열 배지는 하위탭 오른쪽 끝(subSlot)으로 보낸다 — 표에 관한 정보라 표를 고르는 줄에 붙는 게 맞다. */
@@ -1729,14 +1781,14 @@ function viewUploadLate(){
     pairs.push({ d, p, id:d.id+'|'+p });
   }));
   // 오래 지난 사람부터. 늦을수록 급하다.
-  pairs.sort((a,b)=> schedKey(effDay(a.d)) - schedKey(effDay(b.d)));
+  pairs.sort((a,b)=> schedKey(dueDay(a.d)) - schedKey(dueDay(b.d)));
   const cols = [
     { key:'co', label:'진행사', sv:r=>r.d.co, cell:r=>coChip(r.d.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.d.nick, cell:r=>nickCell(r.d) },
     { key:'plat', label:'플랫폼', sv:r=>r.p, cell:r=>`<span class="plat-pill ${r.p}">${pName(r.p)}</span>` },
     { key:'h', label:'닉네임', cls:'handle', sv:r=>r.d[r.p].h, cell:r=>acctLink(r.d[r.p].h, r.p) },
     { key:'email', label:'이메일', cls:'mail', sv:r=>r.d.email||'', cell:r=>mailCell(r.d.email) },
-    { key:'sched', label:'예정일', sv:r=>schedKey(r.d.sched), cell:r=> r.d.sched?`<b>${esc(r.d.sched)}</b>`:'<span class="cmuted">미정</span>' },
+    { key:'sched', label:'예정일', sv:r=>schedKey(dueDay(r.d)), cell:r=> r.d.sched?`<b>${esc(r.d.sched)}</b>`:'<span class="cmuted">미정</span>' },
     { key:'late', label:'경과', cls:'num', thcls:'num', sv:r=>-daysLate(r.d,r.p),
       cell:r=>{ const n=daysLate(r.d,r.p); return n>0?`<span class="chip needs">${n}일 지남</span>`:'<span class="cmuted">오늘</span>'; } },
     { key:'fixed', label:'확정일 · 진행상태', sv:r=>String(r.d.fixed||''), cell:r=>fixedCell(r.d) },
@@ -1768,7 +1820,8 @@ function viewUpload(){
     { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
     { key:'h', label:pName(p)+' 닉네임', cls:'handle', grp:p, sv:r=>r[p].h, cell:r=>`${acctLink(r[p].h, p)}` },
-    { key:'sched', label:'예정일', hideable:true, empty:r=>!r.sched, sv:r=>schedKey(r.sched), cell:r=> r.sched ? (isLate(r,p)?`<span class="chip needs">${esc(r.sched)} 지남</span>`:`<b>${esc(r.sched)}</b>`) : `<span class="cmuted">미정</span>` },
+    // 이 표엔 확정일 열이 없다. 희망일을 그대로 보여주면 뒤로 합의한 사람에게 '7/24 지남'이라는 거짓말이 남는다 → 기준일로 표시·정렬한다.
+    { key:'sched', label:'예정일', hideable:true, empty:r=>!dueDay(r), sv:r=>schedKey(dueDay(r)), cell:r=> dueDay(r) ? (isLate(r,p)?`<span class="chip needs">${esc(dueDay(r))} 지남</span>`:`<b>${esc(dueDay(r))}</b>`) : `<span class="cmuted">미정</span>` },
     { key:'c1', label:'콘텐츠①', sortable:false, cell:r=>contentCell(r[p].c1, p) },
     { key:'c2', label:'콘텐츠②', hideable:true, empty:r=>!r[p].c2, sortable:false, cell:r=>contentCell(r[p].c2, p) },
     { key:'snd', label:'음원', hideable:true, empty:()=>false, sv:r=>r[p].snd, cell:r=>revSel(r[p].snd, r.id, 'snd', p) },
@@ -1951,7 +2004,55 @@ function gardenHistory(){
 // 달러를 원으로. 환율은 서버가 준 값이 있으면 그걸, 없으면 대략치를 쓴다(표기용).
 let KRW_PER_USD = 1400;
 const wonOf = usd => Math.round((Number(usd)||0) * KRW_PER_USD).toLocaleString('ko-KR') + '원';
+/* 납품 도구줄 — 통합·플랫폼 탭이 같은 줄을 쓴다.
+   조회수 스캔은 대표님 PC 에서만 돈다(가드닝 집행과 같은 규칙) — 팀원 화면에 띄워두면 눌러도 아무 일이 없다.
+   납품시트 기입 라벨에 플랫폼 이름을 안 붙인 이유: 서버(/api/deliver)는 캠페인당 납품시트 하나만 알고
+   플랫폼을 가르지 않는다. '인스타 납품시트 기입'이라고 쓰면 그것부터 거짓말이다. */
+function deliverBar(){
+  return `<div class="bar">${LOCAL.on
+      ? `<button class="btn small" id="btnPerf">📊 조회수 스캔</button>`
+      : `<span class="cmuted">조회수 스캔은 대표님 PC 작업 콘솔에서 실행해요</span>`
+    }<button class="btn small" id="btnDeliver">📤 납품시트 기입</button><span class="spacer"></span></div>`;
+}
+
+/* 납품 통합 — 한 행 = 1건(사람×플랫폼). 업로드·가드닝 통합탭과 같은 모양.
+   예전엔 'all' 이 그대로 d.plats.includes('all') 로 들어가 표가 통째로 비었고,
+   pName('all') 이 삼항식 탓에 '인스타'로 새어 문구까지 틀렸다 — 팀이 '납품할 게 없다'고 오판했다. */
+function viewDeliverAll(){
+  const pairs = [];
+  D.filter(inCampaign).forEach(d=> platsOn().forEach(p=>{ if(d[p] && uploaded(d,p)) pairs.push({ d, p }); }));
+  const viewsOf = r => { const v = r.d[r.p].views; return v ? (+String(v).replace(/,/g,'') || 0) : 0; };
+  const cols = [
+    { key:'co', label:'진행사', sv:r=>r.d.co, cell:r=>coChip(r.d.co) },
+    { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.d.nick, cell:r=>nickCell(r.d) },
+    { key:'plat', label:'플랫폼', sv:r=>r.p, cell:r=>`<span class="plat-pill ${r.p}">${pName(r.p)}</span>` },
+    { key:'content', label:'콘텐츠', sortable:false, cell:r=>contentCell(r.d[r.p].c1, r.p) },
+    { key:'review', label:'검수', sv:r=>{ const x=r.d[r.p]; return done(x)?2:((x.snd==='f'||x.sec==='f'||x.hash==='f')?0:1); }, cell:r=>{
+        const x=r.d[r.p];
+        if(done(x)) return '<span class="chip ok">검수완료</span>';
+        if(x.snd==='f'||x.sec==='f'||x.hash==='f') return '<span class="chip stale">수정요청 대기</span>';
+        return '<span class="cmuted">검수중</span>'; } },
+    { key:'views', label:'조회수', cls:'num', thcls:'num', hideable:true, empty:r=>!r.d[r.p].views,
+      sv:r=> r.d[r.p].views ? viewsOf(r) : -1, cell:r=> r.d[r.p].views ? nf(r.d[r.p].views) : `<span class="emptydot">·</span>` },
+    { key:'edit', label:'', cell:r=>editBtn(r.d.id, r.p) },
+  ];
+  const totalViews = pairs.reduce((a,r)=> a+viewsOf(r), 0);
+  const hero = pairs.slice().sort((a,b)=> viewsOf(b)-viewsOf(a))[0];
+  const byPlat = platsOn().map(p=>{ const n = pairs.filter(r=>r.p===p).length; return n ? pName(p)+' '+n+'건' : ''; }).filter(Boolean).join(' · ');
+  const kpis = `<div class="cards">
+    ${kpi('총 조회수', nf(totalViews), { ic:IC.eye, sub: byPlat || '아직 업로드분이 없어요' })}
+    ${kpi('납품 대상 · 건', pairs.length, { ic:IC.video, sub:'업로드된 사람×플랫폼' })}
+    ${hero && hero.d[hero.p].views ? kpi('히어로 콘텐츠', `${esc(hero.d.nick)} · ${esc(hero.d[hero.p].views)}`, { ic:IC.trophy, wide:true, sub:`${pName(hero.p)} · 최고 조회수` }) : ''}
+  </div>`;
+  return platSubtabs() + kpis + deliverBar() +
+    renderTable(cols, pairs, {tableId:'deliver-all', emptyMsg:'아직 업로드된 콘텐츠가 없어요.'}) +
+    `<div class="note-line">한 행 = <b>1건</b>(사람×플랫폼). 납품시트는 구글시트 하단 탭에서 <b>플랫폼별로 분리</b>돼 있어요 — 위 하위탭에서 플랫폼별로도 볼 수 있어요.</div>`;
+}
+
 function viewDeliver(){
+  // 하위탭이 플랫폼이 아니면(기본값 'all', 또는 다른 탭에서 넘어온 'late'/'hist') 통합 뷰로 보낸다.
+  // state 를 먼저 맞춰야 platSubtabs() 가 '전체' 칩을 켠 채로 그린다.
+  if(state.plat!=='tk' && state.plat!=='ig'){ state.plat='all'; return viewDeliverAll(); }
   const p = state.plat;
   const rows = D.filter(d=> d.plats.includes(p) && d[p]!==null && uploaded(d,p));
   const cols = [
@@ -1977,8 +2078,7 @@ function viewDeliver(){
     ${kpi('납품 대상 · 건', rows.length, { ic:IC.video, sub:`${pName(p)} 업로드분` })}
     ${hero && hero[p].views ? kpi('히어로 콘텐츠', `${esc(hero.nick)} · ${hero[p].views}`, { ic:IC.trophy, wide:true, sub:`${pName(p)} · 최고 조회수` }) : ''}
   </div>`;
-  return platSubtabs() + kpis +
-    `<div class="bar"><button class="btn small" id="btnPerf">📊 조회수 스캔</button><button class="btn small" id="btnDeliver">📤 ${pName(p)} 납품시트 기입</button><span class="spacer"></span></div>` +
+  return platSubtabs() + kpis + deliverBar() +
     renderTable(cols, rows, {tableId:'deliver-'+p}) +
     `<div class="note-line">납품시트는 <b>플랫폼별로 분리</b>(구글시트 하단 탭: 틱톡 납품 / 인스타 납품). 지금은 <b>${pName(p)} 납품</b> 탭 — 위 서브탭으로 전환.</div>`;
 }
@@ -2163,7 +2263,7 @@ function gardenSvcNote(){
 }
 // 하위탭에 그 플랫폼 인원수. 모집탭에서만 — 업로드탭은 건수를 카드에서 이미 보여준다.
 function platCountLab(p){
-  if(state.view!=='recruit') return '';
+  if(state.view!=='recruit' && state.view!=='upload') return '';
   const n = D.filter(inCampaign).filter(d=> d[p]).length;
   return n ? ` <span class="cmuted">${n}</span>` : '';
 }
@@ -2187,8 +2287,8 @@ function platSubtabs(){
     <button class="subtab all ${state.plat==='all'?'active':''}" data-plat="all"><span class="dot"></span>${allLab}</button>
     <button class="subtab tk ${state.plat==='tk'?'active':''}" data-plat="tk"><i class="pmark tk">${PLAT_MARK.tk}</i>틱톡${platCountLab('tk')}</button>
     <button class="subtab ig ${state.plat==='ig'?'active':''}" data-plat="ig"><i class="pmark ig">${PLAT_MARK.ig}</i>인스타${platCountLab('ig')}</button>
-    ${state.view==='upload' ? `<button class="subtab late ${state.plat==='late'?'active':''}" data-plat="late"><span class="dot"></span>일정 미준수 <span class="cmuted">${lateCount()}건</span></button>` : ''}
-    ${state.view==='garden' ? `<button class="subtab hist ${state.plat==='hist'?'active':''}" data-plat="hist"><span class="dot"></span>집행 내역 <span class="cmuted">${ORDERS.length}건</span></button>` : ''}
+    ${state.view==='upload' ? `<button class="subtab late ${state.plat==='late'?'active':''}" data-plat="late"><span class="dot"></span>일정 미준수 <span class="cmuted">${lateCount()}</span></button>` : ''}
+    ${state.view==='garden' ? `<button class="subtab hist ${state.plat==='hist'?'active':''}" data-plat="hist"><span class="dot"></span>집행 내역 <span class="cmuted">${ORDERS.length}</span></button>` : ''}
     ${state.view==='recruit' ? recruitSubtabs() : ''}
     ${gardenSvcNote()}<span id="hideSlot" class="sub-hide"></span>${state.view==='upload'?scanPickBtn():''}</div>`;
 }
@@ -2393,13 +2493,18 @@ function openRowEdit(id, rowPlat){
     : (state.plat!=='all' ? state.plat : (platsOn().find(x=>d[x]) || state.plat));
   const TABN = { recruit:'모집', upload:'업로드', garden:'가드닝', deliver:'납품', settle:'정산' }[state.view];
   let body='', save=()=>{};
+  /* save() 가 시트로 실제로 내보낸 칸 수. 0 인데 '저장됨'이라고 말하면 그게 이 화면에서 제일 잦았던 거짓말이다
+     — 20초 뒤 자동 새로고침이 값을 되돌려놓는데 사람은 저장된 줄 알고 넘어간다.
+     성공·실패 토스트는 saveField 가 칸마다 따로 띄우므로 여기서 또 띄우지 않는다. */
+  let sent = 0;
+  const put = (field, value) => { sent++; return saveField(d.id, field, value); };
 
   if(state.view==='recruit'){
     body = `<div class="mform">
       <div class="row2">
         <div class="row"><label class="h">진행사</label>
           <select class="inp" id="reCo"><option${d.co==='MARU'?' selected':''}>MARU</option><option${d.co==='SIRIAI'?' selected':''}>SIRIAI</option></select></div>
-        <div class="row"><label class="h">크리에이터명</label><input class="inp" id="reNick" value="${esc(d.nick)}"></div>
+        <div class="row"><label class="h">크리에이터명 <small>시트에서만 수정</small></label><input class="inp" id="reNick" value="${esc(d.nick)}" readonly title="이 이름을 쓰는 열은 아직 대시보드에서 못 고쳐요 — 마스터시트에서 고쳐 주세요."></div>
       </div>
       <div class="row2">
         <div class="row"><label class="h">틱톡 링크/닉</label><input class="inp" id="reTk" value="${d.tk?esc(d.tk.h):''}" placeholder="${d.tk?'':'미참여'}"></div>
@@ -2420,10 +2525,15 @@ function openRowEdit(id, rowPlat){
       d.co=selVal('reCo'); d.nick=val('reNick')||d.nick; d.memo=val('reMemo');
       d.sched = isoToMD(val('reSched'));
       // 확정일은 업로드탭 소관 — 여기선 건드리지 않는다.
-      if(d.sched!==was.sched) saveField(d.id,'schedDate',d.sched);
-      if(d.fixed!==was.fixed) saveField(d.id,'fixedDate',d.fixed);
-      if(d.memo!==was.memo)   saveField(d.id,'memo',d.memo);   // 일반 비고(연락 섹션). 틱톡/인스타 비고는 업로드탭 소관.
-      if(d.tk && val('reTk')) d.tk.h=val('reTk'); if(d.ig && val('reIg')) d.ig.h=val('reIg'); };
+      if(d.sched!==was.sched) put('schedDate',d.sched);
+      if(d.fixed!==was.fixed) put('fixedDate',d.fixed);
+      if(d.memo!==was.memo)   put('memo',d.memo);   // 일반 비고(연락 섹션). 틱톡/인스타 비고는 업로드탭 소관.
+      /* 크리에이터명은 일부러 안 보낸다. 화면 이름은 시트의 '크리에이터'(creator) 열인데
+         쓰기 화이트리스트엔 creator 가 없고 nick 뿐이다 — nick 으로 보내면 사람 이름이
+         '틱톡 닉네임' 열을 덮어써 계정 식별이 망가진다. 열이 열릴 때까지 시트에서 고쳐야 한다. */
+      // 링크는 시트에 되쓴다. 예전엔 화면 객체만 고쳐서 20초 뒤 옛 링크로 돌아갔다.
+      if(d.tk && val('reTk') && val('reTk')!==d.tk.h){ d.tk.h=val('reTk'); put('tk.link',d.tk.h); }
+      if(d.ig && val('reIg') && val('reIg')!==d.ig.h){ d.ig.h=val('reIg'); put('ig.link',d.ig.h); } };
 
   } else if(state.view==='upload'){
     if(!d[p]){ toast('이 크리에이터는 '+pName(p)+' 미참여예요.'); return; }
@@ -2462,20 +2572,20 @@ function openRowEdit(id, rowPlat){
       const c1=val('reC1'); x.c1 = c1?{label:x.c1?x.c1.label:'🎬 영상①', url:c1}:'';
       const c2=val('reC2'); x.c2 = c2?{label:x.c2?x.c2.label:'🎬 영상②', url:c2}:'';
       x.snd=selVal('reSnd'); x.sec=selVal('reSec'); x.hash=selVal('reHash'); d.mir=selVal('reMir'); x.memo=val('rePMemo');
-      if(x.h!==was.h)            saveField(d.id, p+'.link', x.h);
-      if(c1!==was.c1)            saveField(d.id, p+'.contentA', c1);
-      if(c2!==was.c2)            saveField(d.id, p+'.contentB', c2);
-      if(x.snd!==was.snd)        saveField(d.id, p+'.soundOk',    REV_TEXT[x.snd]);
-      if(x.sec!==was.sec)        saveField(d.id, p+'.soundSection', REV_TEXT[x.sec]);
-      if(x.hash!==was.hash)      saveField(d.id, p+'.hashtagOk',  REV_TEXT[x.hash]);
-      if(x.memo!==was.memo)      saveField(d.id, p+'.memo', x.memo);
-      if(d.mir!==was.mir)        saveField(d.id, 'mirror', {m1:'미러링',m0:'오리지널',mx:''}[d.mir]);
+      if(x.h!==was.h)            put(p+'.link', x.h);
+      if(c1!==was.c1)            put(p+'.contentA', c1);
+      if(c2!==was.c2)            put(p+'.contentB', c2);
+      if(x.snd!==was.snd)        put(p+'.soundOk',    REV_TEXT[x.snd]);
+      if(x.sec!==was.sec)        put(p+'.soundSection', REV_TEXT[x.sec]);
+      if(x.hash!==was.hash)      put(p+'.hashtagOk',  REV_TEXT[x.hash]);
+      if(x.memo!==was.memo)      put(p+'.memo', x.memo);
+      if(d.mir!==was.mir)        put('mirror', {m1:'미러링',m0:'오리지널',mx:''}[d.mir]);
       // 날짜는 사람 단위 값이라 접두어가 없다(틱톡·인스타가 같은 날짜를 쓴다).
       const _sc = isoToMD(val('reSched'));
-      if(_sc !== (was.sched||'')) { d.sched = _sc; saveField(d.id, 'schedDate', _sc); }
+      if(_sc !== (was.sched||'')) { d.sched = _sc; put('schedDate', _sc); }
       const _fxs = (document.getElementById('reFixedState')||{}).dataset;
       const _fx = (_fxs && _fxs.v) ? _fxs.v : isoToMD(val('reFixed'));
-      if(_fx !== (was.fixed||'')) { d.fixed = _fx; saveField(d.id, 'fixedDate', _fx); }
+      if(_fx !== (was.fixed||'')) { d.fixed = _fx; put('fixedDate', _fx); }
     };
 
   } else if(state.view==='garden'){
@@ -2488,9 +2598,17 @@ function openRowEdit(id, rowPlat){
       </div>
       <div class="row"><label class="inline"><input type="checkbox" id="reOdds" ${d.oddsLow?'checked':''}> 업로드 확률 낮음 → <b>보류</b>(업로드 확인 후 가드닝)</label></div>
       <div class="row"><label class="inline"><input type="checkbox" id="reNo" ${d.noUpload?'checked':''}> 연락두절 등 미업로드 확률 큼 (보류 유지)</label></div>
+      <div class="cmuted" style="font-size:12.5px;margin:-2px 0 6px">위 네 칸(팔로워 보정·진행중 주문·보류 체크 2개)은 <b>화면에서만 쓰여요 — 시트에 열이 없어요.</b> 자동 새로고침되면 원래 값으로 돌아가요. 아래 비고만 시트에 저장됩니다.</div>
       <div class="row"><label class="h">${pName(p)} 비고</label><textarea class="inp" id="rePMemo">${esc(x.memo||'')}</textarea></div>
     </div>`;
-    save = ()=>{ const f=val('reFol'); x.fol = f===''?null:(+f); x.inFlight=+val('reInf')||0; d.oddsLow=chk('reOdds'); d.noUpload=chk('reNo'); x.memo=val('rePMemo'); };
+    // 비고만 시트에 열이 있다(업로드·납품과 같은 열이라 플랫폼 접두어 필수).
+    // 나머지는 저장할 곳이 없어 화면 값만 바꾼다 — 그 사실을 위 안내문이 말한다.
+    const wasG = { memo: x.memo||'' };
+    save = ()=>{
+      const f=val('reFol'); x.fol = f===''?null:(+f); x.inFlight=+val('reInf')||0;
+      d.oddsLow=chk('reOdds'); d.noUpload=chk('reNo'); x.memo=val('rePMemo');
+      if(x.memo!==wasG.memo) put(p+'.memo', x.memo);
+    };
 
   } else if(state.view==='deliver'){
     if(!d[p]){ toast('이 크리에이터는 '+pName(p)+' 미참여예요.'); return; }
@@ -2505,9 +2623,9 @@ function openRowEdit(id, rowPlat){
     save = ()=>{
       const c1=val('reC1'); if(c1) x.c1={label:x.c1?x.c1.label:'🎬 영상①', url:c1};
       x.views=val('reViews'); x.memo=val('rePMemo');
-      if(c1!==wasD.c1)         saveField(d.id, p+'.contentA', c1);
-      if(x.views!==wasD.views) saveField(d.id, p+'.views', x.views);
-      if(x.memo!==wasD.memo)   saveField(d.id, p+'.memo', x.memo);
+      if(c1!==wasD.c1)         put(p+'.contentA', c1);
+      if(x.views!==wasD.views) put(p+'.views', x.views);
+      if(x.memo!==wasD.memo)   put(p+'.memo', x.memo);
     };
 
   } else if(state.view==='settle'){
@@ -2518,19 +2636,34 @@ function openRowEdit(id, rowPlat){
           <select class="inp" id="rePay">${PAY_OPTS.map(o=>`<option${o===st.pay?' selected':''}>${o}</option>`).join('')}</select></div>
         <div class="row"><label class="h">개별단가 (엔 · 비우면 자동)</label><input class="inp" id="reOvr" type="number" value="${st.override==null?'':st.override}" placeholder="자동수식"></div>
       </div>
-      <div class="row"><label class="inline"><input type="checkbox" id="reBest" ${st.best?'checked':''}> 최우수 (+10,000엔)</label></div>
+      <div class="row"><label class="h">우수 선정 <small>+10,000엔</small></label>
+        <select class="inp" id="reBest">${[['','미선정'],['1','우수 ★']].map(([v,l])=>`<option value="${v}"${(st.best?'1':'')===v?' selected':''}>${l}</option>`).join('')}</select></div>
       <div class="row"><label class="inline"><input type="checkbox" id="rePaid" ${st.paid?'checked':''}> 입금 완료</label></div>
       <div class="row"><label class="h">정산 비고</label><textarea class="inp" id="reSetMemo">${esc(st.memo||'')}</textarea></div>
     </div>`;
-    save = ()=>{ st.pay=selVal('rePay'); const o=val('reOvr'); st.override = o===''?null:(+o); st.best=chk('reBest'); st.paid=chk('rePaid'); st.memo=val('reSetMemo'); };
+    // 예전엔 화면 객체만 고치고 '저장됨'이라 말했다 — 20초 자동 새로고침이 전부 되돌렸다.
+    // 이제 바뀐 칸만 시트로 보낸다. 열 매핑이 아직 없는 칸은 서버가 400 을 돌려주고
+    // saveField 가 '저장 실패'를 그대로 띄운다 — 조용히 성공한 척하는 것보다 낫다.
+    const wasS = { pay:st.pay, override:st.override, best:st.best, paid:st.paid, memo:st.memo||'' };
+    save = ()=>{
+      st.pay=selVal('rePay'); const o=val('reOvr'); st.override = o===''?null:(+o);
+      st.best = selVal('reBest')==='1'; st.paid=chk('rePaid'); st.memo=val('reSetMemo');
+      if(st.pay!==wasS.pay)           put('pay', st.pay);
+      if(st.override!==wasS.override) put('override', st.override==null?'':st.override);
+      if(st.best!==wasS.best)         put('best', BEST_TEXT(st.best));
+      if(st.paid!==wasS.paid)         put('paid', st.paid?PAID_MARK:'');
+      if(st.memo!==wasS.memo)         put('settleMemo', st.memo);
+    };
   }
 
   openModal(TABN+' 편집 · '+d.nick, body,
     `<button class="btn ghost" onclick="closeModal()">취소</button><button class="btn primary" id="reSave">저장</button>`,
     '이 탭('+TABN+') 관련 항목만 편집해요. 각 탭 편집은 독립적입니다.');
   document.getElementById('reSave').addEventListener('click',()=>{
+    sent = 0;
     save(); closeModal(); render();
-    toast(`<b>${esc(d.nick)}</b> · ${TABN} 편집 저장됨.`);
+    // 시트로 보낸 칸이 있으면 결과(성공·실패)를 saveField 가 칸마다 알려준다 — 여기서 겹쳐 띄우지 않는다.
+    if(!sent) toast(`<b>${esc(d.nick)}</b> · 시트에 보낼 변경이 없었어요 — 화면 값만 바뀌었어요.`);
   });
 }
 
@@ -2542,18 +2675,15 @@ function handleFromLink(s){
   return s.startsWith('@')?s:'@'+s;
 }
 function addPersonSave(){
-  const co = document.getElementById('apCo').value;
   const tkH = handleFromLink(document.getElementById('apTk').value);
   const igEl = document.getElementById('apIg');
   const igH = igEl ? handleFromLink(igEl.value) : '';
   if(!tkH && !igH){ toast('틱톡 또는 인스타 링크를 하나 이상 넣어주세요'); return; }
-  const plats=[]; if(tkH) plats.push('tk'); if(igH) plats.push('ig');
-  D.push({ id:nextId++, co, nick:'스캔 대기', plats, refBy:'', refCount:0, sched:'', mir:'mx', memo:'방금 추가 — 스캔하면 이름·팔로워 자동 완성', noUpload:false, oddsLow:false,
-    tk: plats.includes('tk')?{h:tkH, c1:'',c2:'', snd:'n',sec:'n',hash:'n', fol:null, inFlight:0, views:'', memo:''}:null,
-    ig: plats.includes('ig')?{h:igH, c1:'',c2:'', snd:'n',sec:'n',hash:'n', fol:null, inFlight:0, views:'', memo:''}:null,
-    settle:{ pay:'아마존', best:false, override:null, paid:false, memo:'' } });
-  state.addForm=false; state.day=null; render();   // 새 사람은 예정일이 비어 있어서, 일자 필터가 켜져 있으면 방금 추가한 사람이 안 보인다
-  toast(`추가됨 (${plats.map(pName).join('+')}) — <b>이름·팔로워는 스캔하면 자동 완성</b>. 시트에 한 줄 늘리는 것과 같아요.`);
+  /* 시트에 한 줄 추가하는 서버 경로가 아직 없다(브릿지·서버 양쪽에 append 가 필요).
+     예전엔 화면 배열에만 밀어넣고 '추가됨 — 시트에 한 줄 늘리는 것과 같아요'라고 말했다.
+     20초 자동 새로고침이 그 줄을 지우고, 그 사이 그 행의 버튼은 시트 10만번대에 쓰려고 했다.
+     못 하는 일은 못 한다고 말하고, 되는 길을 알려주는 게 낫다. */
+  toast(`아직 화면에서는 시트에 못 넣어요 — <b>⬇ 모집 가져오기</b>를 쓰거나 마스터시트에 직접 한 줄 추가하고 <b>↻ 새로고침</b> 해주세요.`);
 }
 
 /* ============ 새 캠페인 (config 한 개) ============ */
@@ -2582,7 +2712,9 @@ function addCampaignModal(){
     CAMPAIGNS[id]={ name, plats, targets: plats.length>1?{tk:50,ig:50}:{tk:100}, settleCap:105, sub: plats.length>1?'멀티플랫폼':pName(plats[0])+' 전용', scan:'아직', sheet:'' };
     state.campaign=id; if(!hasIG()) state.plat='tk';
     closeModal(); renderCampSelect(); render();
-    toast(`캠페인 <b>${esc(name)}</b> 추가 — config 한 개로 끝. 대시보드 그대로 재사용해요.`);
+    // CAMPAIGNS 는 이 파일 안의 상수다 — 여기서 만든 캠페인은 새로고침하면 사라지고 연결된 시트도 없다.
+    // '추가됐다'고 말하면 팀이 그 캠페인에 데이터를 넣으려 든다.
+    toast(`<b>${esc(name)}</b> 는 지금 <b>미리보기</b>예요 — 실제로 쓰려면 서버 campaigns.json 에 이 config 를 넣어야 새로고침해도 남아요.`);
   });
 }
 function closeModalReset(){ closeModal(); renderCampSelect(); }
@@ -2767,7 +2899,8 @@ document.getElementById('content').addEventListener('click', e=>{
       .catch(()=> toast('복사 실패 — 직접 선택해 주세요'));
     return; }
   const ed=e.target.closest('[data-edit]'); if(ed){ openRowEdit(+ed.dataset.edit, ed.dataset.editp||''); return; }
-  const pt=e.target.closest('[data-paidtog]'); if(pt){ const d=D.find(x=>x.id===+pt.dataset.paidtog); if(d){ d.settle.paid=!d.settle.paid; render(); } return; }
+  // 입금 토글은 돈이 나갔다는 기록이다. 화면에만 남기면 20초 뒤 되돌아가 두 번 입금할 수 있다.
+  const pt=e.target.closest('[data-paidtog]'); if(pt){ const d=D.find(x=>x.id===+pt.dataset.paidtog); if(d){ d.settle.paid=!d.settle.paid; render(); saveField(d.id,'paid', d.settle.paid?PAID_MARK:''); } return; }
   const s=e.target.closest('.subtab'); if(s){ state.plat=s.dataset.plat; render(); return; }
   if(e.target.closest('#btnAddPerson')){ state.addForm=true; render(); return; }
   if(e.target.closest('#apCancel')){ state.addForm=false; render(); return; }
@@ -2776,7 +2909,6 @@ document.getElementById('content').addEventListener('click', e=>{
   { const pf = e.target.closest('[data-platf]');
     if(pf){ const v = pf.dataset.platf; state.platOnly = (state.platOnly===v ? '' : v); render(); return; } }
   { const b = e.target.closest('#btnRecScan'); if(b){ syncRecruit(b); return; } }
-  if(e.target.closest('#btnUpScan')){ scanRequest('업로드'); return; }
   if(e.target.closest('#gardenHoldToggle')){ state.gardenHold=!state.gardenHold; render(); return; }
   { const ga = e.target.closest('#gPickAll');
     if(ga){
@@ -2810,8 +2942,8 @@ document.getElementById('content').addEventListener('click', e=>{
       updateGardenSum();          // 표는 그대로 두고 합계만 고친다 — 누를 때마다 표가 튀면 못 쓴다
       return; } }
   if(e.target.closest('#btnExec')){ execModal(); return; }
-  if(e.target.closest('#btnPerf')){ scanRequest('조회수'); return; }
-  if(e.target.closest('#btnDeliver')){ toast(`검수완료·업로드분을 ${pName(state.plat)} 납품시트에 자동 기입 (중복 제외).`); return; }
+  { const bp = e.target.closest('#btnPerf'); if(bp){ runPerfScan(bp); return; } }
+  { const bd = e.target.closest('#btnDeliver'); if(bd){ runDeliverWrite(bd); return; } }
   const bs=e.target.closest('[data-basis]'); if(bs){ setBasis(bs.dataset.basis); return; }
   if(e.target.closest('#simHead')){ state.simOpen=!state.simOpen; render(); return; }
 });
@@ -2829,11 +2961,13 @@ document.getElementById('content').addEventListener('change', e=>{
     }
     return; }
   const mr=e.target.closest('[data-mir]');
-  if(mr){ const d=D.find(x=>x.id===+mr.dataset.mir); if(d){ d.mir=mr.value; render(); saveField(d.id,'mirror',{m1:'미러링',m0:'별개',mx:''}[mr.value]); } return; }
-  const py=e.target.closest('[data-pay]'); if(py){ const d=D.find(x=>x.id===+py.dataset.pay); if(d){ d.settle.pay=py.value; toast(`<b>${esc(d.nick)}</b> 정산방식 → ${py.value}`); } return; }
+  // 시트 드롭다운은 미러링 / 오리지널 / 미확인 셋뿐이다. '별개'를 보내면 시트가 '잘못된 값'으로 튕긴다.
+  if(mr){ const d=D.find(x=>x.id===+mr.dataset.mir); if(d){ d.mir=mr.value; render(); saveField(d.id,'mirror',{m1:'미러링',m0:'오리지널',mx:''}[mr.value]); } return; }
+  // 예전엔 '정산방식 → 아마존' 토스트만 띄웠다 — 저장으로 읽히는데 시트엔 아무것도 안 갔다.
+  const py=e.target.closest('[data-pay]'); if(py){ const d=D.find(x=>x.id===+py.dataset.pay); if(d){ d.settle.pay=py.value; saveField(d.id,'pay',py.value); } return; }
   const bt=e.target.closest('[data-best]');
   if(bt){ const d=D.find(x=>x.id===+bt.dataset.best);
-    if(d){ d.settle.best = bt.tagName==='SELECT' ? bt.value==='1' : bt.checked; render(); }
+    if(d){ d.settle.best = bt.tagName==='SELECT' ? bt.value==='1' : bt.checked; render(); saveField(d.id,'best', BEST_TEXT(d.settle.best)); }
     return; }
 });
 // 시뮬 입력 → 실시간 재계산 (포커스 유지)

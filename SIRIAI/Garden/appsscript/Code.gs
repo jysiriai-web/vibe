@@ -56,7 +56,16 @@ const FIELD_HEADERS = {
   creator: ['크리에이터'],
   email: ['이메일', '이메일주소', '메일', 'email'],
   mirror: ['미러링여부', '미러링'],   // 예정일=크리에이터 희망, 확정일=합의된 날짜
+  // 정산 섹션. 아래 HEADER_ONLY_FIELDS 라서 폴백 좌표가 없다 — 못 찾으면 '없음'.
+  pay: ['정산방식'],
+  best: ['우수 선정', '최우수'],       // 시트가 '최우수'(옛 체크박스) → '우수 선정'(드롭다운)으로 바뀌는 중이라 둘 다
+  override: ['개별단가'],
+  settleMemo: ['정산 비고'],
 };
+// DEFAULT_COL 에 좌표를 두지 않는 필드 — 헤더로만 찾는다.
+// 정산 열은 마스터마다 자리가 달라서, 폴백을 주면 돈 관련 값을 엉뚱한 칸에 쓴다.
+// 못 찾으면 0(없음)으로 두고 doPost 가 skipped 로 시끄럽게 돌려준다.
+var HEADER_ONLY_FIELDS = ['pay', 'best', 'override', 'settleMemo'];
 // 플랫폼별로 두 벌 존재하는 항목. 접두어만 갈아끼워 같은 규칙으로 찾는다.
 var PLAT_FIELDS = ['nick', 'link', 'followers', 'gardening', 'contentA', 'contentB',
                    'soundOk', 'soundSection', 'hashtagOk', 'views', 'likes', 'comments', 'shares', 'memo'];
@@ -75,8 +84,12 @@ var COL = shallowClone_(DEFAULT_COL); // 런타임에 헤더 기반으로 재해
 var _dataSheet = null;                // 데이터 탭 캐시 (initCols_ 가 채움)
 
 function shallowClone_(o) { var r = {}; for (var k in o) r[k] = o[k]; return r; }
-// 헤더 정규화: 공백·괄호 제거 + 소문자. '음원 구간' == '음원구간', '팔로워(명)' == '팔로워'
-function normH_(s) { return String(s == null ? '' : s).replace(/[\s()（）]/g, '').toLowerCase(); }
+// 헤더 정규화: 괄호는 안쪽 내용까지 통째로 버리고 → 남은 공백·괄호 제거 + 소문자.
+// 괄호 안까지 지우는 이유 — 시트가 헤더에 설명을 덧붙이면('인스타 콘텐츠②(미러/추가)')
+// 정확일치 별칭이 안 걸려 그 열이 통째로 없는 것처럼 취급되고, 그 열을 쓰는 배치가 전부 실패로 뒤집혔다.
+function normH_(s) {
+  return String(s == null ? '' : s).replace(/[（(][^）)]*[）)]/g, '').replace(/[\s()（）]/g, '').toLowerCase();
+}
 // headerRow(값 배열)에 field 의 별칭이 실제로 존재하는가 (헤더행 판별용)
 function headerHasField_(headerRow, field) {
   var norm = headerRow.map(normH_), al = FIELD_HEADERS[field] || [];
@@ -87,14 +100,24 @@ function headerHasField_(headerRow, field) {
 // ⚠️ 폴백은 '안전한 기본값'이 아니라 '조용한 오배치'다 — 열 배치가 다른 마스터에서는
 //    엉뚱한 열을 읽고 쓴다. 그래서 어떤 필드가 폴백했는지, 실제로 무슨 헤더에 붙었는지를
 //    _colInfo 로 남겨 응답에 싣는다. 눈으로 1분이면 검증된다.
-var _colInfo = { bound: {}, fellBack: [], headers: [] };
+// fellBack 에는 '필드명'만 담는다 — 쓰기 가드가 필드명으로 걸러내기 때문에 문장을 섞으면 가드가 헛돈다.
+// 사람이 읽을 설명은 note 에 따로 둔다.
+var _colInfo = { bound: {}, fellBack: [], missing: [], headers: [], headerFound: false };
 function resolveColsFromHeaders_(headerRow) {
-  var norm = headerRow.map(normH_), map = {};
-  _colInfo = { bound: {}, fellBack: [], headers: headerRow.map(function (h) { return String(h == null ? '' : h).trim(); }) };
-  for (var f in DEFAULT_COL) {
+  var norm = headerRow.map(normH_), map = {}, fields = [];
+  for (var k in DEFAULT_COL) fields.push(k);
+  for (var hi = 0; hi < HEADER_ONLY_FIELDS.length; hi++) fields.push(HEADER_ONLY_FIELDS[hi]);
+  _colInfo = { bound: {}, fellBack: [], missing: [], headerFound: true,
+               headers: headerRow.map(function (h) { return String(h == null ? '' : h).trim(); }) };
+  for (var fi = 0; fi < fields.length; fi++) {
+    var f = fields[fi];
     var col = 0, al = FIELD_HEADERS[f] || [];
     for (var a = 0; a < al.length && !col; a++) { var idx = norm.indexOf(normH_(al[a])); if (idx >= 0) col = idx + 1; }
-    if (!col) { col = DEFAULT_COL[f]; if (col) _colInfo.fellBack.push(f); }
+    if (!col) {
+      col = DEFAULT_COL[f] || 0;
+      if (col) _colInfo.fellBack.push(f);
+      else if (DEFAULT_COL[f] === undefined) _colInfo.missing.push(f); // 폴백 좌표 자체가 없는 필드 = 헤더로만 찾는 것
+    }
     map[f] = col;
     if (col) _colInfo.bound[f] = { col: col, header: _colInfo.headers[col - 1] || '(빈 열)' };
   }
@@ -148,7 +171,11 @@ function initCols_() {
     }
   }
   _dataSheet = null; COL = shallowClone_(DEFAULT_COL); PLAT_COL = {};
-  _colInfo = { bound: {}, fellBack: ['(헤더행 자체를 못 찾음 — 전부 폴백)'], headers: [] }; // 헤더 못 찾음 → 폴백(getSheet_ 가 예전 방식으로 탭 탐색)
+  // 헤더행을 못 찾은 상태의 COL 은 '추측'이다. 예전엔 fellBack 에 문장 하나를 넣어뒀는데,
+  // 쓰기 가드는 필드명을 찾으므로 최악의 상황에서 한 건도 안 걸렸다 → 플래그로 표시하고 doPost 가 통째로 거부한다.
+  _colInfo = { bound: {}, fellBack: [], missing: [], headers: [], headerFound: false,
+               note: '헤더행 자체를 못 찾음 — COL 은 베이온 기본좌표(추측)' };
+  try { console.warn('initCols_: 상단 20행에서 헤더행(link + nick|company)을 못 찾음 — 모든 쓰기를 거부합니다'); } catch (e) {}
 }
 
 // 셀 값이 Date 객체면 M/D 로, 텍스트면 그대로. ("7/8" 이 시트에서 날짜로 파싱돼 Date 로 오는 경우 대비)
@@ -186,7 +213,9 @@ function getSheet_() {
     if (last < 1) continue;
     var col = sheets[i].getRange(1, COL.link, last, 1).getValues();
     for (var r = 0; r < col.length; r++) {
-      if (handleFrom_(col[r][0])) return sheets[i];
+      // handleFrom_ 은 '@뒤 글자'라 이메일(kim@gmail.com)에도 걸린다 — 계정 링크 도메인까지 확인해야
+      // 이메일 열을 링크 열로 착각한 엉뚱한 탭을 데이터 탭으로 고르지 않는다.
+      if (/(?:tiktok\.com|instagram\.com)\/@?[A-Za-z0-9._]+/i.test(String(col[r][0] || ''))) return sheets[i];
     }
   }
   return sheets[0];
@@ -265,6 +294,11 @@ function readAccounts_() {
       campaignDone: String(row[COL.campaignDone - 1] || ''),
       paid: String(row[COL.paid - 1] || ''),
       paidDate: String(row[COL.paidDate - 1] || ''),
+      // 정산 4칸. 헤더로만 찾으므로(HEADER_ONLY_FIELDS) 열이 없으면 빈 값 — 폴백 좌표는 없다.
+      pay: COL.pay ? String(row[COL.pay - 1] || '') : '',
+      best: COL.best ? String(row[COL.best - 1] || '') : '',
+      priceOverride: COL.override ? row[COL.override - 1] : '',
+      settleMemo: COL.settleMemo ? String(row[COL.settleMemo - 1] || '') : '',
       views: row[COL.views - 1],
       likes: row[COL.likes - 1],
       comments: row[COL.comments - 1],
@@ -588,12 +622,23 @@ function doPost(e) {
     try { body = JSON.parse(e.postData.contents); } catch (err) { return json_({ error: 'bad json' }); }
     if ((body.token || '') !== TOKEN) return json_({ error: 'unauthorized' });
     initCols_(); // 헤더 기반 열 매핑 — cells 의 필드명 해석·마스터 쓰기에 사용
-    if (body.sync) return json_(syncRecruit_(body.sync.sheetId, body.sync.company, body.sync.linkCol));
-    if (body.deliver) return json_(deliverReviewed_(body.deliver.sheetId, body.deliver.rows)); // 검수완료 → 납품시트 기입
+    if (body.deliver) return json_(deliverReviewed_(body.deliver.sheetId, body.deliver.rows)); // 검수완료 → 납품시트 기입 (자체 헤더 탐색이라 COL 무관)
     // 내용이 있을 때만 분기 — 빈 배열 []/빈 객체 {} 는 truthy 라, 그냥 두면
     // {updates:[...], orders:[]} 같은 요청이 updates 를 조용히 건너뛴다.
     if (Array.isArray(body.orders) && body.orders.length) return json_(upsertOrders_(body.orders)); // 주문(돈) 로그 upsert
     if (body.state && Object.keys(body.state).length) return json_(writeState_(body.state));        // overrides / best
+    // 여기서부터는 전부 COL/PLAT_COL 로 마스터에 쓴다. 헤더행을 못 찾았으면 그 좌표는 추측이라
+    // 한 칸도 쓰지 않는다 — 조용히 엉뚱한 열을 덮어쓰는 것보다 시끄럽게 실패하는 게 낫다.
+    // 단 셋업·의견은 통과시킨다 — 셋업은 이 상태를 고치는 유일한 수단이고(막으면 복구 불가),
+    // 의견은 마스터를 안 건드린다. 대신 같은 요청에 실제 쓰기가 섞여 있으면 통과시키지 않는다.
+    var wantsColWrite = !!(body.sync || (body.updates && body.updates.length) || (body.cells && body.cells.length));
+    if (_colInfo.headerFound === false && (wantsColWrite || !(body.setup || body.feedback || body.feedbackDone))) {
+      return json_({ error: '마스터 헤더행(계정링크 + 닉네임/진행사)을 못 찾아 열 위치를 몰라요 — 아무것도 쓰지 않았어요. 시트 상단 20행 안에 헤더행이 있는지, 헤더 이름이 별칭과 맞는지 확인해 주세요.',
+                     headerFound: false, updated: 0,
+                     skipped: (body.cells || []).map(function (c) { return (c && c.field) || ('col' + (c && c.col)); }) });
+    }
+    // sync 는 COL.link·COL.company 로 마스터에 쓴다 → 위 검사 뒤에 둔다.
+    if (body.sync) return json_(syncRecruit_(body.sync.sheetId, body.sync.company, body.sync.linkCol));
     var sh = getSheet_();
     var updates = body.updates || [];
     var n = 0;
@@ -641,7 +686,9 @@ function doPost(e) {
       return json_({ ok: true, feedbackSaved: true });
     }
     // 임의 셀 쓰기 [{row, col, value}] — 콘텐츠 링크·검수·조회수 되쓰기용
-    var cells = body.cells || [], skipped = [];
+    var cells = body.cells || [], skipped = [], skipReasons = [];
+    // 건너뛴 이유를 같이 실어야 사람이 '왜 안 써졌는지'를 시트를 뒤지지 않고 안다.
+    var skipCell = function (field, why) { skipped.push(field); skipReasons.push(field + ' — ' + why); };
     for (var j = 0; j < cells.length; j++) {
       var c = cells[j];
       var col = 0;
@@ -650,23 +697,32 @@ function doPost(e) {
       if (dot > 0) {
         var pf = c.field.slice(0, dot), ff = c.field.slice(dot + 1);
         col = (PLAT_COL[pf] && PLAT_COL[pf][ff]) || 0;
-        if (!col) { skipped.push(c.field); continue; }   // 그 플랫폼 열이 이 마스터엔 없다
+        if (!col) { skipCell(c.field, '이 마스터엔 해당 플랫폼(' + pf + ') 열이 없어요'); continue; }
         if (!c.row) continue;
         sh.getRange(c.row, col).setValue(c.value);
         n++; continue;
       }
       if (c.field) {
         // 헤더에서 못 찾아 폴백한 필드 = 어느 열인지 모르는 것. 쓰면 엉뚱한 열을 덮어쓴다 → 거부.
-        if (_colInfo.fellBack && _colInfo.fellBack.indexOf(c.field) >= 0) { skipped.push(c.field); continue; }
+        if (_colInfo.fellBack && _colInfo.fellBack.indexOf(c.field) >= 0) {
+          skipCell(c.field, '헤더에서 못 찾아 기본좌표로 폴백한 필드예요 — 엉뚱한 열을 덮어쓸까 봐 안 썼어요');
+          continue;
+        }
         col = COL[c.field] || 0;
-        if (!col) { skipped.push(c.field); continue; }   // 오타 등으로 모르는 필드명
+        if (!col) {
+          skipCell(c.field, (_colInfo.missing && _colInfo.missing.indexOf(c.field) >= 0)
+            ? '마스터 헤더에 이 열이 없어요(헤더 이름 확인 또는 별칭 추가 필요)'
+            : '브릿지가 모르는 필드명이에요');
+          continue;
+        }
       } else col = c.col;                                 // 옛 호출부 하위호환
       if (!c.row || !col) continue;
       sh.getRange(c.row, col).setValue(c.value);
       n++;
     }
     // skipped 를 반드시 올려보낸다 — 안 그러면 '조용히 아무것도 안 써짐'이 성공으로 보인다.
-    return json_({ updated: n, skipped: skipped, fellBack: _colInfo.fellBack || [] });
+    return json_({ updated: n, skipped: skipped, skipReasons: skipReasons,
+                   fellBack: _colInfo.fellBack || [], missing: _colInfo.missing || [], headerFound: true });
   } catch (err) {
     return json_({ error: String((err && err.message) || err) });
   }

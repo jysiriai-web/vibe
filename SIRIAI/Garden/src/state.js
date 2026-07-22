@@ -68,6 +68,10 @@ export async function putBest(sheet, best) {
 // 계정 + 주문 + 상태를 한 번에 (2단계에서 /api/data 왕복 절약용)
 export async function getBundle(sheet) {
   const d = await get(sheet, 'bundle');
+  // getAccountsFromSheet 와 같은 규칙 — 헤더행을 못 찾았으면 추측 좌표로 읽어 온 값이라 안 쓴다.
+  if (d.colinfo && d.colinfo.headerFound === false) {
+    throw new Error('마스터 헤더행(계정링크 + 닉네임/진행사)을 못 찾았어요 — 열 위치를 몰라 값을 읽지 않았습니다. 시트 헤더 이름을 확인해 주세요.');
+  }
   return { accounts: d.accounts || [], orders: d.orders || [], overrides: d.overrides || {}, best: d.best || [] };
 }
 

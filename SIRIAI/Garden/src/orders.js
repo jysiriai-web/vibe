@@ -12,7 +12,10 @@ export function loadOrders(dataDir) {
   if (!existsSync(f)) return [];
   try {
     return JSON.parse(readFileSync(f, 'utf8'));
-  } catch {
+  } catch (e) {
+    // 여기서 throw 하면 store.js 의 localOrders 가 가드 없이 부르는 탓에 대시보드 전체가 죽는다.
+    // 그래도 조용히 [] 를 돌려주면 '주문 0건'으로 보여 이중지출로 이어지니 최소한 로그는 남긴다.
+    console.error(`[orders] ${f} 파싱 실패 — 빈 기록으로 취급합니다: ${e.message}`);
     return [];
   }
 }
@@ -29,7 +32,10 @@ export async function refreshOrders(smm, orders) {
   let statuses = {};
   try {
     statuses = await smm.multiStatus(active.map((o) => o.id));
-  } catch {
+  } catch (e) {
+    // 갱신 실패 = 낡은 remains 로 계속 판단한다는 뜻(집행 직전 재확인도 이 값을 본다).
+    // 호출부들이 이 함수의 '절대 안 던짐'에 기대고 있어 흐름은 그대로 두되, 침묵은 깨 둔다.
+    console.error(`[orders] 주문 상태 갱신 실패 — 이전 기록 그대로 씁니다: ${e.message}`);
     return orders;
   }
   for (const o of active) {

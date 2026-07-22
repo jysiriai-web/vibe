@@ -22,7 +22,9 @@ export const OVERRIDE_FIELDS = ['contentA', 'contentB', 'soundOk', 'soundSection
 // 자동스캔이 안 건드려서 잠금(OVERRIDE) 대상은 아니고 편집만 허용.
 export const EDITABLE_FIELDS = ['nick', 'link', 'notice', 'contentA', 'schedDate', 'fixedDate', 'soundOk', 'soundSection', 'hashtagOk', 'memo', 'mirror',
   // 업로드·납품 모달에서 직접 고치는 값들. 없으면 서버가 400 으로 되돌려 '저장했는데 안 남는다'가 된다.
-  'contentB', 'views'];
+  'contentB', 'views',
+  // 정산 탭. 자동 스캔이 안 건드리는 칸이라 잠금(OVERRIDE) 대상은 아니고 편집만 허용한다.
+  'pay', 'best', 'override', 'paid', 'settleMemo'];
 
 // ── 마이그레이션 호환 계층 ──────────────────────────────────────────────
 // 기존 잠금은 베이온 열 번호를 키로 저장돼 있다: { "9": { "17": "...", "19": "..." } }.

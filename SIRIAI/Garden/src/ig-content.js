@@ -10,13 +10,18 @@ import { join } from 'node:path';
 import { getAccountsFromSheet, pushCellsToSheet } from './sheet.js';
 import { launchIgBrowser, openIgFetcher, fetchIgProfileRetry, fetchIgPostsViaPage, sleep } from './instagram.js';
 import { igHandleOf } from './ig-sync.js';
+import { readOverrides } from './store.js';
+import { isLockedField } from './overrides.js';
 
 const LATEST = 'ig-detected.json';
 
 // 캡션에서 해시태그만 뽑는다. 인스타는 한글·일본어 태그가 그대로 들어간다.
 export function tagsOfCaption(caption) {
   const out = new Set();
-  String(caption || '').replace(/#([^\s#@.,!?()[\]{}"'…]+)/g, (_, t) => { out.add(t.toLowerCase()); return ''; });
+  // 전각 ＃(일본어·한국어 IME 기본 입력)를 반각으로 먼저 맞추고, 태그는 글자·숫자·밑줄까지만 본다 —
+  // 인스타 자신도 이모지·기호에서 태그를 끊는다. 이걸 안 하면 '#LUN8✨' 이 'lun8✨' 로 잡혀
+  // 태그를 다 넣은 정상 게시물이 '미업로드·해시태그 미준수'가 되고, 크리에이터에게 잘못된 수정요청이 나간다.
+  String(caption || '').replace(/[＃♯]/g, '#').replace(/#([\p{L}\p{N}_]+)/gu, (_, t) => { out.add(t.toLowerCase()); return ''; });
   return out;
 }
 
@@ -51,7 +56,8 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
   })();
 
   // 이미 올린 게 확인된 계정은 다시 안 본다. 인스타 제한을 아끼고, 확정된 링크를 흔들지 않는다.
-  let _targets = accounts.filter((a) => !(prev[a.igHandle] && prev[a.igHandle].uploaded));
+  // 단 시트에 못 쓴 건(pendingWrite)은 아직 안 끝난 것이다 — 여기서 빼면 그 계정은 영원히 빈칸으로 남는다.
+  let _targets = accounts.filter((a) => !(prev[a.igHandle] && prev[a.igHandle].uploaded && !prev[a.igHandle].pendingWrite));
   // 특정 계정만 보라고 지정되면 그것만. 행 번호로도 핸들로도 지정할 수 있게 한다.
   if (Array.isArray(only) && only.length) {
     const want = new Set(only.map((v) => String(v).replace(/^@/, '').toLowerCase()));
@@ -60,9 +66,15 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
   // limit — 시험용. 프로필을 직접 여는 경로는 계정당 40초쯤 걸려서 전체를 돌면 30분이다.
   const targets = limit > 0 ? _targets.slice(0, limit) : _targets;
 
+  // 사람이 고친 칸은 안 덮는다. 틱톡(content-core)은 하던 걸 인스타만 안 하고 있었다 —
+  // 검수를 고쳐도 다음 스캔이 자동값으로 되돌렸다.
+  const overrides = await readOverrides(campaign);
+  const locked = (row, field) => isLockedField(overrides, row, field, 'ig');
   const detected = { ...prev };
   const cells = [];
-  let apiDead = false, stopped = '';
+  const wroteHandles = new Set();   // 이번 판에 시트 쓰기를 시도한 핸들 — 쓰기가 깨지면 이들만 되돌린다
+  const failedHandles = new Set();  // 이번 판에 '못 본' 계정. 지난 판 기록과 섞이면 실패 건수가 거짓이 된다
+  let apiDead = false, stopped = '', emptyStreak = 0;
 
   if (targets.length) {
     const b = await launchIgBrowser({ onWarmup, waitForGo });
@@ -81,32 +93,57 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
               apiDead = true;
               if (onProgress) onProgress({ note: 'API 가 막혀 프로필을 직접 열어 확인합니다 (느려요)' });
             } else if (e.code === 'NOTFOUND') {
+              failedHandles.add(a.igHandle);
               detected[a.igHandle] = { uploaded: false, scanFailed: true, error: e.message };
               if (onProgress) onProgress({ done: i + 1, total: targets.length, handle: a.igHandle, failed: true, error: e.message });
               await sleep(delayMs); continue;
             }
           }
         }
+        // 비공개(비팔로우) 계정은 200 에 is_private=true + edges:[] 를 준다 — API 가 막힌 게 아니다.
+        // 여기서 안 걸러내면 아래 조건에 걸려 apiDead 가 켜지고 남은 계정 전부가 느린 페이지 경로로 내려간다.
+        // 게다가 이 계정 자신도 페이지에서 게시물이 안 보여 '미업로드'로 확정된다 — 안 올린 사람과 섞이면 안 된다.
+        if (p && p.isPrivate && (!p.posts || !p.posts.length)) {
+          const msg = '비공개 계정 — 사람이 직접 확인해주세요';
+          failedHandles.add(a.igHandle);
+          detected[a.igHandle] = { uploaded: false, scanFailed: true, isPrivate: true, error: msg, checkedAt: new Date().toISOString() };
+          if (onProgress) onProgress({ done: i + 1, total: targets.length, handle: a.igHandle, failed: true, error: msg });
+          await sleep(delayMs); continue;
+        }
         // ⚠️ '막힘'만 폴백 조건으로 두면 안 된다. 인스타는 200 을 주면서 게시물 목록만
         //    비워 보낸다(게시물 962개인데 edges 0). 그러면 스캔은 '정상 완료 · 감지 0건'
         //    이라고 보고하면서 실제로는 아무것도 안 본 상태가 된다 — 가장 나쁜 실패다.
         //    게시물이 있는 계정인데 목록이 비었으면 못 본 것으로 치고 직접 열어 확인한다.
         if (p && (!p.posts || !p.posts.length) && (p.postCount == null || p.postCount > 0)) {
-          if (!apiDead) {
+          emptyStreak++;
+          // 한 계정만 비어 온 건 그 계정 사정일 수 있다. 연속 2회여야 API 가 죽었다고 본다.
+          if (!apiDead && emptyStreak >= 2) {
             apiDead = true;
             if (onProgress) onProgress({ note: 'API 가 게시물 목록을 비워 보냅니다 — 프로필을 직접 열어 확인합니다 (느려요)' });
           }
-          p = null;
+          p = null;   // 이 계정 자체는 어차피 페이지로 한 번 더 본다
+        } else if (p) {
+          emptyStreak = 0;
         }
         // ② 프로필을 직접 열어 최근 게시물을 하나씩 확인한다 — 사람이 하는 것과 같은 경로.
         //    느리지만 막혔을 때 스캔 전체가 멈추는 것보다 낫다.
         if (!p) {
           try { p = await fetchIgPostsViaPage(b.ctx, a.igHandle); via = 'page'; }
           catch (e) {
+            failedHandles.add(a.igHandle);
             detected[a.igHandle] = { uploaded: false, scanFailed: true, error: e.message };
             if (onProgress) onProgress({ done: i + 1, total: targets.length, handle: a.igHandle, failed: true, error: e.message });
             await sleep(delayMs); continue;
           }
+        }
+        // 폴백이 예외 없이 빈 목록을 돌려준 경우까지 막는다 — 0개는 판정 근거가 아니다.
+        // (로그인 월·차단·화면 변경이면 링크가 0개로 '정상' 반환된다) '미업로드'로 확정하지 않는다.
+        if (via === 'page' && !(p.posts || []).length) {
+          const msg = '게시물 목록을 못 읽음(페이지 폴백) — 사람이 직접 확인해주세요';
+          failedHandles.add(a.igHandle);
+          detected[a.igHandle] = { uploaded: false, scanFailed: true, error: msg, checkedAt: new Date().toISOString() };
+          if (onProgress) onProgress({ done: i + 1, total: targets.length, handle: a.igHandle, failed: true, error: msg });
+          await sleep(delayMs); continue;
         }
 
         const hits = (p.posts || []).filter((x) => inWindow(x, since)).map((x) => ({ post: x, m: matchPost(x, hashtags) })).filter((x) => x.m.hit);
@@ -126,10 +163,11 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
             comments: first.post.comments,
             takenAt: first.post.takenAt,
           };
-          cells.push({ row: a.row, field: 'ig.contentA', value: first.post.link });
-          if (hits[1]) cells.push({ row: a.row, field: 'ig.contentB', value: hits[1].post.link });
+          wroteHandles.add(a.igHandle);
+          if (!locked(a.row, 'contentA')) cells.push({ row: a.row, field: 'ig.contentA', value: first.post.link });
+          if (hits[1] && !locked(a.row, 'contentB')) cells.push({ row: a.row, field: 'ig.contentB', value: hits[1].post.link });
           // 해시태그는 '전부 들어갔나'로 판정한다. 일부만 맞으면 미준수 — 사람이 보고 요청해야 한다.
-          cells.push({ row: a.row, field: 'ig.hashtagOk', value: first.m.all ? '준수' : '미준수' });
+          if (!locked(a.row, 'hashtagOk')) cells.push({ row: a.row, field: 'ig.hashtagOk', value: first.m.all ? '준수' : '미준수' });
           if (first.post.likes != null) cells.push({ row: a.row, field: 'ig.likes', value: first.post.likes });
           if (first.post.comments != null) cells.push({ row: a.row, field: 'ig.comments', value: first.post.comments });
         } else {
@@ -144,10 +182,20 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
   let written = 0, writeError = '';
   if (cells.length) {
     try { written = await pushCellsToSheet(campaign.sheet, cells); }
-    catch (e) { writeError = e.message; }
+    catch (e) {
+      writeError = e.message;
+      // 시트에 못 썼다 = 아직 안 끝난 것. uploaded:true 로 확정하면 위 필터가 이 계정을 영영 건너뛴다.
+      wroteHandles.forEach((h) => { if (detected[h]) detected[h].pendingWrite = true; });
+    }
   }
 
   const uploadedN = Object.values(detected).filter((d) => d && d.uploaded).length;
+  // 못 본 계정은 '안 올린 사람'과 반드시 갈라 보여야 한다 — 여기서 묻히면 잘못된 수정요청이 나간다.
+  const failures = [...failedHandles].map((h) => ({
+    handle: h,
+    error: (detected[h] && detected[h].error) || '',
+    isPrivate: !!(detected[h] && detected[h].isPrivate),
+  }));
   const out = {
     ranAt: new Date().toISOString(),
     total: accounts.length,
@@ -155,6 +203,9 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
     uploaded: uploadedN,
     written,
     writeError,
+    pendingWrite: Object.values(detected).filter((d) => d && d.pendingWrite).length,
+    failed: failures.length,
+    failures,
     stopped,
     hashtags,
     detected,

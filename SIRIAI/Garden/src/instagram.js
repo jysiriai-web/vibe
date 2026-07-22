@@ -18,12 +18,18 @@ const HOME = 'https://www.instagram.com/';
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// 'https://instagram.com/@abc/?x=1' · '@abc' · 'abc' → 'abc'
+// 인스타 자신의 예약 경로. 릴스·게시물 링크를 인스타 칸에 붙여넣으면 여기가 핸들처럼 잡힌다
+// (실측: '/reel/C8xYzAbc/' → 'reel'). 그대로 두면 남의 계정을 긁어 그 행에 써버린다.
+// Code.gs 의 igHandleFrom_ 도 같은 걸 거른다 — 두 쪽 규칙을 맞춰둔다(+ 브릿지에 빠진 share 포함).
+const IG_RESERVED = /^(p|reel|reels|stories|story|tv|explore|s|accounts|share|direct|challenge)$/i;
+
+// 'https://instagram.com/@abc/?x=1' · '@abc' · 'abc' → 'abc'   (예약 경로면 '')
 export function toIgHandle(s) {
   s = String(s || '').trim();
-  const m = s.match(/instagram\.com\/([A-Za-z0-9._]+)/i);
-  if (m) return m[1];
-  return s.replace(/^@/, '').replace(/\/.*$/, '');
+  // '@' 를 붙여 복사해 오는 사람이 있다(instagram.com/@abc) — 이걸 안 받으면 'https:' 가 나와 행이 조용히 버려진다.
+  const m = s.match(/instagram\.com\/@?([A-Za-z0-9._]+)/i);
+  const h = m ? m[1] : s.replace(/^@/, '').replace(/\/.*$/, '');
+  return IG_RESERVED.test(h) ? '' : h;
 }
 
 export function igProxyFromEnv() {
@@ -238,7 +244,13 @@ export async function fetchIgPostsViaPage(ctx, handleRaw, { max = 8, timeout = 6
       return seen.slice(0, n);
     }, max);
 
+    // 그리드를 못 읽은 것과 '정말 게시물이 없는 것'은 화면상 구분이 안 된다(로그인 월·차단·화면 변경).
+    // 여기서 조용히 빈 배열을 돌려주면 호출부가 '미업로드'로 확정해버린다 → 실패로 던진다.
+    if (!links.length) { const e = new Error('프로필 페이지에서 게시물 목록을 못 읽음(로그인 월·차단·화면 변경)'); e.code = 'EMPTY'; throw e; }
+
     const posts = [];
+    const failed = [];
+    let others = 0;   // 남의 게시물로 판단해 건너뛴 수 — 실패 메시지에 근거로 남긴다
     for (const l of links) {
       try {
         await page.goto(`https://www.instagram.com/${l.kind}/${l.shortcode}/`, { waitUntil: 'domcontentloaded', timeout });
@@ -252,6 +264,16 @@ export async function fetchIgPostsViaPage(ctx, handleRaw, { max = 8, timeout = 6
         // 앞머리(좋아요·댓글·날짜)와 본문을 갈라 쓴다. 형식이 바뀌면 통째로 캡션으로 둔다 —
         // 해시태그만 보면 되므로 앞머리가 섞여도 판정에는 지장이 없다.
         const d = info.desc;
+        // 프로필 페이지 그리드에 남의 게시물 링크가 섞일 수 있다(추천·태그된 게시물).
+        // 캡션 안의 '(@멘션)' 을 주인으로 오인하면 정상 게시물을 버리게 되므로,
+        // 캡션이 시작되기 전(': "' 앞) 머리말에 적힌 핸들만 대조한다. 못 찾으면 버리지 않는다.
+        const ownerHead = d.split(/:\s*"/)[0];
+        const owner = (ownerHead.match(/\(@([A-Za-z0-9._]+)\)/) || ownerHead.match(/(?:^|-\s*)([A-Za-z0-9._]+)\s+on\s+Instagram/i) || [])[1];
+        const headHasMe = ownerHead.toLowerCase().includes(handle.toLowerCase());
+        // 인스타가 붙이는 머리말('N likes, M comments -' · 'on Instagram' · '좋아요 N개')이 보일 때만 믿는다.
+        // 형식이 바뀌어 캡션이 통째로 들어온 경우엔 캡션 속 멘션을 주인으로 오인하게 된다.
+        const looksLikeHead = /likes?|comments?|좋아요|댓글|Instagram/i.test(ownerHead);
+        if (owner && looksLikeHead && !headHasMe && owner.toLowerCase() !== handle.toLowerCase()) { others++; await sleep(700); continue; }
         const head = d.match(/^([\d,]+)\s*likes?,\s*([\d,]+)\s*comments?/i);
         const body = d.match(/:\s*"([\s\S]*)"\s*$/);
         // 릴스는 time[datetime] 이 없을 때가 있다 — 앞머리의 날짜를 쓴다.
@@ -269,9 +291,11 @@ export async function fetchIgPostsViaPage(ctx, handleRaw, { max = 8, timeout = 6
           comments: head ? num(head[2]) : null,
           takenAt: taken,
         });
-      } catch { /* 이 게시물만 건너뛴다 — 하나 못 봤다고 계정 전체를 포기하지 않는다 */ }
+      } catch { failed.push(l.shortcode); /* 이 게시물만 건너뛴다 — 하나 못 봤다고 계정 전체를 포기하지 않는다 */ }
       await sleep(700);
     }
+    // 링크는 봤는데 한 개도 못 연 경우도 '게시물 없음'과 구분해야 한다 — 역시 실패로 던진다.
+    if (!posts.length) { const e = new Error(`게시물 ${links.length}개를 못 열었어요(${failed.length}건 실패 · ${others}건은 다른 계정 것)`); e.code = 'EMPTY'; throw e; }
     // 그리드 순서가 최신순이 아닐 때가 있다(고정 게시물 등) → 시각으로 다시 세운다.
     posts.sort((x, y) => new Date(y.takenAt || 0) - new Date(x.takenAt || 0));
     return { handle, followers: null, name: '', isPrivate: false, postCount: null, posts, via: 'page' };

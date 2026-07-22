@@ -10,7 +10,10 @@ import { loadEnv } from '../src/env.js';
 import { createSmm } from '../src/smm.js';
 import { getAccountsFromSheet } from '../src/sheet.js';
 import { toHandle } from '../src/tiktok.js';
-import { loadOrders, saveOrders, refreshOrders } from '../src/orders.js';
+import { refreshOrders } from '../src/orders.js';
+// 주문(돈) 원장은 서버와 같은 상태 계층을 타야 한다. 로컬 파일만 보면 시트에 있는
+// 진행중 주문을 못 봐서 같은 계정에 또 과금된다.
+import { readOrders, writeOrders } from '../src/store.js';
 import { scanAccounts, buildPlan, placeOrders, findService, tiktokOnly } from '../src/execute-core.js';
 import { defaultCampaign, getCampaign } from '../src/campaigns.js';
 
@@ -35,10 +38,22 @@ function ask(q) {
 }
 
 console.log(`\n[캠페인: ${campaign.name}]`);
-let orders = loadOrders(campaign.dataDir);
+// 원장을 못 읽으면 진행중 주문이 0건으로 보여 이미 채워지는 계정에 또 주문한다 → 집행 자체를 시작하지 않는다.
+let orders;
+try {
+  orders = await readOrders(campaign);
+} catch (e) {
+  console.error(`\n❌ 주문 기록을 읽지 못했어(${e.message}). 낡은 데이터로 집행하면 이중지출이라 멈춰.\n`);
+  process.exit(1);
+}
 console.log('▶ 기존 주문 상태 갱신...');
 orders = await refreshOrders(smm, orders);
-saveOrders(campaign.dataDir, orders);
+{
+  // 아직 과금 전이라 저장 실패로 멈추진 않지만, 조용히 넘기지도 않는다.
+  const w = await writeOrders(campaign, orders);
+  if (!w.durable) console.error(`  ⚠️ 갱신한 주문 상태를 어디에도 저장 못 했어: ${w.localError || ''} ${w.sheetError || ''}`);
+  else if (w.sheet === 'fail') console.error(`  ⚠️ 시트 기록 실패(로컬엔 저장됨): ${w.sheetError}`);
+}
 console.log(`  진행중 주문 ${orders.filter((o) => !o.done).length}건`);
 
 console.log('\n▶ 시트 계정 읽고 현재 팔로워 확인 중...');
@@ -75,9 +90,22 @@ const ans = await ask(`\n⚠️  실제로 주문 넣고 돈이 나가. 진행�
 if (ans.toLowerCase() !== 'yes') { console.log('\n취소했어.\n'); process.exit(0); }
 
 console.log('\n▶ 주문 전송 중...');
-await placeOrders(smm, orders, toOrder, svc, {
-  persist: () => saveOrders(campaign.dataDir, orders), // 과금 직후 즉시 저장(중단 시 유실 방지)
-  onEach: (r) => console.log(r.ok ? `  ✅ @${r.handle}  주문 #${r.id} (${r.qty}명)` : `  ❌ @${r.handle}  실패: ${r.error}`),
-});
-saveOrders(campaign.dataDir, orders);
+try {
+  await placeOrders(smm, orders, toOrder, svc, {
+    // writeOrders 는 {durable} 을 돌려준다 — execute-core 의 '기록 실패 시 배치 중단' 가드가
+    // 여기서도 살아나려면 반드시 반환값이 있어야 한다(saveOrders 는 undefined 라 죽어 있었다).
+    persist: () => writeOrders(campaign, orders), // 과금 직후 즉시 저장(중단 시 유실 방지)
+    onEach: (r) => console.log(r.ok ? `  ✅ @${r.handle}  주문 #${r.id} (${r.qty}명)` : `  ❌ @${r.handle}  실패: ${r.error}`),
+  });
+} catch (e) {
+  console.error(`\n❌ ${e.message}\n   이미 나간 주문: ${(e.placed || []).map((p) => '#' + p.id + ' @' + p.handle).join(', ') || '없음'}\n`);
+  const w = await writeOrders(campaign, orders);
+  if (!w.durable) console.error('⚠️ 그 주문 기록도 저장하지 못했어. smmkings 패널에서 직접 확인해.\n');
+  process.exit(1);
+}
+{
+  const w = await writeOrders(campaign, orders);
+  if (!w.durable) console.error('\n⚠️ 주문은 나갔는데 기록에 실패했어. smmkings 패널에서 직접 확인해.\n');
+  else if (w.sheet === 'fail') console.error(`\n⚠️ 로컬엔 저장됐지만 시트 기록 실패: ${w.sheetError} — 대시보드를 한 번 열어 동기화해.\n`);
+}
 console.log(`\n완료. 다음 집행 땐 채워지는 중이면 자동 스킵.\n`);
