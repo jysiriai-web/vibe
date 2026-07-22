@@ -503,6 +503,8 @@ body.fb-picking #content *:hover { outline: 2px solid var(--accent); outline-off
 .ds-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
 .ds-row .kpi-top { margin:0; flex-shrink:0; }
 .dstrip-card .dday .dn i { font-style:normal; font-size:9.5px; font-weight:700; color:var(--faint); margin-left:1px; }
+/* '남음' 줄이 있는 칸만 한 줄 더 길어져 탭을 바꿀 때 높이가 튀었다. 자리를 미리 잡아둔다. */
+.dstrip-card .dday { min-height:58px; justify-content:flex-start; }
 .dstrip-card .dday.over .dn i { color:var(--needs-ink); }
 /* 플랫폼 칩이 좁은 화면에서 '틱톡 + 인'/'스타' 로 쪼개지던 것 방지 */
 .plat-pill { white-space:nowrap; }
@@ -638,12 +640,17 @@ body.nav-collapsed .side-btn { justify-content:center; }
 /* 하위탭 줄이 도구를 다 안는다 — 배지·선택 스캔이 한 줄에 들어가 표가 위로 붙는다 */
 /* 배지가 비면 .sub-hide 가 없어져 거기 걸린 auto 마진도 사라진다 →
    버튼이 마지막 탭에 딱 붙었다. 버튼 자신이 오른쪽으로 밀리게 한다. */
+/* .sub-hide 는 배지가 없어도 DOM 에 남는다(비어 있을 뿐) → 인접 선택자가 늘 맞아
+   버튼이 마지막 탭에 붙었다. 배지가 '있을 때만' 간격을 준다. */
 .subtabs #btnPickScan { margin-left:auto; }
-.sub-hide + #btnPickScan { margin-left:10px; }
-.sub-hide { margin-left:auto; }
+.sub-hide:not(:empty) + #btnPickScan { margin-left:10px; }
+.sub-hide:not(:empty) { margin-left:auto; }
 /* 일정 스트립이 어느 플랫폼 기준인지 색으로 — 숫자만 바뀌면 왜 줄었는지 모른다 */
 .dstrip-card.p-tk .kpi-ic { background:#15171a; color:#fff; }
 .dstrip-card.p-ig .kpi-ic { background:#fdeef5; color:#d62976; }
+/* 아이콘만 색이 다르면 눈이 두 번 본다. 라벨도 같이 물들인다. */
+.dstrip-card.p-tk .lab { color:#15171a; }
+.dstrip-card.p-ig .lab { color:#d62976; }
 .dstrip-card .kpi-ic svg { width:15px; height:15px; }
 .dstrip-card.p-tk .dday.on, .dstrip-card.p-tk .wchip.on { border-color:#15171a; }
 .dstrip-card.p-ig .dday.on, .dstrip-card.p-ig .wchip.on { border-color:#d62976; }
@@ -1497,8 +1504,8 @@ function viewUploadAll(){
   const goal = (cfg().targets ? Object.values(cfg().targets).reduce((a,b)=>a+b,0) : 0);
   const kpis = `<div class="cards">
     ${kpi('업로드 · 건', ofTot(up, tot), { ic:IC.video, sub:`계약 목표 ${goal}건 · 모집 ${tot}건` })}
-    ${kpi('검수완료 · 건', ofTot(rev, goal||tot), { ic:IC.check, sub:'음원·음원구간·해시태그 3칸 모두 준수' })}
-    ${kpi('일정 미준수 · 건', late, { ic:IC.clock, accent: late?'var(--needs)':undefined, sub:`예정일(${TODAY()} 기준)이 지났는데 아직 미업로드` })}
+    ${kpi('검수완료 · 건', ofTot(rev, goal||tot), { ic:IC.check, sub:'음원·음원구간·해시태그 모두 준수' })}
+    ${kpi('일정 미준수 · 건', late, { ic:IC.clock, accent: late?'var(--needs)':undefined, sub:'예정일이 지났는데 미업로드' })}
     ${bufferKpi()}
     ${schedStrip()}
   </div>`;
@@ -1535,12 +1542,15 @@ function bufferKpi(){
     platsOn().forEach(p=>{ if(isLate(d,p)) late++; });
   });
   // secured 는 이미 드랍을 뺀 값이다(slots). 지금 손에 쥔 것으로 인정상한을 채우는지 본다.
-  const short = cap - secured;            // 0보다 크면 그만큼 마루에 더 요청해야 한다
+  // 기준은 '최소 건수'(계약 목표, 오버부킹 제외)다. 인정상한(105)은 최대로 인정받는 수라
+  // 그걸로 부족분을 재면 실제보다 크게 나온다.
+  const minGeon = platsOn().reduce((a,p)=> a + (cfg().targets[p]||0), 0) || cap;
+  const short = minGeon - secured;
   const sub = (short <= 0
-      ? `확보 ${secured}건 · 인정상한 ${cap}건 — 여유 <b>${-short}건</b>${drop?` (드랍 ${drop}건 반영됨)`:''}`
-      : `<b class="warn-t">확보 ${secured}건 · 인정상한 ${cap}건 — ${short}건 부족</b>${drop?` · 드랍 ${drop}건`:''}`)
+      ? `확보 ${secured}건 · 최소 ${minGeon}건 — 여유 <b>${-short}건</b>${drop?` (드랍 ${drop}건 반영됨)`:''}`
+      : `<b class="warn-t">확보 ${secured}건 · 최소 ${minGeon}건 — ${short}건 부족</b>${drop?` · 드랍 ${drop}건`:''}`)
     + (late ? ` · 지연 ${late}건은 아직 올라올 수 있어 안 셌어요` : '');
-  return kpi('마루 추가 요청 · 건', short > 0 ? `${short}<span class="of"> 필요</span>` : `0<span class="of"> 필요 없음</span>`,
+  return kpi('추가 모집 · 건', short > 0 ? `${short}<span class="of"> 필요</span>` : `0<span class="of"> 필요 없음</span>`,
     { ic:IC.split, accent: short>0?'var(--needs)':undefined, sub });
 }
 /* 업로드 필터 줄 — 버튼을 배열로 관리한다. 자주 쓰는 필터('검수 필요' 등)를 나중에 붙일 때
@@ -1641,7 +1651,7 @@ function viewUploadLate(){
   const kpis = `<div class="cards">
     ${kpi('연락해야 함 · 건', pairs.length, { ic:IC.clock, accent: pairs.length?'var(--needs)':undefined, sub:'예정일이 지났는데 아직 안 올라온 건' })}
     ${kpi('답 대기 · 명', sent, { ic:IC.mail||IC.check, sub:'확정메일 보내고 새 날짜를 기다리는 사람' })}
-    ${kpi('드랍 · 명', dropped, { ic:IC.x||IC.clock, sub:'최종 포기 — 마루 추가 요청 계산에 들어감' })}
+    ${kpi('드랍 · 명', dropped, { ic:IC.x||IC.clock, sub:'최종 포기 — 추가 모집 계산에 들어감' })}
     ${schedStrip()}
   </div>`;
   return kpis + platSubtabs() +
@@ -1680,8 +1690,8 @@ function viewUpload(){
   const t = cfg().targets;
   const kpis = `<div class="cards">
     ${kpi('업로드 완료 · 건', ofTot(up, allRows.length), { ic:IC.video, sub:`목표 ${t[p]||'—'}건` })}
-    ${kpi('검수 완료 · 건', ofTot(rev, up||allRows.length), { ic:IC.check, sub:'음원·음원구간·해시태그 3칸 모두 준수' })}
-    ${kpi('일정 미준수 · 건', late, { ic:IC.clock, accent: late?'var(--needs)':undefined, sub:`예정일(${TODAY()} 기준) 지났는데 미업로드` })}
+    ${kpi('검수 완료 · 건', ofTot(rev, up||allRows.length), { ic:IC.check, sub:'음원·음원구간·해시태그 모두 준수' })}
+    ${kpi('일정 미준수 · 건', late, { ic:IC.clock, accent: late?'var(--needs)':undefined, sub:'예정일이 지났는데 미업로드' })}
     ${bufferKpi()}
     ${schedStrip()}
   </div>`;
