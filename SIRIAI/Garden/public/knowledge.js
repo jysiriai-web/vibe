@@ -18,15 +18,19 @@ const MANUAL = [
     q: '틱톡에서 지정 음원을 어떻게 찾나요?',
     ko: `안녕하세요! 지정 음원은 아래 링크에서 바로 사용하실 수 있어요.
 
-틱톡: https://www.tiktok.com/music/SNEAKERS-7662257327776974865
-인스타: 업로드할 때 오디오 검색에서 <b>LUN8 의 SNEAKERS</b> 를 골라주세요.
+틱톡: https://vt.tiktok.com/ZS9rfMND4c7jH-1kG4a/
+인스타: https://www.instagram.com/reels/audio/2687727164956831
+
+<b>사용 구간</b> — 틱톡은 <b>0초부터</b>, 인스타는 <b>34초쯤부터</b> 써주세요.
 
 링크를 눌러 → 우측 하단 [이 사운드 사용하기] → 촬영/업로드 순으로 진행하시면 됩니다.
 검색으로 찾으실 경우 동명의 다른 음원이 있을 수 있어서, 꼭 위 링크로 들어가 주세요.`,
     ja: `こんにちは！指定楽曲は下記のリンクからそのままご使用いただけます。
 
-TikTok: https://www.tiktok.com/music/SNEAKERS-7662257327776974865
-Instagram: 投稿時にオーディオ検索で <b>LUN8 の「SNEAKERS」</b> を選択してください。
+TikTok: https://vt.tiktok.com/ZS9rfMND4c7jH-1kG4a/
+Instagram: https://www.instagram.com/reels/audio/2687727164956831
+
+<b>使用区間</b> — TikTok は <b>0秒から</b>、Instagram は <b>34秒あたりから</b> お願いいたします。
 
 リンクを開く → 右下の[この楽曲を使う] → 撮影・アップロードの順で進めてください。
 検索の場合、同名の別音源が出てくることがありますので、必ず上記リンクからお願いいたします。`,
@@ -48,12 +52,12 @@ Instagram: 投稿時にオーディオ検索で <b>LUN8 の「SNEAKERS」</b> �
     q: '음원 구간이 정해져 있나요?',
     ko: `네, 지정 구간이 있어요.
 
-구간 지정은 따로 없어요 — 공식 음원만 쓰면 됩니다.
+틱톡 <b>0초부터</b> · 인스타 <b>34초쯤부터</b> 써주세요.
 
 이 구간이 영상에 포함되어야 검수를 통과할 수 있어요. 영상 전체 길이는 자유롭게 하셔도 괜찮습니다.`,
     ja: `はい、指定区間がございます。
 
-区間の指定はありません — 公式音源であれば大丈夫です。
+TikTok は <b>0秒から</b>、Instagram は <b>34秒あたりから</b> でお願いいたします。
 
 この区間が動画に含まれている必要がございます。動画全体の長さは自由で問題ありません。`,
   },
@@ -219,7 +223,7 @@ const GUIDE = {
     { k: '물량 배분', v: '1주차 60% / 2주차 40% (엄격한 비율 아님) · 특정 날짜 쏠림 금지' },
     { k: '조건', v: '팔로워 1K 이상 · 댄스 only' },
     // 7/23 크리에이터 리마인드 발송분 기준. 문의 대부분이 이 셋이라 사양표 맨 위쪽에 둔다.
-    { k: '공식 음원', v: '틱톡 <a href="https://www.tiktok.com/music/SNEAKERS-7662257327776974865" target="_blank" rel="noopener">SNEAKERS 음원 페이지</a> · 인스타는 오디오 검색에서 <b>LUN8 — SNEAKERS</b>' },
+    { k: '공식 음원', v: '틱톡 <a href="https://vt.tiktok.com/ZS9rfMND4c7jH-1kG4a/" target="_blank" rel="noopener">음원 링크</a> (0초부터) · 인스타 <a href="https://www.instagram.com/reels/audio/2687727164956831" target="_blank" rel="noopener">오디오 링크</a> (34초쯤부터)' },
     { k: '필수 해시태그', v: '<b>#루네이트 #LUN8 #SNEAKERS</b> — 셋 다 있어야 준수' },
     { k: '미러링 금지', v: '틱톡·인스타 양쪽 참여 시 <b>같은 영상 재사용 금지</b>. 구도나 배경을 달리해 최소 2번 촬영' },
     { k: '문의 창구', v: '크리에이터에겐 DM 으로 안내됨 · 상세 가이드는 등록 이메일로도 발송' },
