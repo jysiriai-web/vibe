@@ -623,6 +623,11 @@ body.nav-collapsed .side-btn { justify-content:center; }
 .svcnote small { font-size:11px; color:var(--faint); }
 .svcnote .svc-n { color:var(--faint); overflow:hidden; text-overflow:ellipsis; }
 @media (max-width:900px){ .svcnote { display:none; } }
+/* 빈 열 배지를 하위탭 줄 오른쪽 끝에. 표에 관한 정보라 표를 고르는 줄에 있는 게 맞다. */
+.subtabs { align-items:center; }
+.sub-hide { margin-left:auto; display:inline-flex; }
+.sub-hide:empty { display:none; }
+.sub-hide .hidebadge { margin:0; }
 </style>
 </head>
 <body>
@@ -1554,12 +1559,13 @@ async function runPickScan(btn){
   } catch(e){ toast('스캔 실패: ' + esc(e.message)); }
   finally { btn.disabled = false; render(); }
 }
+/* 업로드탭 도구줄. '전체' 하나만 남은 필터 버튼은 잔재라 뺐다 —
+   고를 게 하나뿐인 필터는 필터가 아니다(일정 미준수는 하위탭으로 옮겼다).
+   빈 열 배지는 하위탭 오른쪽 끝(subSlot)으로 보낸다 — 표에 관한 정보라 표를 고르는 줄에 붙는 게 맞다. */
 function filterBar(pairs, extra){
-  const btns = UP_FILTERS.map(f=>{
-    const n = f.test ? pairs.filter(x=> f.test(x.d, x.p)).length : 0;
-    return `<button class="btn small${state.upFilter===f.k?' primary':''}" data-upf="${f.k}">${f.label}${f.test&&n?` (${n})`:''}</button>`;
-  }).join('');
-  return `<div class="bar">${btns}<span id="hideSlot"></span><span class="bar-right">${scanPickBtn()}${extra||''}</span></div>`;
+  const right = scanPickBtn() + (extra || '');
+  if(!right.trim()) return '';
+  return `<div class="bar"><span class="spacer"></span><span class="bar-right">${right}</span></div>`;
 }
 
 /* 일정 미준수 — 윤경님이 '연락하고 표기하는' 한 가지 일만 하는 화면.
@@ -1593,7 +1599,7 @@ function viewUploadLate(){
     ${kpi('드랍 · 명', dropped, { ic:IC.x||IC.clock, sub:'최종 포기 — 마루 추가 요청 계산에 들어감' })}
     ${schedStrip()}
   </div>`;
-  return platSubtabs() + kpis +
+  return kpis + platSubtabs() +
     renderTable(cols, pairs, { tableId:'upload-late', emptyMsg:'지금은 연락할 사람이 없어요 — 예정일이 지난 미업로드가 없습니다.' }) +
     `<div class="note-line">이메일을 눌러 복사 → 메일 보내고 → <b>편집</b>에서 <b>확정메일 발송</b>을 눌러 두세요. 새 날짜를 받으면 확정일에 날짜를 넣고, 그 날짜에도 안 올라오면 <b>최종 드랍</b>입니다.</div>`;
 }
@@ -2008,7 +2014,7 @@ function platSubtabs(){
     <button class="subtab ig ${state.plat==='ig'?'active':''}" data-plat="ig"><span class="dot"></span>인스타</button>
     ${state.view==='upload' ? `<button class="subtab late ${state.plat==='late'?'active':''}" data-plat="late"><span class="dot"></span>일정 미준수 <span class="cmuted">${lateCount()}건</span></button>` : ''}
     ${state.view==='garden' ? `<button class="subtab hist ${state.plat==='hist'?'active':''}" data-plat="hist"><span class="dot"></span>집행 이력 <span class="cmuted">${ORDERS.length}건</span></button>` : ''}
-    ${gardenSvcNote()}</div>`;
+    ${gardenSvcNote()}<span id="hideSlot" class="sub-hide"></span></div>`;
 }
 /* ============ 매뉴얼 · 가이드 ============
    내용은 public/knowledge.js 하나뿐이다(MANUAL/GUIDE). 여기서 복붙하지 않는다 —
