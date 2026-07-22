@@ -929,7 +929,13 @@ const mirName = k => ({m1:'미러링',m0:'별개',mx:'미확인'}[k]);
 const uploaded = (d,p)=> d[p] && !!d[p].c1;
 const anyUploaded = d => platsOn().some(p=> uploaded(d,p));
 const inCampaign = d => platsOn().some(p=> d.plats.includes(p) && d[p]!==null);
-const slots = d => platsOn().filter(p=> d[p]!==null && d[p]!==undefined).length; // 이 사람이 차지하는 콘텐츠 '건' 수
+// 확정일 칸에 담기는 진행상태. slots 가 이걸 쓰므로 반드시 먼저 선언한다 —
+// const 는 선언 전에 참조하면 초기화 전 오류로 스크립트 전체가 죽는다.
+const isDropped = d => String(d.fixed||'').trim() === '최종 드랍';
+const isMailSent = d => String(d.fixed||'').trim() === '확정메일 발송';
+// 이 사람이 차지하는 콘텐츠 '건' 수. 최종 드랍한 사람은 0 — 안 올라올 콘텐츠를 확보로 세면
+// '몇 건이 비었나'가 틀리고, 그 숫자로 마루에 요청하므로 부족분이 그대로 사고가 된다.
+const slots = d => isDropped(d) ? 0 : platsOn().filter(p=> d[p]!==null && d[p]!==undefined).length;
 const reviewed = d => anyUploaded(d) && platsOn().filter(p=>uploaded(d,p)).every(p=>done(d[p]));
 const nickCell = d => `<b>${esc(d.nick)}</b>`;
 // 이메일은 눌러서 복사한다 — 모집메일을 지메일에 붙여넣는 게 실제 용도라 '보기'만으론 부족하다.
@@ -1238,7 +1244,7 @@ function viewRecruit(){
     : `콘텐츠 총 ${totGeon}건 (1명이 여러 건)`;
   const kpis = `<div class="cards">
     ${kpi('모집 인원 · 명', `${totPeople}<span class="of"> 명</span>`, { ic:IC.users, sub:`${hasIG()?`틱톡 ${tkPeople}명 · 인스타 ${igPeople}명`:`틱톡 ${tkPeople}명`} · 확보 ${totGeon}건` })}
-    ${kpi('확보 · 건', sec ? ofTot(totGeon, sec.target) : `${totGeon}`, { ic:IC.split, sub:coSub, accent: (sec && totGeon < sec.target)?'var(--warn)':undefined })}
+    ${secureKpi(totGeon)}
     ${hasIG() ? kpi('플랫폼 · 건', `${tkGeon}<span class="of"> 틱톡</span> · ${igGeon}<span class="of"> 인스타</span>`, { ic:IC.layers, two:true, sub:`콘텐츠 총 ${totGeon}건` }) : ''}
     ${schedStrip()}
   </div>`;
@@ -1326,19 +1332,39 @@ function viewUploadAll(){
 }
 /* 미업로드 완충 — 확보(115)에서 정산 상한(105)을 뺀 여유가 미업로드를 흡수한다.
    지연이 그 여유를 넘어가는 순간이 '마루에 대체 요청' 시점이다. 이걸 숫자 하나로 띄운다. */
+/* 확보 카드. 설명문("확보 목표 115 = 시리아이 94 + 마루 21")은 뗐다 —
+   모집이 늘면 곧바로 사실과 어긋나는데, 화면이 틀린 말을 하는 게 설명이 없는 것보다 나쁘다.
+   대신 색으로 말한다: 목표 넘으면 초록 · 인정상한은 넘었으면 노랑 · 그 아래면 빨강.
+   기준이 두 개인 이유 — 인정상한(105)은 계약 물량이고 목표(115)는 미업로드까지 감안한 여유다. */
+function secureKpi(geon){
+  const sec = cfg().secure, cap = cfg().settleCap || 0;
+  if(!sec) return kpi('확보 · 건', String(geon), { ic:IC.split });
+  const ok = geon >= sec.target, mid = geon >= cap;
+  const accent = ok ? 'var(--ok-ink)' : mid ? 'var(--warn)' : 'var(--needs)';
+  const sub = ok ? `목표 ${sec.target}건 달성 — 미업로드 여유까지 확보`
+    : mid ? `인정상한 ${cap}건은 넘었어요 · 목표 ${sec.target}건까지 ${sec.target-geon}건`
+          : `<b class="warn-t">인정상한 ${cap}건에 ${cap-geon}건 모자라요</b> — 정산 물량이 안 채워집니다`;
+  return kpi('확보 · 건', ofTot(geon, sec.target), { ic:IC.split, accent, sub });
+}
 function bufferKpi(){
   const sec = cfg().secure; if(!sec) return '';
   const cap = cfg().settleCap || 0;
   const secured = D.filter(inCampaign).reduce((a,d)=>a+slots(d),0);
-  let late = 0; D.filter(inCampaign).forEach(d=> platsOn().forEach(p=>{ if(isLate(d,p)) late++; }));
-  const buf = sec.target - cap;           // 계획된 완충 = 확보목표 − 인정상한 (115−105=10)
-  const left = buf - late;                // 지연을 흡수하고 남은 완충
-  const gap = sec.target - secured;       // 아직 안 들어온 확보분 (마루 미도착 등) — 완충과 별개 문제
-  const sub = (left >= 0
-      ? `확보목표 ${sec.target} − 인정상한 ${cap} = 완충 <b>${buf}건</b> · 지연 ${late}건 흡수 가능`
-      : `<b class="warn-t">완충 ${buf}건을 지연 ${late}건이 넘어섰어요 — ${-left}건 대체 필요</b>`)
-    + (gap > 0 ? ` · 확보 ${gap}건 미도착(마루 ${sec.MARU}건 요청중)` : '');
-  return kpi('미업로드 완충 · 건', `${left}<span class="of"> 남음</span>`, { ic:IC.split, accent: left<0?'var(--needs)':(left<=2?'var(--warn)':undefined), sub });
+  // 예전엔 '지연'을 셌다. 지연은 늦었을 뿐 나중에 올라올 수 있다 — 그걸로 마루에 요청하면
+  // 올라온 뒤에 물량이 남는다. 확정적으로 비는 건 '최종 드랍'뿐이므로 그것만 센다.
+  let drop = 0, late = 0;
+  D.filter(inCampaign).forEach(d=>{
+    if(isDropped(d)) { drop += platsOn().filter(p=> d[p]).length; return; }
+    platsOn().forEach(p=>{ if(isLate(d,p)) late++; });
+  });
+  // secured 는 이미 드랍을 뺀 값이다(slots). 지금 손에 쥔 것으로 인정상한을 채우는지 본다.
+  const short = cap - secured;            // 0보다 크면 그만큼 마루에 더 요청해야 한다
+  const sub = (short <= 0
+      ? `확보 ${secured}건 · 인정상한 ${cap}건 — 여유 <b>${-short}건</b>${drop?` (드랍 ${drop}건 반영됨)`:''}`
+      : `<b class="warn-t">확보 ${secured}건 · 인정상한 ${cap}건 — ${short}건 부족</b>${drop?` · 드랍 ${drop}건`:''}`)
+    + (late ? ` · 지연 ${late}건은 아직 올라올 수 있어 안 셌어요` : '');
+  return kpi('마루 추가 요청 · 건', short > 0 ? `${short}<span class="of"> 필요</span>` : `0<span class="of"> 필요 없음</span>`,
+    { ic:IC.split, accent: short>0?'var(--needs)':undefined, sub });
 }
 /* 업로드 필터 줄 — 버튼을 배열로 관리한다. 자주 쓰는 필터('검수 필요' 등)를 나중에 붙일 때
    이 배열에 한 줄만 추가하면 버튼·건수·빈 메시지가 한꺼번에 따라온다.
@@ -1721,8 +1747,6 @@ function lateCount(){
   D.filter(inCampaign).forEach(d=>{ if(isDropped(d)) return; platsOn().forEach(p=>{ if(isLate(d,p)) n++; }); });
   return n;
 }
-const isDropped = d => String(d.fixed||'').trim() === '최종 드랍';
-const isMailSent = d => String(d.fixed||'').trim() === '확정메일 발송';
 function platSubtabs(){
   if(!hasIG()) return `<div class="note-line">🎯 이 캠페인은 <b>틱톡 전용</b> — 인스타 하위탭·열은 자동 숨김. <span class="muted">(config plats:['tk'])</span></div>`;
   return `<div class="subtabs" id="platSub">
