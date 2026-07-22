@@ -549,6 +549,10 @@ input.inp[type=date]:disabled { opacity:.45; }
 .chip.drop { background:#2b2b31; color:#fff; }
 .chip.wait { background:#fff4e0; color:#9a5b00; }
 .subtab.late .dot { background:var(--needs); }
+/* 이력 제목 — 표 위 구분선 */
+.sec-head { display:flex; align-items:baseline; gap:10px; font-size:14px; font-weight:800; margin:26px 0 10px; padding-top:18px; border-top:1px solid var(--line); }
+.sec-head .cmuted { font-size:12.5px; font-weight:600; }
+td.mono, th.mono { font-family:var(--mono); font-size:12px; }
 </style>
 </head>
 <body>
@@ -850,6 +854,8 @@ async function loadData(){
     D = rows.map(fromApi);
     applyBest(j.best);
     CAMPAIGNS.lun8.scan = agoText(j.uploadScannedAt || j.scannedAt);
+    ORDERS = Array.isArray(j.orders) ? j.orders : [];
+    if(j.krwPerUsd) KRW_PER_USD = j.krwPerUsd;
     clearErr();
     render();
     return true;
@@ -1115,6 +1121,7 @@ function toggleSort(tableId, key){
 const isSortable = c => c.sortable!==false && c.key && !['edit','pick',''].includes(c.key);
 
 /* ============ 빈 열 자동 숨김 + 정렬 엔진 ============ */
+let ORDERS = [];   // 가드닝 집행 기록. 돈이 나간 내역이라 화면에서 확인 가능해야 한다.
 let _lastDayNote = '';   // 일자·주차 필터 안내 — 업로드 일정 카드 안에 나중에 꽂는다
 let _lastHideNote = '';   // 표를 그릴 때 계산된 '빈 열 숨김' 배지 — 필터 줄에서 꺼내 쓴다
 function renderTable(cols, rows, opts={}){
@@ -1513,6 +1520,7 @@ function viewGarden(){
   const holdToggle = holds.length ? `<label class="toggle ${state.gardenHold?'on':''}" id="gardenHoldToggle"><span class="switch"></span><span>보류 ${holds.length}건 표시</span></label>` : '';
   const execBar = `<div class="bar"><div class="summary">${pName(p)} 가드닝 대상 <b>${targets.length}</b>건 · 충전 합계 <b>${nf(needSum)}</b>명 ${filling.length?`<span class="cmuted">진행중 ${filling.length}건</span>`:''}</div><div class="spacer"></div>${holdToggle}<button class="btn danger" id="btnExec"${targets.length?'':' disabled'}>선택 집행</button></div>`;
   return platSubtabs() + execBar + renderTable(cols, rows, { tableId:'garden-'+p, rowClass:r=> gStat(r,p).st==='hold'?'held':'' }) +
+    gardenHistory() +
     `<div class="finenote">충전량 = 목표 <b>${nf(GTARGET)}</b>까지 100단위 반올림(베이온 가드닝과 동일). <b>최소 ${nf(GMIN)} 미만</b>만 대상, 진행중 주문(remains)은 자동 차감. 마감임박·저확률 미업로드자는 <b>보류</b> → 업로드 확인 후 가드닝(자동 제외 X). 집행은 워커가 로컬 SMM 키로.</div>`;
 }
 
@@ -1555,10 +1563,43 @@ function viewGardenAll(){
   const byPlat = platsOn().map(p=>{ const n = targets.filter(r=>r.p===p).length; return n?pName(p)+' '+n:''; }).filter(Boolean).join(' · ');
   const execBar = `<div class="bar"><div class="summary">가드닝 대상 <b>${targets.length}</b>건${byPlat?' <span class="cmuted">('+byPlat+')</span>':''} · 충전 합계 <b>${nf(needSum)}</b>명 ${filling.length?'<span class="cmuted">진행중 '+filling.length+'건</span>':''}</div><span class="bar-right">${holdToggle}<button class="btn danger" id="btnExec"${targets.length?'':' disabled'}>선택 집행</button></span></div>`;
   return platSubtabs() + execBar + renderTable(cols, rows, { tableId:'garden-all', rowClass:r=> r.g.st==='hold'?'held':'' }) +
+    gardenHistory() +
     `<div class="finenote">한 행 = <b>1건</b>(사람×플랫폼). 충전량 = 목표 <b>${nf(GTARGET)}</b>까지 100단위 반올림. <b>최소 ${nf(GMIN)} 미만</b>만 대상, 진행중 주문(remains)은 자동 차감. 마감임박·저확률 미업로드자는 <b>보류</b> → 업로드 확인 후 가드닝. 집행은 작업 콘솔에서.</div>`;
 }
 
 /* ============ 뷰: 납품 (플랫폼별 · 시트 하단탭 대비) ============ */
+
+/* 가드닝 집행 이력. 돈이 나간 기록인데 화면 어디에도 없었다 —
+   얼마 썼는지, 다 채워졌는지, 빠진 게 있는지 확인하려면 smmkings 패널을 따로 열어야 했다.
+   플랫폼 탭과 무관하게 전부 보여준다: 지출은 캠페인 단위로 보는 게 맞다. */
+function gardenHistory(){
+  if(!ORDERS.length) return '<div class="note-line">아직 가드닝 집행 기록이 없어요.</div>';
+  const rows = ORDERS.slice().sort((a,b)=> String(b.placedAt||'').localeCompare(String(a.placedAt||'')));
+  const spentUsd = rows.reduce((a,o)=> a + (Number(o.cost)||0), 0);
+  const qty = rows.reduce((a,o)=> a + (Number(o.quantity)||0), 0);
+  const live = rows.filter(o=> !o.done).length;
+  const cols = [
+    { key:'when', label:'집행일', sv:o=>String(o.placedAt||''), cell:o=> o.placedAt ? esc(String(o.placedAt).slice(0,10).replace(/-/g,'.').slice(2)) : '<span class="emptydot">·</span>' },
+    { key:'h', label:'계정', cls:'handle', sv:o=>o.handle||'', cell:o=> acctLink(o.handle, 'tk') },
+    { key:'qty', label:'충전', cls:'num', thcls:'num', sv:o=>Number(o.quantity)||0, cell:o=> `<b>${nf(o.quantity)}</b>` },
+    // 남은 수는 '아직 안 들어온 팔로워'다. 0 이면 다 채워진 것.
+    { key:'got', label:'전달', cls:'num', thcls:'num', sv:o=>Number(o.delivered)||0,
+      cell:o=> o.delivered==null ? '<span class="cmuted">확인중</span>'
+        : (Number(o.undelivered)>0 ? `${nf(o.delivered)} <span class="chip needs">${nf(o.undelivered)} 미전달</span>` : `${nf(o.delivered)}`) },
+    { key:'cost', label:'금액', cls:'num', thcls:'num', sv:o=>Number(o.cost)||0, cell:o=> esc(wonOf(o.cost)) },
+    { key:'st', label:'상태', sv:o=>o.done?1:0, cell:o=>{
+        if(o.cancelStuck) return '<span class="chip needs">취소·환불 확인</span>';
+        if(o.done) return '<span class="chip ok">완료</span>';
+        if(o.stale) return '<span class="chip stale">정체 — 확인 필요</span>';
+        return `<span class="lk sched">채워지는 중 ${nf(o.remains)} 남음</span>`; } },
+    { key:'id', label:'주문번호', cls:'mono', sv:o=>String(o.id||''), cell:o=> `<span class="cmuted">${esc(String(o.id||''))}</span>` },
+  ];
+  return `<div class="sec-head">가드닝 집행 이력 <span class="cmuted">${rows.length}건 · 충전 ${nf(qty)}명 · 지출 ${esc(wonOf(spentUsd))}${live?' · 진행중 '+live+'건':''}</span></div>`
+    + renderTable(cols, rows, { tableId:'garden-hist', noHide:true });
+}
+// 달러를 원으로. 환율은 서버가 준 값이 있으면 그걸, 없으면 대략치를 쓴다(표기용).
+let KRW_PER_USD = 1400;
+const wonOf = usd => Math.round((Number(usd)||0) * KRW_PER_USD).toLocaleString('ko-KR') + '원';
 function viewDeliver(){
   const p = state.plat;
   const rows = D.filter(d=> d.plats.includes(p) && d[p]!==null && uploaded(d,p));
