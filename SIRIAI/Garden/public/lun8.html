@@ -918,7 +918,12 @@ function fromApi(a){
     refBy: '', refCount: 0,
     sched: String(a.schedDate==null?'':a.schedDate).trim(),        // 크리에이터가 낸 희망일
     fixed: String(a.fixedDate==null?'':a.fixedDate).trim(),         // 우리와 합의된 날짜 — 있으면 이게 기준
-    mir: 'mx',
+    // 시트의 '미러링 여부' 를 읽는다. 예전엔 'mx' 로 박혀 있어 사람이 시트에서 고른 값이
+    // 화면에 전혀 안 나타났다. 값에 앞뒤 공백이 섞여 오므로 다듬는다.
+    mir: (()=>{ const v = String(a.mirror==null?'':a.mirror).trim();
+      if(/미러링/.test(v)) return 'm1';
+      if(/오리지널|별개/.test(v)) return 'm0';
+      return 'mx'; })(),
     memo: String(a.memo==null?'':a.memo),
     noUpload: false, oddsLow: false,
     notice: !!String(a.notice==null?'':a.notice).trim(),   // 확정메일 발송 여부 — 모집 탭에서 체크
