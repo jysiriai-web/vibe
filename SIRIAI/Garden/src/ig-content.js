@@ -37,7 +37,9 @@ function inWindow(post, since) {
   return new Date(post.takenAt).getTime() >= new Date(since).getTime();
 }
 
-export async function runIgContentScan(campaign, { onProgress, onWarmup, waitForGo, since = '', delayMs = 3000, limit = 0, shouldStop } = {}) {
+// delayMs 2000: 인스타는 프로필을 여는 속도로는 잘 안 막힌다(실측). 3초는 과했다.
+// only: 특정 계정만 — '내일 올리는 8명만' 같은 부분 스캔에 쓴다. 전체를 30분 돌 이유가 없다.
+export async function runIgContentScan(campaign, { onProgress, onWarmup, waitForGo, since = '', delayMs = 2000, limit = 0, shouldStop, only } = {}) {
   const hashtags = campaign.campaignHashtags || [];
   const all = await getAccountsFromSheet(campaign.sheet);
   const accounts = all.map((a) => ({ ...a, igHandle: igHandleOf(a) })).filter((a) => a.igHandle && a.row);
@@ -49,7 +51,12 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
   })();
 
   // 이미 올린 게 확인된 계정은 다시 안 본다. 인스타 제한을 아끼고, 확정된 링크를 흔들지 않는다.
-  const _targets = accounts.filter((a) => !(prev[a.igHandle] && prev[a.igHandle].uploaded));
+  let _targets = accounts.filter((a) => !(prev[a.igHandle] && prev[a.igHandle].uploaded));
+  // 특정 계정만 보라고 지정되면 그것만. 행 번호로도 핸들로도 지정할 수 있게 한다.
+  if (Array.isArray(only) && only.length) {
+    const want = new Set(only.map((v) => String(v).replace(/^@/, '').toLowerCase()));
+    _targets = _targets.filter((a) => want.has(String(a.igHandle).toLowerCase()) || want.has(String(a.row)));
+  }
   // limit — 시험용. 프로필을 직접 여는 경로는 계정당 40초쯤 걸려서 전체를 돌면 30분이다.
   const targets = limit > 0 ? _targets.slice(0, limit) : _targets;
 

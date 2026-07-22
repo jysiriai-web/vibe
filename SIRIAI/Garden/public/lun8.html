@@ -1348,8 +1348,9 @@ function viewUploadAll(){
     ${kpi('검수완료 · 건', ofTot(rev, goal||tot), { ic:IC.check, sub:'음원·음원구간·해시태그 3칸 모두 준수' })}
     ${kpi('일정 미준수 · 건', late, { ic:IC.clock, accent: late?'var(--needs)':undefined, sub:`예정일(${TODAY()} 기준)이 지났는데 아직 미업로드` })}
     ${bufferKpi()}
+    ${schedStrip()}
   </div>`;
-  return platSubtabs() + kpis + filterBar(pairs, upScanBtn()) +
+  return kpis + platSubtabs() + filterBar(pairs) +
     renderTable(cols, rows, {tableId:'upload-all', noHide: state.upFilter!=='all',
       emptyMsg: upFilter().empty}) +
     `<div class="note-line">한 행 = <b>1건</b>(사람×플랫폼). <b>미러링 금지</b>라 틱톡·인스타는 각각 다른 콘텐츠여야 해요 — 그래서 건 단위로 봅니다.</div>`;
@@ -1395,7 +1396,7 @@ function bufferKpi(){
    test(d,p) = 그 1건(사람×플랫폼)을 남길지. null 이면 전체. */
 const UP_FILTERS = [
   { k:'all',  label:'전체', test:null },
-  { k:'late', label:'일정 미준수', test:(d,p)=> isLate(d,p), empty:'예정일을 넘긴 건이 없어요.' },
+  // 일정 미준수는 하위탭으로 옮겼다 — 필터와 하위탭이 같은 일을 하면 어느 쪽이 켜졌는지 헷갈린다.
 ];
 const upFilter = ()=> UP_FILTERS.find(f=> f.k===state.upFilter) || UP_FILTERS[0];
 const upScanBtn = ()=> `<button class="btn small" id="btnUpScan">🔎 업로드 스캔</button>`;
@@ -1475,10 +1476,11 @@ function viewUpload(){
     ${kpi('검수 완료 · 건', ofTot(rev, up||allRows.length), { ic:IC.check, sub:'음원·음원구간·해시태그 3칸 모두 준수' })}
     ${kpi('일정 미준수 · 건', late, { ic:IC.clock, accent: late?'var(--needs)':undefined, sub:`예정일(${TODAY()} 기준) 지났는데 미업로드` })}
     ${bufferKpi()}
+    ${schedStrip()}
   </div>`;
-  const scanBar = filterBar(allRows.map(d=>({ d, p })), upScanBtn());
+  const scanBar = filterBar(allRows.map(d=>({ d, p })));
   const exNote = excluded ? `<div class="note-line">🎯 ${pName(p)} 미참여 <b>${excluded}명</b>은 이 탭에서 자동 숨김.</div>` : '';
-  return platSubtabs() + kpis + scanBar + exNote + renderTable(cols, rows, {tableId:'upload-'+p, noHide: state.upFilter!=='all', emptyMsg: upFilter().empty}) +
+  return kpis + platSubtabs() + scanBar + exNote + renderTable(cols, rows, {tableId:'upload-'+p, noHide: state.upFilter!=='all', emptyMsg: upFilter().empty}) +
     `<div class="note-line">틱톡·인스타 모두 <b>집 IP·실제 크롬으로 자동 스캔</b>. 검수 3칸은 드롭다운으로 바로 고치고(수동=자동보다 우선), 행 전체는 <b>편집</b>으로.</div>`;
 }
 

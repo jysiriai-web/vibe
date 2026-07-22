@@ -562,10 +562,13 @@ export async function handler(req, res) {
     if (path === '/api/ig-content-scan' && req.method === 'POST') {
       if (CLOUD) return send(res, 501, { error: '인스타 업로드 스캔은 대표님 PC 에서만 돌아요(크롬 창이 필요해요).' });
       igContentState = { phase: 'confirm', done: 0, total: 0 };
+      const body = await readBody(req).catch(() => ({}));
       try {
         scanAbort.delete('ig-content-scan');
         const out = await runIgContentScan(campaign, {
           since: url.searchParams.get('since') || '',
+          // ?only=a,b 또는 본문 only:[...] — 내일 올리는 사람만 골라 도는 부분 스캔.
+          only: (body && Array.isArray(body.only) && body.only) || (url.searchParams.get('only') || '').split(',').filter(Boolean),
           shouldStop: () => scanAbort.has('ig-content-scan'),
           onWarmup: () => { igContentState.phase = 'login'; },
           onProgress: (p) => { igContentState = { phase: 'scan', done: p.done, total: p.total, handle: p.handle, uploaded: p.uploaded }; },

@@ -220,12 +220,12 @@ export async function fetchIgProfileViaPage(ctx, handleRaw, { timeout = 60000 } 
 // 캡션을 읽는다. 계정당 페이지를 여러 번 열어 느리지만, 막혔을 때 멈추는 것보다 낫다.
 //
 // max: 몇 개까지 볼지. 캠페인 기간 콘텐츠만 찾으면 되므로 최근 몇 개면 충분하다.
-export async function fetchIgPostsViaPage(ctx, handleRaw, { max = 6, timeout = 60000 } = {}) {
+export async function fetchIgPostsViaPage(ctx, handleRaw, { max = 3, timeout = 60000 } = {}) {
   const handle = toIgHandle(handleRaw);
   const page = await ctx.newPage();
   try {
     await page.goto(`https://www.instagram.com/${handle}/`, { waitUntil: 'domcontentloaded', timeout });
-    await page.waitForTimeout(3500);
+    await page.waitForTimeout(2500);
     // 그리드의 게시물 링크. 순서가 곧 최신순이다.
     const links = await page.evaluate((n) => {
       const seen = [];
@@ -242,7 +242,7 @@ export async function fetchIgPostsViaPage(ctx, handleRaw, { max = 6, timeout = 6
     for (const l of links) {
       try {
         await page.goto(`https://www.instagram.com/${l.kind}/${l.shortcode}/`, { waitUntil: 'domcontentloaded', timeout });
-        await page.waitForTimeout(2200);
+        await page.waitForTimeout(1500);
         const info = await page.evaluate(() => {
           const og = document.querySelector('meta[property="og:description"]');
           const t = document.querySelector('time[datetime]');
@@ -270,7 +270,7 @@ export async function fetchIgPostsViaPage(ctx, handleRaw, { max = 6, timeout = 6
           takenAt: taken,
         });
       } catch { /* 이 게시물만 건너뛴다 — 하나 못 봤다고 계정 전체를 포기하지 않는다 */ }
-      await sleep(1200);
+      await sleep(700);
     }
     // 그리드 순서가 최신순이 아닐 때가 있다(고정 게시물 등) → 시각으로 다시 세운다.
     posts.sort((x, y) => new Date(y.takenAt || 0) - new Date(x.takenAt || 0));
