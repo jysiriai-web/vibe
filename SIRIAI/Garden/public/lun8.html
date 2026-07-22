@@ -519,6 +519,14 @@ body.fb-picking #content *:hover { outline: 2px solid var(--accent); outline-off
   text-overflow:ellipsis; white-space:nowrap; }
 .mailc:hover { color:var(--ink); border-bottom-color:var(--ink); }
 td.mail { max-width:200px; }
+/* 확정일 진행상태 — 날짜 대신 넣는 값이라 입력칸 바로 아래 붙인다 */
+.fxst { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:7px; }
+.fxbtn { font:inherit; font-size:12px; font-weight:700; padding:4px 10px; border-radius:20px; cursor:pointer;
+  background:var(--card); color:var(--muted); border:1px solid var(--line); }
+.fxbtn:hover { color:var(--ink); border-color:var(--ink); }
+.fxbtn.on { background:var(--needs-bg); color:var(--needs-ink); border-color:var(--needs); }
+.fxnote { font-size:11.5px; color:var(--faint); flex-basis:100%; }
+input.inp[type=date]:disabled { opacity:.45; }
 </style>
 </head>
 <body>
@@ -928,6 +936,25 @@ function acctLink(h, p){
                        : 'https://www.tiktok.com/@'+encodeURIComponent(raw);
   return mark + `<a href="${url}" target="_blank" rel="noopener">${p==='ig'?'':'@'}${esc(raw)}</a>`;
 }
+
+/* ===== 날짜 입력 =====
+   시트는 '7/23' 처럼 월/일만 쓰고, <input type="date"> 는 'yyyy-mm-dd' 만 받는다.
+   연도는 시트에 없으므로 캠페인 일정에서 끌어온다 — 오늘 연도를 쓰면 연말에 한 해가 어긋난다. */
+const CAMP_YEAR = () => { const y = Number(cfg().year); return y >= 2000 ? y : new Date().getFullYear(); };
+function mdToISO(v){
+  const m = String(v==null?'':v).trim().match(/^(\d{1,2})\s*[\/월.\-]\s*(\d{1,2})/);
+  if(!m) return '';                      // 날짜가 아니면(상태값·빈칸) 달력엔 안 넣는다
+  const p = n => String(n).padStart(2,'0');
+  return CAMP_YEAR() + '-' + p(m[1]) + '-' + p(m[2]);
+}
+// 시트에는 다시 'M/D' 로 되돌려 넣는다 — 기존 데이터·수식 표기와 형식을 맞춘다.
+const isoToMD = v => { const m = String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? (+m[2])+'/'+(+m[3]) : ''; };
+
+/* 확정일 칸은 날짜만 담지 않는다. 실제 업무가 그렇다:
+     예정일에 안 올라옴 → 확정메일 재발송 → 답이 오면 날짜, 안 오면 최종 드랍.
+   셋을 한 칸에 두면 '이 사람 어디까지 갔나'를 한 눈에 본다. 열을 새로 파지 않아도 된다. */
+const FIXED_STATES = ['확정메일 발송', '최종 드랍'];
+const isFixedState = v => FIXED_STATES.includes(String(v||'').trim());
 const emptyRow = (n,msg='조건에 맞는 계정이 없어요.')=> `<tr class="empty-tr"><td colspan="${n}">${msg}</td></tr>`;
 
 /* ============ 업로드 일정(주차·일자) ============
@@ -1796,8 +1823,14 @@ function openRowEdit(id, rowPlat){
         ${hasIG()?`<div class="row"><label class="h">인스타 링크/닉</label><input class="inp" id="reIg" value="${d.ig?esc(d.ig.h):''}" placeholder="${d.ig?'':'미참여'}"></div>`:''}
       </div>
       <div class="row2">
-        <div class="row"><label class="h">예정일 <small>크리에이터 희망</small></label><input class="inp" id="reSched" value="${esc(d.sched||'')}" placeholder="예: 7/28"></div>
-        <div class="row"><label class="h">확정일 <small>합의된 날짜</small></label><input class="inp" id="reFixed" value="${esc(d.fixed||'')}" placeholder="합의되면 입력"></div>
+        <div class="row"><label class="h">예정일 <small>크리에이터 희망</small></label>
+          <input class="inp" type="date" id="reSched" value="${esc(mdToISO(d.sched))}"></div>
+        <div class="row"><label class="h">확정일 <small>합의된 날짜 · 또는 진행상태</small></label>
+          <input class="inp" type="date" id="reFixed" value="${esc(mdToISO(d.fixed))}"${isFixedState(d.fixed)?' disabled':''}>
+          <div class="fxst" id="reFixedState" data-v="${esc(isFixedState(d.fixed)?d.fixed:'')}">
+            ${FIXED_STATES.map(v=>`<button type="button" class="fxbtn${d.fixed===v?' on':''}" data-fx="${esc(v)}">${esc(v)}</button>`).join('')}
+            <span class="fxnote">날짜 대신 진행상태를 넣을 수 있어요 — 다시 누르면 해제돼요.</span>
+          </div></div>
       </div>
       ${schedHint(d)}
       <div class="row"><label class="h">비고 (일반 · 특이사항)</label><textarea class="inp" id="reMemo" placeholder="이 크리에이터 전반 메모">${esc(d.memo||'')}</textarea></div>
@@ -1805,7 +1838,11 @@ function openRowEdit(id, rowPlat){
     save = ()=>{
       // 바뀐 칸만 시트에 쓴다 — 전부 쓰면 안 건드린 칸의 수식·서식까지 값으로 덮는다.
       const was={sched:d.sched,fixed:d.fixed,memo:d.memo,nick:d.nick};
-      d.co=selVal('reCo'); d.nick=val('reNick')||d.nick; d.sched=val('reSched'); d.fixed=val('reFixed'); d.memo=val('reMemo');
+      d.co=selVal('reCo'); d.nick=val('reNick')||d.nick; d.memo=val('reMemo');
+      d.sched = isoToMD(val('reSched'));
+      // 확정일은 '상태' 가 '날짜' 를 이긴다 — 드랍한 사람에게 날짜가 남아 있으면 다시 기다리게 된다.
+      const _fxs = (document.getElementById('reFixedState')||{}).dataset;
+      d.fixed = (_fxs && _fxs.v) ? _fxs.v : isoToMD(val('reFixed'));
       if(d.sched!==was.sched) saveField(d.id,'schedDate',d.sched);
       if(d.fixed!==was.fixed) saveField(d.id,'fixedDate',d.fixed);
       if(d.memo!==was.memo)   saveField(d.id,'memo',d.memo);   // 일반 비고(연락 섹션). 틱톡/인스타 비고는 업로드탭 소관.
@@ -2075,6 +2112,15 @@ document.getElementById('drawer').addEventListener('click', e=>{
 let _mdOnBg=false;
 // 텍스트를 드래그해 선택하다 마우스를 창 밖에서 떼면 click 이 배경에서 발생해 창이 닫혔다.
 // '누르기 시작한 곳'이 배경일 때만 닫는다.
+// 확정일 상태 버튼 — 누르면 날짜 입력을 잠그고, 다시 누르면 푼다.
+document.getElementById('modal').addEventListener('click', e=>{
+  const b = e.target.closest('.fxbtn'); if(!b) return;
+  const box = document.getElementById('reFixedState'); const inp = document.getElementById('reFixed');
+  const v = b.dataset.fx, on = box.dataset.v === v;
+  box.dataset.v = on ? '' : v;
+  box.querySelectorAll('.fxbtn').forEach(x=> x.classList.toggle('on', !on && x.dataset.fx===v));
+  if(inp){ inp.disabled = !on; if(!on) inp.value=''; }
+});
 document.getElementById('modal').addEventListener('mousedown', e=>{ _mdOnBg = (e.target.id==='modal'); });
 document.getElementById('modal').addEventListener('click', e=>{ if(e.target.id==='modal' && _mdOnBg) closeModalReset(); });
 
