@@ -36,8 +36,9 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 .side-toggle:hover { background: #eef0f4; color: var(--ink); }
 .side-toggle svg { width: 20px; height: 20px; flex-shrink: 0; }
 .side-brand { display: flex; align-items: center; gap: 9px; padding: 2px 8px; overflow: hidden; }
-.brandmark { flex-shrink: 0; display: inline-flex; }
-.brandmark svg { width: 28px; height: 28px; display: block; }
+/* 마크 크기는 여기서 못박는다. 자식에 100% 만 주면 부모 크기가 없어 이미지가 원본(1334px)만큼 커진다. */
+.brandmark { flex-shrink: 0; display: inline-flex; width: 28px; height: 28px; }
+.brandmark svg, .brandmark img { width: 28px; height: 28px; display: block; object-fit: contain; }
 .brand-txt { display: flex; flex-direction: column; line-height: 1.15; white-space: nowrap; }
 .brand-txt b { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; }
 .brand-sub { font-size: 12px; font-weight: 600; color: var(--faint); letter-spacing: 0.01em; }
@@ -536,7 +537,6 @@ input.inp[type=date]:disabled { opacity:.45; }
 .daynote .btn { padding:4px 11px; font-size:12px; }
 @media (max-width:900px){ .daynote { margin-left:0; flex-basis:100%; margin-top:4px; } }
 /* 사이드바 마크 — 원본 비율 유지. 늘어나거나 잘리지 않게 */
-.brandmark img { width:100%; height:100%; object-fit:contain; display:block; }
 </style>
 </head>
 <body>
