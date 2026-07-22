@@ -220,7 +220,7 @@ export async function fetchIgProfileViaPage(ctx, handleRaw, { timeout = 60000 } 
 // 캡션을 읽는다. 계정당 페이지를 여러 번 열어 느리지만, 막혔을 때 멈추는 것보다 낫다.
 //
 // max: 몇 개까지 볼지. 캠페인 기간 콘텐츠만 찾으면 되므로 최근 몇 개면 충분하다.
-export async function fetchIgPostsViaPage(ctx, handleRaw, { max = 3, timeout = 60000 } = {}) {
+export async function fetchIgPostsViaPage(ctx, handleRaw, { max = 8, timeout = 60000 } = {}) {
   const handle = toIgHandle(handleRaw);
   const page = await ctx.newPage();
   try {
