@@ -545,6 +545,10 @@ input.inp[type=date]:disabled { opacity:.45; }
 .btn.pf.ig.on { background:#d62976; border-color:#d62976; color:#fff; }
 .btn.pf.tk:not(.on) { color:#15171a; }
 .btn.pf.ig:not(.on) { color:#d62976; }
+/* 일정 미준수 — 진행상태 칩 */
+.chip.drop { background:#2b2b31; color:#fff; }
+.chip.wait { background:#fff4e0; color:#9a5b00; }
+.subtab.late .dot { background:var(--needs); }
 </style>
 </head>
 <body>
@@ -970,6 +974,19 @@ const isoToMD = v => { const m = String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/
    셋을 한 칸에 두면 '이 사람 어디까지 갔나'를 한 눈에 본다. 열을 새로 파지 않아도 된다. */
 const FIXED_STATES = ['확정메일 발송', '최종 드랍'];
 const isFixedState = v => FIXED_STATES.includes(String(v||'').trim());
+// 예정일(확정일 우선)에서 며칠 지났나. 음수면 아직 안 왔다.
+function daysLate(d, p){
+  const i = dayIdx(effDay(d)), t = dayIdx(TODAY());
+  return (i < 0 || t < 0) ? 0 : (t - i);
+}
+// 확정일 칸 — 날짜면 날짜, 진행상태면 그 상태를 색으로 구분한다.
+function fixedCell(d){
+  const v = String(d.fixed||'').trim();
+  if(!v) return '<span class="cmuted">미정</span>';
+  if(v === '최종 드랍') return '<span class="chip drop">최종 드랍</span>';
+  if(v === '확정메일 발송') return '<span class="chip wait">답 대기</span>';
+  return `<b>${esc(v)}</b>`;
+}
 const emptyRow = (n,msg='조건에 맞는 계정이 없어요.')=> `<tr class="empty-tr"><td colspan="${n}">${msg}</td></tr>`;
 
 /* ============ 업로드 일정(주차·일자) ============
@@ -1200,9 +1217,10 @@ function viewRecruit(){
     { key:'refCount', label:'추천 수', cls:'num', thcls:'num', hideable:true, empty:r=>!r.refCount, sv:r=>r.refCount||0, cell:r=> r.refCount?`<b>${r.refCount}</b>`:`<span class="emptydot">·</span>` },
     { key:'sched', label:'예정일', hideable:true, empty:r=>!r.sched, sv:r=>schedKey(r.sched),
       cell:r=> r.sched ? (r.fixed ? `<span class="cmuted">${esc(r.sched)}</span>` : `<b>${esc(r.sched)}</b>`) : `<span class="cmuted">미정</span>` },
+    /* 확정일은 업로드탭(일정 미준수) 소관으로 옮겼다 — 연락하는 사람이 보는 곳에 있어야 한다.
     { key:'fixed', label:'확정일', hideable:true, empty:r=>!r.fixed, sv:r=>schedKey(r.fixed),
       cell:r=> r.fixed ? `<b class="fixdate">${esc(r.fixed)}</b>`
-                       : `<span class="chip stale">협의중</span>` },
+                       : `<span class="chip stale">협의중</span>` }, */
     { key:'memo', label:'비고', hideable:true, empty:r=>!r.memo, sv:r=>r.memo||'', cell:r=>memoCell(r.id, r.memo) },
     { key:'edit', label:'', cell:r=>editBtn(r.id) },
   ];
@@ -1340,7 +1358,43 @@ function filterBar(pairs, extra){
   return `<div class="bar">${btns}<span id="hideSlot"></span><span class="bar-right">${extra||''}</span></div>`;
 }
 
+/* 일정 미준수 — 윤경님이 '연락하고 표기하는' 한 가지 일만 하는 화면.
+   업로드탭 다른 하위탭은 '올라왔나'를 보지만, 여기는 '아직 안 올라온 사람에게 무엇을 했나'를 본다.
+   그래서 이메일이 여기 있다 — 없으면 모집탭으로 갔다 와야 한다. */
+function viewUploadLate(){
+  const pairs = [];
+  D.filter(inCampaign).forEach(d=> platsOn().forEach(p=>{
+    if(!d[p] || !isLate(d,p) || isDropped(d)) return;
+    pairs.push({ d, p, id:d.id+'|'+p });
+  }));
+  // 오래 지난 사람부터. 늦을수록 급하다.
+  pairs.sort((a,b)=> schedKey(effDay(a.d)) - schedKey(effDay(b.d)));
+  const cols = [
+    { key:'co', label:'진행사', sv:r=>r.d.co, cell:r=>coChip(r.d.co) },
+    { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.d.nick, cell:r=>nickCell(r.d) },
+    { key:'plat', label:'플랫폼', sv:r=>r.p, cell:r=>`<span class="plat-pill ${r.p}">${pName(r.p)}</span>` },
+    { key:'h', label:'닉네임', cls:'handle', sv:r=>r.d[r.p].h, cell:r=>acctLink(r.d[r.p].h, r.p) },
+    { key:'email', label:'이메일', cls:'mail', sv:r=>r.d.email||'', cell:r=>mailCell(r.d.email) },
+    { key:'sched', label:'예정일', sv:r=>schedKey(r.d.sched), cell:r=> r.d.sched?`<b>${esc(r.d.sched)}</b>`:'<span class="cmuted">미정</span>' },
+    { key:'late', label:'경과', cls:'num', thcls:'num', sv:r=>-daysLate(r.d,r.p),
+      cell:r=>{ const n=daysLate(r.d,r.p); return n>0?`<span class="chip needs">${n}일 지남</span>`:'<span class="cmuted">오늘</span>'; } },
+    { key:'fixed', label:'확정일 · 진행상태', sv:r=>String(r.d.fixed||''), cell:r=>fixedCell(r.d) },
+    { key:'edit', label:'', cell:r=>editBtn(r.d.id, r.p) },
+  ];
+  const sent = D.filter(inCampaign).filter(isMailSent).length;
+  const dropped = D.filter(inCampaign).filter(isDropped).length;
+  const kpis = `<div class="cards">
+    ${kpi('연락해야 함 · 건', pairs.length, { ic:IC.clock, accent: pairs.length?'var(--needs)':undefined, sub:'예정일이 지났는데 아직 안 올라온 건' })}
+    ${kpi('답 대기 · 명', sent, { ic:IC.mail||IC.check, sub:'확정메일 보내고 새 날짜를 기다리는 사람' })}
+    ${kpi('드랍 · 명', dropped, { ic:IC.x||IC.clock, sub:'최종 포기 — 마루 추가 요청 계산에 들어감' })}
+  </div>`;
+  return platSubtabs() + kpis +
+    renderTable(cols, pairs, { tableId:'upload-late', emptyMsg:'지금은 연락할 사람이 없어요 — 예정일이 지난 미업로드가 없습니다.' }) +
+    `<div class="note-line">이메일을 눌러 복사 → 메일 보내고 → <b>편집</b>에서 <b>확정메일 발송</b>을 눌러 두세요. 새 날짜를 받으면 확정일에 날짜를 넣고, 그 날짜에도 안 올라오면 <b>최종 드랍</b>입니다.</div>`;
+}
+
 function viewUpload(){
+  if(state.plat==='late') return viewUploadLate();
   if(state.plat==='all') return viewUploadAll();
   const p = state.plat;
   let rows = D.filter(d=> d.plats.includes(p) && d[p]!==null);
@@ -1661,12 +1715,21 @@ function viewSettle(){
 }
 
 /* ============ 서브탭 / 렌더 ============ */
+// 예정일(확정일이 있으면 그것)이 지났는데 아직 안 올라온 건. 드랍한 사람은 뺀다 — 이미 포기했다.
+function lateCount(){
+  let n = 0;
+  D.filter(inCampaign).forEach(d=>{ if(isDropped(d)) return; platsOn().forEach(p=>{ if(isLate(d,p)) n++; }); });
+  return n;
+}
+const isDropped = d => String(d.fixed||'').trim() === '최종 드랍';
+const isMailSent = d => String(d.fixed||'').trim() === '확정메일 발송';
 function platSubtabs(){
   if(!hasIG()) return `<div class="note-line">🎯 이 캠페인은 <b>틱톡 전용</b> — 인스타 하위탭·열은 자동 숨김. <span class="muted">(config plats:['tk'])</span></div>`;
   return `<div class="subtabs" id="platSub">
     <button class="subtab all ${state.plat==='all'?'active':''}" data-plat="all"><span class="dot"></span>통합 <span class="cmuted">건 단위</span></button>
     <button class="subtab tk ${state.plat==='tk'?'active':''}" data-plat="tk"><span class="dot"></span>틱톡 <span class="cmuted">자동 스캔</span></button>
-    <button class="subtab ig ${state.plat==='ig'?'active':''}" data-plat="ig"><span class="dot"></span>인스타 <span class="cmuted">자동 스캔</span></button></div>`;
+    <button class="subtab ig ${state.plat==='ig'?'active':''}" data-plat="ig"><span class="dot"></span>인스타 <span class="cmuted">자동 스캔</span></button>
+    ${state.view==='upload' ? `<button class="subtab late ${state.plat==='late'?'active':''}" data-plat="late"><span class="dot"></span>일정 미준수 <span class="cmuted">${lateCount()}건</span></button>` : ''}</div>`;
 }
 /* ============ 매뉴얼 · 가이드 ============
    내용은 public/knowledge.js 하나뿐이다(MANUAL/GUIDE). 여기서 복붙하지 않는다 —
