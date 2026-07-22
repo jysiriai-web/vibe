@@ -628,6 +628,9 @@ body.nav-collapsed .side-btn { justify-content:center; }
 .sub-hide { margin-left:auto; display:inline-flex; }
 .sub-hide:empty { display:none; }
 .sub-hide .hidebadge { margin:0; }
+/* 하위탭 줄이 도구를 다 안는다 — 배지·선택 스캔이 한 줄에 들어가 표가 위로 붙는다 */
+.subtabs #btnPickScan { margin-left:10px; }
+.sub-hide { margin-left:auto; }
 </style>
 </head>
 <body>
@@ -1445,7 +1448,7 @@ function viewUploadAll(){
   let rows = pairs;
   const f = upFilter(); if(f.test) rows = rows.filter(x=> f.test(x.d, x.p));
   const cols = [
-    ...(LOCAL.on ? [{ key:'spick', label:'', sortable:false,
+    ...(LOCAL.on ? [{ key:'spick', label:sPickAllBox(), sortable:false,
       // 플랫폼별로 스캔 대상이 다르므로 핸들에 플랫폼을 붙여 기억한다(tk:handle / ig:handle).
       cell:r=> `<input type="checkbox" data-spick="${r.p}:${esc(r.d[r.p].h)}"${scanPick.has(r.p+':'+r.d[r.p].h)?' checked':''}>` }] : []),
     { key:'co', label:'진행사', sv:r=>r.d.co, cell:r=>coChip(r.d.co) },
@@ -1526,6 +1529,22 @@ const upScanBtn = ()=> `<button class="btn small" id="btnUpScan">🔎 업로드 
    전체는 46계정 30분이라 '오늘 올리는 몇 명'만 보고 싶을 때 쓴다.
    로컬에서만 보인다: 스캔은 대표님 PC 에서만 돈다. */
 const scanPick = new Set();
+// 표 머리의 전체 선택. 가드닝과 같은 방식 — 하나라도 꺼져 있으면 '중간' 표시로 둔다.
+const sPickAllBox = () => '<input type="checkbox" id="sPickAll" title="전체 선택 / 해제">';
+function syncScanAll(){
+  const all = [...document.querySelectorAll('[data-spick]')];
+  const box = document.getElementById('sPickAll');
+  if(!box || !all.length) return;
+  const on = all.filter(b=>b.checked).length;
+  box.checked = on === all.length;
+  box.indeterminate = on > 0 && on < all.length;
+}
+function syncScanBtn(){
+  const b = document.getElementById('btnPickScan');
+  if(!b) return;
+  b.textContent = scanPick.size ? `선택 ${scanPick.size}명 스캔` : '선택 스캔';
+  b.classList.toggle('primary', !!scanPick.size);
+}
 function scanPickBtn(){
   if(!LOCAL.on) return '';
   const n = scanPick.size;
@@ -1562,11 +1581,9 @@ async function runPickScan(btn){
 /* 업로드탭 도구줄. '전체' 하나만 남은 필터 버튼은 잔재라 뺐다 —
    고를 게 하나뿐인 필터는 필터가 아니다(일정 미준수는 하위탭으로 옮겼다).
    빈 열 배지는 하위탭 오른쪽 끝(subSlot)으로 보낸다 — 표에 관한 정보라 표를 고르는 줄에 붙는 게 맞다. */
-function filterBar(pairs, extra){
-  const right = scanPickBtn() + (extra || '');
-  if(!right.trim()) return '';
-  return `<div class="bar"><span class="spacer"></span><span class="bar-right">${right}</span></div>`;
-}
+/* 업로드탭 도구줄. 지금은 하위탭 줄이 도구를 다 안고 있어서 여기서 그릴 게 없다 —
+   버튼 하나 때문에 줄을 하나 더 만들면 표가 그만큼 아래로 밀린다. */
+function filterBar(){ return ''; }
 
 /* 일정 미준수 — 윤경님이 '연락하고 표기하는' 한 가지 일만 하는 화면.
    업로드탭 다른 하위탭은 '올라왔나'를 보지만, 여기는 '아직 안 올라온 사람에게 무엇을 했나'를 본다.
@@ -1612,7 +1629,7 @@ function viewUpload(){
   const allRows = rows;
   const f = upFilter(); if(f.test) rows = rows.filter(d=> f.test(d,p));
   const cols = [
-    ...(LOCAL.on ? [{ key:'spick', label:'', sortable:false,
+    ...(LOCAL.on ? [{ key:'spick', label:sPickAllBox(), sortable:false,
       cell:r=> `<input type="checkbox" data-spick="${p}:${esc(r[p].h)}"${scanPick.has(p+':'+r[p].h)?' checked':''}>` }] : []),
     { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
@@ -2014,7 +2031,7 @@ function platSubtabs(){
     <button class="subtab ig ${state.plat==='ig'?'active':''}" data-plat="ig"><span class="dot"></span>인스타</button>
     ${state.view==='upload' ? `<button class="subtab late ${state.plat==='late'?'active':''}" data-plat="late"><span class="dot"></span>일정 미준수 <span class="cmuted">${lateCount()}건</span></button>` : ''}
     ${state.view==='garden' ? `<button class="subtab hist ${state.plat==='hist'?'active':''}" data-plat="hist"><span class="dot"></span>집행 이력 <span class="cmuted">${ORDERS.length}건</span></button>` : ''}
-    ${gardenSvcNote()}<span id="hideSlot" class="sub-hide"></span></div>`;
+    ${gardenSvcNote()}<span id="hideSlot" class="sub-hide"></span>${state.view==='upload'?scanPickBtn():''}</div>`;
 }
 /* ============ 매뉴얼 · 가이드 ============
    내용은 public/knowledge.js 하나뿐이다(MANUAL/GUIDE). 여기서 복붙하지 않는다 —
@@ -2158,6 +2175,7 @@ function render(){
   const _hs=document.getElementById('hideSlot'); if(_hs) _hs.innerHTML=_lastHideNote;
   const _dn=document.getElementById('dayNoteSlot'); if(_dn) _dn.innerHTML=_lastDayNote;
   syncPickAll();   // 표를 다시 그리면 머리 체크도 다시 맞춘다
+  syncScanAll();
   if(state.view==='settle' && state.simOpen) updateSim();
   renderStats(); renderNav();
 }
@@ -2589,12 +2607,20 @@ document.getElementById('content').addEventListener('click', e=>{
       });
       updateGardenSum();
       return; } }
+  { const sa = e.target.closest('#sPickAll');
+    if(sa){
+      // 화면에 보이는 것만 켜고 끈다 — 필터로 가려진 걸 켜면 모르고 스캔한다.
+      document.querySelectorAll('[data-spick]').forEach(b=>{
+        b.checked = sa.checked;
+        if(sa.checked) scanPick.add(b.dataset.spick); else scanPick.delete(b.dataset.spick);
+      });
+      syncScanBtn();
+      return; } }
   { const sp = e.target.closest('[data-spick]');
     if(sp){ const h = sp.dataset.spick;
       if(sp.checked) scanPick.add(h); else scanPick.delete(h);
-      // 버튼 글자(선택 N명)만 바꾼다 — 체크할 때마다 표를 다시 그리면 못 쓴다.
-      const b = document.getElementById('btnPickScan');
-      if(b){ b.textContent = scanPick.size ? `선택 ${scanPick.size}명 스캔` : '선택 스캔'; b.classList.toggle('primary', !!scanPick.size); }
+      // 표를 다시 그리지 않는다 — 체크할 때마다 표가 튀면 못 쓴다. 머리 체크와 버튼만 맞춘다.
+      syncScanAll(); syncScanBtn();
       return; } }
   { const bp = e.target.closest('#btnPickScan'); if(bp){ runPickScan(bp); return; } }
   { const gp = e.target.closest('[data-gpick]');
