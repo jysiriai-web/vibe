@@ -498,6 +498,16 @@ body.fb-picking #content *:hover { outline: 2px solid var(--accent); outline-off
 .bar .hidebadge { margin:0; }
 #fbBtn { gap:5px; }
 #fbCnt:not(:empty) { font-size:11px; font-weight:800; background:var(--needs); color:#fff; border-radius:20px; padding:1px 6px; }
+/* 계정 핸들 앞 플랫폼 기호 — 글자가 아니라 기호라 좁은 열에서도 핸들을 안 민다 */
+.pmark { font-style:normal; font-size:11px; font-weight:800; margin-right:4px; opacity:.85; }
+.pmark.tk { color:var(--ink); }
+.pmark.ig { color:#c13584; }
+/* 이메일 — 눌러서 복사. 링크처럼 보이면 새 창이 열릴 것 같아 보이므로 점선 밑줄로 구분 */
+.mailc { font:inherit; font-size:12.5px; color:var(--muted); background:none; border:0; padding:2px 0;
+  border-bottom:1px dashed var(--line2); cursor:pointer; max-width:100%; overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap; }
+.mailc:hover { color:var(--ink); border-bottom-color:var(--ink); }
+td.mail { max-width:200px; }
 </style>
 </head>
 <body>
@@ -727,6 +737,7 @@ function fromApi(a){
   const nick = String((a.creator||a.nick)==null?'':(a.creator||a.nick)).trim();
   return {
     id: a.row,                                   // 시트 행번호 = 유일키
+    email: String(a.email == null ? '' : a.email).trim(),
     co: a.company==='MARU' ? 'MARU' : 'SIRIAI',
     nick: nick || (tk && tk.h) || ('행 '+a.row),
     plats: plats,
@@ -885,13 +896,22 @@ const inCampaign = d => platsOn().some(p=> d.plats.includes(p) && d[p]!==null);
 const slots = d => platsOn().filter(p=> d[p]!==null && d[p]!==undefined).length; // 이 사람이 차지하는 콘텐츠 '건' 수
 const reviewed = d => anyUploaded(d) && platsOn().filter(p=>uploaded(d,p)).every(p=>done(d[p]));
 const nickCell = d => `<b>${esc(d.nick)}</b>`;
+// 이메일은 눌러서 복사한다 — 모집메일을 지메일에 붙여넣는 게 실제 용도라 '보기'만으론 부족하다.
+function mailCell(v){
+  const t = String(v||'').trim();
+  if(!t) return '<span class="emptydot">·</span>';
+  return `<button class="mailc" data-mail="${esc(t)}" title="눌러서 복사">${esc(t)}</button>`;
+}
 /* 계정 링크 — 목업 땐 href="#" 였다. 실제 프로필로 열리게. 인스타는 @ 없이 붙인다. */
+// 플랫폼 표시는 글자가 아니라 기호로 — 좁은 열에서 핸들을 밀어내지 않게.
+const PLAT_MARK = { tk:'♪', ig:'◎' };
 function acctLink(h, p){
   const raw = String(h==null?'':h).replace(/^@/,'').trim();
   if(!raw) return '<span class="emptydot">·</span>';
+  const mark = PLAT_MARK[p] ? `<i class="pmark ${p}" title="${p==='ig'?'인스타':'틱톡'}">${PLAT_MARK[p]}</i>` : '';
   const url = p==='ig' ? 'https://www.instagram.com/'+encodeURIComponent(raw)
                        : 'https://www.tiktok.com/@'+encodeURIComponent(raw);
-  return `<a href="${url}" target="_blank" rel="noopener">${p==='ig'?'':'@'}${esc(raw)}</a>`;
+  return mark + `<a href="${url}" target="_blank" rel="noopener">${p==='ig'?'':'@'}${esc(raw)}</a>`;
 }
 const emptyRow = (n,msg='조건에 맞는 계정이 없어요.')=> `<tr class="empty-tr"><td colspan="${n}">${msg}</td></tr>`;
 
@@ -1109,6 +1129,7 @@ function viewRecruit(){
   const cols = [
     { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
+    { key:'email', label:'이메일', cls:'mail', hideable:true, empty:r=>!r.email, sv:r=>r.email||'', cell:r=>mailCell(r.email) },
     { key:'tkh', label:'틱톡 닉네임', cls:'handle', grp:'tk', hideable:true, empty:r=>!r.tk, sv:r=>r.tk?r.tk.h:'', cell:r=> r.tk?`${acctLink(r.tk.h, "tk")}`:`<span class="emptydot">·</span>` },
     ...(hasIG() ? [
       { key:'igh', label:'인스타 닉네임', cls:'handle', grp:'ig', hideable:true, empty:r=>!r.ig, sv:r=>r.ig?r.ig.h:'', cell:r=> r.ig?`${acctLink(r.ig.h, "ig")}`:`<span class="emptydot">·</span>` },
@@ -1974,6 +1995,14 @@ document.getElementById('content').addEventListener('click', e=>{
   const dy=e.target.closest('[data-day]'); if(dy){ state.day = (state.day===dy.dataset.day) ? null : dy.dataset.day; state.week=null; render(); return; }
   if(e.target.closest('#dayClear')){ state.day=null; state.week=null; render(); return; }
   const th=e.target.closest('.th-sort'); if(th){ toggleSort(th.dataset.table, th.dataset.sort); return; }
+  const mc=e.target.closest('[data-mail]');
+  if(mc){ const v=mc.dataset.mail;
+    // navigator.clipboard 는 https 나 localhost 에서만 된다. 팀은 배포 URL(https)이라 문제없지만
+    // 실패하면 조용히 넘기지 말고 알려야 한다 — 복사된 줄 알고 붙여넣으면 엉뚱한 게 들어간다.
+    (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject())
+      .then(()=> toast('복사됨 — <b>'+esc(v)+'</b>'))
+      .catch(()=> toast('복사 실패 — 직접 선택해 주세요'));
+    return; }
   const ed=e.target.closest('[data-edit]'); if(ed){ openRowEdit(+ed.dataset.edit, ed.dataset.editp||''); return; }
   const pt=e.target.closest('[data-paidtog]'); if(pt){ const d=D.find(x=>x.id===+pt.dataset.paidtog); if(d){ d.settle.paid=!d.settle.paid; render(); } return; }
   const s=e.target.closest('.subtab'); if(s){ state.plat=s.dataset.plat; render(); return; }

@@ -18,7 +18,7 @@ const DEFAULT_COL = {
   soundOk: 19, soundSection: 20, hashtagOk: 21, memo: 22,
   campaignDone: 23, paid: 24, paidDate: 25, contentB: 26,
   views: 27, likes: 28, comments: 29, shares: 30,
-  igLink: 0, igNick: 0, fixedDate: 0, creator: 0, mirror: 0,   // 0 = 이 마스터엔 없는 열 → 폴백하지 않고 '없음'으로 둔다(베이온은 틱톡 전용)
+  igLink: 0, igNick: 0, fixedDate: 0, creator: 0, mirror: 0, email: 0,   // 0 = 이 마스터엔 없는 열 → 폴백하지 않고 '없음'으로 둔다(베이온은 틱톡 전용)
 };
 // 필드 → 헤더 별칭(선호 순서, 정규화 정확일치). 새 캠페인 헤더가 다르면 여기에 별칭만 추가.
 // ⚠️ schedDate: 베이온은 '예정일'을 헤더상 '검수 특이사항' 열(18)에 기입 → 그 별칭 포함.
@@ -54,6 +54,7 @@ const FIELD_HEADERS = {
   fixedDate: ['확정일', '업로드확정일'],
   // 사람 이름. nick 은 되쓰기 대상(틱톡 닉네임)이라 표시용 이름을 따로 둔다 — 섞으면 화면에 핸들이 뜬다.
   creator: ['크리에이터'],
+  email: ['이메일', '이메일주소', '메일', 'email'],
   mirror: ['미러링여부', '미러링'],   // 예정일=크리에이터 희망, 확정일=합의된 날짜
 };
 // 플랫폼별로 두 벌 존재하는 항목. 접두어만 갈아끼워 같은 규칙으로 찾는다.
@@ -243,6 +244,7 @@ function readAccounts_() {
       nick: String(row[COL.nick - 1] || ''),
       creator: COL.creator ? String(row[COL.creator - 1] || '') : '',
       mirror: COL.mirror ? String(row[COL.mirror - 1] || '') : '',
+      email: COL.email ? String(row[COL.email - 1] || '') : '',
       handle: handle,
       link: String(row[COL.link - 1] || ''),
       plat: plat,                                 // tk / ig / both — 프론트가 계정 링크 주소를 고를 때 쓴다
