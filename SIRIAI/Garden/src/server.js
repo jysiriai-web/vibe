@@ -313,7 +313,11 @@ export async function handler(req, res) {
         campaign: { id: campaign.id, name: campaign.name, group: campaign.group },
         config: { target: campaign.target, min: campaign.min, krwPerUsd: await effectiveRate(), staleDays: getStaleDays(), hasKey: !!smm, confirmNotice: !!campaign.confirmNotice, execPwRequired: !!EXEC_PW, stateMode: stateMode(), cloud: CLOUD, readOnly: !!campaign.readOnly,
           service: svc ? { id: svc.service, name: svc.name, rate: svc.rate } : { id: campaign.serviceId, name: `#${campaign.serviceId}`, rate: 0 } },
-        balance, scannedAt: scanLatest(campaign).ranAt, uploadScannedAt: detectedRanAt(campaign), accounts, orders: markStale(orders), best: all.best,
+        balance, scannedAt: scanLatest(campaign).ranAt, uploadScannedAt: detectedRanAt(campaign),
+        // 화면이 가드닝 예상 금액을 계산하려면 단가와 환율이 필요하다.
+        // 여기서 안 주면 프론트가 상수를 박아두게 되고, 서비스를 바꾼 날 조용히 틀린 금액이 뜬다.
+        service: (() => { const v = serviceOf(campaign); return v ? { id: v.service, name: v.name, rate: v.rate } : null; })(),
+        krwPerUsd: await effectiveRate(), accounts, orders: markStale(orders), best: all.best,
         scanFailures: scanFailures(campaign), // 지난 업로드 스캔에서 못 본 계정 — 업로드 탭 하이라이트용
       });
     }

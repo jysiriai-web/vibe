@@ -856,6 +856,8 @@ async function loadData(){
     CAMPAIGNS.lun8.scan = agoText(j.uploadScannedAt || j.scannedAt);
     ORDERS = Array.isArray(j.orders) ? j.orders : [];
     if(j.krwPerUsd) KRW_PER_USD = j.krwPerUsd;
+    if(j.service && j.service.rate) GARDEN_RATE = Number(j.service.rate) || GARDEN_RATE;
+    BALANCE_USD = (j.balance==null || j.balance==='') ? null : Number(j.balance);
     clearErr();
     render();
     return true;
@@ -1126,7 +1128,9 @@ function toggleSort(tableId, key){
 const isSortable = c => c.sortable!==false && c.key && !['edit','pick',''].includes(c.key);
 
 /* ============ 빈 열 자동 숨김 + 정렬 엔진 ============ */
-let ORDERS = [];   // 가드닝 집행 기록. 돈이 나간 내역이라 화면에서 확인 가능해야 한다.
+let ORDERS = [];
+let GARDEN_RATE = 4.13;   // 서비스 1,000명당 USD. 서버가 주면 그 값으로 바꾼다.
+let BALANCE_USD = null;   // SMM 잔액. 클라우드엔 키가 없어 null 로 온다 — '확인 불가'로 표시한다.   // 가드닝 집행 기록. 돈이 나간 내역이라 화면에서 확인 가능해야 한다.
 let _lastDayNote = '';   // 일자·주차 필터 안내 — 업로드 일정 카드 안에 나중에 꽂는다
 let _lastHideNote = '';   // 표를 그릴 때 계산된 '빈 열 숨김' 배지 — 필터 줄에서 꺼내 쓴다
 function renderTable(cols, rows, opts={}){
@@ -1489,6 +1493,7 @@ function likelihood(d,p){
 
 /* ============ 뷰: 가드닝 (garden.js 방식 · 대상만 노출 · 보류 개념) ============ */
 function viewGarden(){
+  if(state.plat==='hist') return platSubtabs() + gardenSummary() + gardenHistory();
   if(state.plat==='all') return viewGardenAll();
   const p = state.plat;
   // 후보 = 이 플랫폼 참여자 중, 충족(ok)·미참여(na) 아닌 사람만 (필요없는 사람 숨김)
@@ -1524,8 +1529,7 @@ function viewGarden(){
   const needSum = targets.reduce((a,d)=> a+gStat(d,p).order, 0);
   const holdToggle = holds.length ? `<label class="toggle ${state.gardenHold?'on':''}" id="gardenHoldToggle"><span class="switch"></span><span>보류 ${holds.length}건 표시</span></label>` : '';
   const execBar = `<div class="bar"><div class="summary">${pName(p)} 가드닝 대상 <b>${targets.length}</b>건 · 충전 합계 <b>${nf(needSum)}</b>명 ${filling.length?`<span class="cmuted">진행중 ${filling.length}건</span>`:''}</div><div class="spacer"></div>${holdToggle}<button class="btn danger" id="btnExec"${targets.length?'':' disabled'}>선택 집행</button></div>`;
-  return platSubtabs() + execBar + renderTable(cols, rows, { tableId:'garden-'+p, rowClass:r=> gStat(r,p).st==='hold'?'held':'' }) +
-    gardenHistory() +
+  return platSubtabs() + gardenSummary() + execBar + renderTable(cols, rows, { tableId:'garden-'+p, rowClass:r=> gStat(r,p).st==='hold'?'held':'' }) +
     `<div class="finenote">충전량 = 목표 <b>${nf(GTARGET)}</b>까지 100단위 반올림(베이온 가드닝과 동일). <b>최소 ${nf(GMIN)} 미만</b>만 대상, 진행중 주문(remains)은 자동 차감. 마감임박·저확률 미업로드자는 <b>보류</b> → 업로드 확인 후 가드닝(자동 제외 X). 집행은 워커가 로컬 SMM 키로.</div>`;
 }
 
@@ -1567,8 +1571,7 @@ function viewGardenAll(){
   const holdToggle = holdN ? `<label class="toggle ${state.gardenHold?'on':''}" id="gardenHoldToggle"><span class="switch"></span><span>보류 ${holdN}건 표시</span></label>` : '';
   const byPlat = platsOn().map(p=>{ const n = targets.filter(r=>r.p===p).length; return n?pName(p)+' '+n:''; }).filter(Boolean).join(' · ');
   const execBar = `<div class="bar"><div class="summary">가드닝 대상 <b>${targets.length}</b>건${byPlat?' <span class="cmuted">('+byPlat+')</span>':''} · 충전 합계 <b>${nf(needSum)}</b>명 ${filling.length?'<span class="cmuted">진행중 '+filling.length+'건</span>':''}</div><span class="bar-right">${holdToggle}<button class="btn danger" id="btnExec"${targets.length?'':' disabled'}>선택 집행</button></span></div>`;
-  return platSubtabs() + execBar + renderTable(cols, rows, { tableId:'garden-all', rowClass:r=> r.g.st==='hold'?'held':'' }) +
-    gardenHistory() +
+  return platSubtabs() + gardenSummary() + execBar + renderTable(cols, rows, { tableId:'garden-all', rowClass:r=> r.g.st==='hold'?'held':'' }) +
     `<div class="finenote">한 행 = <b>1건</b>(사람×플랫폼). 충전량 = 목표 <b>${nf(GTARGET)}</b>까지 100단위 반올림. <b>최소 ${nf(GMIN)} 미만</b>만 대상, 진행중 주문(remains)은 자동 차감. 마감임박·저확률 미업로드자는 <b>보류</b> → 업로드 확인 후 가드닝. 집행은 작업 콘솔에서.</div>`;
 }
 
@@ -1577,6 +1580,35 @@ function viewGardenAll(){
 /* 가드닝 집행 이력. 돈이 나간 기록인데 화면 어디에도 없었다 —
    얼마 썼는지, 다 채워졌는지, 빠진 게 있는지 확인하려면 smmkings 패널을 따로 열어야 했다.
    플랫폼 탭과 무관하게 전부 보여준다: 지출은 캠페인 단위로 보는 게 맞다. */
+/* 가드닝 요약. 표만 있으면 '그래서 얼마가 더 드나'를 사람이 암산해야 한다.
+   지금 필요한 돈 · 지금까지 쓴 돈 · 잔액으로 남은 여력을 한 줄에 세운다.
+   플랫폼 하위탭을 타지 않는다 — 돈은 캠페인 단위로 본다. */
+function gardenSummary(){
+  // 대상: 지금 채워야 하는 것. 진행중: 이미 주문이 돌고 있는 것. 둘을 섞으면 이중지출로 보인다.
+  let need = 0, needQty = 0, needUsd = 0, filling = 0, fillQty = 0, ok = 0, scan = 0;
+  D.filter(inCampaign).forEach(d=> platsOn().forEach(p=>{
+    if(!d[p]) return;
+    const g = gStat(d,p);
+    if(g.st==='target'){ need++; needQty += g.order; needUsd += (g.order/1000) * GARDEN_RATE; }
+    else if(g.st==='filling'){ filling++; fillQty += (d[p].inFlight||0); }
+    else if(g.st==='ok') ok++;
+    else if(g.st==='scan') scan++;
+  }));
+  const spentUsd = ORDERS.reduce((a,o)=> a + (Number(o.cost)||0), 0);
+  const spentQty = ORDERS.reduce((a,o)=> a + (Number(o.quantity)||0), 0);
+  const bal = BALANCE_USD;
+  // 잔액으로 지금 필요한 만큼을 감당할 수 있나. 모자라면 충전해야 하니 미리 알린다.
+  const shortUsd = bal!=null ? (needUsd - bal) : null;
+  return `<div class="cards">
+    ${kpi('가드닝 대상 · 건', need, { ic:IC.split, accent: need?'var(--needs)':undefined,
+       sub: need ? `${nf(needQty)}명 충전 필요${filling?` · 진행중 ${filling}건(${nf(fillQty)}명)`:''}` : `지금 채울 계정이 없어요${filling?` · 진행중 ${filling}건`:''}` })}
+    ${kpi('지금 필요한 금액', wonOf(needUsd), { ic:IC.coin||IC.split,
+       sub: shortUsd!=null && shortUsd>0 ? `<b class="warn-t">잔액이 ${wonOf(shortUsd)} 모자라요</b>` : (bal!=null?`잔액 ${wonOf(bal)}`:'잔액 확인 불가') })}
+    ${kpi('지금까지 지출', wonOf(spentUsd), { ic:IC.check,
+       sub: ORDERS.length ? `${ORDERS.length}건 · ${nf(spentQty)}명 충전` : '아직 집행 없음' })}
+    ${kpi('충족 · 계정', ok, { ic:IC.users, sub: `${nf(GMIN)}명 이상 확보됨${scan?` · 스캔 대기 ${scan}건`:''}` })}
+  </div>`;
+}
 function gardenHistory(){
   if(!ORDERS.length) return '<div class="note-line">아직 가드닝 집행 기록이 없어요.</div>';
   const rows = ORDERS.slice().sort((a,b)=> String(b.placedAt||'').localeCompare(String(a.placedAt||'')));
@@ -1807,7 +1839,8 @@ function platSubtabs(){
     <button class="subtab all ${state.plat==='all'?'active':''}" data-plat="all"><span class="dot"></span>통합 <span class="cmuted">건 단위</span></button>
     <button class="subtab tk ${state.plat==='tk'?'active':''}" data-plat="tk"><span class="dot"></span>틱톡 <span class="cmuted">자동 스캔</span></button>
     <button class="subtab ig ${state.plat==='ig'?'active':''}" data-plat="ig"><span class="dot"></span>인스타 <span class="cmuted">자동 스캔</span></button>
-    ${state.view==='upload' ? `<button class="subtab late ${state.plat==='late'?'active':''}" data-plat="late"><span class="dot"></span>일정 미준수 <span class="cmuted">${lateCount()}건</span></button>` : ''}</div>`;
+    ${state.view==='upload' ? `<button class="subtab late ${state.plat==='late'?'active':''}" data-plat="late"><span class="dot"></span>일정 미준수 <span class="cmuted">${lateCount()}건</span></button>` : ''}
+    ${state.view==='garden' ? `<button class="subtab hist ${state.plat==='hist'?'active':''}" data-plat="hist"><span class="dot"></span>집행 이력 <span class="cmuted">${ORDERS.length}건</span></button>` : ''}</div>`;
 }
 /* ============ 매뉴얼 · 가이드 ============
    내용은 public/knowledge.js 하나뿐이다(MANUAL/GUIDE). 여기서 복붙하지 않는다 —
