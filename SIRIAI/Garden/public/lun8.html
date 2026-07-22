@@ -129,16 +129,25 @@ td.nick { max-width: 220px; overflow-wrap: anywhere; }
 
 /* KPI 카드 */
 .cards { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
-.kpi { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; min-width: 180px; flex: 1; box-shadow: var(--shadow); }
+.kpi { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 15px 18px 16px; min-width: 200px; flex: 1; box-shadow: var(--shadow);
+  display: flex; flex-direction: column; }
+/* 숫자를 카드 바닥에 붙여 라벨과 떼어 놓는다 — 눈이 숫자부터 잡게 */
+.kpi .big { margin-top: auto; }
 .kpi.wide { min-width: 320px; flex: 1.5; }
 .kpi-top { display: flex; align-items: center; gap: 9px; margin-bottom: 11px; }
 .kpi-ic { width: 30px; height: 30px; border-radius: 9px; background: var(--accent-soft); color: var(--accent-ink); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .kpi-ic svg { width: 16px; height: 16px; }
 .kpi .lab { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--faint); font-weight: 700; }
-.kpi .big { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
-.kpi .big.two { font-size: 21px; }
-.kpi .big .of { font-size: 15px; font-weight: 600; color: var(--faint); }
-.kpi .sub { font-size: 12.5px; color: var(--muted); margin-top: 7px; }
+.kpi-top { margin-bottom: 6px; }
+/* 숫자 크기 — 카드 폭에 맞춰 자란다. 옆이 비는 건 숫자가 작아서지 칸이 커서가 아니다.
+   clamp 하한을 지금(26px)보다 훨씬 위에 두고, 폭이 넓으면 더 커지게 한다. */
+.kpi .big { font-size: clamp(38px, 5.2vw, 66px); font-weight: 800; letter-spacing: -0.035em; line-height: 1;
+  font-variant-numeric: tabular-nums; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.kpi .big.two { font-size: clamp(26px, 3vw, 36px); letter-spacing: -0.02em; }
+/* 단위·분모는 숫자에 딸린 것이지 숫자가 아니다 — 크기를 확실히 낮춰 눈이 숫자만 잡게 */
+.kpi .big .of { font-size: clamp(15px, 1.5vw, 20px); font-weight: 700; color: var(--faint); letter-spacing: -0.01em; }
+.kpi .big small, .kpi .big .u { font-size: clamp(14px, 1.3vw, 18px); font-weight: 700; color: var(--faint); }
+.kpi .sub { font-size: 12.5px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
 
 /* 서브탭 (플랫폼) */
 .subtabs { display: flex; gap: 24px; margin-bottom: 20px; border-bottom: 1px solid var(--line); }
@@ -499,9 +508,11 @@ body.fb-picking #content *:hover { outline: 2px solid var(--accent); outline-off
 #fbBtn { gap:5px; }
 #fbCnt:not(:empty) { font-size:11px; font-weight:800; background:var(--needs); color:#fff; border-radius:20px; padding:1px 6px; }
 /* 계정 핸들 앞 플랫폼 기호 — 글자가 아니라 기호라 좁은 열에서도 핸들을 안 민다 */
-.pmark { font-style:normal; font-size:11px; font-weight:800; margin-right:4px; opacity:.85; }
+/* 플랫폼 로고 — 핸들 왼쪽에 작게. 글자 크기를 안 따라가게 고정 px */
+.pmark { display:inline-flex; width:13px; height:13px; margin-right:5px; vertical-align:-2px; flex-shrink:0; }
+.pmark svg { width:100%; height:100%; display:block; }
 .pmark.tk { color:var(--ink); }
-.pmark.ig { color:#c13584; }
+.pmark.ig { color:#d62976; }
 /* 이메일 — 눌러서 복사. 링크처럼 보이면 새 창이 열릴 것 같아 보이므로 점선 밑줄로 구분 */
 .mailc { font:inherit; font-size:12.5px; color:var(--muted); background:none; border:0; padding:2px 0;
   border-bottom:1px dashed var(--line2); cursor:pointer; max-width:100%; overflow:hidden;
@@ -903,12 +914,16 @@ function mailCell(v){
   return `<button class="mailc" data-mail="${esc(t)}" title="눌러서 복사">${esc(t)}</button>`;
 }
 /* 계정 링크 — 목업 땐 href="#" 였다. 실제 프로필로 열리게. 인스타는 @ 없이 붙인다. */
-// 플랫폼 표시는 글자가 아니라 기호로 — 좁은 열에서 핸들을 밀어내지 않게.
-const PLAT_MARK = { tk:'♪', ig:'◎' };
+// 플랫폼 표시는 로고 모양으로. 기호(♪◎)는 무엇인지 배워야 알지만 로고는 그냥 안다.
+// 외부 이미지는 배포에서 깨지므로 인라인 SVG, 단색이라 밝기·배경을 안 탄다.
+const PLAT_MARK = {
+  tk: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.3 2h-3v13.1a2.9 2.9 0 1 1-2.4-2.85V9.15A6.05 6.05 0 1 0 16.3 15.1V8.9a7.3 7.3 0 0 0 4.2 1.33V7.2a4.3 4.3 0 0 1-4.2-4.2V2z"/></svg>',
+  ig: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.6" y="2.6" width="18.8" height="18.8" rx="5.4" fill="none" stroke="currentColor" stroke-width="2.1"/><circle cx="12" cy="12" r="4.6" fill="none" stroke="currentColor" stroke-width="2.1"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/></svg>',
+};
 function acctLink(h, p){
   const raw = String(h==null?'':h).replace(/^@/,'').trim();
   if(!raw) return '<span class="emptydot">·</span>';
-  const mark = PLAT_MARK[p] ? `<i class="pmark ${p}" title="${p==='ig'?'인스타':'틱톡'}">${PLAT_MARK[p]}</i>` : '';
+  const mark = PLAT_MARK[p] ? `<i class="pmark ${p}" title="${p==='ig'?'인스타':'틱톡'}" aria-label="${p==='ig'?'인스타':'틱톡'}">${PLAT_MARK[p]}</i>` : '';
   const url = p==='ig' ? 'https://www.instagram.com/'+encodeURIComponent(raw)
                        : 'https://www.tiktok.com/@'+encodeURIComponent(raw);
   return mark + `<a href="${url}" target="_blank" rel="noopener">${p==='ig'?'':'@'}${esc(raw)}</a>`;
