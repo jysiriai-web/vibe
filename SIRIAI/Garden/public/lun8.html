@@ -1061,7 +1061,7 @@ const coChip = c => `<span class="co ${c==='MARU'?'co-maru':'co-siriai'}">${c}</
 const REV = { p:['rev-pass','준수'], f:['rev-fail','미준수'], n:['rev-none','미확인'] };
 function revSel(k,id,field,plat){ const opts=[['n','미확인'],['p','준수'],['f','미준수']]; const [cl]=REV[k];
   return `<select class="rev-sel ${cl}" data-rev="${id}|${field}|${plat}">${opts.map(([v,l])=>`<option value="${v}"${v===k?' selected':''}>${l}</option>`).join('')}</select>`; }
-const mirName = k => ({m1:'미러링',m0:'별개',mx:'미확인'}[k]);
+const mirName = k => ({m1:'미러링',m0:'오리지널',mx:'미확인'}[k]);
 const uploaded = (d,p)=> d[p] && !!d[p].c1;
 const anyUploaded = d => platsOn().some(p=> uploaded(d,p));
 const inCampaign = d => platsOn().some(p=> d.plats.includes(p) && d[p]!==null);
@@ -1478,7 +1478,15 @@ function viewRecruit(){
   if(state.unfixedOnly) rows = rows.filter(d=> !d.fixed);
   const dayLabel = state.day==='__unset' ? '예정일 미정' : state.day==='__off' ? '캠페인 일정 밖' : state.day;
   const filtLabel = state.day ? dayLabel : state.week;   // 주차 필터도 같은 줄로 알린다
-  _lastDayNote = ((state.day || state.week) && WEEKS().length)
+  const _fon = [];
+  if(state.week) _fon.push(state.week);
+  if(state.day)  _fon.push(state.day==='__unset'?'예정일 미정':state.day==='__off'?'캠페인 일정 밖':state.day);
+  if(state.platOnly) _fon.push(pName(state.platOnly));
+  if(state.noticeOnly) _fon.push('확정메일 미발송');
+  if(state.unfixedOnly) _fon.push('날짜 미확정');
+  _lastDayNote = _fon.length && !((state.day || state.week) && WEEKS().length)
+    ? `<span class="daynote"><b>${_fon.map(esc).join(' · ')}</b><button class="btn ghost small" id="dayClear">전부 보기</button></span>`
+    : ((state.day || state.week) && WEEKS().length)
     ? `<span class="daynote"><b>${esc(filtLabel)}</b> ${rows.length}명 · ${rows.reduce((a,d)=>a+slots(d),0)}건만 보는 중<button class="btn ghost small" id="dayClear">전체 보기</button></span>`
     : '';
   const dayBar = '';   // 안내는 업로드 일정 카드 안(dayNoteSlot)으로 옮겼다
@@ -1545,7 +1553,7 @@ function viewUploadAll(){
       cell:r=> r.plats.length<2 ? '<span class="cmuted">해당 없음</span>'
         // 미러링은 계약 위반이고 '따로 촬영'이 정상이다. 이름과 색이 그걸 말해야 한다 —
         // '별개'는 중립적이라 무엇이 좋은 상태인지 안 보였다.
-        : `<select class="rev-sel mirror ${r.mir}" data-mir="${r.id}">${[['mx','미확인'],['m1','미러링 ⚠'],['m0','따로 촬영']].map(([v,l])=>`<option value="${v}"${v===r.mir?' selected':''}>${l}</option>`).join('')}</select>` },
+        : `<select class="rev-sel mirror ${r.mir}" data-mir="${r.id}">${[['mx','미확인'],['m1','미러링 ⚠'],['m0','오리지널']].map(([v,l])=>`<option value="${v}"${v===r.mir?' selected':''}>${l}</option>`).join('')}</select>` },
     // 날짜는 미러링 뒤로. 앞쪽은 '올라왔나·같은 영상인가'를 보는 자리고,
     // 날짜는 그다음에 챙기는 것이다. 확정일은 모집탭에서 여기로 옮겼다 —
     // 날짜를 다시 잡는 일은 업로드를 쫓는 사람 몫이다.
@@ -1900,7 +1908,7 @@ function gardenSummary(){
   </div>`;
 }
 function gardenHistory(){
-  if(!ORDERS.length) return '<div class="note-line">아직 가드닝 집행 기록이 없어요.</div>';
+  if(!ORDERS.length) return '<div class="note-line">아직 가드닝 집행 내역이 없어요.</div>';
   const rows = ORDERS.slice().sort((a,b)=> String(b.placedAt||'').localeCompare(String(a.placedAt||'')));
   const spentUsd = rows.reduce((a,o)=> a + (Number(o.cost)||0), 0);
   const qty = rows.reduce((a,o)=> a + (Number(o.quantity)||0), 0);
@@ -1921,7 +1929,7 @@ function gardenHistory(){
         return `<span class="lk sched">채워지는 중 ${nf(o.remains)} 남음</span>`; } },
     { key:'id', label:'주문번호', cls:'mono', sv:o=>String(o.id||''), cell:o=> `<span class="cmuted">${esc(String(o.id||''))}</span>` },
   ];
-  return `<div class="sec-head">가드닝 집행 이력 <span class="cmuted">${rows.length}건 · 충전 ${nf(qty)}명 · 지출 ${esc(wonOf(spentUsd))}${live?' · 진행중 '+live+'건':''}</span></div>`
+  return `<div class="sec-head">가드닝 집행 내역 <span class="cmuted">${rows.length}건 · 충전 ${nf(qty)}명 · 지출 ${esc(wonOf(spentUsd))}${live?' · 진행중 '+live+'건':''}</span></div>`
     + renderTable(cols, rows, { tableId:'garden-hist', noHide:true });
 }
 // 달러를 원으로. 환율은 서버가 준 값이 있으면 그걸, 없으면 대략치를 쓴다(표기용).
@@ -2142,13 +2150,14 @@ function platSubtabs(){
   if(!hasIG()) return `<div class="note-line">🎯 이 캠페인은 <b>틱톡 전용</b> — 인스타 하위탭·열은 자동 숨김. <span class="muted">(config plats:['tk'])</span></div>`;
   // 모집탭은 '건 단위'가 아니라 사람 단위라 라벨을 달리한다. 나머지 구조는 같게 —
   // 탭을 옮겨도 같은 자리에서 같은 방식으로 쓰게.
-  const allLab = state.view==='recruit' ? '전체' : '통합 <span class="cmuted">건 단위</span>';
+  // '건 단위'는 통합탭이 사람 단위로 바뀌면서 틀린 말이 됐다.
+  const allLab = '전체';
   return `<div class="subtabs" id="platSub">
     <button class="subtab all ${state.plat==='all'?'active':''}" data-plat="all"><span class="dot"></span>${allLab}</button>
     <button class="subtab tk ${state.plat==='tk'?'active':''}" data-plat="tk"><i class="pmark tk">${PLAT_MARK.tk}</i>틱톡${platCountLab('tk')}</button>
     <button class="subtab ig ${state.plat==='ig'?'active':''}" data-plat="ig"><i class="pmark ig">${PLAT_MARK.ig}</i>인스타${platCountLab('ig')}</button>
     ${state.view==='upload' ? `<button class="subtab late ${state.plat==='late'?'active':''}" data-plat="late"><span class="dot"></span>일정 미준수 <span class="cmuted">${lateCount()}건</span></button>` : ''}
-    ${state.view==='garden' ? `<button class="subtab hist ${state.plat==='hist'?'active':''}" data-plat="hist"><span class="dot"></span>집행 이력 <span class="cmuted">${ORDERS.length}건</span></button>` : ''}
+    ${state.view==='garden' ? `<button class="subtab hist ${state.plat==='hist'?'active':''}" data-plat="hist"><span class="dot"></span>집행 내역 <span class="cmuted">${ORDERS.length}건</span></button>` : ''}
     ${gardenSvcNote()}<span id="hideSlot" class="sub-hide"></span>${state.view==='upload'?scanPickBtn():''}</div>`;
 }
 /* ============ 매뉴얼 · 가이드 ============
@@ -2405,7 +2414,7 @@ function openRowEdit(id, rowPlat){
         <div class="row"><label class="h">해시태그</label>${revEditSel('reHash',x.hash)}</div>
       </div>
       <div class="row"><label class="h">미러링</label>
-        <select class="inp" id="reMir">${[['m1','미러링'],['m0','별개'],['mx','미확인']].map(([v,l])=>`<option value="${v}"${v===d.mir?' selected':''}>${l}</option>`).join('')}</select></div>
+        <select class="inp" id="reMir">${[['m1','미러링 ⚠'],['m0','오리지널'],['mx','미확인']].map(([v,l])=>`<option value="${v}"${v===d.mir?' selected':''}>${l}</option>`).join('')}</select></div>
       <div class="row"><label class="h">${pName(p)} 비고</label><textarea class="inp" id="rePMemo" placeholder="${pName(p)} 특이사항">${esc(x.memo||'')}</textarea></div>
     </div>`;
     // ⚠️ 예전엔 여기서 화면 객체만 고쳤다 — 시트엔 안 써져서 닫으면 사라지고,
@@ -2424,7 +2433,7 @@ function openRowEdit(id, rowPlat){
       if(x.sec!==was.sec)        saveField(d.id, p+'.soundSection', REV_TEXT[x.sec]);
       if(x.hash!==was.hash)      saveField(d.id, p+'.hashtagOk',  REV_TEXT[x.hash]);
       if(x.memo!==was.memo)      saveField(d.id, p+'.memo', x.memo);
-      if(d.mir!==was.mir)        saveField(d.id, 'mirror', {m1:'미러링',m0:'별개',mx:''}[d.mir]);
+      if(d.mir!==was.mir)        saveField(d.id, 'mirror', {m1:'미러링',m0:'오리지널',mx:''}[d.mir]);
     };
 
   } else if(state.view==='garden'){
@@ -2701,7 +2710,11 @@ document.getElementById('content').addEventListener('click', e=>{
   const wk=e.target.closest('[data-week]'); if(wk){ state.week = (state.week===wk.dataset.week) ? null : wk.dataset.week; state.day=null; render(); return; }
   const uf=e.target.closest('[data-upf]'); if(uf){ state.upFilter = uf.dataset.upf; render(); return; }
   const dy=e.target.closest('[data-day]'); if(dy){ state.day = (state.day===dy.dataset.day) ? null : dy.dataset.day; state.week=null; render(); return; }
-  if(e.target.closest('#dayClear')){ state.day=null; state.week=null; render(); return; }
+  if(e.target.closest('#dayClear')){
+    // '전부 보기'는 말 그대로 전부다 — 하나씩 되돌리면 클릭이 너무 많다(의견 #11).
+    state.day=null; state.week=null; state.platOnly=''; state.noticeOnly=false; state.unfixedOnly=false;
+    if(state.plat==='tk'||state.plat==='ig') state.plat='all';
+    render(); return; }
   const th=e.target.closest('.th-sort'); if(th){ toggleSort(th.dataset.table, th.dataset.sort); return; }
   const mc=e.target.closest('[data-mail]');
   if(mc){ const v=mc.dataset.mail;
