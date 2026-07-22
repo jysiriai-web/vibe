@@ -43,7 +43,9 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 .brand-txt b { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; }
 .brand-sub { font-size: 12px; font-weight: 600; color: var(--faint); letter-spacing: 0.01em; }
 .mainwrap { flex: 1; min-width: 0; }
-.nav { display: flex; flex-direction: column; gap: 3px; }
+/* nav 가 남은 높이를 먹어야 하단 묶음(.side-foot)이 진짜 바닥에 붙는다.
+   예전엔 nav 가 내용만큼만 차지해 설정·의견이 화면 중간에 떠 있었다. */
+.nav { display: flex; flex-direction: column; gap: 3px; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
 .nav .tab { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left; font-family: var(--sans); font-size: 15px; font-weight: 600; cursor: pointer; padding: 10px 11px; border: none; border-radius: 10px; background: none; color: var(--muted); transition: background .12s, color .12s; white-space: nowrap; overflow: hidden; }
 .nav .tab .ni { width: 18px; height:18px; flex-shrink: 0; opacity: .85; }
 .nav .tab .lb { flex: 1; }
@@ -604,7 +606,7 @@ td.mono, th.mono { font-family:var(--mono); font-size:12px; }
 .gtodo-s { font-weight:700; opacity:.75; margin-right:5px; }
 @media (max-width:900px){ .gwrap { grid-template-columns:1fr; } .gtoc { position:static; flex-direction:row; flex-wrap:wrap; } }
 /* 사이드바 하단 — 자주 안 쓰는 것은 아래로(설정·의견). 상단바는 '지금 숫자'만 남긴다. */
-.side-foot { margin-top:auto; padding:10px 8px 12px; display:flex; flex-direction:column; gap:4px; border-top:1px solid var(--line2); }
+.side-foot { margin-top:0; margin-bottom:-16px; padding:12px 8px 6px; display:flex; flex-direction:column; gap:4px; border-top:1px solid var(--line2); }
 .side-btn { display:flex; align-items:center; gap:9px; width:100%; padding:8px 10px; border:0; border-radius:9px;
   background:none; font:inherit; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; text-align:left; }
 .side-btn:hover { background:var(--line2); color:var(--ink); }
@@ -614,6 +616,13 @@ body.nav-collapsed .sb-l, body.nav-collapsed .side-foot .lbadge { display:none; 
 body.nav-collapsed .side-btn { justify-content:center; }
 /* 상단바가 비었으니 숫자에 자리를 준다 */
 .topbar-right .stats { gap:22px; }
+/* 하위탭 오른쪽 — 지금 무엇으로 사는지. 비어 있던 자리를 쓴다 */
+.svcnote { margin-left:auto; display:inline-flex; align-items:baseline; gap:7px; font-size:12px; color:var(--muted);
+  white-space:nowrap; overflow:hidden; }
+.svcnote b { color:var(--ink); font-weight:800; }
+.svcnote small { font-size:11px; color:var(--faint); }
+.svcnote .svc-n { color:var(--faint); overflow:hidden; text-overflow:ellipsis; }
+@media (max-width:900px){ .svcnote { display:none; } }
 </style>
 </head>
 <body>
@@ -920,7 +929,7 @@ async function loadData(){
     CAMPAIGNS.lun8.scan = agoText(j.uploadScannedAt || j.scannedAt);
     ORDERS = Array.isArray(j.orders) ? j.orders : [];
     if(j.krwPerUsd) KRW_PER_USD = j.krwPerUsd;
-    if(j.service && j.service.rate) GARDEN_RATE = Number(j.service.rate) || GARDEN_RATE;
+    if(j.service){ SERVICE = j.service; if(j.service.rate) GARDEN_RATE = Number(j.service.rate) || GARDEN_RATE; }
     BALANCE_USD = (j.balance==null || j.balance==='') ? null : Number(j.balance);
     clearErr();
     render();
@@ -1230,6 +1239,7 @@ function renderLocalBadge(){
   el.innerHTML = LOCAL.on ? '<span class="lbadge">● 내 PC 연결됨</span>' : '';
 }
 let ORDERS = [];
+let SERVICE = null;   // 지금 쓰는 SMM 서비스 {id,name,rate} — 화면에 무엇으로 사는지 밝힌다
 let GARDEN_RATE = 4.13;   // 서비스 1,000명당 USD. 서버가 주면 그 값으로 바꾼다.
 let BALANCE_USD = null;   // SMM 잔액. 클라우드엔 키가 없어 null 로 온다 — '확인 불가'로 표시한다.   // 가드닝 집행 기록. 돈이 나간 내역이라 화면에서 확인 가능해야 한다.
 let _lastDayNote = '';   // 일자·주차 필터 안내 — 업로드 일정 카드 안에 나중에 꽂는다
@@ -1430,6 +1440,9 @@ function viewUploadAll(){
   let rows = pairs;
   const f = upFilter(); if(f.test) rows = rows.filter(x=> f.test(x.d, x.p));
   const cols = [
+    ...(LOCAL.on ? [{ key:'spick', label:'', sortable:false,
+      // 인스타만 — 틱톡 선택 스캔은 아직 없다. 없는 걸 고르게 두면 눌러도 안 되는 버튼이 된다.
+      cell:r=> r.p!=='ig' ? '' : `<input type="checkbox" data-spick="${esc(r.d[r.p].h)}"${scanPick.has(r.d[r.p].h)?' checked':''}>` }] : []),
     { key:'co', label:'진행사', sv:r=>r.d.co, cell:r=>coChip(r.d.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.d.nick, cell:r=>nickCell(r.d) },
     { key:'plat', label:'플랫폼', sv:r=>r.p, cell:r=>`<span class="plat-pill ${r.p}">${pName(r.p)}</span>` },
@@ -1504,12 +1517,36 @@ const UP_FILTERS = [
 const upFilter = ()=> UP_FILTERS.find(f=> f.k===state.upFilter) || UP_FILTERS[0];
 const upScanBtn = ()=> `<button class="btn small" id="btnUpScan">🔎 업로드 스캔</button>`;
 /* pairs = [{d,p}] — 통합탭은 사람×플랫폼, 플랫폼탭은 그 플랫폼으로 미리 묶어서 넘긴다(건수 표기 공용). */
+/* 선택 스캔 — 표에서 고른 사람만 인스타 업로드 스캔을 돌린다.
+   전체는 46계정 30분이라 '오늘 올리는 몇 명'만 보고 싶을 때 쓴다.
+   로컬에서만 보인다: 스캔은 대표님 PC 에서만 돈다. */
+const scanPick = new Set();
+function scanPickBtn(){
+  if(!LOCAL.on) return '';
+  const n = scanPick.size;
+  return `<button class="btn small${n?' primary':''}" id="btnPickScan">${n?`선택 ${n}명 스캔`:'선택 스캔'}</button>`;
+}
+async function runPickScan(btn){
+  const only = [...scanPick];
+  if(!only.length) return toast('표에서 스캔할 사람을 먼저 골라주세요.');
+  btn.disabled = true; btn.textContent = '스캔 중…';
+  try {
+    const r = await fetch(localApi('/api/ig-content-scan?campaign=' + state.campaign), {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ only }) });
+    const j = await r.json();
+    if(j.error) throw new Error(j.error);
+    toast(`스캔 완료 — 업로드 ${j.uploaded||0}건 · 시트 ${j.written||0}칸`);
+    scanPick.clear();
+    loadData();
+  } catch(e){ toast('스캔 실패: ' + esc(e.message)); }
+  finally { btn.disabled = false; render(); }
+}
 function filterBar(pairs, extra){
   const btns = UP_FILTERS.map(f=>{
     const n = f.test ? pairs.filter(x=> f.test(x.d, x.p)).length : 0;
     return `<button class="btn small${state.upFilter===f.k?' primary':''}" data-upf="${f.k}">${f.label}${f.test&&n?` (${n})`:''}</button>`;
   }).join('');
-  return `<div class="bar">${btns}<span id="hideSlot"></span><span class="bar-right">${extra||''}</span></div>`;
+  return `<div class="bar">${btns}<span id="hideSlot"></span><span class="bar-right">${scanPickBtn()}${extra||''}</span></div>`;
 }
 
 /* 일정 미준수 — 윤경님이 '연락하고 표기하는' 한 가지 일만 하는 화면.
@@ -1938,6 +1975,15 @@ function lateCount(){
   D.filter(inCampaign).forEach(d=>{ if(isDropped(d)) return; platsOn().forEach(p=>{ if(isLate(d,p)) n++; }); });
   return n;
 }
+/* 지금 어떤 SMM 서비스로 얼마에 사는지. 가드닝 탭에서만 뜬다.
+   나중에 업체가 늘면 여기가 드롭다운이 된다 — 지금은 하나뿐이라 표시만. */
+function gardenSvcNote(){
+  if(state.view!=='garden' || !SERVICE) return '';
+  const per = wonOf(Number(SERVICE.rate||0));
+  return `<span class="svcnote" title="${esc(SERVICE.name||'')}">
+    <b>#${esc(String(SERVICE.id))}</b> · ${esc(per)}<small> / 1,000명</small>
+    <span class="svc-n">${esc(String(SERVICE.name||'').replace(/[^\x20-\x7E가-힣·\[\]]/g,'').trim().slice(0,34))}</span></span>`;
+}
 function platSubtabs(){
   if(!hasIG()) return `<div class="note-line">🎯 이 캠페인은 <b>틱톡 전용</b> — 인스타 하위탭·열은 자동 숨김. <span class="muted">(config plats:['tk'])</span></div>`;
   return `<div class="subtabs" id="platSub">
@@ -1945,7 +1991,8 @@ function platSubtabs(){
     <button class="subtab tk ${state.plat==='tk'?'active':''}" data-plat="tk"><span class="dot"></span>틱톡 <span class="cmuted">자동 스캔</span></button>
     <button class="subtab ig ${state.plat==='ig'?'active':''}" data-plat="ig"><span class="dot"></span>인스타 <span class="cmuted">자동 스캔</span></button>
     ${state.view==='upload' ? `<button class="subtab late ${state.plat==='late'?'active':''}" data-plat="late"><span class="dot"></span>일정 미준수 <span class="cmuted">${lateCount()}건</span></button>` : ''}
-    ${state.view==='garden' ? `<button class="subtab hist ${state.plat==='hist'?'active':''}" data-plat="hist"><span class="dot"></span>집행 이력 <span class="cmuted">${ORDERS.length}건</span></button>` : ''}</div>`;
+    ${state.view==='garden' ? `<button class="subtab hist ${state.plat==='hist'?'active':''}" data-plat="hist"><span class="dot"></span>집행 이력 <span class="cmuted">${ORDERS.length}건</span></button>` : ''}
+    ${gardenSvcNote()}</div>`;
 }
 /* ============ 매뉴얼 · 가이드 ============
    내용은 public/knowledge.js 하나뿐이다(MANUAL/GUIDE). 여기서 복붙하지 않는다 —
@@ -2520,6 +2567,14 @@ document.getElementById('content').addEventListener('click', e=>{
       });
       updateGardenSum();
       return; } }
+  { const sp = e.target.closest('[data-spick]');
+    if(sp){ const h = sp.dataset.spick;
+      if(sp.checked) scanPick.add(h); else scanPick.delete(h);
+      // 버튼 글자(선택 N명)만 바꾼다 — 체크할 때마다 표를 다시 그리면 못 쓴다.
+      const b = document.getElementById('btnPickScan');
+      if(b){ b.textContent = scanPick.size ? `선택 ${scanPick.size}명 스캔` : '선택 스캔'; b.classList.toggle('primary', !!scanPick.size); }
+      return; } }
+  { const bp = e.target.closest('#btnPickScan'); if(bp){ runPickScan(bp); return; } }
   { const gp = e.target.closest('[data-gpick]');
     if(gp){ const k = gp.dataset.gpick;
       if(gp.checked) gOff.delete(k); else gOff.add(k);
