@@ -530,6 +530,13 @@ td.mail { max-width:200px; }
 .fxbtn.on { background:var(--needs-bg); color:var(--needs-ink); border-color:var(--needs); }
 .fxnote { font-size:11.5px; color:var(--faint); flex-basis:100%; }
 input.inp[type=date]:disabled { opacity:.45; }
+/* 일자·주차 필터 안내 — 업로드 일정 카드 오른쪽 빈자리. auto 마진이라 칩을 밀지 않는다 */
+.daynote { margin-left:auto; display:inline-flex; align-items:center; gap:9px; font-size:12.5px; color:var(--muted); }
+.daynote b { color:var(--ink); }
+.daynote .btn { padding:4px 11px; font-size:12px; }
+@media (max-width:900px){ .daynote { margin-left:0; flex-basis:100%; margin-top:4px; } }
+/* 사이드바 마크 — 원본 비율 유지. 늘어나거나 잘리지 않게 */
+.brandmark img { width:100%; height:100%; object-fit:contain; display:block; }
 </style>
 </head>
 <body>
@@ -541,13 +548,8 @@ input.inp[type=date]:disabled { opacity:.45; }
     </button>
     <div class="side-brand">
       <span class="brandmark" title="SIRIAI">
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-label="SIRIAI">
-          <circle cx="50" cy="50" r="49" fill="#211A33"/>
-          <ellipse cx="58" cy="32" rx="27" ry="16.5" transform="rotate(-22 58 32)" fill="#fff"/>
-          <ellipse cx="45" cy="68" rx="26" ry="16.5" transform="rotate(-22 45 68)" fill="#fff"/>
-          <rect x="2" y="44.5" width="96" height="10" transform="rotate(-24 50 50)" fill="#211A33"/>
-          <ellipse cx="24" cy="55" rx="8.5" ry="11" transform="rotate(-8 24 55)" fill="#fff"/>
-        </svg>
+        <!-- 도형으로 흉내 내면 실제 마크와 달라 보인다. 원본 파일을 그대로 쓴다(파비콘과 같은 파일). -->
+        <img src="/siriai-mark.png" alt="SIRIAI">
       </span>
       <span class="brand-txt"><b>SIRIAI</b><span class="brand-sub" id="brandSub">멀티 캠페인</span></span>
     </div>
@@ -1074,6 +1076,7 @@ function toggleSort(tableId, key){
 const isSortable = c => c.sortable!==false && c.key && !['edit','pick',''].includes(c.key);
 
 /* ============ 빈 열 자동 숨김 + 정렬 엔진 ============ */
+let _lastDayNote = '';   // 일자·주차 필터 안내 — 업로드 일정 카드 안에 나중에 꽂는다
 let _lastHideNote = '';   // 표를 그릴 때 계산된 '빈 열 숨김' 배지 — 필터 줄에서 꺼내 쓴다
 function renderTable(cols, rows, opts={}){
   const tableId = opts.tableId || state.view;
@@ -1158,6 +1161,7 @@ function schedStrip(){
     <div class="ds-row">
       <div class="kpi-top"><span class="kpi-ic">${IC.clock}</span><span class="lab">업로드 일정</span></div>
       ${st.weeks.map(wchip).join('')}${unsetChip}${toggle}
+      <span id="dayNoteSlot"></span>
     </div>${days}</div>`;
 }
 
@@ -1218,9 +1222,10 @@ function viewRecruit(){
   if(state.unfixedOnly) rows = rows.filter(d=> !d.fixed);
   const dayLabel = state.day==='__unset' ? '예정일 미정' : state.day==='__off' ? '캠페인 일정 밖' : state.day;
   const filtLabel = state.day ? dayLabel : state.week;   // 주차 필터도 같은 줄로 알린다
-  const dayBar = ((state.day || state.week) && WEEKS().length)
-    ? `<div class="daybar"><b>${esc(filtLabel)}</b> ${rows.length}명 · ${rows.reduce((a,d)=>a+slots(d),0)}건만 보는 중 <button class="btn ghost small" id="dayClear">전체 보기</button></div>`
+  _lastDayNote = ((state.day || state.week) && WEEKS().length)
+    ? `<span class="daynote"><b>${esc(filtLabel)}</b> ${rows.length}명 · ${rows.reduce((a,d)=>a+slots(d),0)}건만 보는 중<button class="btn ghost small" id="dayClear">전체 보기</button></span>`
     : '';
+  const dayBar = '';   // 안내는 업로드 일정 카드 안(dayNoteSlot)으로 옮겼다
   const addBar = `<div class="bar">
     <button class="btn small${state.noticeOnly?'':' primary'}" data-notice-f="0">전체</button>
     <button class="btn small${state.noticeOnly?' primary':''}" data-notice-f="1">확정메일 미발송${unsent?` (${unsent})`:''}</button>
@@ -1766,6 +1771,7 @@ function render(){
   document.getElementById('content').innerHTML = VIEWS[state.view]();
   // 빈열 배지는 표를 그린 뒤에야 값이 정해진다 → 자리에 나중에 꽂는다
   const _hs=document.getElementById('hideSlot'); if(_hs) _hs.innerHTML=_lastHideNote;
+  const _dn=document.getElementById('dayNoteSlot'); if(_dn) _dn.innerHTML=_lastDayNote;
   if(state.view==='settle' && state.simOpen) updateSim();
   renderStats(); renderNav();
 }
