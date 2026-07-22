@@ -11,7 +11,7 @@ import { createSmm } from '../src/smm.js';
 import { getAccountsFromSheet } from '../src/sheet.js';
 import { toHandle } from '../src/tiktok.js';
 import { loadOrders, saveOrders, refreshOrders } from '../src/orders.js';
-import { scanAccounts, buildPlan, placeOrders, findService } from '../src/execute-core.js';
+import { scanAccounts, buildPlan, placeOrders, findService, tiktokOnly } from '../src/execute-core.js';
 import { defaultCampaign, getCampaign } from '../src/campaigns.js';
 
 loadEnv();
@@ -43,6 +43,10 @@ console.log(`  진행중 주문 ${orders.filter((o) => !o.done).length}건`);
 
 console.log('\n▶ 시트 계정 읽고 현재 팔로워 확인 중...');
 let accounts = await getAccountsFromSheet(campaign.sheet);
+// 서버 /api/execute 와 같은 규칙. 없으면 인스타 핸들로 틱톡을 긁어 남의 계정에 돈이 나간다.
+const _igOnly = accounts.length - tiktokOnly(accounts).length;
+accounts = tiktokOnly(accounts);
+if (_igOnly) console.log(`  (인스타 전용 행 ${_igOnly}건 제외)`);
 if (only.length) accounts = accounts.filter((a) => only.includes(a.handle));
 const scanned = await scanAccounts(accounts, {
   onProgress: (a) => console.log(`  @${a.handle.padEnd(20)} ${a.current == null ? '❌' : a.current.toLocaleString()}`),

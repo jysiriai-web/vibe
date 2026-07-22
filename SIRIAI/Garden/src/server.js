@@ -11,7 +11,7 @@ import { classify } from './garden.js';
 import { refreshOrders, inFlightFor } from './orders.js';
 import { runAutoRefill, refillServiceIds, REFILL_WINDOW_DAYS } from './refill.js';
 import { getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet, syncRecruitToSheet, deliverToSheet, readFeedbackFromSheet, addFeedbackToSheet, markFeedbackDone } from './sheet.js';
-import { scanAccounts, buildPlan, placeOrders, findService } from './execute-core.js';
+import { scanAccounts, buildPlan, placeOrders, findService, tiktokOnly } from './execute-core.js';
 import { runIgSync } from './ig-sync.js';
 import { runIgContentScan } from './ig-content.js';
 import { runSync } from './sync-core.js';
@@ -40,6 +40,8 @@ let contentScanState = { running: false, done: 0, total: 0, up: 0, written: 0, e
 // 캠페인별 SMM 캐시 — 잔액·주문상태 갱신을 매 로드마다 치지 않고 30초 스로틀. { balance, balanceAt, ordersAt }
 const smmCache = new Map();
 const SMM_TTL = 30000;
+// 집행이 도는 동안 같은 캠페인의 두 번째 집행을 막는다 — 중복 과금 방지.
+const execInProgress = new Set();
 let igContentState = null;   // 인스타 업로드 스캔 진행상황
 let igScanState = null;   // 인스타 스캔 진행상황 — 워커 화면이 폴링한다
 let scanConfirmResolve = null; // '스캔 시작' 확인을 기다리는 promise 의 resolver (로봇 인증 게이트)
@@ -587,17 +589,34 @@ export async function handler(req, res) {
       const body = await readBody(req);
       if (body.confirm !== true) return send(res, 400, { error: 'confirm=true 필요' });
       if (EXEC_PW && !pwMatch(body.password)) return send(res, 403, { error: '집행 비번이 틀렸어요' });
+      // 집행 한 번은 계정 전부를 다시 긁느라 수 분이 걸린다. 그동안 재진입을 막는 건
+      // 워커 화면의 자바스크립트 변수뿐이었다 — 새로고침·탭 추가·네트워크 끊김 뒤 재시도면
+      // 두 요청이 겹쳐 같은 계정에 두 번 과금된다. 둘 다 자기 시작 시점의 주문기록을 보므로
+      // 진행중(inFlight)도 0 으로 읽혀 서로를 못 본다. 서버에서 막는다.
+      // (비번 검증 뒤에 세운다 — 오타 요청이 잠금을 잡았다 놓는 잡음을 만들지 않게)
+      if (execInProgress.has(campaign.id)) {
+        return send(res, 409, { error: '집행이 이미 진행 중이에요 — 끝날 때까지 기다렸다가 결과를 확인하세요. 다시 누르면 같은 계정에 두 번 과금될 수 있어요.', busy: true });
+      }
+      execInProgress.add(campaign.id);
+      try {
       const svc = serviceOf(campaign);
       if (!svc) return send(res, 400, { error: '서비스 정보 없음' });
       let orders = await readOrders(campaign);
       orders = await refreshOrders(smm, orders);
       let accounts = await getAccountsFromSheet(campaign.sheet);
-      // 틱톡 서비스로 주문하므로 틱톡 계정만. 인스타 전용 행을 넘기면 인스타 핸들로
-      // 틱톡을 검색해 엉뚱한 계정을 잡는다(모집 스캔은 이미 같은 이유로 거른다).
-      accounts = accounts.filter((a) => a.plat !== 'ig');
+      accounts = tiktokOnly(accounts);   // 틱톡 서비스로 주문하므로 틱톡 계정만
       if (Array.isArray(body.handles)) accounts = accounts.filter((a) => body.handles.includes(a.handle));
       const scanned = await scanAccounts(accounts);
       const plan = buildPlan(scanned, orders, { target: campaign.target, min: campaign.min, service: svc });
+      // 스캔에 수 분이 걸렸다. 그 사이 다른 경로(CLI·앞선 집행)가 주문을 넣었을 수 있으니
+      // 돈을 쓰기 직전에 주문기록을 다시 읽어 이미 진행중인 계정은 뺀다.
+      try {
+        const fresh = await refreshOrders(smm, await readOrders(campaign));
+        const before = plan.toOrder.length;
+        plan.toOrder = plan.toOrder.filter((o) => inFlightFor(fresh, o.handle) === 0);
+        if (plan.toOrder.length < before) console.log(`[집행] 이미 진행중인 주문 ${before - plan.toOrder.length}건 제외`);
+        orders = fresh;
+      } catch (e) { console.error('[집행] 주문기록 재확인 실패 — 중단합니다:', e.message); return send(res, 503, { error: '주문 기록을 다시 확인하지 못해 집행을 멈췄어요. 중복 과금을 피하려는 조치예요.' }); }
       const balance = Number((await smm.balance()).balance);
       if (plan.totalCost > balance) return send(res, 400, { error: `잔액 부족: 필요 $${plan.totalCost.toFixed(2)} > 잔액 $${balance}` });
       let sheetWarn = null;
@@ -622,6 +641,10 @@ export async function handler(req, res) {
       if (!w.durable) return send(res, 500, { error: '주문은 나갔는데 기록에 실패했습니다. smmkings 패널에서 확인하세요.', placed, orders: markStale(orders) });
       if (w.sheet === 'fail') sheetWarn = w.sheetError;
       return send(res, 200, { ok: true, placed, filling: plan.filling, orders: markStale(orders), sheetWarn: sheetWarn ? '시트 기록 실패(로컬엔 저장됨) — 다음 새로고침 때 자동 재시도해요' : undefined });
+      } finally {
+        // 중간 return 이 여러 개다(잔액부족·기록실패 등). 마지막 줄에서 지우면 영구 잠김이 된다.
+        execInProgress.delete(campaign.id);
+      }
     }
 
     // 환율 재보정 — 현재 smmkings 잔액(₩) 입력 → 보정계수 재계산

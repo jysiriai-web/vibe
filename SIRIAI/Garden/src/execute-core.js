@@ -47,6 +47,13 @@ export async function scanAccounts(accounts, { delayMs = 500, onProgress, onWait
 // 두 자리 팔로워는 계정이 없거나 핸들이 틀린 것이다 — 그걸 믿고 주문하면 돈이 사라진다.
 const SANE_FLOOR = 50;
 
+// 틱톡 서비스로 과금하므로 틱톡 핸들이 있는 행만 남긴다.
+// 인스타 전용 행을 넘기면 인스타 핸들로 틱톡을 검색해 남의 계정에 돈이 나간다.
+// ⚠️ 집행·계획 경로는 반드시 이 함수를 거칠 것. 규칙을 복제하면 한 곳이 빠진다(실제로 CLI 가 빠져 있었다).
+export function tiktokOnly(accounts) {
+  return (accounts || []).filter((a) => a && a.plat !== 'ig' && a.handle);
+}
+
 export function buildPlan(scanned, orders, { target, min, service }) {
   const rate = Number(service.rate);
   const sMin = Number(service.min);
