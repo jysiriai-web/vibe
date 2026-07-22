@@ -9,26 +9,45 @@
   <link rel="stylesheet" href="/style.css" />
   <style>
     /* 공유 대시보드와 같은 토큰(style.css)을 쓰고, 이 화면에만 필요한 것만 여기 둔다 */
-    .wk { max-width: 680px; margin: 0 auto; padding: 26px 20px 70px; }
+    /* 카드를 세로로만 쌓으니 좌우가 통째로 비고 스크롤이 길었다. 2열로 깔고 폭을 넓힌다. */
+    .wk { max-width: 1080px; margin: 0 auto; padding: 24px 22px 60px; }
+    .wk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 13px; }
+    @media (max-width: 720px) { .wk { padding: 18px 14px 50px; } }
     .wk-warn { background: var(--warn-bg); color: var(--warn-ink); border: 1px solid var(--warn); border-radius: 10px; padding: 10px 14px; font-size: 13.5px; font-weight: 700; }
     .wk-h { display: flex; align-items: center; gap: 9px; margin: 22px 0 6px; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
-    .wk-status { font-size: 14px; color: var(--muted); margin-bottom: 22px; font-variant-numeric: tabular-nums; }
-    .wk-status b { color: var(--ink); }
-    .wk-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 18px; margin-bottom: 13px; }
-    .wk-card .wk-btn { width: 100%; padding: 17px; font-size: 17px; }
-    .wk-desc { font-size: 13.5px; color: var(--muted); margin-top: 11px; line-height: 1.65; }
+    /* 요약 — 무엇으로 얼마가 나가는지가 화면에 없었다. 집행 전에 알아야 할 것을 한 줄에 세운다. */
+    .wk-sum { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 11px; margin: 16px 0 4px;
+      font-variant-numeric: tabular-nums; }
+    .wk-s { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+    .wk-s .k { display: block; font-size: 11px; font-weight: 700; letter-spacing: .04em; color: var(--faint); text-transform: uppercase; }
+    .wk-s .v { display: block; font-size: 22px; font-weight: 800; letter-spacing: -.02em; margin-top: 5px; line-height: 1.15; }
+    .wk-s .v small { font-size: 12px; font-weight: 700; color: var(--faint); }
+    .wk-s .n { display: block; font-size: 11.5px; color: var(--muted); margin-top: 5px; line-height: 1.45; }
+    .wk-s.warn .v { color: var(--needs-ink); }
+    .wk-svc { font-size: 12px; color: var(--faint); margin: 10px 0 0; line-height: 1.55; }
+    .wk-svc b { color: var(--muted); }
+    .wk-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 16px; margin: 0;
+      display: flex; flex-direction: column; }
+    .wk-card .wk-btn { width: 100%; padding: 14px; font-size: 15.5px; }
+    .wk-card .wk-desc { flex: 1; }
+    .wk-desc { font-size: 12.5px; color: var(--muted); margin-top: 10px; line-height: 1.6; }
     .wk-money { font-size: 12px; font-weight: 800; background: var(--needs-bg); color: var(--needs-ink); padding: 2px 9px; border-radius: 20px; margin-left: 6px; }
     .wk-sub { display: flex; align-items: center; gap: 9px; margin-top: 13px; flex-wrap: wrap; }
     .wk-note { font-size: 12.5px; color: var(--faint); }
-    .wk-log { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; margin-top: 22px; height: 210px; overflow-y: auto; font-size: 13.5px; line-height: 1.6; }
-    .wk-line { padding: 4px 0; border-bottom: 1px dashed var(--line2); }
+    /* 작업 기록 — 시각과 내용이 붙어 있어 훑기 어려웠다. 격자로 갈라 시각을 세로로 맞춘다. */
+    .wk-logbox { background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); margin-top: 24px; overflow: hidden; }
+    .wk-loghead { display: flex; align-items: center; justify-content: space-between; padding: 11px 16px; border-bottom: 1px solid var(--line);
+      font-size: 12.5px; font-weight: 800; color: var(--muted); letter-spacing: .02em; }
+    .wk-loghead .btn { padding: 3px 10px; font-size: 11.5px; }
+    .wk-log { padding: 6px 16px 10px; height: 230px; overflow-y: auto; font-size: 13px; line-height: 1.55; }
+    .wk-line { display: grid; grid-template-columns: 46px 1fr; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--line2); }
     .wk-line:last-child { border-bottom: none; }
-    .wk-line .t { color: var(--faint); font-variant-numeric: tabular-nums; margin-right: 9px; }
+    .wk-line .t { color: var(--faint); font-variant-numeric: tabular-nums; font-size: 11.5px; padding-top: 1px; }
     .wk-line.err { color: var(--needs-ink); }
     .wk-line.ok { color: var(--ok-ink); font-weight: 700; }
     .wk-camp { font-size: 12px; font-weight: 800; letter-spacing: 0.04em; background: var(--line2); color: var(--muted); padding: 3px 9px; border-radius: 20px; }
     /* 플랫폼 구획 — 카드가 어느 플랫폼 것인지 한눈에. 공통 작업은 맨 아래로 모은다. */
-    .wk-sect { display: flex; align-items: center; gap: 10px; margin: 26px 0 11px; }
+    .wk-sect { display: flex; align-items: center; gap: 10px; margin: 24px 0 10px; }
     .wk-sect::after { content: ''; flex: 1; height: 1px; background: var(--line); }
     .wk-plat { font-size: 12px; font-weight: 800; letter-spacing: 0.03em; padding: 3px 11px; border-radius: 20px; }
     .wk-plat.tk { background: #1b1b1f; color: #fff; }
@@ -41,9 +60,10 @@
   <div class="wk">
     <div class="wk-warn">이 화면은 대표님 PC 전용입니다 — 팀 공유 URL에서는 안 열려요.</div>
     <div class="wk-h"><span class="leaf">🌱</span> 댄스챌린지 작업 콘솔<span class="wk-camp">LUN8 · SNEAKERS</span></div>
-    <div class="wk-status" id="status">상태 불러오는 중…</div>
+    <div class="wk-sum" id="status">상태 불러오는 중…</div>
 
     <div class="wk-sect"><span class="wk-plat tk">틱톡</span></div>
+    <div class="wk-grid">
 
     <div class="wk-card">
       <button class="btn primary wk-btn" id="btnScan">팔로워 스캔</button>
@@ -56,7 +76,10 @@
       <div class="wk-sub" id="scanPanel" hidden></div>
     </div>
 
+    </div>
+
     <div class="wk-sect"><span class="wk-plat ig">인스타</span></div>
+    <div class="wk-grid">
 
     <div class="wk-card">
       <button class="btn wk-btn" id="btnIgScan">팔로워 스캔</button>
@@ -70,7 +93,10 @@
       <div class="wk-sub" id="igcPanel" hidden></div>
     </div>
 
+    </div>
+
     <div class="wk-sect"><span class="wk-plat all">공통</span></div>
+    <div class="wk-grid">
 
     <div class="wk-card">
       <button class="btn wk-btn" id="btnExec">가드닝 집행 <span class="wk-money">돈 나감</span></button>
@@ -82,7 +108,14 @@
       <p class="wk-desc">지금 스캔이 <b>어느 나라 IP</b>로 나가는지 봐요. VPN이 걸렸는지 확인할 때. <b>10초</b>.</p>
     </div>
 
-    <div class="wk-log" id="log" role="log" aria-live="polite"></div>
+    </div>
+
+    <p class="wk-svc" id="svcNote"></p>
+
+    <div class="wk-logbox">
+      <div class="wk-loghead">작업 기록<button class="btn ghost small" id="logClear">지우기</button></div>
+      <div class="wk-log" id="log" role="log" aria-live="polite"></div>
+    </div>
     <a class="btn wk-done" id="doneLink" href="/lun8.html" target="_blank" rel="noopener" hidden>결과는 공유 대시보드에서 확인 →</a>
   </div>
 
@@ -144,14 +177,51 @@
     }
 
     // 상태 한 줄 — 마지막 스캔 / 잔액 / 가드닝 필요 건수. 이 화면에서 표는 안 보여준다.
+    var GMIN = 1000, GTARGET = 1100;   // 대시보드와 같은 기준. 다르면 두 화면이 다른 말을 한다.
+    function roundTo100(n) { return Math.ceil(n / 100) * 100; }
     function loadStatus() {
       return api('/api/data?campaign=' + CAMP).then(function (d) {
+        if (d.krwPerUsd) krw = d.krwPerUsd;
         if (d.config && d.config.krwPerUsd) krw = d.config.krwPerUsd;
         pwRequired = !!(d.config && d.config.execPwRequired);
-        var needs = (d.accounts || []).filter(function (a) { return a.status === 'needs'; }).length;
-        $('#status').innerHTML = '마지막 스캔 <b>' + timeAgo(d.scannedAt) + '</b> · 잔액 <b>' + won(d.balance) + '</b> · 가드닝 필요 <b>' + needs + '건</b>';
+        var acc = d.accounts || [];
+
+        // 틱톡과 인스타를 갈라 센다. 예전엔 틱톡만 세고 '가드닝 필요 N건'이라 적어
+        // 전체인 것처럼 보였다(틱톡 6·인스타 1인데 6으로 표시).
+        var tk = 0, ig = 0, qty = 0;
+        acc.forEach(function (a) {
+          if (a.status === 'needs') { tk++; qty += (a.order || roundTo100(GTARGET - (a.current || 0))); }
+          var igf = a.ig && a.ig.followers ? Number(String(a.ig.followers).replace(/,/g, '')) : null;
+          if (igf != null && igf < GMIN) ig++;   // 인스타는 서비스가 없어 금액엔 안 넣는다
+        });
+        var rate = d.service && d.service.rate ? Number(d.service.rate) : 0;
+        var needUsd = rate ? (qty / 1000) * rate : null;
+        var short = (needUsd != null && d.balance != null) ? (needUsd - Number(d.balance)) : null;
+
+        var spent = (d.orders || []).reduce(function (a, o) { return a + (Number(o.cost) || 0); }, 0);
+        var live = (d.orders || []).filter(function (o) { return !o.done; }).length;
+
+        var box = function (k, v, n, warn) {
+          return '<div class="wk-s' + (warn ? ' warn' : '') + '"><span class="k">' + k + '</span><span class="v">' + v + '</span>'
+            + (n ? '<span class="n">' + n + '</span>' : '') + '</div>';
+        };
+        $('#status').innerHTML =
+          box('가드닝 대상', tk + ig + '<small> 건</small>', '틱톡 ' + tk + ' · 인스타 ' + ig + (ig ? ' <b>(서비스 미연결)</b>' : ''), tk + ig > 0)
+          + box('필요 금액', needUsd != null ? won(needUsd) : '—', short != null && short > 0
+              ? '<b>잔액이 ' + won(short) + ' 모자라요</b>' : '틱톡 ' + fmt(qty) + '명 충전분', short != null && short > 0)
+          + box('잔액', won(d.balance), live ? '진행중 주문 ' + live + '건' : '집행 ' + (d.orders || []).length + '건 · 지출 ' + won(spent))
+          + box('마지막 스캔', timeAgo(d.uploadScannedAt || d.scannedAt), '업로드 스캔 기준');
+
+        // 어떤 서비스로 얼마에 사는지 — 이게 없어서 패널을 따로 열어봐야 했다.
+        var svc = $('#svcNote');
+        if (svc) {
+          svc.innerHTML = d.service
+            ? '가드닝 서비스 <b>#' + d.service.id + '</b> · <b>' + won((Number(d.service.rate) || 0) / 1000 * 1000) + ' / 1,000명</b> · ' + esc(String(d.service.name || '').slice(0, 52))
+              + '<br>목표 <b>' + fmt(GTARGET) + '명</b>까지 100단위로 채워요. <b>' + fmt(GMIN) + '명 미만</b>만 대상이고, 진행중 주문은 자동으로 빼요.'
+            : '가드닝 서비스가 설정돼 있지 않아요.';
+        }
       }).catch(function () {
-        $('#status').textContent = '상태를 못 불러왔어요 — 로컬 서버가 켜져 있는지 확인해 주세요.';
+        $('#status').innerHTML = '<div class="wk-s warn"><span class="k">연결</span><span class="v">—</span><span class="n">상태를 못 불러왔어요 — 로컬 서버가 켜져 있는지 확인해 주세요.</span></div>';
       });
     }
 
@@ -180,11 +250,13 @@
       setBusy(true);
       say('인스타 모집 스캔 시작 — 크롬 창이 떠요.');
       var el = $('#igPanel');
+      el.hidden = false;
+      el.innerHTML = '<button class="btn ghost" id="igStop">■ 중단</button><span class="wk-note">시작하는 중…</span>';
       var timer = setInterval(function () {
         fetch('/api/ig-scan-status?campaign=' + CAMP).then(function (r) { return r.json(); }).then(function (st) {
           if (!st) return;
           if (st.phase === 'login') { el.hidden = false; el.innerHTML = '<span class="wk-note">크롬 창에서 <b>인스타에 로그인</b>해 주세요 — 로그인되면 바로 시작해요.</span>'; }
-          else if (st.phase === 'scan') { el.hidden = false; el.innerHTML = '<span class="wk-note">진행 <b>' + (st.done || 0) + '/' + (st.total || '?') + '</b>' + (st.handle ? ' · @' + esc(st.handle) : '') + (st.note ? ' · ' + esc(st.note) : '') + '</span>'; }
+          else if (st.phase === 'scan') { el.hidden = false; el.innerHTML = '<button class="btn ghost" id="igStop">■ 중단</button><span class="wk-note">진행 <b>' + (st.done || 0) + '/' + (st.total || '?') + '</b>' + (st.handle ? ' · @' + esc(st.handle) : '') + (st.note ? ' · ' + esc(st.note) : '') + '</span>'; }
           else { el.hidden = true; }
         }).catch(function () {});
       }, 1500);
@@ -209,11 +281,13 @@
       setBusy(true);
       say('인스타 업로드 스캔 시작 — 크롬 창이 떠요.');
       var el = $('#igcPanel');
+      el.hidden = false;
+      el.innerHTML = '<button class="btn ghost" id="igcStop">■ 중단</button><span class="wk-note">시작하는 중…</span>';
       var timer = setInterval(function () {
         fetch('/api/ig-content-status?campaign=' + CAMP).then(function (r) { return r.json(); }).then(function (st) {
           if (!st) return;
           if (st.phase === 'login') { el.hidden = false; el.innerHTML = '<span class="wk-note">크롬 창에서 <b>인스타에 로그인</b>해 주세요.</span>'; }
-          else if (st.phase === 'scan') { el.hidden = false; el.innerHTML = '<span class="wk-note">진행 <b>' + (st.done || 0) + '/' + (st.total || '?') + '</b>' + (st.handle ? ' · @' + esc(st.handle) : '') + (st.uploaded ? ' · 업로드 확인' : '') + '</span>'; }
+          else if (st.phase === 'scan') { el.hidden = false; el.innerHTML = '<button class="btn ghost" id="igcStop">■ 중단</button><span class="wk-note">진행 <b>' + (st.done || 0) + '/' + (st.total || '?') + '</b>' + (st.handle ? ' · @' + esc(st.handle) : '') + (st.uploaded ? ' · 업로드 확인' : '') + '</span>'; }
           else { el.hidden = true; }
         }).catch(function () {});
       }, 1500);
@@ -361,6 +435,21 @@
     $('#btnScan').addEventListener('click', scan);
     $('#btnIgScan').addEventListener('click', igScan);
     $('#btnIgContent').addEventListener('click', igContentScan);
+
+    // 중단·로그지우기는 위임으로 — 진행 표시를 다시 그릴 때마다 버튼이 새로 생긴다.
+    document.addEventListener('click', function (e) {
+      var t = e.target;
+      if (t.id === 'igStop' || t.id === 'igcStop') {
+        var which = t.id === 'igStop' ? 'ig-scan' : 'ig-content-scan';
+        t.disabled = true; t.textContent = '중단하는 중…';
+        // 지금 계정이 끝나면 멈춘다. 이미 시트에 쓴 건 그대로 남는다 — 되돌리면 더 헷갈린다.
+        api('/api/' + which + '/stop?campaign=' + CAMP, { method: 'POST' })
+          .then(function () { say('중단 요청 — 지금 계정이 끝나면 멈춰요.'); })
+          .catch(function () { say('중단 요청 실패', 'err'); });
+        return;
+      }
+      if (t.id === 'logClear') { $('#log').innerHTML = ''; return; }
+    });
     $('#btnContent').addEventListener('click', contentScan);
     $('#btnExec').addEventListener('click', openExec);
     $('#btnIp').addEventListener('click', checkIp);

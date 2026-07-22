@@ -26,7 +26,7 @@ export function igHandleOf(a) {
   return /^[A-Za-z0-9._]{1,30}$/.test(h) ? h : '';
 }
 
-export async function runIgSync(campaign, { onProgress, onWarmup, waitForGo, full = false, delayMs = 2500, limit = 0 } = {}) {
+export async function runIgSync(campaign, { onProgress, onWarmup, waitForGo, full = false, delayMs = 2500, limit = 0, shouldStop } = {}) {
   const all = await getAccountsFromSheet(campaign.sheet);
   // 인스타 링크가 있는 행만. 틱톡 전용은 긁을 게 없다.
   const accounts = all.map((a) => ({ ...a, igHandle: igHandleOf(a) })).filter((a) => a.igHandle && a.row);
@@ -42,6 +42,7 @@ export async function runIgSync(campaign, { onProgress, onWarmup, waitForGo, ful
 
   const results = [];
   let apiDead = false;   // API 가 한 번 막히면 그 판 내내 페이지 방식으로 간다
+  let stopped = '';     // 사람이 중단했을 때의 설명. 빈 문자열이면 끝까지 돈 것이다.
   let browser = null;
   if (targets.length) {
     const b = await launchIgBrowser({ onWarmup, waitForGo });
@@ -49,6 +50,8 @@ export async function runIgSync(campaign, { onProgress, onWarmup, waitForGo, ful
     try {
       const page = await openIgFetcher(b.ctx);
       for (let i = 0; i < targets.length; i++) {
+        // 계정 하나가 끝날 때마다 확인한다. 중간에 끊으면 브라우저가 열린 채 남는다.
+        if (shouldStop && shouldStop()) { stopped = '중단했어요 — 여기까지는 시트에 저장됐습니다.'; break; }
         const a = targets[i];
         let p = null, via = 'api', err = null;
         // ① API 먼저 — 팔로워뿐 아니라 게시물·캡션까지 한 번에 온다(업로드 감지에 쓴다).
@@ -122,6 +125,7 @@ export async function runIgSync(campaign, { onProgress, onWarmup, waitForGo, ful
     skipped,
     written,
     writeError,
+    stopped,
     failures: results.filter((r) => r.followers == null).map((r) => ({ handle: r.handle, error: r.error, code: r.code })),
     accounts: merged,
   };

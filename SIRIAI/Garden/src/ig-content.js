@@ -37,7 +37,7 @@ function inWindow(post, since) {
   return new Date(post.takenAt).getTime() >= new Date(since).getTime();
 }
 
-export async function runIgContentScan(campaign, { onProgress, onWarmup, waitForGo, since = '', delayMs = 3000, limit = 0 } = {}) {
+export async function runIgContentScan(campaign, { onProgress, onWarmup, waitForGo, since = '', delayMs = 3000, limit = 0, shouldStop } = {}) {
   const hashtags = campaign.campaignHashtags || [];
   const all = await getAccountsFromSheet(campaign.sheet);
   const accounts = all.map((a) => ({ ...a, igHandle: igHandleOf(a) })).filter((a) => a.igHandle && a.row);
@@ -62,6 +62,8 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
     try {
       const page = await openIgFetcher(b.ctx);
       for (let i = 0; i < targets.length; i++) {
+        // 계정 하나가 끝날 때마다 확인. 중간에 끊으면 브라우저가 열린 채 남는다.
+        if (shouldStop && shouldStop()) { stopped = '중단했어요 — 여기까지는 시트에 저장됐습니다.'; break; }
         const a = targets[i];
         let p = null, via = 'api';
         // ① API — 게시물 목록이 한 번에 온다. 막혔으면(apiDead) 건너뛰고 바로 페이지로.

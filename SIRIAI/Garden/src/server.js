@@ -42,6 +42,9 @@ const smmCache = new Map();
 const SMM_TTL = 30000;
 // 집행이 도는 동안 같은 캠페인의 두 번째 집행을 막는다 — 중복 과금 방지.
 const execInProgress = new Set();
+// 중단 요청. 스캔 루프가 계정 하나를 끝낼 때마다 확인한다 —
+// 중간에 끊으면 브라우저가 열린 채 남고, 이미 쓴 시트값과 기록이 어긋난다.
+const scanAbort = new Set();
 let igContentState = null;   // 인스타 업로드 스캔 진행상황
 let igScanState = null;   // 인스타 스캔 진행상황 — 워커 화면이 폴링한다
 let scanConfirmResolve = null; // '스캔 시작' 확인을 기다리는 promise 의 resolver (로봇 인증 게이트)
@@ -534,8 +537,10 @@ export async function handler(req, res) {
       if (CLOUD) return send(res, 501, { error: '인스타 스캔은 대표님 PC 에서만 돌아요(크롬 창이 필요해요).' });
       igScanState = { phase: 'confirm', done: 0, total: 0, startedAt: new Date().toISOString() };
       try {
+        scanAbort.delete('ig-scan');
         const out = await runIgSync(campaign, {
           full: url.searchParams.get('full') === '1',
+          shouldStop: () => scanAbort.has('ig-scan'),
           onWarmup: () => { igScanState.phase = 'login'; },
           onProgress: (p) => {
             if (p.note) { igScanState.note = p.note; return; }
@@ -550,6 +555,7 @@ export async function handler(req, res) {
       }
     }
     if (path === '/api/ig-scan-status') return send(res, 200, igScanState || { phase: 'idle' });
+    if (path === '/api/ig-scan/stop' && req.method === 'POST') { scanAbort.add('ig-scan'); return send(res, 200, { ok: true }); }
 
     // 인스타 업로드 스캔 — 캡션에서 캠페인 해시태그를 찾아 콘텐츠 링크·검수를 채운다.
     // 게시물 목록이 필요해 API 경로로만 된다(프로필 페이지엔 안 온다) → 막히면 중단하고 나중에 재개.
@@ -557,8 +563,10 @@ export async function handler(req, res) {
       if (CLOUD) return send(res, 501, { error: '인스타 업로드 스캔은 대표님 PC 에서만 돌아요(크롬 창이 필요해요).' });
       igContentState = { phase: 'confirm', done: 0, total: 0 };
       try {
+        scanAbort.delete('ig-content-scan');
         const out = await runIgContentScan(campaign, {
           since: url.searchParams.get('since') || '',
+          shouldStop: () => scanAbort.has('ig-content-scan'),
           onWarmup: () => { igContentState.phase = 'login'; },
           onProgress: (p) => { igContentState = { phase: 'scan', done: p.done, total: p.total, handle: p.handle, uploaded: p.uploaded }; },
         });
@@ -570,6 +578,7 @@ export async function handler(req, res) {
       }
     }
     if (path === '/api/ig-content-status') return send(res, 200, igContentState || { phase: 'idle' });
+    if (path === '/api/ig-content-scan/stop' && req.method === 'POST') { scanAbort.add('ig-content-scan'); return send(res, 200, { ok: true }); }
 
     if (path === '/api/plan' && req.method === 'POST') {
       const svc = serviceOf(campaign);
