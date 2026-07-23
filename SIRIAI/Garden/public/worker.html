@@ -445,14 +445,27 @@
         .catch(netErr).then(function (plan) {
           setBusy(false);
           if (!plan || plan.error) return fail(plan, '계획 확인');
-          if (!plan.toOrder || !plan.toOrder.length) return say('주문할 게 없어요 — 지금은 다 채워져 있어요.');
+          if (!plan.toOrder || !plan.toOrder.length) {
+            // 인스타 스캔이 낡아서 아무것도 못 센 것을 '다 채워졌다'고 말하면 정반대의 거짓말이다.
+            if (plan.igNote) return say('주문할 게 없어요 — ⚠️ ' + esc(plan.igNote), 'err');
+            return say('주문할 게 없어요 — 지금은 다 채워져 있어요.');
+          }
           if (plan.krwPerUsd) krw = plan.krwPerUsd;
-          pendingHandles = plan.toOrder.map(function (o) { return o.handle; });
+          // 플랫폼까지 실어 보낸다 — 핸들 문자열이 양쪽 같은 사람이 16명이라, 문자열만 보내면
+          // 인스타만 골랐는데 같은 이름의 틱톡까지 주문이 나간다.
+          pendingHandles = plan.toOrder.map(function (o) { return { handle: o.handle, plat: o.plat || 'tk' }; });
+          var pn = function (p) { return p === 'ig' ? '인스타' : '틱톡'; };
           var html = plan.toOrder.map(function (o) {
-            return '<div class="plan-row"><span>@' + esc(o.handle) + ' <span style="color:var(--muted)">(현재 ' + fmt(o.current) + ')</span></span><span class="mono">' + fmt(o.qty) + '명 · ' + won(o.cost) + '</span></div>';
+            var p = o.plat || 'tk';
+            return '<div class="plan-row"><span><b class="ptag ' + p + '">' + pn(p) + '</b> @' + esc(o.handle) + ' <span style="color:var(--muted)">(현재 ' + fmt(o.current) + ')</span></span><span class="mono">' + fmt(o.qty) + '명 · ' + won(o.cost) + '</span></div>';
           }).join('');
           html += '<div class="plan-total"><span>총 ' + plan.toOrder.length + '개 · ' + fmt(plan.totalQty) + '명</span><span>' + won(plan.totalCost) + '</span></div>';
-          html += '<div class="note"><b>틱톡만</b> 집행됩니다 — 인스타 서비스는 아직 안 붙였어요. 대시보드 가드닝 건수(틱톡+인스타)와 숫자가 다를 수 있어요.<br>서비스 #' + esc(plan.service ? plan.service.id : '?') + ' · 잔액 ' + won(plan.balance) + ' · 집행 직전 최신 팔로워로 재확인 후 주문돼요.</div>';
+          // 어느 서비스로 사는지는 서버가 말하게 한다. 예전엔 '틱톡만 집행됩니다'가 하드코딩돼 있어서,
+          // 인스타를 붙인 뒤로는 화면이 거짓말을 한 채로 인스타에 과금했다.
+          var svcs = (plan.services && plan.services.length ? plan.services : (plan.service ? [{ plat: 'tk', id: plan.service.id, rate: plan.service.rate }] : []))
+            .map(function (s) { return pn(s.plat) + ' #' + esc(s.id); }).join(' · ');
+          html += '<div class="note">' + (svcs || '서비스 미상') + ' · 잔액 ' + won(plan.balance) + ' · 집행 직전 최신 팔로워로 재확인 후 주문돼요.</div>';
+          if (plan.igNote) html += '<div class="note err">⚠️ ' + esc(plan.igNote) + '</div>';
           if (pwRequired) html += '<div class="pw-row"><label for="execPw">집행 비번</label><input type="password" id="execPw" inputmode="numeric" autocomplete="off" placeholder="돈 나가는 확정 — 비번 입력"></div>';
           $('#modalBody').innerHTML = html;
           $('#modal').hidden = false;
@@ -471,6 +484,9 @@
           setBusy(false);
           if (!r || r.error) return fail(r, '가드닝 집행');
           say((r.placed || []).length ? '✅ ' + r.placed.length + '개 주문 완료' : '주문할 게 없었어요', 'ok');
+          // 확인창에서 본 목록과 실제 주문이 다르면 반드시 말한다 — 조용히 빠지면 안 나간 걸 모른다.
+          if (r.skipped && r.skipped.length) say('진행중이라 ' + r.skipped.length + '건은 뺐어요 — ' + r.skipped.map(function (x) { return (x.plat === 'ig' ? '인스타' : '틱톡') + ' @' + esc(x.handle); }).join(', '), 'err');
+          if (r.igNote) say('⚠️ ' + esc(r.igNote), 'err');
           showDone();
           loadStatus();
         });

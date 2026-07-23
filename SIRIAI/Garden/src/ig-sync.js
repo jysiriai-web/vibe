@@ -33,7 +33,7 @@ export function igHandleOf(a) {
   return /^[A-Za-z0-9._]{1,30}$/.test(h) ? h : '';
 }
 
-export async function runIgSync(campaign, { onProgress, onWarmup, waitForGo, full = false, delayMs = 2500, limit = 0, shouldStop } = {}) {
+export async function runIgSync(campaign, { onProgress, onWarmup, waitForGo, full = false, delayMs = 2500, limit = 0, shouldStop, refreshH = 6 } = {}) {
   const all = await getAccountsFromSheet(campaign.sheet);
   // 인스타 링크가 있는 행만. 틱톡 전용은 긁을 게 없다.
   const accounts = all.map((a) => ({ ...a, igHandle: igHandleOf(a) })).filter((a) => a.igHandle && a.row);
@@ -42,12 +42,25 @@ export async function runIgSync(campaign, { onProgress, onWarmup, waitForGo, ful
   const prevA = prevAccounts(campaign);
   const prev = {};
   Object.keys(prevA).forEach((h) => { prev[h] = prevA[h].current; });
-  // 기본은 증분: 팔로워를 아직 못 받은 계정 + 인스타 닉이 빈 계정. full 이면 전부 다시.
-  // pendingWrite(지난 판에 시트 쓰기가 깨진 계정)도 다시 본다 — 안 그러면 그 칸이 영영 빈다.
+  /* 기본은 증분: 팔로워를 아직 못 받은 계정 + 인스타 닉이 빈 계정. full 이면 전부 다시.
+     pendingWrite(지난 판에 시트 쓰기가 깨진 계정)도 다시 본다 — 안 그러면 그 칸이 영영 빈다.
+
+     ⚠️ 여기에 '오래된 계정'이 빠져 있었다. 한 번 숫자를 받으면 그 계정은 영영 다시 안 재는데
+     파일의 ranAt 만 새로 찍히니, 며칠 지난 팔로워가 계속 '방금 잰 것'으로 통과했다 —
+     가드닝의 12시간 신선도 가드가 통째로 무력해지고 이미 채워진 계정을 또 사게 된다.
+     그래서 마지막 측정이 refreshH 시간을 넘긴 계정은 증분에서도 다시 잰다
+     (가드는 12시간, 갱신은 그 절반 — 스캔 직후 곧바로 낡아지지 않게). */
+  const staleAt = (h) => {
+    const at = prevA[h] && prevA[h].at;
+    if (!at) return true;                       // 측정시각을 모르는 옛 기록 → 다시 잰다
+    const age = (Date.now() - new Date(at).getTime()) / 3600000;
+    return !(age >= 0) || age > refreshH;
+  };
   const _targets = full
     ? accounts
     : accounts.filter((a) => prev[a.igHandle] == null || !String((a.ig && a.ig.nick) || '').trim()
-        || !!(prevA[a.igHandle] && prevA[a.igHandle].pendingWrite));
+        || !!(prevA[a.igHandle] && prevA[a.igHandle].pendingWrite)
+        || staleAt(a.igHandle));
   // limit — 첫 실측·막힘 대비용. 46명 돌렸다가 열을 잘못 짚으면 46칸을 되돌려야 한다.
   const targets = limit > 0 ? _targets.slice(0, limit) : _targets;
 
@@ -122,12 +135,18 @@ export async function runIgSync(campaign, { onProgress, onWarmup, waitForGo, ful
   // 병합: 이번에 숫자를 받았으면 그 값, 아니면 이전 값 유지.
   // (스캔 실패는 null 로 온다 — 그 null 로 기존 기록을 덮으면 팔로워가 사라진다)
   const got = {};
+  const nowIso = new Date().toISOString();
   results.forEach((r) => { if (r.followers != null) got[r.handle] = r.followers; });
   const merged = accounts.map((a) => ({
     row: a.row,
     handle: a.igHandle,
     company: a.company,
     current: got[a.igHandle] != null ? got[a.igHandle] : (a.igHandle in prev ? prev[a.igHandle] : null),
+    /* 이 숫자를 '언제 쟀는지'. 파일의 ranAt(스캔을 돌린 시각)과는 다른 값이다 —
+       증분이라 안 잰 계정은 지난 시각을 그대로 물려받아야 가드닝이 낡은 숫자를 걸러낸다. */
+    at: got[a.igHandle] != null ? nowIso : ((prevA[a.igHandle] && prevA[a.igHandle].at) || null),
+    // 출처 라벨은 긁은 쪽이 찍는다. 읽는 쪽이 찍으면 출처 검사가 제 글씨를 읽는 셈이라 아무것도 못 막는다.
+    folPlat: 'ig',
     // 이번 판에 쓰기를 시도했으면 그 결과가 답이고, 시도조차 못 했으면 지난 판 표식을 그대로 이어받는다.
     // (표식을 여기서 지우면 시트가 빈 채로 증분 대상에서 빠져 영영 안 채워진다)
     pendingWrite: wroteHandles.has(a.igHandle)

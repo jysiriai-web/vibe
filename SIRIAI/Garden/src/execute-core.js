@@ -2,7 +2,7 @@
 import { sleep } from './tiktok.js';
 import { launchBrowser, fetchProfile, warmContext } from './tiktok-videos.js';
 import { orderQuantity } from './garden.js';
-import { inFlightFor } from './orders.js';
+import { inFlightFor, normH } from './orders.js';
 
 // 계정 리스트 팔로워·닉네임 스크랩 — 실제 브라우저(Playwright headless:false)로 봇 차단 우회.
 // 직접 fetch 방식은 틱톡이 'Please wait'로 전부 차단해서 폐기(2026-07-09).
@@ -81,11 +81,30 @@ export function igFollowers(latest, { staleH = 12 } = {}) {
   const ranAt = latest && latest.ranAt;
   const rows = (latest && (latest.accounts || latest.results)) || [];
   if (!ranAt || !rows.length) return { rows: [], stale: true, why: '인스타 팔로워 스캔 기록이 없어요' };
-  const ageH = (Date.now() - new Date(ranAt).getTime()) / 3600000;
+  const ageOf = (t) => (Date.now() - new Date(t).getTime()) / 3600000;
+  const ageH = ageOf(ranAt);
   if (!(ageH >= 0) || ageH > staleH) {
     return { rows: [], stale: true, ageH, why: `인스타 팔로워 스캔이 ${Math.round(ageH)}시간 지났어요(기준 ${staleH}시간) — 작업 콘솔에서 먼저 돌려주세요` };
   }
-  return { rows: rows.map((a) => ({ ...a, folPlat: 'ig', plat: 'ig' })), stale: false, ageH };
+  /* ⚠️ 파일의 ranAt 은 '스캔을 돌린 시각'이지 '이 숫자를 잰 시각'이 아니다.
+     인스타 스캔은 증분이라 이미 숫자가 있는 계정은 건너뛰면서도 파일 시각만 새로 찍는다 —
+     그러면 몇 날 지난 팔로워가 영원히 '방금 잰 것'으로 통과해 이미 채워진 계정을 또 산다.
+     그래서 행마다 찍어둔 at(측정시각)으로 각각 판정한다. at 이 없는 옛 파일만 ranAt 으로 본다.
+     folPlat 은 긁은 쪽(runIgSync)이 찍는다 — 읽는 쪽이 찍으면 출처 검사가 제 글씨를 읽는 셈이라
+     아무것도 못 막는다. 라벨이 붙어 있는데 인스타가 아니면 여기서 떨어뜨린다. */
+  const fresh = [], old = [], wrong = [];
+  for (const a of rows) {
+    if (a.folPlat && a.folPlat !== 'ig') { wrong.push(a); continue; }
+    const at = a.at || a.scrapedAt;
+    const h = at ? ageOf(at) : ageH;
+    if (!(h >= 0) || h > staleH) { old.push({ ...a, ageH: h }); continue; }
+    fresh.push({ ...a, plat: 'ig', folPlat: 'ig' });
+  }
+  const why = [
+    old.length ? `인스타 팔로워를 ${staleH}시간 넘게 안 잰 계정 ${old.length}건은 뺐어요 — 작업 콘솔에서 인스타 팔로워 스캔을 먼저 돌려주세요` : '',
+    wrong.length ? `팔로워 숫자의 출처가 인스타가 아닌 ${wrong.length}건은 뺐어요` : '',
+  ].filter(Boolean).join(' · ');
+  return { rows: fresh, stale: false, ageH, why, dropped: old.concat(wrong) };
 }
 
 export function buildPlan(scanned, orders, { target, min, service, plat = 'tk' }) {
@@ -110,8 +129,9 @@ export function buildPlan(scanned, orders, { target, min, service, plat = 'tk' }
     if (a.current == null) { errored.push(a); continue; }
     // 사람이 눈으로 확인해야 할 값 — 주문 목록이 아니라 오류 목록으로 보낸다.
     if (a.current < SANE_FLOOR) { errored.push({ ...a, reason: `팔로워 ${a.current}명 — 계정이 없거나 핸들이 틀린 것 같아요. 확인 후 수기로 처리해 주세요.` }); continue; }
-    if (seen.has(a.handle)) continue;
-    seen.add(a.handle);
+    // 진행중 판정과 같은 정규화여야 한다 — 한쪽만 대소문자를 가리면 막는 그물에 구멍이 난다.
+    if (seen.has(normH(a.handle))) continue;
+    seen.add(normH(a.handle));
     const inFlight = inFlightFor(orders, a.handle, plat);
     if (inFlight > 0) { filling.push({ ...a, plat, inFlight, projected: a.current + inFlight }); continue; } // 진행중 → 대기(재주문 안 함)
     if (a.current >= min) continue; // 이미 충족(1000+)

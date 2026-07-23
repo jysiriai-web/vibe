@@ -12,6 +12,7 @@ import { refreshOrders, inFlightFor } from './orders.js';
 import { runAutoRefill, refillServiceIds, REFILL_WINDOW_DAYS } from './refill.js';
 import { runSheetSetup, getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet, syncRecruitToSheet, deliverToSheet, readFeedbackFromSheet, addFeedbackToSheet, markFeedbackDone, addPersonToSheet } from './sheet.js';
 import { scanAccounts, buildPlan, placeOrders, findService, tiktokOnly, igFollowers } from './execute-core.js';
+import { normH } from './orders.js';
 import { runIgSync } from './ig-sync.js';
 import { runIgContentScan } from './ig-content.js';
 import { runSync } from './sync-core.js';
@@ -63,10 +64,30 @@ const serviceIdOf = (c, plat = 'tk') => {
   if (m[plat] != null) return Number(m[plat]);
   return plat === 'tk' ? Number(c.serviceId) : null;
 };
-const serviceOf = (c, plat = 'tk') => {
+/* ⚠️ 번호만 믿으면 안 된다. serviceIds.ig 를 7178 → 7188 로 한 자리 잘못 적으면
+   findService 는 null 이 아니라 '텔레그램 채널 멤버' 라는 멀쩡한 다른 서비스를 돌려준다 —
+   인스타 주소를 텔레그램 서비스에 보내면 돈만 나가고 아무 일도 안 일어난다.
+   카탈로그의 이름·분류가 그 플랫폼의 '팔로워'인지 확인해야 실수를 잡는다. */
+const PLAT_WORDS = { tk: ['tiktok', '틱톡'], ig: ['instagram', '인스타'] };
+const platName = (p) => (p === 'ig' ? '인스타' : '틱톡');
+function serviceWhy(svc, id, plat) {
+  if (id == null) return '';                                     // 안 붙인 플랫폼 — 그냥 빠진다
+  if (!svc) return `서비스 #${id} 를 카탈로그에서 못 찾았어요 — node scripts/verify-smm.js 로 서비스 목록을 먼저 받아주세요`;
+  const t = `${svc.name || ''} ${svc.category || ''}`.toLowerCase();
+  if (!(PLAT_WORDS[plat] || []).some((w) => t.includes(w)))
+    return `서비스 #${id} 는 ${platName(plat)} 서비스가 아니에요 — "${svc.name}". 번호를 잘못 적으면 돈만 나갑니다.`;
+  if (!/follow|팔로/.test(t))
+    return `서비스 #${id} 는 팔로워 서비스가 아니에요 — "${svc.name}"`;
+  return '';
+}
+/* svc 는 검증을 통과했을 때만 준다. why 가 있으면 그 플랫폼은 집행하지 않는다. */
+function resolveService(c, plat = 'tk') {
   const id = serviceIdOf(c, plat);
-  return id == null ? null : findService(catalog(), id);
-};
+  const svc = id == null ? null : findService(catalog(), id);
+  const why = serviceWhy(svc, id, plat);
+  return { id, svc: why ? null : svc, why };
+}
+const serviceOf = (c, plat = 'tk') => resolveService(c, plat).svc;
 
 function tiktokFollowerServices() {
   return catalog()
@@ -100,6 +121,20 @@ function igPlanRows(campaign, live) {
     .map((x) => { const a = ok.get(String(x.handle).toLowerCase());
       return { ...x, row: a.row, company: a.company, plat: 'ig', folPlat: 'ig' }; });
   return { rows, why: '' };
+}
+
+/* 화면에서 체크한 것만 집행하는 필터.
+   예전엔 핸들 문자열만 받아 틱톡 계획과 인스타 계획을 같은 리스트로 걸렀다 —
+   양쪽 핸들이 같은 문자열인 사람이 16명이라(@zn09_k2 등), 인스타만 체크해도 틱톡까지 주문이 나갔다.
+   이제 [{handle, plat}] 를 받는다. 옛 형식(문자열)이 오면 지금까지처럼 양쪽에 적용한다. */
+function pickFilter(list, plat) {
+  if (!Array.isArray(list)) return null;
+  const set = new Set();
+  for (const x of list) {
+    if (x && typeof x === 'object') { if ((x.plat || 'tk') === plat) set.add(normH(x.handle)); }
+    else set.add(normH(x));
+  }
+  return (a) => set.has(normH(a.handle));
 }
 
 function scanLatest(campaign) {
@@ -676,7 +711,6 @@ export async function handler(req, res) {
     if (path === '/api/ig-content-scan/stop' && req.method === 'POST') { scanAbort.add('ig-content-scan'); return send(res, 200, { ok: true }); }
 
     if (path === '/api/plan' && req.method === 'POST') {
-      const svc = serviceOf(campaign);
       let orders = await readOrders(campaign);
       if (smm) { try { orders = await refreshOrders(smm, orders); } catch {} }
       const body = await readBody(req);
@@ -695,21 +729,30 @@ export async function handler(req, res) {
         // 시트를 못 읽으면 오래된 기록만으로 돈을 쓸 수는 없다.
         return send(res, 503, { error: '시트를 못 읽어서 집행 계획을 못 세웠어요 — 오래된 스캔 기록만으로는 주문하지 않습니다.' });
       }
-      if (Array.isArray(body.handles)) accs = accs.filter((a) => body.handles.includes(a.handle));
       /* 플랫폼마다 서비스도 팔로워 출처도 다르다 — 따로 계획을 세워 합친다.
          인스타 서비스(serviceIds.ig)가 설정 안 돼 있으면 인스타는 그냥 빠진다(지금까지와 동일). */
+      const notes = [];
       const plans = [];
-      const tkSvc = serviceOf(campaign, 'tk');
-      if (tkSvc) plans.push({ plat: 'tk', svc: tkSvc, ...buildPlan(accs, orders, { target: campaign.target, min: campaign.min, service: tkSvc, plat: 'tk' }) });
-      const igSvc = serviceOf(campaign, 'ig');
-      let igNote = null;
-      if (igSvc) {
-        const ig = igPlanRows(campaign, liveAccounts);
-        if (ig.why) igNote = ig.why;
-        let igRows = ig.rows;
-        if (Array.isArray(body.handles)) igRows = igRows.filter((a) => body.handles.includes(a.handle));
-        plans.push({ plat: 'ig', svc: igSvc, ...buildPlan(igRows, orders, { target: campaign.target, min: campaign.min, service: igSvc, plat: 'ig' }) });
+      const tk = resolveService(campaign, 'tk');
+      const ig = resolveService(campaign, 'ig');
+      /* 서비스를 하나도 못 풀면 예전엔 200 + 빈 계획이라 화면이 '다 채워져 있어요' 라고 말했다.
+         40명이 전부 미달이어도 같은 말이 나온다 — 설정 사고를 성공처럼 보고하는 것이다. */
+      if (!tk.svc && !ig.svc) return send(res, 400, { error: [tk.why, ig.why].filter(Boolean).join(' · ') || '집행할 서비스가 설정돼 있지 않아요' });
+      if (tk.why) notes.push(tk.why);
+      if (ig.why) notes.push(ig.why);
+      if (tk.svc) {
+        const pick = pickFilter(body.handles, 'tk');
+        const rows = pick ? accs.filter(pick) : accs;
+        plans.push({ plat: 'tk', svc: tk.svc, ...buildPlan(rows, orders, { target: campaign.target, min: campaign.min, service: tk.svc, plat: 'tk' }) });
       }
+      if (ig.svc) {
+        const r = igPlanRows(campaign, liveAccounts);
+        if (r.why) notes.push(r.why);
+        const pick = pickFilter(body.handles, 'ig');
+        const igRows = pick ? r.rows.filter(pick) : r.rows;
+        plans.push({ plat: 'ig', svc: ig.svc, ...buildPlan(igRows, orders, { target: campaign.target, min: campaign.min, service: ig.svc, plat: 'ig' }) });
+      }
+      const igNote = notes.join(' · ') || null;
       const plan = {
         toOrder: plans.flatMap((p) => p.toOrder),
         filling: plans.flatMap((p) => p.filling),
@@ -720,7 +763,7 @@ export async function handler(req, res) {
       let balance = null;
       if (smm) { try { balance = Number((await smm.balance()).balance); } catch {} }
       return send(res, 200, { ...plan, balance, krwPerUsd: await effectiveRate(), igNote,
-        service: tkSvc ? { id: tkSvc.service, name: tkSvc.name, rate: tkSvc.rate } : null,
+        service: tk.svc ? { id: tk.svc.service, name: tk.svc.name, rate: tk.svc.rate } : null,
         services: plans.map((p) => ({ plat: p.plat, id: p.svc.service, name: p.svc.name, rate: p.svc.rate })) });
     }
 
@@ -739,8 +782,10 @@ export async function handler(req, res) {
       }
       execInProgress.add(campaign.id);
       try {
-      const svc = serviceOf(campaign);
-      if (!svc) return send(res, 400, { error: '서비스 정보 없음' });
+      const xTk = resolveService(campaign, 'tk');
+      const xIg = resolveService(campaign, 'ig');
+      // 계획 때와 같은 검증. 여기서 통과시키면 잘못된 서비스로 진짜 돈이 나간다.
+      if (!xTk.svc && !xIg.svc) return send(res, 400, { error: [xTk.why, xIg.why].filter(Boolean).join(' · ') || '집행할 서비스가 설정돼 있지 않아요' });
       // 시트 왕복이 건당 3초쯤이라 순서대로 부르면 그만큼 쌓인다 —
       // 주문기록과 계정목록은 서로 의존하지 않으니 같이 부른다.
       let [orders, accounts] = await Promise.all([
@@ -750,23 +795,24 @@ export async function handler(req, res) {
       orders = await refreshOrders(smm, orders);
       const allAccounts = accounts;      // 인스타 행 매칭에 원본이 필요하다
       accounts = tiktokOnly(accounts);   // 틱톡 스크래퍼에는 틱톡 계정만 넘긴다
-      if (Array.isArray(body.handles)) accounts = accounts.filter((a) => body.handles.includes(a.handle));
+      const pickTk = pickFilter(body.handles, 'tk');
+      if (pickTk) accounts = accounts.filter(pickTk);
       // reuse: 이미 계획을 확인하고 비번까지 넣은 단계다 — 창을 새로 띄우고 로봇 인증을
       //        다시 거칠 이유가 없다. 살아 있는 브라우저로 팔로워만 다시 확인한다.
       const scanned = await scanAccounts(accounts, { reuse: true });
       /* 플랫폼별로 계획을 세운다. 인스타 팔로워는 인스타 스캔 결과에서만 온다 —
          scanAccounts 는 틱톡 스크래퍼라 인스타 핸들을 주면 남의 숫자를 돌려준다. */
       const xPlans = [];
-      const tkSvc2 = serviceOf(campaign, 'tk');
-      if (tkSvc2) xPlans.push({ plat: 'tk', svc: tkSvc2, ...buildPlan(scanned, orders, { target: campaign.target, min: campaign.min, service: tkSvc2, plat: 'tk' }) });
-      const igSvc2 = serviceOf(campaign, 'ig');
-      if (igSvc2) {
-        const ig = igPlanRows(campaign, allAccounts);
-        let igRows = ig.rows;
-        if (Array.isArray(body.handles)) igRows = igRows.filter((a) => body.handles.includes(a.handle));
-        if (ig.why && igRows.length === 0 && Array.isArray(body.handles) && body.handles.length) console.warn('[집행] 인스타 제외:', ig.why);
-        xPlans.push({ plat: 'ig', svc: igSvc2, ...buildPlan(igRows, orders, { target: campaign.target, min: campaign.min, service: igSvc2, plat: 'ig' }) });
+      const xNotes = [xTk.why, xIg.why].filter(Boolean);
+      if (xTk.svc) xPlans.push({ plat: 'tk', svc: xTk.svc, ...buildPlan(scanned, orders, { target: campaign.target, min: campaign.min, service: xTk.svc, plat: 'tk' }) });
+      if (xIg.svc) {
+        const r = igPlanRows(campaign, allAccounts);
+        if (r.why) xNotes.push(r.why);
+        const pickIg = pickFilter(body.handles, 'ig');
+        const igRows = pickIg ? r.rows.filter(pickIg) : r.rows;
+        xPlans.push({ plat: 'ig', svc: xIg.svc, ...buildPlan(igRows, orders, { target: campaign.target, min: campaign.min, service: xIg.svc, plat: 'ig' }) });
       }
+      if (xNotes.length) console.warn('[집행] 인스타 주의:', xNotes.join(' · '));
       const plan = {
         toOrder: xPlans.flatMap((p) => p.toOrder),
         filling: xPlans.flatMap((p) => p.filling),
@@ -776,17 +822,25 @@ export async function handler(req, res) {
       };
       // 스캔에 수 분이 걸렸다. 그 사이 다른 경로(CLI·앞선 집행)가 주문을 넣었을 수 있으니
       // 돈을 쓰기 직전에 주문기록을 다시 읽어 이미 진행중인 계정은 뺀다.
+      let skipped = [];
       try {
         const fresh = await refreshOrders(smm, await readOrders(campaign));
         const before = plan.toOrder.length;
-        plan.toOrder = plan.toOrder.filter((o) => inFlightFor(fresh, o.handle) === 0);
-        if (plan.toOrder.length < before) console.log(`[집행] 이미 진행중인 주문 ${before - plan.toOrder.length}건 제외`);
+        /* ⚠️ o.plat 을 반드시 넘긴다. 안 넘기면 inFlightFor 가 전 플랫폼을 합산해서,
+           틱톡 주문이 배송 중인 사람의 인스타 주문이 조용히 사라진다(핸들이 같은 사람 16명).
+           확인창에서 본 목록과 실제 주문이 달라지므로, 빠진 건 반드시 응답에 담아 말한다. */
+        const kept = plan.toOrder.filter((o) => inFlightFor(fresh, o.handle, o.plat) === 0);
+        skipped = plan.toOrder.filter((o) => !kept.includes(o))
+          .map((o) => ({ handle: o.handle, plat: o.plat, qty: o.qty }));
+        plan.toOrder = kept;
+        if (skipped.length) console.log(`[집행] 이미 진행중인 주문 ${skipped.length}건 제외`);
         orders = fresh;
       } catch (e) { console.error('[집행] 주문기록 재확인 실패 — 중단합니다:', e.message); return send(res, 503, { error: '주문 기록을 다시 확인하지 못해 집행을 멈췄어요. 중복 과금을 피하려는 조치예요.' }); }
       const balance = Number((await smm.balance()).balance);
       if (plan.totalCost > balance) return send(res, 400, { error: `잔액 부족: 필요 $${plan.totalCost.toFixed(2)} > 잔액 $${balance}` });
       let sheetWarn = null;
       let placed = [];
+      // (skipped 는 위 재확인 블록에서 채운다)
       try {
         for (const pl of xPlans) {
           const mine = plan.toOrder.filter((o) => o.plat === pl.plat);
@@ -811,7 +865,8 @@ export async function handler(req, res) {
       const w = await writeOrders(campaign, orders);
       if (!w.durable) return send(res, 500, { error: '주문은 나갔는데 기록에 실패했습니다. smmkings 패널에서 확인하세요.', placed, orders: markStale(orders) });
       if (w.sheet === 'fail') sheetWarn = w.sheetError;
-      return send(res, 200, { ok: true, placed, filling: plan.filling, orders: markStale(orders), sheetWarn: sheetWarn ? '시트 기록 실패(로컬엔 저장됨) — 다음 새로고침 때 자동 재시도해요' : undefined });
+      return send(res, 200, { ok: true, placed, filling: plan.filling, skipped, igNote: xNotes.join(' · ') || null,
+        orders: markStale(orders), sheetWarn: sheetWarn ? '시트 기록 실패(로컬엔 저장됨) — 다음 새로고침 때 자동 재시도해요' : undefined });
       } finally {
         // 중간 return 이 여러 개다(잔액부족·기록실패 등). 마지막 줄에서 지우면 영구 잠김이 된다.
         execInProgress.delete(campaign.id);
@@ -833,9 +888,14 @@ export async function handler(req, res) {
       return send(res, 200, { krwPerUsd: await effectiveRate() });
     }
 
-    // 캠페인 서비스 변경
+    /* 캠페인 서비스 변경.
+       setService 는 옛 c.serviceId 만 쓰는데, serviceIds:{tk,ig} 를 쓰는 캠페인은
+       집행이 그쪽만 본다 — 바꿨다고 답하고 주문은 예전 번호로 나가는 돈 설정 경로였다.
+       고쳐 쓸 화면이 아직 없으니 그런 캠페인에서는 아예 거절한다(거짓 성공 금지). */
     if (path === '/api/service' && req.method === 'POST') {
       const body = await readBody(req);
+      if (campaign.serviceIds) return send(res, 400, {
+        error: `이 캠페인은 플랫폼별 서비스(serviceIds)를 씁니다 — campaigns.json 에서 직접 고쳐주세요. 여기서 바꾸면 화면만 바뀌고 주문은 예전 번호로 나갑니다.` });
       const ok = setService(campaign.id, body.serviceId);
       return send(res, 200, { ok });
     }

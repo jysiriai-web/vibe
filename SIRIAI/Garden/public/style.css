@@ -161,6 +161,12 @@ select.svc:focus { border-color: var(--accent); outline: none; }
 .modal-actions { display: flex; gap: 11px; justify-content: flex-end; margin-top: 22px; }
 .plan-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px dashed var(--line); font-size: 15px; }
 .plan-row .mono { font-variant-numeric: tabular-nums; }
+/* 돈 나가기 직전 목록의 플랫폼 표식. 핸들이 틱톡·인스타 양쪽 같은 사람이 있어서
+   이게 없으면 '@zn09_k2' 두 줄이 어느 쪽인지 구분할 방법이 없다. */
+.plan-row .ptag { font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 5px; margin-right: 6px; }
+.plan-row .ptag.tk { background: #111; color: #fff; }
+.plan-row .ptag.ig { background: #fdeef4; color: #c1367c; }
+.note.err { color: var(--needs, #d1495b); }
 .plan-total { display: flex; justify-content: space-between; margin-top: 14px; font-weight: 800; font-size: 19px; }
 .pw-row { display: flex; align-items: center; gap: 10px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
 .pw-row label { font-size: 14px; font-weight: 700; color: var(--ink); white-space: nowrap; }

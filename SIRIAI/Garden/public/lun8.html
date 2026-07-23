@@ -1851,35 +1851,40 @@ function filterBar(){ return ''; }
    업로드탭 다른 하위탭은 '올라왔나'를 보지만, 여기는 '아직 안 올라온 사람에게 무엇을 했나'를 본다.
    그래서 이메일이 여기 있다 — 없으면 모집탭으로 갔다 와야 한다. */
 function viewUploadLate(){
-  const pairs = [];
-  D.filter(inCampaign).filter(inUpload).forEach(d=> platsOn().forEach(p=>{
-    if(!d[p] || !isLate(d,p) || isDropped(d)) return;
-    pairs.push({ d, p, id:d.id+'|'+p });
-  }));
+  /* 전체탭과 같은 '한 사람 한 줄'. 예전엔 사람×플랫폼이라 양쪽 다 늦은 사람이 두 줄로 떴다 —
+     이메일도 두 번, 확정일도 두 번이라 한 사람에게 메일을 두 번 보낼 판이었다.
+     연락은 사람에게 하는 것이지 플랫폼에 하는 게 아니다. */
+  const latePlats = d => platsOn().filter(p=> isLate(d,p));
+  const rows = D.filter(inCampaign).filter(inUpload).filter(d=> !isDropped(d) && lateSlots(d));
   // 오래 지난 사람부터. 늦을수록 급하다.
-  pairs.sort((a,b)=> schedKey(dueDay(a.d)) - schedKey(dueDay(b.d)));
+  rows.sort((a,b)=> schedKey(dueDay(a)) - schedKey(dueDay(b)));
   const cols = [
-    { key:'co', label:'진행사', sv:r=>r.d.co, cell:r=>coChip(r.d.co) },
-    { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.d.nick, cell:r=>nickCell(r.d) },
-    { key:'plat', label:'플랫폼', sv:r=>r.p, cell:r=>`<span class="plat-pill ${r.p}">${pName(r.p)}</span>` },
-    { key:'h', label:'닉네임', cls:'handle', sv:r=>r.d[r.p].h, cell:r=>acctLink(r.d[r.p].h, r.p) },
-    { key:'email', label:'이메일', cls:'mail', sv:r=>r.d.email||'', cell:r=>mailCell(r.d.email) },
-    { key:'sched', label:'예정일', sv:r=>schedKey(dueDay(r.d)), cell:r=> r.d.sched?`<b>${esc(r.d.sched)}</b>`:'<span class="cmuted">미정</span>' },
-    { key:'late', label:'경과', cls:'num', thcls:'num', sv:r=>-daysLate(r.d,r.p),
-      cell:r=>{ const n=daysLate(r.d,r.p); return n>0?`<span class="chip needs">${n}일 지남</span>`:'<span class="cmuted">오늘</span>'; } },
-    { key:'fixed', label:'확정일 · 진행상태', sv:r=>fixedKey(r.d.fixed), cell:r=>fixedCell(r.d) },
-    { key:'edit', label:'', cell:r=>editBtn(r.d.id, r.p) },
+    { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
+    { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
+    // 늦은 플랫폼만 찍는다 — 한쪽만 안 올라온 사람을 양쪽 다 안 올라온 것처럼 보이게 하면 안 된다.
+    { key:'plat', label:'안 올라온 곳', sv:r=>latePlats(r).join(), cell:r=>
+      `<div class="cpair">${latePlats(r).map(p=>`<span class="cp"><span class="plat-pill ${p}">${pName(p)}</span></span>`).join('')}</div>` },
+    { key:'h', label:'계정', cls:'handle', sortable:false, cell:r=>
+      `<div class="cpair">${latePlats(r).map(p=>`<span class="cp">${acctLink(r[p].h, p)}</span>`).join('')}</div>` },
+    { key:'email', label:'이메일', cls:'mail', sv:r=>r.email||'', cell:r=>mailCell(r.email) },
+    { key:'sched', label:'예정일', sv:r=>schedKey(dueDay(r)), cell:r=> r.sched?`<b>${esc(r.sched)}</b>`:'<span class="cmuted">미정</span>' },
+    { key:'late', label:'경과', cls:'num', thcls:'num', sv:r=>-daysLate(r),
+      cell:r=>{ const n=daysLate(r); return n>0?`<span class="chip needs">${n}일 지남</span>`:'<span class="cmuted">오늘</span>'; } },
+    { key:'fixed', label:'확정일 · 진행상태', sv:r=>fixedKey(r.fixed), cell:r=>fixedCell(r) },
+    // 모달은 플랫폼 하나를 보고 연다. 'late' 는 플랫폼이 아니라서 안 넘기면 '미참여'로 튕긴다.
+    { key:'edit', label:'', cell:r=>editBtn(r.id, latePlats(r)[0]) },
   ];
+  const geon = rows.reduce((a,d)=> a + lateSlots(d), 0);
   const sent = D.filter(inCampaign).filter(isMailSent).length;
   const dropped = D.filter(inCampaign).filter(isDropped).length;
   const kpis = `<div class="cards">
-    ${kpi('연락해야 함 · 건', pairs.length, { ic:IC.clock, accent: pairs.length?'var(--needs)':undefined, sub:'예정일이 지났는데 아직 안 올라온 건' })}
+    ${kpi('연락해야 함 · 명', rows.length, { ic:IC.clock, accent: rows.length?'var(--needs)':undefined, sub:`미업로드 ${geon}건 — 예정일이 지났는데 아직 안 올라온 것` })}
     ${kpi('답 대기 · 명', sent, { ic:IC.mail||IC.check, sub:'확정메일 보내고 새 날짜를 기다리는 사람' })}
     ${kpi('드랍 · 명', dropped, { ic:IC.x||IC.clock, sub:'최종 포기 — 추가 모집 계산에 들어감' })}
     ${schedStrip()}
   </div>`;
   return kpis + platSubtabs() +
-    renderTable(cols, pairs, { tableId:'upload-late', emptyMsg:'지금은 연락할 사람이 없어요 — 예정일이 지난 미업로드가 없습니다.' }) +
+    renderTable(cols, rows, { tableId:'upload-late', emptyMsg:'지금은 연락할 사람이 없어요 — 예정일이 지난 미업로드가 없습니다.' }) +
     `<div class="note-line">이메일을 눌러 복사 → 메일 보내고 → <b>편집</b>에서 <b>확정메일 발송</b>을 눌러 두세요. 새 날짜를 받으면 확정일에 날짜를 넣고, 그 날짜에도 안 올라오면 <b>최종 드랍</b>입니다.</div>`;
 }
 
@@ -2378,10 +2383,16 @@ function viewSettle(){
 
 /* ============ 서브탭 / 렌더 ============ */
 // 예정일(확정일이 있으면 그것)이 지났는데 아직 안 올라온 건. 드랍한 사람은 뺀다 — 이미 포기했다.
+/* 하위탭 숫자 = 연락할 사람 수(명). 표가 한 사람 한 줄이라 탭도 사람으로 센다 —
+   탭엔 10, 표엔 6줄이면 4줄을 어디서 놓쳤나 찾게 된다. 건수는 툴팁과 KPI 가 말한다.
+   확정메일 안 보낸 사람은 지연으로 안 센다(inUpload) — 확정을 안 해놓고 늦었다고 할 수 없다. */
 function lateCount(){
+  return D.filter(inCampaign).filter(inUpload).filter(d=> !isDropped(d) && lateSlots(d)).length;
+}
+// 같은 조건의 건수(사람×플랫폼). 확보·정산은 건으로 세므로 이 숫자도 어딘가엔 있어야 한다.
+function lateGeon(){
   let n = 0;
-  // 확정메일 안 보낸 사람은 지연으로 안 센다 — 확정을 안 해놓고 늦었다고 할 수 없다.
-  D.filter(inCampaign).filter(inUpload).forEach(d=>{ if(isDropped(d)) return; platsOn().forEach(p=>{ if(isLate(d,p)) n++; }); });
+  D.filter(inCampaign).filter(inUpload).forEach(d=>{ if(isDropped(d)) return; n += lateSlots(d); });
   return n;
 }
 /* 지금 어떤 SMM 서비스로 얼마에 사는지. 가드닝 탭에서만 뜬다.
@@ -2453,7 +2464,7 @@ function platSubtabs(){
     <button class="subtab all ${state.plat==='all'?'active':''}" data-plat="all"><span class="dot"></span>${allLab}</button>
     <button class="subtab tk ${state.plat==='tk'?'active':''}" data-plat="tk"><i class="pmark tk">${PLAT_MARK.tk}</i>틱톡${platCountLab('tk')}</button>
     <button class="subtab ig ${state.plat==='ig'?'active':''}" data-plat="ig"><i class="pmark ig">${PLAT_MARK.ig}</i>인스타${platCountLab('ig')}</button>
-    ${state.view==='upload' ? ((n)=>`<button class="subtab late ${n?'urgent':''} ${state.plat==='late'?'active':''}" data-plat="late"><span class="dot"></span>일정 미준수 <span class="cmuted">${n}</span></button>`)(lateCount()) : ''}
+    ${state.view==='upload' ? ((n,g)=>`<button class="subtab late ${n?'urgent':''} ${state.plat==='late'?'active':''}" data-plat="late" title="연락할 사람 ${n}명 · 미업로드 ${g}건"><span class="dot"></span>일정 미준수 <span class="cmuted">${n}</span></button>`)(lateCount(), lateGeon()) : ''}
     ${state.view==='garden' ? `<button class="subtab hist ${state.plat==='hist'?'active':''}" data-plat="hist"><span class="dot"></span>집행 내역 <span class="cmuted">${ORDERS.length}</span></button>` : ''}
     ${state.view==='recruit' ? recruitSubtabs() : ''}
     ${state.view==='recruit' ? recruitTools() : `${gardenSvcNote()}<span id="hideSlot" class="sub-hide"></span>${state.view==='upload'?remindBtn()+scanPickBtn():''}`}</div>`;
@@ -2986,7 +2997,10 @@ function gardenPicks(){
 async function execModal(){
   const picks = gardenPicks();
   if(!picks.length) return toast('선택된 계정이 없어요.');
-  const handles = picks.map(x=>x.handle.replace('@',''));
+  /* 플랫폼까지 실어 보낸다. 예전엔 핸들 문자열만 보내서, 서버가 틱톡 계획과 인스타 계획을
+     같은 리스트로 걸렀다 — 양쪽 핸들이 같은 문자열인 사람이 16명이라(@zn09_k2 등)
+     인스타 한 칸만 체크해도 같은 이름의 틱톡까지 주문이 나갔다. */
+  const handles = picks.map(x=>({ handle:x.handle.replace('@',''), plat:x.p }));
 
   openModal('집행 확인 (가드닝)', '<div class="note-line">금액을 확인하는 중…</div>', '');
   let plan;
@@ -2998,15 +3012,21 @@ async function execModal(){
   } catch(e){ closeModal(); return toast('금액 확인 실패: ' + esc(e.message)); }
 
   const list = (plan.toOrder||[]);
-  if(!list.length){ closeModal(); return toast('지금 주문할 게 없어요 — 이미 채워졌거나 진행중이에요.'); }
+  // 인스타 스캔이 낡아 아예 못 센 것을 '이미 채워졌다'고 말하면 정반대의 거짓말이다.
+  if(!list.length){ closeModal(); return toast(plan.igNote ? '주문할 게 없어요 — ⚠️ ' + esc(plan.igNote)
+    : '지금 주문할 게 없어요 — 이미 채워졌거나 진행중이에요.'); }
 
   const won = n => Math.round(n * (plan.krwPerUsd||1400)).toLocaleString('ko-KR') + '원';
+  // 어느 플랫폼 주문인지 줄마다 찍는다 — 핸들이 양쪽 같은 사람은 '@zn09_k2' 두 줄이
+  // 어느 쪽인지 구분할 방법이 화면에 아예 없었다.
+  const svcs = (plan.services||[]).map(s=>`${pName(s.plat)} #${esc(String(s.id))}`).join(' · ');
   const body = list.map(o=>
-      `<div class="plan-row"><span>@${esc(o.handle)} <span class="cmuted">(현재 ${nf(o.current)})</span></span><span>${nf(o.qty)}명 · ${won(o.cost)}</span></div>`).join('')
+      `<div class="plan-row"><span><span class="plat-pill ${o.plat||'tk'}">${pName(o.plat||'tk')}</span> @${esc(o.handle)} <span class="cmuted">(현재 ${nf(o.current)})</span></span><span>${nf(o.qty)}명 · ${won(o.cost)}</span></div>`).join('')
     + `<div class="plan-total"><span>총 ${list.length}개 · ${nf(plan.totalQty)}명</span><span>${won(plan.totalCost)}</span></div>`
     + (plan.errored && plan.errored.length
         ? `<div class="note-line" style="margin-top:10px"><b>제외 ${plan.errored.length}건</b> — ${plan.errored.map(x=>'@'+esc(x.handle)+(x.reason?' ('+esc(x.reason)+')':'')).join(', ')}</div>` : '')
-    + `<div class="note-line" style="margin-top:12px">집행 직전에 최신 팔로워로 다시 확인한 뒤 주문돼요. 잔액 ${plan.balance!=null?won(plan.balance):'—'}.</div>`
+    + (plan.igNote ? `<div class="note-line" style="margin-top:10px;color:var(--needs)">⚠️ ${esc(plan.igNote)}</div>` : '')
+    + `<div class="note-line" style="margin-top:12px">${svcs?svcs+' · ':''}집행 직전에 최신 팔로워로 다시 확인한 뒤 주문돼요. 잔액 ${plan.balance!=null?won(plan.balance):'—'}.</div>`
     + `<div class="pw-row"><label for="execPw">집행 비번</label><input type="password" id="execPw" autocomplete="off" placeholder="돈 나가는 확정 — 비번 입력"></div>`;
 
   openModal('집행 확인 (가드닝)', body,
@@ -3024,6 +3044,10 @@ async function execModal(){
       if(j.error) throw new Error(j.error);
       closeModal();
       toast('집행 완료 — <b>' + (j.placed?j.placed.length:0) + '건</b> 주문했어요.');
+      // 확인창에서 본 것과 실제 주문이 다르면 말한다. 조용히 빠지면 안 나간 줄 모르고 넘어간다.
+      if(j.skipped && j.skipped.length) toast('진행중이라 <b>' + j.skipped.length + '건</b>은 뺐어요 — '
+        + j.skipped.map(x=>pName(x.plat||'tk')+' @'+esc(x.handle)).join(', '));
+      if(j.igNote) toast('⚠️ ' + esc(j.igNote));
       loadData();
     } catch(e){
       /* ⚠️ 돈 경로에서 '응답을 못 받았다'는 '주문이 안 나갔다'가 아니다.

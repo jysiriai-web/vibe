@@ -76,9 +76,16 @@ function toNum(v) { return (v == null || String(v).trim() === '') ? NaN : Number
 // plat 을 주면 그 플랫폼 주문만 센다. 인스타·틱톡 핸들이 같은 사람이 있어서
 // (@zn09_k2 가 양쪽 다 그 이름이다) 안 가르면 인스타 충전이 틱톡 재주문까지 막는다.
 // 안 주면 지금까지처럼 전부 센다 — 보수적인 쪽이 기본이다.
+/* 핸들 비교는 한 곳에서 정규화한다.
+   인스타 사용자명은 대소문자를 안 가린다 — instagram.com/Newbie_X 와 /newbie_x 는 같은 계정이다.
+   계정을 찾는 쪽(igPlanRows)은 소문자로 맞추는데 돈을 막는 이 쪽만 정확일치라,
+   시트에 대문자로 적힌 계정은 진행중 판정에서 빠져 두 번 살 수 있었다. '@' 도 같은 이유로 뗀다. */
+export const normH = (h) => String(h == null ? '' : h).trim().replace(/^@+/, '').toLowerCase();
+
 export function inFlightFor(orders, handle, plat) {
+  const h = normH(handle);
   return orders
-    .filter((o) => o.handle === handle && !o.done && !o.abandoned && (!plat || !o.plat || o.plat === plat))
+    .filter((o) => normH(o.handle) === h && !o.done && !o.abandoned && (!plat || !o.plat || o.plat === plat))
     .reduce((s, o) => {
       const r = toNum(o.remains);
       return s + (Number.isFinite(r) ? r : (Number(o.quantity) || 0));
