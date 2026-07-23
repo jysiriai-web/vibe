@@ -293,7 +293,13 @@ export async function fetchIgPostsViaPage(ctx, handleRaw, { max = 12, timeout = 
     let opened = 0, matched = 0;
     const sinceMs = since ? new Date(since).getTime() : 0;
     let oldStreak = 0;
-    for (const i of idxToOpen) {
+    /* 2패스. 1패스는 기본 그리드, 거기서 캠페인 게시물을 못 찾으면 2패스로 릴스 탭을 본다.
+       릴스는 '피드에도 공유'를 꺼고 올릴 수 있는데, 그러면 기본 그리드에는 아예 안 나온다.
+       그걸 놓치면 올린 사람을 '미업로드'로 판정해 리마인드가 잘못 나간다. */
+    let reelsChecked = false;
+    for (let pass = 0; pass < 2; pass++) {
+    for (let qi = 0; qi < idxToOpen.length; qi++) {
+      const i = idxToOpen[qi];
       const l = links[i];
       try {
         await page.goto(`https://www.instagram.com/${l.kind}/${l.shortcode}/`, { waitUntil: 'domcontentloaded', timeout });
@@ -346,6 +352,25 @@ export async function fetchIgPostsViaPage(ctx, handleRaw, { max = 12, timeout = 
         }
       } catch { failed.push(l.shortcode); /* 이 게시물만 건너뛴다 — 하나 못 봤다고 계정 전체를 포기하지 않는다 */ }
       await sleep(500);
+    }
+    if (matched > 0 || reelsChecked || !isMatch) break;   // 찾았거나 이미 릴스 탭까지 봤으면 끝
+    reelsChecked = true;
+    /* 릴스 탭 썸네일에는 alt 캡션이 없다(실측) — 그래서 여기 것들은 열어봐야 판정된다.
+       비용이 있으니 그리드에 없던 최근 몇 개만. 그리드에서 이미 찾았으면 여긴 아예 안 온다. */
+    try {
+      await page.goto(`https://www.instagram.com/${handle}/reels/`, { waitUntil: 'domcontentloaded', timeout });
+      await page.waitForTimeout(1800);
+      const seenSc = new Set(links.map((x) => x.shortcode));
+      const extra = (await grab(max)).filter((x) => !seenSc.has(x.shortcode)).slice(0, 4);
+      if (!extra.length) break;   // 릴스 탭에도 새 게 없으면 더 볼 것이 없다
+      oldStreak = 0;              // 순서가 다른 목록이라 기간 판정을 새로 시작한다
+      for (const l2 of extra) {
+        links.push(l2);
+        posts.push({ shortcode: l2.shortcode, link: `https://www.instagram.com/${l2.kind}/${l2.shortcode}/`,
+          isVideo: true, caption: '', views: null, likes: null, comments: null, takenAt: null, thin: true });
+        idxToOpen.push(posts.length - 1);
+      }
+    } catch { break; }
     }
     // 열어야 할 게 있었는데 한 개도 못 열었으면 '게시물 없음'과 구분해야 한다 — 실패로 던진다.
     // (열 게 애초에 없었으면 = 그리드 캡션만으로 '해당 없음'을 확인한 것이라 정상이다.)
