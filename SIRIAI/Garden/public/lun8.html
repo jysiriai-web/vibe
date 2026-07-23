@@ -2051,7 +2051,9 @@ function gardenSummary(){
 function gardenHistory(){
   if(!ORDERS.length) return '<div class="note-line">아직 가드닝 집행 내역이 없어요.</div>';
   const rows = ORDERS.slice().sort((a,b)=> String(b.placedAt||'').localeCompare(String(a.placedAt||'')));
+  // 수기 집행은 패널마다 통화가 달라 원화로 적는다 — USD 합계만 세면 그 금액이 통째로 빠진다.
   const spentUsd = rows.reduce((a,o)=> a + (Number(o.cost)||0), 0);
+  const spentKrwExtra = rows.reduce((a,o)=> a + (Number(o.costKrw)||0), 0);
   const qty = rows.reduce((a,o)=> a + (Number(o.quantity)||0), 0);
   const live = rows.filter(o=> !o.done).length;
   const cols = [
@@ -2080,7 +2082,8 @@ function gardenHistory(){
         : (o.extIds&&o.extIds.length) ? `<span class="cmuted">${o.extIds.map(esc).join('<br>')}</span>`
         : '<span class="chip needs">번호 없음</span>' },
   ];
-  return `<div class="sec-head">가드닝 집행 내역 <span class="cmuted">${rows.length}건 · 충전 ${nf(qty)}명 · 지출 ${esc(wonOf(spentUsd))}${live?' · 진행중 '+live+'건':''}</span></div>`
+  const spentAll = Math.round((Number(spentUsd)||0) * KRW_PER_USD) + spentKrwExtra;
+  return `<div class="sec-head">가드닝 집행 내역 <span class="cmuted">${rows.length}건 · 충전 ${nf(qty)}명 · 지출 ${esc(spentAll.toLocaleString('ko-KR'))}원${live?' · 진행중 '+live+'건':''}</span></div>`
     + renderTable(cols, rows, { tableId:'garden-hist', noHide:true });
 }
 // 달러를 원으로. 환율은 서버가 준 값이 있으면 그걸, 없으면 대략치를 쓴다(표기용).
@@ -2960,6 +2963,7 @@ async function execModal(){
   document.getElementById('execConfirm').addEventListener('click', async (ev)=>{
     const btn = ev.currentTarget;
     btn.disabled = true; btn.textContent = '주문 중…';
+    const before = ORDERS.length;   // 응답을 못 받았을 때 '진짜로 나갔나'를 이걸로 가른다
     try {
       const r = await fetch(localApi('/api/execute?campaign=' + state.campaign), { method:'POST',
         headers:{'Content-Type':'application/json'},
@@ -2970,8 +2974,19 @@ async function execModal(){
       toast('집행 완료 — <b>' + (j.placed?j.placed.length:0) + '건</b> 주문했어요.');
       loadData();
     } catch(e){
-      btn.disabled = false; btn.textContent = '집행 확정 (돈 나감)';
-      toast('집행 실패: ' + esc(e.message));
+      /* ⚠️ 돈 경로에서 '응답을 못 받았다'는 '주문이 안 나갔다'가 아니다.
+         실제로 2건(7,336원)이 나갔는데 화면은 '집행 실패'라고만 말한 적이 있다 —
+         그대로 다시 누르면 이중지출이다. 창을 닫고 주문 기록부터 다시 읽어
+         정말 안 나갔는지 확인한 뒤에 말한다. */
+      closeModal();
+      toast('⚠️ 응답을 못 받았어요 — <b>주문이 나갔는지 확인하는 중…</b>');
+      try { await loadData(); } catch(_){}
+      const added = ORDERS.length - before;
+      if(added > 0){
+        toast('확인됨 — <b>' + added + '건이 실제로 주문됐어요.</b> 화면이 응답만 놓쳤습니다. 집행 내역에서 보세요.');
+      } else {
+        toast('집행 실패: ' + esc(e.message) + '<br><b>주문 기록엔 새 건이 없어요.</b> smmkings 패널도 한 번 확인해 주세요.');
+      }
     }
   });
 }

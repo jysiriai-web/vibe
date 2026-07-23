@@ -112,7 +112,11 @@ export function buildPlan(scanned, orders, { target, min, service }) {
 
 // 주문 실행. orders 배열에 기록 push. placed[] 반환. onEach 콜백 옵션.
 // persist: 각 주문 성공 직후 호출(즉시 디스크 저장) — 배치 도중 중단돼도 과금된 주문 기록 유실 방지(이중지출 방지).
-export async function placeOrders(smm, orders, toOrder, service, { onEach, persist } = {}) {
+/* plat: 이 주문이 어느 플랫폼 것인지. 집행 경로는 tiktokOnly() 를 거치므로 기본이 'tk' 다.
+   ⚠️ 반드시 기록해야 한다 — 인스타 핸들과 틱톡 핸들이 같은 문자열인 사람이 17명이라,
+   플랫폼이 없으면 inFlightFor 가 한 주문을 양쪽에 세서 '채워지는 중'이 두 번 뜬다.
+   더 나쁜 건 인스타 가드닝을 켰을 때 그 틱톡 주문 때문에 인스타가 조용히 건너뛰어진다. */
+export async function placeOrders(smm, orders, toOrder, service, { onEach, persist, plat = 'tk' } = {}) {
   const placed = [];
   const svcId = Number(service.service);
   for (const o of toOrder) {
@@ -137,6 +141,7 @@ export async function placeOrders(smm, orders, toOrder, service, { onEach, persi
       rec = {
         id: res.order,
         handle: o.handle,
+        plat,
         row: o.row,
         service: svcId,
         quantity: o.qty,
@@ -160,6 +165,7 @@ export async function placeOrders(smm, orders, toOrder, service, { onEach, persi
           id: null,
           uid: 'chk-' + o.handle + '-' + o.qty + '-' + orders.length,
           handle: o.handle,
+          plat,
           row: o.row,
           service: svcId,
           quantity: o.qty,
