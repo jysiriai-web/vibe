@@ -683,6 +683,14 @@ select.mirror.mx { color:var(--muted); }
 /* 우수 선정 — 고른 것만 눈에 걸리게. 미선정은 조용히 둔다. */
 select.best.on { background:#fff8e1; color:#8a6100; border-color:#f0d48a; font-weight:800; }
 /* 모집탭 '해야 할 일' 하위탭 — 플랫폼 탭과 색을 달리해 성격이 다름을 알린다 */
+/* 할 일이 남은 하위탭 — 먼저 눈에 걸리게. 예전엔 클래스 이름이 [확인필요] 배지(.todo)와
+   겹쳐 우연히 이 모양이 나왔다. 배지를 손보면 탭까지 같이 바뀌므로 전용 클래스로 떼어 놓는다.
+   ⚠️ 0 건이면 조용히 둔다 — 할 일이 없는데 빨간 건, 다음에 진짜 빨간 걸 안 보게 만든다. */
+.subtab.urgent { background: var(--needs-bg); color: var(--needs-ink); border-radius: 7px; padding: 6px 10px; }
+.subtab.urgent:hover { color: var(--needs-ink); }
+.subtab.urgent .dot { background: var(--needs-ink); }
+.subtab.urgent .cmuted { color: var(--needs-ink); opacity:.8; }
+.subtab.urgent.active { color: var(--needs-ink); border-bottom-color: var(--needs-ink); }
 .subtab.todo .dot { background:#e8a33d; }
 /* 편집 모달의 플랫폼 묶음 — 통합 탭에서 두 플랫폼을 한 창에서 고친다.
    묶음이 안 보이면 어느 칸이 어느 플랫폼 것인지 헷갈린다. */
@@ -2311,8 +2319,9 @@ function recruitSubtabs(){
   const inC = D.filter(inCampaign);
   const unsent = inC.filter(d=> !d.notice).length;
   const unfixed = inC.filter(d=> !d.sched).length;
-  return `<button class="subtab todo ${state.plat==='unsent'?'active':''}" data-plat="unsent"><span class="dot"></span>확정메일 미발송 <span class="cmuted">${unsent}</span></button>` +
-    `<button class="subtab todo ${state.plat==='unfixed'?'active':''}" data-plat="unfixed"><span class="dot"></span>날짜 미확정 <span class="cmuted">${unfixed}</span></button>`;
+  // 건수가 0 이면 평범한 탭, 남아 있으면 긴급 표시. 숫자만 바뀌면 아무도 안 본다.
+  const todoTab = (k, label, n) => `<button class="subtab ${n?'urgent':'todo'} ${state.plat===k?'active':''}" data-plat="${k}"><span class="dot"></span>${label} <span class="cmuted">${n}</span></button>`;
+  return todoTab('unsent', '확정메일 미발송', unsent) + todoTab('unfixed', '날짜 미확정', unfixed);
 }
 function platSubtabs(){
   if(!hasIG()) return `<div class="note-line">🎯 이 캠페인은 <b>틱톡 전용</b> — 인스타 하위탭·열은 자동 숨김. <span class="muted">(config plats:['tk'])</span></div>`;
@@ -2324,7 +2333,7 @@ function platSubtabs(){
     <button class="subtab all ${state.plat==='all'?'active':''}" data-plat="all"><span class="dot"></span>${allLab}</button>
     <button class="subtab tk ${state.plat==='tk'?'active':''}" data-plat="tk"><i class="pmark tk">${PLAT_MARK.tk}</i>틱톡${platCountLab('tk')}</button>
     <button class="subtab ig ${state.plat==='ig'?'active':''}" data-plat="ig"><i class="pmark ig">${PLAT_MARK.ig}</i>인스타${platCountLab('ig')}</button>
-    ${state.view==='upload' ? `<button class="subtab late ${state.plat==='late'?'active':''}" data-plat="late"><span class="dot"></span>일정 미준수 <span class="cmuted">${lateCount()}</span></button>` : ''}
+    ${state.view==='upload' ? ((n)=>`<button class="subtab late ${n?'urgent':''} ${state.plat==='late'?'active':''}" data-plat="late"><span class="dot"></span>일정 미준수 <span class="cmuted">${n}</span></button>`)(lateCount()) : ''}
     ${state.view==='garden' ? `<button class="subtab hist ${state.plat==='hist'?'active':''}" data-plat="hist"><span class="dot"></span>집행 내역 <span class="cmuted">${ORDERS.length}</span></button>` : ''}
     ${state.view==='recruit' ? recruitSubtabs() : ''}
     ${state.view==='recruit' ? recruitTools() : `${gardenSvcNote()}<span id="hideSlot" class="sub-hide"></span>${state.view==='upload'?scanPickBtn():''}`}</div>`;
