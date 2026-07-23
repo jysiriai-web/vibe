@@ -1649,9 +1649,15 @@ function viewUploadAll(){
   const tot = pairs.length, up = pairs.filter(x=>uploaded(x.d,x.p)).length;
   const rev = pairs.filter(x=>done(x.d[x.p])).length, late = pairs.filter(x=>isLate(x.d,x.p)).length;
   const goal = (cfg().targets ? Object.values(cfg().targets).reduce((a,b)=>a+b,0) : 0);
+  // 플랫폼별 업로드·검수 — 지금까진 하위탭을 눌러야만 보였다. 합계만으론 어느 쪽이 밀리는지 모른다.
+  const byUp = platsOn().map(p=>{ const t=pairs.filter(x=>x.p===p); 
+    return { p, up:t.filter(x=>uploaded(x.d,x.p)).length, tot:t.length,
+             rev:t.filter(x=>done(x.d[x.p])).length }; });
+  const upBy  = byUp.map(x=>`${pName(x.p)} <b>${x.up}</b>/${x.tot}`).join(' · ');
+  const revBy = byUp.map(x=>`${pName(x.p)} <b>${x.rev}</b>`).join(' · ');
   const kpis = `<div class="cards">
-    ${kpi('업로드 · 건', ofTot(up, tot), { ic:IC.video, sub:`계약 목표 ${goal}건 · 모집 ${tot}건` })}
-    ${kpi('검수 완료 · 건', ofTot(rev, goal||tot), { ic:IC.check, sub:'음원·음원구간·해시태그 모두 준수' })}
+    ${kpi('업로드 · 건', ofTot(up, tot), { ic:IC.video, sub:`${upBy} <span class="cmuted">· 계약 목표 ${goal}건</span>` })}
+    ${kpi('검수 완료 · 건', ofTot(rev, goal||tot), { ic:IC.check, sub:`${revBy} <span class="cmuted">· 음원·구간·해시 모두 준수</span>` })}
     ${kpi('일정 미준수 · 건', late, { ic:IC.clock, accent: late?'var(--needs)':undefined, sub:'예정일이 지났는데 미업로드' })}
     ${bufferKpi()}
     ${schedStrip()}
