@@ -73,9 +73,12 @@ function toNum(v) { return (v == null || String(v).trim() === '') ? NaN : Number
 // remains 불명이면 0 대신 주문 수량 전체를 진행중으로 간주(보수).
 // ⚠️ 반드시 toNum 을 쓸 것 — Number(null)=Number('')=0 이고 isFinite(0)=true 라,
 //    '남은 수량 불명'을 '다 들어옴(0)'으로 오판해 같은 계정을 또 사게 된다(이중지출).
-export function inFlightFor(orders, handle) {
+// plat 을 주면 그 플랫폼 주문만 센다. 인스타·틱톡 핸들이 같은 사람이 있어서
+// (@zn09_k2 가 양쪽 다 그 이름이다) 안 가르면 인스타 충전이 틱톡 재주문까지 막는다.
+// 안 주면 지금까지처럼 전부 센다 — 보수적인 쪽이 기본이다.
+export function inFlightFor(orders, handle, plat) {
   return orders
-    .filter((o) => o.handle === handle && !o.done && !o.abandoned)
+    .filter((o) => o.handle === handle && !o.done && !o.abandoned && (!plat || !o.plat || o.plat === plat))
     .reduce((s, o) => {
       const r = toNum(o.remains);
       return s + (Number.isFinite(r) ? r : (Number(o.quantity) || 0));

@@ -98,9 +98,15 @@ const parseNum = (n) => { if (n == null || n === '') return null; const v = Numb
 
 function decorate(accounts, orders, campaign) {
   return (accounts || []).map((a) => {
-    const inFlight = inFlightFor(orders, a.handle);
+    // 최상위 inFlight 는 틱톡 기준이다(a.handle 이 틱톡 핸들). 인스타 충전이 여기 섞이면
+    // 인스타를 채웠는데 틱톡 행이 '채워지는 중'으로 뜨고, 정작 인스타는 여전히 대상으로 남는다.
+    const inFlight = inFlightFor(orders, a.handle, 'tk');
     const c = classify(a.current, { target: campaign.target, min: campaign.min, inFlight });
-    return { ...a, inFlight, status: c.status, order: c.order, projected: c.projected };
+    const out = { ...a, inFlight, status: c.status, order: c.order, projected: c.projected };
+    // 플랫폼 묶음에도 각자 진행중 수량을 넣는다 — 화면은 이 값으로 가드닝 대상을 가린다.
+    if (out.ig && out.igHandle) out.ig = { ...out.ig, inFlight: inFlightFor(orders, out.igHandle, 'ig') };
+    if (out.tk) out.tk = { ...out.tk, inFlight };
+    return out;
   });
 }
 // 시트 라이브 목록(라이프사이클 컬럼 포함) + scan-latest 현재값 병합
