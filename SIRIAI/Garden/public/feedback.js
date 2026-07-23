@@ -53,17 +53,28 @@
     return `${p(d.getMonth() + 1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
   };
 
-  async function load() {
+  // 시트 왕복이 1~3초라 열자마자 빈 창이 떴다. 지난번 목록을 브라우저에 넣어 두고
+  // 여는 즉시 그린 뒤, 새 목록이 오면 조용히 갈아끼운다.
+  const CK = 'lun8.fb.cache';
+  function loadCache() {
+    try { const v = JSON.parse(localStorage.getItem(CK) || 'null'); if (Array.isArray(v)) items = v; } catch {}
+  }
+  let loading = false;
+  async function load(quiet) {
+    if (loading) return; loading = true;
     try {
       const r = await fetch(api(), { cache: 'no-store' });
       const j = await r.json();
       if (j.error) throw new Error(j.error);
       items = j.feedback || [];
+      try { localStorage.setItem(CK, JSON.stringify(items)); } catch {}
       render();
     } catch (e) {
+      // 캐시로 이미 뭔가 보여주고 있으면 조용히 넘어간다 — 있는 목록을 오류로 덮지 않는다.
+      if (quiet && items.length) return;
       const l = $('#fbList');
       if (l) l.innerHTML = `<div class="fb-empty">의견을 못 불러왔어요.<br><span style="font-size:11.5px">${esc(e.message)}</span></div>`;
-    }
+    } finally { loading = false; }
   }
 
   function render() {
@@ -77,19 +88,21 @@
           <button class="btn small primary" id="fbSave">남기기</button>
           <button class="btn small ghost" id="fbCancel">취소</button></div>
       </div>` : '';
-    const rows = items.length
-      ? items.map((it) => `<div class="fb-item${it.done ? ' fb-done' : ''}">
+    // 완료한 건 안 보여준다 — 남은 일만 있어야 목록이 '할 일'로 읽힌다.
+    // (시트 「의견」 탭에는 그대로 남아 있어서 기록이 사라지는 건 아니다)
+    const rows = open.length
+      ? open.map((it) => `<div class="fb-item">
           <div class="fb-where">${esc(it.where)}</div>
           <div class="fb-body">${esc(it.text)}</div>
           <div class="fb-meta">${esc(it.who || '팀원')} · ${esc(when(it.at))}
-            ${it.done ? '<b>완료</b>' : `<button class="fb-ok" data-done="${it.row}">완료 표시</button>`}</div>
+            <button class="fb-ok" data-done="${it.row}">완료 표시</button></div>
         </div>`).join('')
-      : (pending ? '' : `<div class="fb-empty">아직 없어요.<br><b>화면에서 고치고 싶은 곳을 클릭</b>하면 여기에 줄이 생깁니다.</div>`);
+      : (pending ? '' : `<div class="fb-empty">${items.length ? '남은 의견이 없어요. <br><span style="font-size:11.5px">완료한 건 시트 「의견」 탭에 남아 있어요.</span>' : '아직 없어요.<br><b>화면에서 고치고 싶은 곳을 클릭</b>하면 여기에 줄이 생깁니다.'}</div>`);
     list.innerHTML = form + rows;
     if (pending) $('#fbInput')?.focus();
   }
 
-  function open() { $('#fbPanel').hidden = false; setPicking(true); load(); }
+  function open() { $('#fbPanel').hidden = false; setPicking(true); render(); load(true); }
   function close() { $('#fbPanel').hidden = true; setPicking(false); pending = null; }
 
   function setPicking(on) {
@@ -136,8 +149,12 @@
     const ok = e.target.closest('[data-done]');
     if (ok) {
       try {
-        await fetch(api(), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ done: ok.dataset.done }) });
-        await load();
+        // 먼저 화면에서 치우고 시트는 뒤에서 — 누른 뒤 1~3초 멈춰 있으면 두 번 누르게 된다.
+        const row = String(ok.dataset.done);
+        const hit = items.find((i) => String(i.row) === row);
+        if (hit) { hit.done = true; render(); try { localStorage.setItem(CK, JSON.stringify(items)); } catch {} }
+        await fetch(api(), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ done: row }) });
+        await load(true);
       } catch (er) { say('완료 표시 실패: ' + er.message); }
       return;
     }
@@ -152,5 +169,9 @@
     if (e.target.closest('#fbClear')) { say('시트 「의견」 탭에서 직접 지워주세요 — 여기선 완료 표시만 합니다.'); return; }
   });
 
+  // 캐시를 먼저 깔고 그린다(뱃지 숫자가 새로고침 직후에도 바로 보이게).
+  loadCache();
   render();
+  // 화면 로딩이 끝난 뒤 조용히 최신으로 — 팝업을 열 때는 이미 받아둔 상태가 된다.
+  setTimeout(function () { load(true); }, 1200);
 })();

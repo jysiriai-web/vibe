@@ -313,9 +313,10 @@ th.ghost-h { color:var(--gray-ink); }
 .codehint { font-family:var(--mono); font-size:12px; background:var(--gray-bg); border:1px solid var(--line); border-radius:8px; padding:10px 12px; color:var(--ink); line-height:1.6; white-space:pre-wrap; }
 
 /* 설정 드로어 */
-.drawer-bg { position:fixed; inset:0; background:rgba(20,20,35,.35); z-index:48; display:flex; justify-content:flex-end; }
-.drawer { width:min(390px,94vw); height:100%; background:var(--card); box-shadow:-10px 0 40px rgba(20,20,35,.18); padding:24px; overflow:auto; display:flex; flex-direction:column; gap:24px; animation:slidein .18s ease; }
-@keyframes slidein { from{transform:translateX(30px);opacity:.5} to{transform:none;opacity:1} }
+/* 왼쪽에서 연다 — 설정 버튼이 왼쪽 사이드바 아래에 있어서 손이 이미 그쪽에 있다. */
+.drawer-bg { position:fixed; inset:0; background:rgba(20,20,35,.35); z-index:48; display:flex; justify-content:flex-start; }
+.drawer { width:min(390px,94vw); height:100%; background:var(--card); box-shadow:10px 0 40px rgba(20,20,35,.18); padding:24px; overflow:auto; display:flex; flex-direction:column; gap:24px; animation:slidein .18s ease; }
+@keyframes slidein { from{transform:translateX(-30px);opacity:.5} to{transform:none;opacity:1} }
 .drawer-head { display:flex; align-items:center; justify-content:space-between; }
 .drawer-head h2 { font-size:19px; font-weight:800; }
 .drawer-x { border:none; background:none; font-size:22px; line-height:1; color:var(--muted); cursor:pointer; }
@@ -2139,23 +2140,39 @@ function viewDeliver(){
 }
 
 /* ============ 정산: 자동계산 (진행사별 단가) ============ */
-/* 마루 = 콘텐츠당 6,000엔 / 시리아이 = 5,000엔 (+ 최우수·추천 보너스), 3만 cap, override 우선 */
-const MARU_FEE = 6000, SIRIAI_FEE = 5000;
+/* 마루 = 콘텐츠당 6,000엔 / 시리아이 = 5,000엔 (+ 최우수·추천 보너스), 3만 cap, override 우선.
+   시리아이 모집 인원이 양쪽에 '서로 다른 영상'을 올리면 12,000엔 — 두 번 찍은 값이다.
+   미러링(같은 영상 두 곳)은 콘텐츠가 1건이라 1건 값만 자동 계산한다.
+
+   ⚠️ 다만 이건 '자동값'일 뿐이다. 마감에 확보가 모자라면 미러링도 2건으로 납품하고
+   그 사람에겐 절반만 인정하거나 1만엔으로 쳐주는 식의 합의가 생긴다.
+   그 경우는 개별단가(override)에 금액을 넣으면 자동값을 무시한다 — 사람이 정할 자리다. */
+const MARU_FEE = 6000, SIRIAI_FEE = 5000, SIRIAI_BOTH = 12000;
 function settleCalc(d){
   const s=d.settle, plats=platsOn();
   let dc=0; plats.forEach(p=>{ if(d[p]&&done(d[p])) dc++; });
-  if(s.override!=null) return { amt:s.override, tag:['ovr','특별'], bd:`개별단가(자동수식 무시): ${nf(s.override)}엔`, dc };
+  const mir = isMirrored(d);
+  if(s.override!=null) return { amt:s.override, tag:['ovr','특별'],
+    bd:`개별단가(자동수식 무시): ${nf(s.override)}엔` + (mir?' · 미러링 건':''), dc, mir };
+  // 미러링은 같은 영상이라 콘텐츠로는 1건 — 자동값은 1건 기준으로 낸다.
+  const payDc = mir ? Math.min(dc,1) : dc;
+  const si = d.co!=='MARU';
+  const bothOk = si && !mir && payDc>=2;   // 시리아이 · 서로 다른 영상 두 편
   const unit = d.co==='MARU'?MARU_FEE:SIRIAI_FEE;
-  const base = dc*unit;
+  const base = bothOk ? SIRIAI_BOTH : payDc*unit;
   const best = s.best?10000:0;
   const ref  = (d.refCount||0)*3000;
   const raw = base+best+ref;
   const amt = Math.min(raw,30000);
-  const parts=[`콘텐츠 ${dc}건 × ${nf(unit)}(${d.co==='MARU'?'마루':'시리아이'}) ${nf(base)}`];
+  const parts=[ bothOk
+    ? `양쪽 업로드(미러링 아님) ${nf(SIRIAI_BOTH)}`
+    : `콘텐츠 ${payDc}건 × ${nf(unit)}(${d.co==='MARU'?'마루':'시리아이'}) ${nf(base)}`];
+  if(mir && dc>1) parts.push(`미러링이라 ${dc}건 중 1건만 자동 인정`);
   if(best) parts.push(`최우수 +${nf(best)}`);
   if(ref)  parts.push(`추천 ${d.refCount}×3,000 +${nf(ref)}`);
-  const bd = parts.join('  ·  ')+` = ${nf(raw)}`+(raw>30000?' → 3만 cap':'');
-  return { amt, tag: raw>30000?['cap','3만 cap']:['auto','자동'], bd, dc };
+  let bd = parts.join('  ·  ')+` = ${nf(raw)}`+(raw>30000?' → 3만 cap':'');
+  if(mir && dc>1) bd += `\n※ 2건으로 쳐주기로 했다면 개별단가에 금액을 넣으세요(예: ${nf(SIRIAI_BOTH)} 또는 10,000).`;
+  return { amt, tag: mir&&dc>1?['mir','미러링 1건'] : raw>30000?['cap','3만 cap']:['auto','자동'], bd, dc, mir };
 }
 
 /* ============ 정산: 마진 시뮬 (진행사별 원고료 원가 반영) ============ */
@@ -2275,6 +2292,11 @@ function viewSettle(){
   const cols = [
     { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
+    // 미러링이면 금액이 왜 적은지 여기서 바로 보인다(자동값은 1건 기준).
+    { key:'mir', label:'미러링', sv:r=>r.mir==='m1'?1:0,
+      cell:r=> r.mir==='m1'
+        ? `<span class="mirct" title="같은 영상이라 자동값은 1건 기준이에요. 2건으로 쳐주려면 개별단가에 금액을 넣으세요.">미러링</span>`
+        : '<span class="emptydot">·</span>' },
     { key:'pay', label:'정산 방식', sv:r=>r.settle.pay, cell:r=>`<select class="pay-sel" data-pay="${r.id}"><option value=""${r.settle.pay?'':' selected'}>미정</option>${PAY_OPTS.map(o=>`<option${o===r.settle.pay?' selected':''}>${o}</option>`).join('')}</select>` },
     { key:'amt', label:'정산 금액', cls:'num', thcls:'num', sv:r=>settleCalc(r).amt, cell:r=>{ const s=settleCalc(r); return `<span class="amt" title="${s.bd}">${nf(s.amt)}엔<span class="tag ${s.tag[0]}">${s.tag[1]}</span></span>`; } },
     // 체크박스는 켜짐/꺼짐 둘뿐이라 '아직 안 봤다'와 '보고 아니라고 판단했다'가 구분되지 않았다.
