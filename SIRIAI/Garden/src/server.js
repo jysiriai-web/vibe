@@ -11,7 +11,7 @@ import { classify } from './garden.js';
 import { refreshOrders, inFlightFor } from './orders.js';
 import { runAutoRefill, refillServiceIds, REFILL_WINDOW_DAYS } from './refill.js';
 import { runSheetSetup, getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet, syncRecruitToSheet, deliverToSheet, readFeedbackFromSheet, addFeedbackToSheet, markFeedbackDone, addPersonToSheet } from './sheet.js';
-import { scanAccounts, buildPlan, placeOrders, findService, tiktokOnly } from './execute-core.js';
+import { scanAccounts, buildPlan, placeOrders, findService, tiktokOnly, igFollowers } from './execute-core.js';
 import { runIgSync } from './ig-sync.js';
 import { runIgContentScan } from './ig-content.js';
 import { runSync } from './sync-core.js';
@@ -56,7 +56,17 @@ function catalog() {
   const p = join(root, 'data', 'smm-services.json');
   return existsSync(p) ? JSON.parse(readFileSync(p, 'utf8')) : [];
 }
-const serviceOf = (c) => findService(catalog(), c.serviceId);
+/* 플랫폼별 서비스 번호. serviceIds:{tk,ig} 가 있으면 그걸 쓰고,
+   없으면 옛 serviceId 를 틱톡용으로 본다(지금 구성 그대로 동작). */
+const serviceIdOf = (c, plat = 'tk') => {
+  const m = c.serviceIds || {};
+  if (m[plat] != null) return Number(m[plat]);
+  return plat === 'tk' ? Number(c.serviceId) : null;
+};
+const serviceOf = (c, plat = 'tk') => {
+  const id = serviceIdOf(c, plat);
+  return id == null ? null : findService(catalog(), id);
+};
 
 function tiktokFollowerServices() {
   return catalog()
@@ -72,6 +82,24 @@ async function effectiveRate() {
   const fx = getFx();
   const market = await getMarketUsdKrw();
   return market ? market * fx.calibration : fx.fallbackRate;
+}
+
+/* 인스타 가드닝 대상. 팔로워는 반드시 인스타 스캔 결과에서 가져온다 —
+   틱톡 스크래퍼에 인스타 핸들을 주면 같은 이름의 남의 틱톡 계정 숫자가 들어온다(실측 16건).
+   igFollowers 가 낡은 기록(12시간 초과)도 거부한다. */
+function igPlanRows(campaign, live) {
+  const p = join(campaign.dataDir, 'ig-scan-latest.json');
+  let latest = null;
+  try { latest = existsSync(p) ? JSON.parse(readFileSync(p, 'utf8')) : null; } catch { latest = null; }
+  const r = igFollowers(latest);
+  if (r.stale) return { rows: [], why: r.why };
+  // 지금 시트에 인스타 링크가 실제로 있는 계정만 — 낡은 스캔 기록으로 없는 계정에 돈이 나가면 안 된다.
+  const ok = new Map((live || []).filter((a) => a.igHandle).map((a) => [String(a.igHandle).toLowerCase(), a]));
+  const rows = r.rows
+    .filter((x) => ok.has(String(x.handle || '').toLowerCase()))
+    .map((x) => { const a = ok.get(String(x.handle).toLowerCase());
+      return { ...x, row: a.row, company: a.company, plat: 'ig', folPlat: 'ig' }; });
+  return { rows, why: '' };
 }
 
 function scanLatest(campaign) {
@@ -655,8 +683,10 @@ export async function handler(req, res) {
       let accs = (scanLatest(campaign).accounts || scanLatest(campaign).results || []);
       // 지난 스캔 기록에는 그 뒤 시트에서 지워진 계정이 남아 있다. 지금 시트에 틱톡 링크가
       // 실제로 있는 계정만 남긴다 — 안 그러면 없는 계정에 돈이 나간다(행28 りゅう 사례).
+      let liveAccounts = [];
       try {
         const live = await getAccountsFromSheet(campaign.sheet);
+        liveAccounts = live;
         const ok = new Set(live.filter((a) => a.plat !== 'ig' && a.handle).map((a) => String(a.handle).toLowerCase()));
         const before = accs.length;
         accs = accs.filter((a) => ok.has(String(a.handle || '').toLowerCase()));
@@ -666,10 +696,32 @@ export async function handler(req, res) {
         return send(res, 503, { error: '시트를 못 읽어서 집행 계획을 못 세웠어요 — 오래된 스캔 기록만으로는 주문하지 않습니다.' });
       }
       if (Array.isArray(body.handles)) accs = accs.filter((a) => body.handles.includes(a.handle));
-      const plan = buildPlan(accs, orders, { target: campaign.target, min: campaign.min, service: svc });
+      /* 플랫폼마다 서비스도 팔로워 출처도 다르다 — 따로 계획을 세워 합친다.
+         인스타 서비스(serviceIds.ig)가 설정 안 돼 있으면 인스타는 그냥 빠진다(지금까지와 동일). */
+      const plans = [];
+      const tkSvc = serviceOf(campaign, 'tk');
+      if (tkSvc) plans.push({ plat: 'tk', svc: tkSvc, ...buildPlan(accs, orders, { target: campaign.target, min: campaign.min, service: tkSvc, plat: 'tk' }) });
+      const igSvc = serviceOf(campaign, 'ig');
+      let igNote = null;
+      if (igSvc) {
+        const ig = igPlanRows(campaign, liveAccounts);
+        if (ig.why) igNote = ig.why;
+        let igRows = ig.rows;
+        if (Array.isArray(body.handles)) igRows = igRows.filter((a) => body.handles.includes(a.handle));
+        plans.push({ plat: 'ig', svc: igSvc, ...buildPlan(igRows, orders, { target: campaign.target, min: campaign.min, service: igSvc, plat: 'ig' }) });
+      }
+      const plan = {
+        toOrder: plans.flatMap((p) => p.toOrder),
+        filling: plans.flatMap((p) => p.filling),
+        errored: plans.flatMap((p) => p.errored),
+        totalQty: plans.reduce((a, p) => a + p.totalQty, 0),
+        totalCost: plans.reduce((a, p) => a + p.totalCost, 0),
+      };
       let balance = null;
       if (smm) { try { balance = Number((await smm.balance()).balance); } catch {} }
-      return send(res, 200, { ...plan, balance, krwPerUsd: await effectiveRate(), service: svc ? { id: svc.service, name: svc.name, rate: svc.rate } : null });
+      return send(res, 200, { ...plan, balance, krwPerUsd: await effectiveRate(), igNote,
+        service: tkSvc ? { id: tkSvc.service, name: tkSvc.name, rate: tkSvc.rate } : null,
+        services: plans.map((p) => ({ plat: p.plat, id: p.svc.service, name: p.svc.name, rate: p.svc.rate })) });
     }
 
     if (path === '/api/execute' && req.method === 'POST') {
@@ -696,12 +748,32 @@ export async function handler(req, res) {
         getAccountsFromSheet(campaign.sheet),
       ]);
       orders = await refreshOrders(smm, orders);
-      accounts = tiktokOnly(accounts);   // 틱톡 서비스로 주문하므로 틱톡 계정만
+      const allAccounts = accounts;      // 인스타 행 매칭에 원본이 필요하다
+      accounts = tiktokOnly(accounts);   // 틱톡 스크래퍼에는 틱톡 계정만 넘긴다
       if (Array.isArray(body.handles)) accounts = accounts.filter((a) => body.handles.includes(a.handle));
       // reuse: 이미 계획을 확인하고 비번까지 넣은 단계다 — 창을 새로 띄우고 로봇 인증을
       //        다시 거칠 이유가 없다. 살아 있는 브라우저로 팔로워만 다시 확인한다.
       const scanned = await scanAccounts(accounts, { reuse: true });
-      const plan = buildPlan(scanned, orders, { target: campaign.target, min: campaign.min, service: svc });
+      /* 플랫폼별로 계획을 세운다. 인스타 팔로워는 인스타 스캔 결과에서만 온다 —
+         scanAccounts 는 틱톡 스크래퍼라 인스타 핸들을 주면 남의 숫자를 돌려준다. */
+      const xPlans = [];
+      const tkSvc2 = serviceOf(campaign, 'tk');
+      if (tkSvc2) xPlans.push({ plat: 'tk', svc: tkSvc2, ...buildPlan(scanned, orders, { target: campaign.target, min: campaign.min, service: tkSvc2, plat: 'tk' }) });
+      const igSvc2 = serviceOf(campaign, 'ig');
+      if (igSvc2) {
+        const ig = igPlanRows(campaign, allAccounts);
+        let igRows = ig.rows;
+        if (Array.isArray(body.handles)) igRows = igRows.filter((a) => body.handles.includes(a.handle));
+        if (ig.why && igRows.length === 0 && Array.isArray(body.handles) && body.handles.length) console.warn('[집행] 인스타 제외:', ig.why);
+        xPlans.push({ plat: 'ig', svc: igSvc2, ...buildPlan(igRows, orders, { target: campaign.target, min: campaign.min, service: igSvc2, plat: 'ig' }) });
+      }
+      const plan = {
+        toOrder: xPlans.flatMap((p) => p.toOrder),
+        filling: xPlans.flatMap((p) => p.filling),
+        errored: xPlans.flatMap((p) => p.errored),
+        totalQty: xPlans.reduce((a, p) => a + p.totalQty, 0),
+        totalCost: xPlans.reduce((a, p) => a + p.totalCost, 0),
+      };
       // 스캔에 수 분이 걸렸다. 그 사이 다른 경로(CLI·앞선 집행)가 주문을 넣었을 수 있으니
       // 돈을 쓰기 직전에 주문기록을 다시 읽어 이미 진행중인 계정은 뺀다.
       try {
@@ -714,17 +786,22 @@ export async function handler(req, res) {
       const balance = Number((await smm.balance()).balance);
       if (plan.totalCost > balance) return send(res, 400, { error: `잔액 부족: 필요 $${plan.totalCost.toFixed(2)} > 잔액 $${balance}` });
       let sheetWarn = null;
-      let placed;
+      let placed = [];
       try {
-        placed = await placeOrders(smm, orders, plan.toOrder, svc, {
+        for (const pl of xPlans) {
+          const mine = plan.toOrder.filter((o) => o.plat === pl.plat);
+          if (!mine.length) continue;
+          // 플랫폼마다 서비스 번호도 주문 링크도 다르다 — 섞이면 돈만 버린다.
+          const got = await placeOrders(smm, orders, mine, pl.svc, { plat: pl.plat,
           // 과금 직후 즉시 기록. writeOrders 는 throw 하지 않고 durable 로 알린다.
           persist: async () => {
             const w = await writeOrders(campaign, orders);
             if (w.sheet === 'fail') { sheetWarn = w.sheetError; console.error('[집행] 시트 기록 실패(로컬엔 저장됨):', w.sheetError); }
             if (w.local === 'fail') console.error('[집행] 로컬 기록 실패:', w.localError);
             return w;
-          },
-        });
+          } });
+          placed = placed.concat(got);
+        }
       } catch (e) {
         // 과금됐는데 어디에도 기록 못 함 → 마지막으로 한 번 더 저장 시도하고, 반드시 사용자에게 알린다.
         const w = await writeOrders(campaign, orders);

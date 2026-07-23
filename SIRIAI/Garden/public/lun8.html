@@ -2080,10 +2080,15 @@ function gardenHistory(){
     { key:'when', label:'집행일', sv:o=>String(o.placedAt||''), cell:o=> o.placedAt ? esc(String(o.placedAt).slice(0,10).replace(/-/g,'.').slice(2)) : '<span class="emptydot">·</span>' },
     { key:'h', label:'계정', cls:'handle', sv:o=>o.handle||'', cell:o=> acctLink(o.handle, o.plat==='ig'?'ig':'tk') },
     { key:'qty', label:'충전', cls:'num', thcls:'num', sv:o=>Number(o.quantity)||0, cell:o=> `<b>${nf(o.quantity)}</b>` },
-    // 남은 수는 '아직 안 들어온 팔로워'다. 0 이면 다 채워진 것.
-    { key:'got', label:'전달', cls:'num', thcls:'num', sv:o=>Number(o.delivered)||0,
-      cell:o=> o.delivered==null ? '<span class="cmuted">확인중</span>'
-        : (Number(o.undelivered)>0 ? `${nf(o.delivered)} <span class="chip needs">${nf(o.undelivered)} 미전달</span>` : `${nf(o.delivered)}`) },
+    /* 몇 명이 실제로 들어왔나. '미전달'은 통지가 안 갔다는 말처럼 읽혀서 '남음'으로 바꿨다.
+       전부 들어온 것과 아직 도는 것이 숫자만으로는 구분이 안 돼서 '들어옴'을 붙인다. */
+    { key:'got', label:'들어온 팔로워', cls:'num', thcls:'num', sv:o=>Number(o.delivered)||0,
+      cell:o=>{
+        if(o.delivered==null) return '<span class="cmuted">확인중</span>';
+        const left = Number(o.undelivered)||0;
+        if(left>0) return `${nf(o.delivered)} <span class="chip needs">${nf(left)}명 남음</span>`;
+        return `${nf(o.delivered)} <span class="chip ok">다 들어옴</span>`;
+      } },
     // 수기 집행은 패널마다 통화가 달라 원화로 직접 적는다(costKrw).
     { key:'cost', label:'금액', cls:'num', thcls:'num', sv:o=>Number(o.costKrw)||Number(o.cost)*KRW_PER_USD||0,
       cell:o=> o.costKrw!=null ? esc(Number(o.costKrw).toLocaleString('ko-KR')+'원') : esc(wonOf(o.cost)) },

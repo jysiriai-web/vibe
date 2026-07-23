@@ -59,6 +59,13 @@ const SANE_FLOOR = 50;
 // 틱톡 서비스로 과금하므로 틱톡 핸들이 있는 행만 남긴다.
 // 인스타 전용 행을 넘기면 인스타 핸들로 틱톡을 검색해 남의 계정에 돈이 나간다.
 // ⚠️ 집행·계획 경로는 반드시 이 함수를 거칠 것. 규칙을 복제하면 한 곳이 빠진다(실제로 CLI 가 빠져 있었다).
+/* 주문에 넣을 계정 주소. 플랫폼마다 형식이 다르다 —
+   예전엔 틱톡 주소가 박혀 있어서, 인스타 서비스에 틱톡 링크를 보낼 뻔했다. */
+export function orderLink(plat, handle) {
+  const h = String(handle || '').replace(/^@/, '');
+  return plat === 'ig' ? 'https://www.instagram.com/' + h : 'https://www.tiktok.com/@' + h;
+}
+
 export function tiktokOnly(accounts) {
   return (accounts || []).filter((a) => a && a.plat !== 'ig' && a.handle);
 }
@@ -81,7 +88,7 @@ export function igFollowers(latest, { staleH = 12 } = {}) {
   return { rows: rows.map((a) => ({ ...a, folPlat: 'ig', plat: 'ig' })), stale: false, ageH };
 }
 
-export function buildPlan(scanned, orders, { target, min, service }) {
+export function buildPlan(scanned, orders, { target, min, service, plat = 'tk' }) {
   const rate = Number(service.rate);
   const sMin = Number(service.min);
   const sMax = Number(service.max);
@@ -105,13 +112,13 @@ export function buildPlan(scanned, orders, { target, min, service }) {
     if (a.current < SANE_FLOOR) { errored.push({ ...a, reason: `팔로워 ${a.current}명 — 계정이 없거나 핸들이 틀린 것 같아요. 확인 후 수기로 처리해 주세요.` }); continue; }
     if (seen.has(a.handle)) continue;
     seen.add(a.handle);
-    const inFlight = inFlightFor(orders, a.handle);
-    if (inFlight > 0) { filling.push({ ...a, inFlight, projected: a.current + inFlight }); continue; } // 진행중 → 대기(재주문 안 함)
+    const inFlight = inFlightFor(orders, a.handle, plat);
+    if (inFlight > 0) { filling.push({ ...a, plat, inFlight, projected: a.current + inFlight }); continue; } // 진행중 → 대기(재주문 안 함)
     if (a.current >= min) continue; // 이미 충족(1000+)
     const want = orderQuantity(a.current, { target });
     if (want <= 0) continue;
     const qty = Math.min(Math.max(want, sMin), sMax);
-    toOrder.push({ ...a, inFlight: 0, qty, cost: (qty / 1000) * rate });
+    toOrder.push({ ...a, plat, inFlight: 0, qty, cost: (qty / 1000) * rate });
   }
   const totalQty = toOrder.reduce((s, o) => s + o.qty, 0);
   const totalCost = toOrder.reduce((s, o) => s + o.cost, 0);
@@ -133,7 +140,7 @@ export async function placeOrders(smm, orders, toOrder, service, { onEach, persi
     try {
       const res = await smm.addOrder({
         service: svcId,
-        link: `https://www.tiktok.com/@${o.handle}`,
+        link: orderLink(plat, o.handle),
         quantity: o.qty,
       });
       // 주문번호가 없으면(패널 이상응답) 과금 여부도 불명이고, 기록해도 추적 불가한 좀비가 된다
