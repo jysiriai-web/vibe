@@ -275,7 +275,8 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
     // 형제 함수 scanOneProfile 은 이미 돌려주고 있었다 — 여기만 빠져서 '시트 0칸 반영 ✅' 로 보였다.
     writeError,
     failed: failedHandles.size,
-    failedHandles: [...failedHandles].slice(0, 8),
+    // 자르지 않는다 — 작업 콘솔이 이걸 링크로 뿌려서 사람이 하나씩 확인한다.
+    failedHandles: [...failedHandles],
     stopped,
   };
 }
