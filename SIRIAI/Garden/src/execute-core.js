@@ -27,7 +27,8 @@ export async function scanAccounts(accounts, { delayMs = 500, onProgress, onWait
       } catch {
         /* 실패 → current=null */
       }
-      const row = { ...a, current, scrapedNick: nickname };
+      // folPlat = 이 팔로워 숫자의 출처. 이 함수는 틱톡 프로필 스크래퍼라 언제나 'tk' 다.
+      const row = { ...a, current, scrapedNick: nickname, folPlat: 'tk' };
       out[i] = row; // 인덱스로 결과 순서 보존
       done++;
       if (onProgress) onProgress({ ...row, done, total: accounts.length });
@@ -54,6 +55,24 @@ export function tiktokOnly(accounts) {
   return (accounts || []).filter((a) => a && a.plat !== 'ig' && a.handle);
 }
 
+/* 인스타 계정의 팔로워는 인스타 스캔 결과에서만 가져온다(작업 콘솔의 '인스타 팔로워 스캔').
+   ⚠️ scanAccounts 로는 절대 못 가져온다 — 그건 틱톡 프로필을 여는 스크래퍼라
+   인스타 핸들을 주면 '같은 이름의 다른 틱톡 계정' 숫자를 돌려준다(실패해도 throw 안 한다).
+   실측: 인스타 핸들과 같은 이름의 틱톡 계정이 16건 실재했고, @zn09_k2 는
+   인스타 522(충전 필요) / 틱톡 11,100(불필요) 이라 충전이 조용히 안 나갔다.
+
+   staleH: 스캔이 이만큼 지났으면 안 쓴다. 낡은 팔로워로 주문하면 이미 채워진 계정에 또 산다. */
+export function igFollowers(latest, { staleH = 12 } = {}) {
+  const ranAt = latest && latest.ranAt;
+  const rows = (latest && (latest.accounts || latest.results)) || [];
+  if (!ranAt || !rows.length) return { rows: [], stale: true, why: '인스타 팔로워 스캔 기록이 없어요' };
+  const ageH = (Date.now() - new Date(ranAt).getTime()) / 3600000;
+  if (!(ageH >= 0) || ageH > staleH) {
+    return { rows: [], stale: true, ageH, why: `인스타 팔로워 스캔이 ${Math.round(ageH)}시간 지났어요(기준 ${staleH}시간) — 작업 콘솔에서 먼저 돌려주세요` };
+  }
+  return { rows: rows.map((a) => ({ ...a, folPlat: 'ig', plat: 'ig' })), stale: false, ageH };
+}
+
 export function buildPlan(scanned, orders, { target, min, service }) {
   const rate = Number(service.rate);
   const sMin = Number(service.min);
@@ -63,6 +82,16 @@ export function buildPlan(scanned, orders, { target, min, service }) {
   const errored = [];
   const seen = new Set(); // 같은 배치에 동일 핸들이 두 행(예: 시트 중복 등록)으로 오면 한 번만 주문 → 이중지출 방지
   for (const a of scanned) {
+    /* 출처 검사 — 이 계정의 플랫폼과 팔로워 숫자의 출처가 같아야 한다.
+       tiktokOnly() 필터가 지금은 인스타를 막고 있지만, 그건 '거르는' 장치라
+       누가 빼면 그대로 뚫린다. 여기서 한 번 더 막아 '남의 숫자로 주문'을 구조적으로 없앤다.
+       옛 스캔 기록엔 folPlat 이 없다 — 전부 틱톡 스캔이었으므로 tk 로 본다(지금 동작 유지). */
+    const platOf = a.plat === 'ig' ? 'ig' : 'tk';
+    const src = a.folPlat || 'tk';
+    if (src !== platOf) {
+      errored.push({ ...a, reason: `이 계정은 ${platOf === 'ig' ? '인스타' : '틱톡'}인데 팔로워 숫자는 ${src === 'ig' ? '인스타' : '틱톡'} 스캔에서 왔어요 — 다른 계정 숫자로 주문할 뻔했습니다. 해당 플랫폼 팔로워 스캔을 먼저 돌려주세요.` });
+      continue;
+    }
     if (a.current == null) { errored.push(a); continue; }
     // 사람이 눈으로 확인해야 할 값 — 주문 목록이 아니라 오류 목록으로 보낸다.
     if (a.current < SANE_FLOOR) { errored.push({ ...a, reason: `팔로워 ${a.current}명 — 계정이 없거나 핸들이 틀린 것 같아요. 확인 후 수기로 처리해 주세요.` }); continue; }
