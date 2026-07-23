@@ -684,6 +684,11 @@ select.mirror.mx { color:var(--muted); }
 select.best.on { background:#fff8e1; color:#8a6100; border-color:#f0d48a; font-weight:800; }
 /* 모집탭 '해야 할 일' 하위탭 — 플랫폼 탭과 색을 달리해 성격이 다름을 알린다 */
 .subtab.todo .dot { background:#e8a33d; }
+/* 편집 모달의 플랫폼 묶음 — 통합 탭에서 두 플랫폼을 한 창에서 고친다.
+   묶음이 안 보이면 어느 칸이 어느 플랫폼 것인지 헷갈린다. */
+.msec { border:1px solid var(--line); border-radius:10px; padding:12px 13px 4px; margin-bottom:12px; }
+.msec-h { display:flex; align-items:center; gap:7px; font-weight:800; font-size:12.5px; margin-bottom:9px; color:var(--ink); }
+.msec-h .pmark { width:15px; height:15px; }
 </style>
 </head>
 <body>
@@ -1573,9 +1578,13 @@ function viewUploadAll(){
         : '<span class="emptydot">·</span>' }] : []),
     { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
-    { key:'plats', label:'플랫폼', sv:r=>r.plats.length, cell:r=>platIcons(r) },
     // 연락은 여기서 시작한다 — 모집탭으로 갔다 오지 않게 이메일을 같이 둔다.
     { key:'email', label:'이메일', cls:'mail', hideable:true, empty:r=>!r.email, sv:r=>r.email||'', cell:r=>mailCell(r.email) },
+    // 플랫폼 아이콘만 있던 자리 — 아이콘은 '뭘 하나'만 알려줬다. 계정 링크를 같이 두면
+    // 여기서 바로 열어 확인한다. 콘텐츠·상태와 같은 2줄 모양이라 세 열이 줄끼리 맞는다.
+    { key:'acct', label:'계정', cls:'handle', sortable:false, cell:r=>
+      `<div class="cpair">${platsOn().filter(p=>r[p]).map(p=>
+        `<span class="cp">${acctLink(r[p].h, p)}</span>`).join('')}</div>` },
     // 콘텐츠는 플랫폼별로 나란히 — 두 영상을 같은 줄에서 열어야 미러링을 본다.
     { key:'content', label:'콘텐츠', sortable:false, cell:r=>
       `<div class="cpair">${platsOn().filter(p=>r[p]).map(p=>
@@ -2427,7 +2436,8 @@ const VIEWS = { recruit:viewRecruit, upload:viewUpload, garden:viewGarden, deliv
 
 function computeCounts(){
   const inC = D.filter(inCampaign);
-  const upl = inC.filter(anyUploaded).length;
+  // 건 단위 — 사람 단위로 세면 한 사람이 두 플랫폼에 올려도 1 이라, 화면 KPI('업로드 · 건')와 어긋난다.
+  let upl=0; inC.forEach(d=> platsOn().forEach(p=>{ if(d[p] && uploaded(d,p)) upl++; }));
   let need=0; inC.forEach(d=> platsOn().forEach(p=>{ if(gStat(d,p).st==='target') need++; }));
   let deliv=0; inC.forEach(d=> platsOn().forEach(p=>{ if(uploaded(d,p)) deliv++; }));
   const unpaid = inC.filter(d=>!d.settle.paid).length;
@@ -2561,19 +2571,29 @@ function openRowEdit(id, rowPlat){
       if(d.ig && val('reIg') && val('reIg')!==d.ig.h){ d.ig.h=val('reIg'); put('ig.link',toLinkUrl('ig',d.ig.h)); } };
 
   } else if(state.view==='upload'){
-    if(!d[p]){ toast('이 크리에이터는 '+pName(p)+' 미참여예요.'); return; }
-    const x=d[p];
+    /* 통합 탭은 한 줄이 한 사람이다 — 그 사람이 하는 플랫폼을 전부 편집한다.
+       예전엔 첫 플랫폼(대개 틱톡) 것만 떠서 '틱톡 링크·틱톡 비고' 두 칸만 보였고,
+       인스타는 이 화면에서 고칠 방법이 아예 없었다. */
+    const eps = (state.plat==='all') ? platsOn().filter(pp=>d[pp]) : (d[p] ? [p] : []);
+    if(!eps.length){ toast('이 크리에이터는 '+pName(p)+' 미참여예요.'); return; }
+    const psec = pp => { const x=d[pp]; return `
+      <div class="msec">
+        <div class="msec-h"><i class="pmark ${pp}">${PLAT_MARK[pp]||''}</i>${pName(pp)}</div>
+        <div class="row"><label class="h">${pName(pp)} 링크/닉</label><input class="inp" id="reH_${pp}" value="${esc(x.h)}"></div>
+        <div class="row2">
+          <div class="row"><label class="h">콘텐츠① 링크</label><input class="inp" id="reC1_${pp}" value="${x.c1?esc(x.c1.url):''}" placeholder="업로드 URL"></div>
+          <div class="row"><label class="h">콘텐츠② 링크</label><input class="inp" id="reC2_${pp}" value="${x.c2?esc(x.c2.url):''}" placeholder="선택"></div>
+        </div>
+        <div class="row2">
+          <div class="row"><label class="h">음원</label>${revEditSel('reSnd_'+pp, x.snd)}</div>
+          <div class="row"><label class="h">음원구간</label>${revEditSel('reSec_'+pp, x.sec)}</div>
+          <div class="row"><label class="h">해시태그</label>${revEditSel('reHash_'+pp, x.hash)}</div>
+        </div>
+        <div class="row"><label class="h">${pName(pp)} 비고</label><textarea class="inp" id="rePMemo_${pp}" placeholder="${pName(pp)} 특이사항">${esc(x.memo||'')}</textarea></div>
+      </div>`; };
+    // 미러링·날짜는 사람 단위라 플랫폼 묶음 밖에 한 번만 둔다.
     body = `<div class="mform">
-      <div class="row"><label class="h">${pName(p)} 링크/닉</label><input class="inp" id="reH" value="${esc(x.h)}"></div>
-      <div class="row2">
-        <div class="row"><label class="h">콘텐츠① 링크</label><input class="inp" id="reC1" value="${x.c1?esc(x.c1.url):''}" placeholder="업로드 URL"></div>
-        <div class="row"><label class="h">콘텐츠② 링크</label><input class="inp" id="reC2" value="${x.c2?esc(x.c2.url):''}" placeholder="선택"></div>
-      </div>
-      <div class="row2">
-        <div class="row"><label class="h">음원</label>${revEditSel('reSnd',x.snd)}</div>
-        <div class="row"><label class="h">음원구간</label>${revEditSel('reSec',x.sec)}</div>
-        <div class="row"><label class="h">해시태그</label>${revEditSel('reHash',x.hash)}</div>
-      </div>
+      ${eps.map(psec).join('')}
       <div class="row"><label class="h">미러링</label>
         <select class="inp" id="reMir">${[['m1','미러링 ⚠'],['m0','오리지널'],['mx','미확인']].map(([v,l])=>`<option value="${v}"${v===d.mir?' selected':''}>${l}</option>`).join('')}</select></div>
       <div class="row2">
@@ -2586,33 +2606,38 @@ function openRowEdit(id, rowPlat){
             <span class="fxnote">날짜 대신 진행상태를 넣을 수 있어요 — 다시 누르면 해제돼요.</span>
           </div></div>
       </div>
-      <div class="row"><label class="h">${pName(p)} 비고</label><textarea class="inp" id="rePMemo" placeholder="${pName(p)} 특이사항">${esc(x.memo||'')}</textarea></div>
     </div>`;
-    // ⚠️ 예전엔 여기서 화면 객체만 고쳤다 — 시트엔 안 써져서 닫으면 사라지고,
-    //    20초 자동 새로고침이 오면 눈앞에서 되돌아갔다. 바뀐 칸만 실제로 저장한다.
-    //    플랫폼별 값은 반드시 'tk.'/'ig.' 접두어 — 안 붙이면 인스타를 고쳐도 틱톡 열에 써진다.
-    const was = { h:x.h, c1:x.c1?x.c1.url:'', c2:x.c2?x.c2.url:'', snd:x.snd, sec:x.sec, hash:x.hash, mir:d.mir, memo:x.memo||'', sched:d.sched||'', fixed:d.fixed||'' };
+    /* ⚠️ 예전엔 여기서 화면 객체만 고쳤다 — 시트엔 안 써져서 닫으면 사라지고,
+       20초 자동 새로고침이 오면 눈앞에서 되돌아갔다. 바뀐 칸만 실제로 저장한다.
+       플랫폼별 값은 반드시 'tk.'/'ig.' 접두어 — 안 붙이면 인스타를 고쳐도 틱톡 열에 써진다. */
+    const wasP = {};
+    eps.forEach(pp=>{ const x=d[pp];
+      wasP[pp] = { h:x.h, c1:x.c1?x.c1.url:'', c2:x.c2?x.c2.url:'', snd:x.snd, sec:x.sec, hash:x.hash, memo:x.memo||'' }; });
+    const wasS = { mir:d.mir, sched:d.sched||'', fixed:d.fixed||'' };
     save = ()=>{
-      if(val('reH')) x.h=val('reH');
-      const c1=val('reC1'); x.c1 = c1?{label:x.c1?x.c1.label:'🎬 영상①', url:c1}:'';
-      const c2=val('reC2'); x.c2 = c2?{label:x.c2?x.c2.label:'🎬 영상②', url:c2}:'';
-      x.snd=selVal('reSnd'); x.sec=selVal('reSec'); x.hash=selVal('reHash'); d.mir=selVal('reMir'); x.memo=val('rePMemo');
-      if(x.h!==was.h)            put(p+'.link', toLinkUrl(p, x.h));
-      if(c1!==was.c1)            put(p+'.contentA', c1);
-      if(c2!==was.c2)            put(p+'.contentB', c2);
-      if(x.snd!==was.snd)        put(p+'.soundOk',    REV_TEXT[x.snd]);
-      if(x.sec!==was.sec)        put(p+'.soundSection', REV_TEXT[x.sec]);
-      if(x.hash!==was.hash)      put(p+'.hashtagOk',  REV_TEXT[x.hash]);
-      if(x.memo!==was.memo)      put(p+'.memo', x.memo);
-      if(d.mir!==was.mir)        put('mirror', {m1:'미러링',m0:'오리지널',mx:''}[d.mir]);
+      eps.forEach(pp=>{
+        const x=d[pp], w=wasP[pp];
+        if(val('reH_'+pp)) x.h=val('reH_'+pp);
+        const c1=val('reC1_'+pp); x.c1 = c1?{label:x.c1?x.c1.label:'🎬 영상①', url:c1}:'';
+        const c2=val('reC2_'+pp); x.c2 = c2?{label:x.c2?x.c2.label:'🎬 영상②', url:c2}:'';
+        x.snd=selVal('reSnd_'+pp); x.sec=selVal('reSec_'+pp); x.hash=selVal('reHash_'+pp); x.memo=val('rePMemo_'+pp);
+        if(x.h!==w.h)         put(pp+'.link', toLinkUrl(pp, x.h));
+        if(c1!==w.c1)         put(pp+'.contentA', c1);
+        if(c2!==w.c2)         put(pp+'.contentB', c2);
+        if(x.snd!==w.snd)     put(pp+'.soundOk',      REV_TEXT[x.snd]);
+        if(x.sec!==w.sec)     put(pp+'.soundSection', REV_TEXT[x.sec]);
+        if(x.hash!==w.hash)   put(pp+'.hashtagOk',    REV_TEXT[x.hash]);
+        if(x.memo!==w.memo)   put(pp+'.memo', x.memo);
+      });
+      d.mir=selVal('reMir');
+      if(d.mir!==wasS.mir) put('mirror', {m1:'미러링',m0:'오리지널',mx:''}[d.mir]);
       // 날짜는 사람 단위 값이라 접두어가 없다(틱톡·인스타가 같은 날짜를 쓴다).
       const _sc = isoToMD(val('reSched'));
-      if(_sc !== (was.sched||'')) { d.sched = _sc; put('schedDate', _sc); }
+      if(_sc !== wasS.sched) { d.sched = _sc; put('schedDate', _sc); }
       const _fxs = (document.getElementById('reFixedState')||{}).dataset;
       const _fx = (_fxs && _fxs.v) ? _fxs.v : isoToMD(val('reFixed'));
-      if(_fx !== (was.fixed||'')) { d.fixed = _fx; put('fixedDate', _fx); }
+      if(_fx !== wasS.fixed) { d.fixed = _fx; put('fixedDate', _fx); }
     };
-
   } else if(state.view==='garden'){
     if(!d[p]){ toast('이 크리에이터는 '+pName(p)+' 미참여예요.'); return; }
     const x=d[p];

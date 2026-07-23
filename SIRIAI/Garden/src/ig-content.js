@@ -45,6 +45,12 @@ function inWindow(post, since) {
 // delayMs 2000: 인스타는 프로필을 여는 속도로는 잘 안 막힌다(실측). 3초는 과했다.
 // only: 특정 계정만 — '내일 올리는 8명만' 같은 부분 스캔에 쓴다. 전체를 30분 돌 이유가 없다.
 export async function runIgContentScan(campaign, { onProgress, onWarmup, waitForGo, since = '', delayMs = 2000, limit = 0, shouldStop, only } = {}) {
+  // 캠페인 시작일이 있으면 그 전 게시물은 볼 이유가 없다 — 프로필을 직접 여는 경로에서
+  // '어디까지 거슬러 올라갈지'를 정해 준다. 없으면 21일 전까지만(캠페인 콘텐츠는 늘 최근이다).
+  if (!since) {
+    const st = campaign.campaignStart ? new Date(campaign.campaignStart) : new Date(Date.now() - 21 * 86400000);
+    if (!isNaN(st)) since = st.toISOString();
+  }
   const hashtags = campaign.campaignHashtags || [];
   const all = await getAccountsFromSheet(campaign.sheet);
   const accounts = all.map((a) => ({ ...a, igHandle: igHandleOf(a) })).filter((a) => a.igHandle && a.row);
@@ -128,7 +134,8 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
         // ② 프로필을 직접 열어 최근 게시물을 하나씩 확인한다 — 사람이 하는 것과 같은 경로.
         //    느리지만 막혔을 때 스캔 전체가 멈추는 것보다 낫다.
         if (!p) {
-          try { p = await fetchIgPostsViaPage(b.ctx, a.igHandle); via = 'page'; }
+          // 캠페인 해시태그가 붙은 게시물 2개(콘텐츠①②)를 찾으면 거기서 멈춘다 — 계정당 1분이 십몇 초로 준다.
+          try { p = await fetchIgPostsViaPage(b.ctx, a.igHandle, { isMatch: (post) => matchPost(post, hashtags).hit, since }); via = 'page'; }
           catch (e) {
             failedHandles.add(a.igHandle);
             detected[a.igHandle] = { uploaded: false, scanFailed: true, error: e.message };

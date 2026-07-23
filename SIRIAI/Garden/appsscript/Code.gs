@@ -635,6 +635,23 @@ function addPerson_(p) {
   return { ok: true, row: r };
 }
 
+// 셀 하나 쓰기. 실패해도 절대 위로 던지지 않는다 —
+// 예전엔 드롭다운(데이터 확인) 규칙에 걸린 값 하나가 요청 전체를 HTML 오류페이지로 만들어
+// 화면엔 '브릿지가 JSON이 아닌 응답을 줬어요' 만 떴다. 무엇이 왜 거절됐는지 알 수가 없었다.
+function setCell_(sh, row, col, value, field, skipCell) {
+  try {
+    sh.getRange(row, col).setValue(value);
+    return true;
+  } catch (err) {
+    var m = String((err && err.message) || err);
+    if (/validation|유효|확인/i.test(m)) {
+      m = '시트의 드롭다운(데이터 확인) 규칙이 이 값을 거부했어요: "' + value + '" — 시트 드롭다운 목록과 글자가 정확히 같아야 해요.';
+    }
+    skipCell(field, m);
+    return false;
+  }
+}
+
 function doPost(e) {
   try {
     var body;
@@ -719,8 +736,8 @@ function doPost(e) {
         col = (PLAT_COL[pf] && PLAT_COL[pf][ff]) || 0;
         if (!col) { skipCell(c.field, '이 마스터엔 해당 플랫폼(' + pf + ') 열이 없어요'); continue; }
         if (!c.row) continue;
-        sh.getRange(c.row, col).setValue(c.value);
-        n++; continue;
+        if (setCell_(sh, c.row, col, c.value, c.field, skipCell)) n++;
+        continue;
       }
       if (c.field) {
         // 헤더에서 못 찾아 폴백한 필드 = 어느 열인지 모르는 것. 쓰면 엉뚱한 열을 덮어쓴다 → 거부.
@@ -737,8 +754,7 @@ function doPost(e) {
         }
       } else col = c.col;                                 // 옛 호출부 하위호환
       if (!c.row || !col) continue;
-      sh.getRange(c.row, col).setValue(c.value);
-      n++;
+      if (setCell_(sh, c.row, col, c.value, c.field || ('col'+col), skipCell)) n++;
     }
     // skipped 를 반드시 올려보낸다 — 안 그러면 '조용히 아무것도 안 써짐'이 성공으로 보인다.
     return json_({ updated: n, skipped: skipped, skipReasons: skipReasons,

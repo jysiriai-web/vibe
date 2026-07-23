@@ -219,42 +219,81 @@ export async function fetchIgProfileViaPage(ctx, handleRaw, { timeout = 60000 } 
     };
   } finally { try { await page.close(); } catch {} }
 }
-
-// ── 폴백: 게시물 목록을 화면에서 직접 읽기 ────────────────────────────────
-// API 가 막히면 업로드 감지가 통째로 멈춘다(게시물 목록이 API 로만 온다). 그래서 사람이
-// 하는 것과 같은 경로를 둔다 — 프로필을 열어 최근 게시물 링크를 줍고, 그 게시물을 열어
-// 캡션을 읽는다. 계정당 페이지를 여러 번 열어 느리지만, 막혔을 때 멈추는 것보다 낫다.
+// 프로필 그리드 한 장만 읽고, 정말 필요한 게시물만 연다.
 //
-// max: 몇 개까지 볼지. 캠페인 기간 콘텐츠만 찾으면 되므로 최근 몇 개면 충분하다.
-export async function fetchIgPostsViaPage(ctx, handleRaw, { max = 8, timeout = 60000 } = {}) {
+// 핵심: 그리드 썸네일의 img[alt] 에 캡션이 해시태그까지 통째로 들어온다.
+//   "소원을 말해봐💞 @girlsgeneration #kpop #dance"
+// 그래서 캠페인 해시태그가 붙었는지를 페이지 한 장으로 판정할 수 있다. 예전엔 그걸 모르고
+// 게시물을 8개씩 일일이 열어 계정당 1분이 걸렸다(48명이면 50분).
+//
+// 다만 캡션이 없는 게시물은 alt 가 "Photo by 이름 on 2022년 11월 13일." 꼴로 온다.
+// 그건 '캠페인 게시물이 아니다'가 아니라 '판단 불가'라서, 그런 것만 열어서 확인한다.
+// 좋아요·댓글·작성시각은 alt 에 없으므로 '맞는 게시물'만 열어서 채운다(보통 0~2개).
+export async function fetchIgPostsViaPage(ctx, handleRaw, { max = 12, timeout = 60000, isMatch = null, needed = 2, since = '' } = {}) {
   const handle = toIgHandle(handleRaw);
   const page = await ctx.newPage();
   try {
     await page.goto(`https://www.instagram.com/${handle}/`, { waitUntil: 'domcontentloaded', timeout });
-    await page.waitForTimeout(2500);
-    // 그리드의 게시물 링크. 순서가 곧 최신순이다.
-    const links = await page.evaluate((n) => {
+    await page.waitForTimeout(2200);
+    // 그리드의 게시물 링크 + 썸네일 alt(캡션). 순서가 곧 최신순이다.
+    const grab = (n) => page.evaluate((n2) => {
       const seen = [];
       document.querySelectorAll('a[href*="/p/"], a[href*="/reel/"]').forEach((a) => {
         const m = a.getAttribute('href').match(/\/(p|reel)\/([A-Za-z0-9_-]+)/);
         if (!m) return;
         const key = m[2];
-        if (!seen.some((x) => x.shortcode === key)) seen.push({ shortcode: key, kind: m[1] });
+        if (seen.some((x) => x.shortcode === key)) return;
+        const img = a.querySelector('img');
+        seen.push({ shortcode: key, kind: m[1], alt: img ? (img.getAttribute('alt') || '') : '' });
       });
-      return seen.slice(0, n);
-    }, max);
+      return seen.slice(0, n2);
+    }, n);
+    // 그리드는 늦게 그려질 때가 있다. 한 번 비었다고 '못 읽음'으로 접으면 멀쩡한 계정이 실패로 남는다.
+    let links = await grab(max);
+    if (!links.length) { await page.waitForTimeout(2500); links = await grab(max); }
 
     // 그리드를 못 읽은 것과 '정말 게시물이 없는 것'은 화면상 구분이 안 된다(로그인 월·차단·화면 변경).
     // 여기서 조용히 빈 배열을 돌려주면 호출부가 '미업로드'로 확정해버린다 → 실패로 던진다.
     if (!links.length) { const e = new Error('프로필 페이지에서 게시물 목록을 못 읽음(로그인 월·차단·화면 변경)'); e.code = 'EMPTY'; throw e; }
 
-    const posts = [];
+    // alt 가 캡션이 아니라 인스타가 만든 설명문이면 캡션을 모르는 것이다 → 열어봐야 안다.
+    const noCaption = (t) => !String(t || '').trim()
+      || /^(Photo|Video|Reel|사진|동영상)\s+by\s+/i.test(String(t).trim())
+      || /^(Photo|Video|Reel)\s+shared\s+by/i.test(String(t).trim());
+
+    // 그리드에서 얻은 '얇은' 게시물. 캡션만 있고 좋아요·시각은 없다.
+    const posts = links.map((l) => ({
+      shortcode: l.shortcode,
+      link: `https://www.instagram.com/${l.kind}/${l.shortcode}/`,
+      isVideo: l.kind === 'reel',
+      caption: noCaption(l.alt) ? '' : l.alt,
+      views: null,
+      likes: null,
+      comments: null,
+      takenAt: null,
+      thin: true,
+    }));
+
+    // 열어볼 것만 고른다: ① 캠페인 해시태그가 보이는 것 ② 캡션을 모르는 것.
+    // 판정자가 없으면(옛 호출) 예전처럼 전부 연다.
+    const idxToOpen = [];
+    for (let i = 0; i < posts.length; i++) {
+      if (!isMatch) { idxToOpen.push(i); continue; }
+      if (noCaption(links[i].alt) || isMatch(posts[i])) idxToOpen.push(i);
+    }
+
     const failed = [];
     let others = 0;   // 남의 게시물로 판단해 건너뛴 수 — 실패 메시지에 근거로 남긴다
-    for (const l of links) {
+    let opened = 0, matched = 0;
+    const sinceMs = since ? new Date(since).getTime() : 0;
+    let oldStreak = 0;
+    for (const i of idxToOpen) {
+      const l = links[i];
       try {
         await page.goto(`https://www.instagram.com/${l.kind}/${l.shortcode}/`, { waitUntil: 'domcontentloaded', timeout });
-        await page.waitForTimeout(1500);
+        // og:description 은 <head> 에 있어 domcontentloaded 면 대개 이미 있다.
+        await page.waitForTimeout(1000);
+        opened++;
         const info = await page.evaluate(() => {
           const og = document.querySelector('meta[property="og:description"]');
           const t = document.querySelector('time[datetime]');
@@ -271,9 +310,10 @@ export async function fetchIgPostsViaPage(ctx, handleRaw, { max = 8, timeout = 6
         const owner = (ownerHead.match(/\(@([A-Za-z0-9._]+)\)/) || ownerHead.match(/(?:^|-\s*)([A-Za-z0-9._]+)\s+on\s+Instagram/i) || [])[1];
         const headHasMe = ownerHead.toLowerCase().includes(handle.toLowerCase());
         // 인스타가 붙이는 머리말('N likes, M comments -' · 'on Instagram' · '좋아요 N개')이 보일 때만 믿는다.
-        // 형식이 바뀌어 캡션이 통째로 들어온 경우엔 캡션 속 멘션을 주인으로 오인하게 된다.
         const looksLikeHead = /likes?|comments?|좋아요|댓글|Instagram/i.test(ownerHead);
-        if (owner && looksLikeHead && !headHasMe && owner.toLowerCase() !== handle.toLowerCase()) { others++; await sleep(700); continue; }
+        if (owner && looksLikeHead && !headHasMe && owner.toLowerCase() !== handle.toLowerCase()) {
+          others++; posts[i].foreign = true; await sleep(500); continue;
+        }
         const head = d.match(/^([\d,]+)\s*likes?,\s*([\d,]+)\s*comments?/i);
         const body = d.match(/:\s*"([\s\S]*)"\s*$/);
         // 릴스는 time[datetime] 이 없을 때가 있다 — 앞머리의 날짜를 쓴다.
@@ -281,24 +321,37 @@ export async function fetchIgPostsViaPage(ctx, handleRaw, { max = 8, timeout = 6
         let taken = info.dt || null;
         if (!taken && dateTxt) { const t2 = new Date(dateTxt[1]); if (!isNaN(t2)) taken = t2.toISOString(); }
         const num = (v) => (v == null ? null : Number(String(v).replace(/,/g, '')));
-        posts.push({
-          shortcode: l.shortcode,
-          link: `https://www.instagram.com/${l.kind}/${l.shortcode}/`,
-          isVideo: l.kind === 'reel',
-          caption: body ? body[1] : d,
-          views: null,
+        // 연 게시물은 '진짜' 값으로 덮는다. 캡션은 og 쪽이 더 정확하다.
+        posts[i] = {
+          ...posts[i],
+          caption: body ? body[1] : (d || posts[i].caption),
           likes: head ? num(head[1]) : null,
           comments: head ? num(head[2]) : null,
           takenAt: taken,
-        });
+          thin: false,
+        };
+        if (isMatch && isMatch(posts[i])) matched++;
+        // 필요한 만큼 찾았으면 나머지는 열지 않는다. 콘텐츠①②면 충분하다.
+        if (isMatch && matched >= needed) break;
+        // 캠페인 기간 밖으로 넘어갔으면 더 볼 이유가 없다(고정 게시물 대비 연속 3개).
+        if (sinceMs && taken) {
+          if (new Date(taken).getTime() < sinceMs) { if (++oldStreak >= 3) break; }
+          else oldStreak = 0;
+        }
       } catch { failed.push(l.shortcode); /* 이 게시물만 건너뛴다 — 하나 못 봤다고 계정 전체를 포기하지 않는다 */ }
-      await sleep(700);
+      await sleep(500);
     }
-    // 링크는 봤는데 한 개도 못 연 경우도 '게시물 없음'과 구분해야 한다 — 역시 실패로 던진다.
-    if (!posts.length) { const e = new Error(`게시물 ${links.length}개를 못 열었어요(${failed.length}건 실패 · ${others}건은 다른 계정 것)`); e.code = 'EMPTY'; throw e; }
-    // 그리드 순서가 최신순이 아닐 때가 있다(고정 게시물 등) → 시각으로 다시 세운다.
-    posts.sort((x, y) => new Date(y.takenAt || 0) - new Date(x.takenAt || 0));
-    return { handle, followers: null, name: '', isPrivate: false, postCount: null, posts, via: 'page' };
+    // 열어야 할 게 있었는데 한 개도 못 열었으면 '게시물 없음'과 구분해야 한다 — 실패로 던진다.
+    // (열 게 애초에 없었으면 = 그리드 캡션만으로 '해당 없음'을 확인한 것이라 정상이다.)
+    if (idxToOpen.length && !opened) {
+      const e = new Error(`게시물 ${idxToOpen.length}개를 못 열었어요(${failed.length}건 실패 · ${others}건은 다른 계정 것)`);
+      e.code = 'EMPTY'; throw e;
+    }
+    // 남의 게시물은 빼고 돌려준다.
+    const mine = posts.filter((x) => !x.foreign);
+    // 그리드 순서가 최신순이 아닐 때가 있다(고정 게시물 등) → 시각을 아는 것부터 최신순으로.
+    mine.sort((x, y) => new Date(y.takenAt || 0) - new Date(x.takenAt || 0));
+    return { handle, followers: null, name: '', isPrivate: false, postCount: null, posts: mine, via: 'page', opened };
   } finally { try { await page.close(); } catch {} }
 }
 
