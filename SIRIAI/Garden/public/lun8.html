@@ -1632,7 +1632,7 @@ function viewUploadAll(){
     // 표시는 원본 희망일 그대로(옆에 확정일 열이 있어 둘을 비교하는 자리다). 정렬만 기준일로 — 안 그러면 순서와 지연이 어긋난다.
     { key:'sched', label:'예정일', sv:r=>schedKey(dueDay(r)),
       cell:r=> r.sched ? `<b>${esc(r.sched)}</b>` : '<span class="cmuted">미정</span>' },
-    { key:'fixed', label:'확정일', sv:r=>String(r.fixed||''), cell:r=>fixedCell(r) },
+    { key:'fixed', label:'확정일', sv:r=>fixedKey(r.fixed), cell:r=>fixedCell(r) },
     { key:'edit', label:'', cell:r=>editBtn(r.id) },
   ];
   const pairs = [];
@@ -1847,7 +1847,7 @@ function viewUploadLate(){
     { key:'sched', label:'예정일', sv:r=>schedKey(dueDay(r.d)), cell:r=> r.d.sched?`<b>${esc(r.d.sched)}</b>`:'<span class="cmuted">미정</span>' },
     { key:'late', label:'경과', cls:'num', thcls:'num', sv:r=>-daysLate(r.d,r.p),
       cell:r=>{ const n=daysLate(r.d,r.p); return n>0?`<span class="chip needs">${n}일 지남</span>`:'<span class="cmuted">오늘</span>'; } },
-    { key:'fixed', label:'확정일 · 진행상태', sv:r=>String(r.d.fixed||''), cell:r=>fixedCell(r.d) },
+    { key:'fixed', label:'확정일 · 진행상태', sv:r=>fixedKey(r.d.fixed), cell:r=>fixedCell(r.d) },
     { key:'edit', label:'', cell:r=>editBtn(r.d.id, r.p) },
   ];
   const sent = D.filter(inCampaign).filter(isMailSent).length;
@@ -1913,6 +1913,24 @@ function likelihood(d,p){
   if(d.sched) return {k:'sched',t:'예정 '+esc(d.sched),rank:2};
   return {k:'maybe',t:'가능성 낮음',rank:1};
 }
+/* 정렬값. rank 만 쓰면 '예정'이 전부 같은 값이라 눌러도 순서가 안 바뀐다 —
+   화면엔 '예정 7/24' 처럼 날짜가 적혀 있는데 날짜를 안 보고 있었다.
+   등급으로 먼저 묶고, 같은 등급 안에서는 날짜순으로 가른다. */
+function lkSort(d,p){
+  const l = likelihood(d,p);
+  return l.rank * 100000 + (l.k==='sched' ? schedKey(d.sched) : 0);
+}
+/* 가드닝 상태 정렬 순서. 글자순(filling<hold<scan<target)으로 두면
+   '대상'이 맨 뒤로 가서 급한 것부터 못 본다. 기본 정렬과 같은 순서를 쓴다. */
+const G_RANK = { target:3, filling:2, scan:1, hold:0 };
+/* 확정일 정렬 — 이 칸엔 날짜만 있는 게 아니라 진행상태('확정메일 발송'·'최종 드랍')도 들어간다.
+   문자열로 비교하면 한글과 날짜가 섞여 뒤죽박죽이 된다. 날짜는 날짜순, 상태는 그 뒤로. */
+function fixedKey(v){
+  const t = String(v==null?'':v).trim();
+  if(!t) return 99999;
+  if(isFixedState(t)) return 90000 + FIXED_STATES.indexOf(t);
+  return schedKey(t);
+}
 
 /* ============ 뷰: 가드닝 (garden.js 방식 · 대상만 노출 · 보류 개념) ============ */
 function viewGarden(){
@@ -1923,8 +1941,7 @@ function viewGarden(){
   let rows = D.filter(d=> d.plats.includes(p) && d[p]!==null).filter(d=>{ const st=gStat(d,p).st; return st!=='ok' && st!=='na'; });
   if(!state.gardenHold) rows = rows.filter(d=> gStat(d,p).st!=='hold');
   // 기본 정렬: 대상 먼저 → filling → 보류/스캔, 그 안에서 팔로워 낮은(급한) 순
-  const stRank = { target:3, filling:2, scan:1, hold:0 };
-  rows = rows.slice().sort((a,b)=> (stRank[gStat(b,p).st]-stRank[gStat(a,p).st]) || ((a[p].fol||0)-(b[p].fol||0)));
+  rows = rows.slice().sort((a,b)=> (G_RANK[gStat(b,p).st]-G_RANK[gStat(a,p).st]) || ((a[p].fol||0)-(b[p].fol||0)));
 
   const stChip = st => ({ target:'<span class="chip needs">가드닝 대상</span>', hold:'<span class="chip stale">보류 · 업로드 대기</span>', filling:'<span class="lk sched">채워지는 중</span>', scan:'<span class="cmuted">스캔 대기</span>' }[st] || '');
   const cols = [
@@ -1935,9 +1952,9 @@ function viewGarden(){
     { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
     { key:'h', label:pName(p)+' 닉네임', cls:'handle', grp:p, sv:r=>r[p].h, cell:r=>`${acctLink(r[p].h, p)}` },
-    { key:'lk', label:'업로드 가능성', sv:r=>likelihood(r,p).rank, cell:r=>{ const l=likelihood(r,p); return `<span class="lk ${l.k}">${l.t}</span>`; } },
+    { key:'lk', label:'업로드 가능성', sv:r=>lkSort(r,p), cell:r=>{ const l=likelihood(r,p); return `<span class="lk ${l.k}">${l.t}</span>`; } },
     { key:'fol', label:'현재 팔로워', cls:'num', thcls:'num', sv:r=> r[p].fol==null?-1:r[p].fol, cell:r=> r[p].fol==null?`<span class="cmuted">스캔 대기</span>`:nf(r[p].fol) },
-    { key:'st', label:'상태', sv:r=>gStat(r,p).st, cell:r=> stChip(gStat(r,p).st) },
+    { key:'st', label:'상태', sv:r=>G_RANK[gStat(r,p).st] ?? -1, cell:r=> stChip(gStat(r,p).st) },
     { key:'order', label:'충전량', cls:'num', thcls:'num', sv:r=>gStat(r,p).order, cell:r=>{ const g=gStat(r,p);
         if(g.st==='target') return `<b>${nf(g.order)}</b>`;
         if(g.st==='hold')   return `<span class="cmuted">${nf(g.order)} <small>업로드 시</small></span>`;
@@ -1966,8 +1983,7 @@ function viewGardenAll(){
     if(st==='hold' && !state.gardenHold) return;
     pairs.push({ d, p, id:d.id+'|'+p, g:gStat(d,p) });
   }));
-  const stRank = { target:3, filling:2, scan:1, hold:0 };
-  const rows = pairs.slice().sort((a,b)=> (stRank[b.g.st]-stRank[a.g.st]) || ((a.d[a.p].fol||0)-(b.d[b.p].fol||0)));
+  const rows = pairs.slice().sort((a,b)=> (G_RANK[b.g.st]-G_RANK[a.g.st]) || ((a.d[a.p].fol||0)-(b.d[b.p].fol||0)));
   const stChip = st => ({ target:'<span class="chip needs">가드닝 대상</span>', hold:'<span class="chip stale">보류 · 업로드 대기</span>', filling:'<span class="lk sched">채워지는 중</span>', scan:'<span class="cmuted">스캔 대기</span>' }[st] || '');
   const cols = [
     { key:'pick', label: LOCAL.on?gPickAllBox():'', hide:!LOCAL.on, sortable:false, cell:r=> !LOCAL.on ? '' : r.g.st==='target'?`<input type="checkbox" data-gpick="${r.d.id}|${r.p}"${gPicked(r.d.id,r.p)?' checked':''}>`
@@ -1976,10 +1992,10 @@ function viewGardenAll(){
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.d.nick, cell:r=>nickCell(r.d) },
     { key:'plat', label:'플랫폼', sv:r=>r.p, cell:r=>`<span class="plat-pill ${r.p}">${pName(r.p)}</span>` },
     { key:'h', label:'닉네임', cls:'handle', sv:r=>r.d[r.p].h, cell:r=>acctLink(r.d[r.p].h, r.p) },
-    { key:'lk', label:'업로드 가능성', sv:r=>likelihood(r.d,r.p).rank, cell:r=>{ const l=likelihood(r.d,r.p); return `<span class="lk ${l.k}">${l.t}</span>`; } },
+    { key:'lk', label:'업로드 가능성', sv:r=>lkSort(r.d,r.p), cell:r=>{ const l=likelihood(r.d,r.p); return `<span class="lk ${l.k}">${l.t}</span>`; } },
     { key:'fol', label:'현재 팔로워', cls:'num', thcls:'num', sv:r=> r.d[r.p].fol==null?-1:r.d[r.p].fol,
       cell:r=> r.d[r.p].fol==null?`<span class="cmuted">스캔 대기</span>`:nf(r.d[r.p].fol) },
-    { key:'st', label:'상태', sv:r=>r.g.st, cell:r=>stChip(r.g.st) },
+    { key:'st', label:'상태', sv:r=>G_RANK[r.g.st] ?? -1, cell:r=>stChip(r.g.st) },
     { key:'order', label:'충전량', cls:'num', thcls:'num', sv:r=>r.g.order, cell:r=>{
         if(r.g.st==='target') return `<b>${nf(r.g.order)}</b>`;
         if(r.g.st==='hold')   return `<span class="cmuted">${nf(r.g.order)} <small>업로드 시</small></span>`;
