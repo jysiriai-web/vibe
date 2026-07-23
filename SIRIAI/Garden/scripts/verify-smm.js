@@ -4,7 +4,8 @@
 //
 //   node scripts/verify-smm.js                        기본(.env 의 SMMKINGS_API_KEY)
 //   node scripts/verify-smm.js --find "instagram follow"
-//   node scripts/verify-smm.js --url https://다른패널/api/v2 --key <키> --find instagram
+//   node scripts/verify-smm.js --url https://realsite.shop/api/v2 --keyenv REALSITE_API_KEY --find instagram
+//        ↑ 권장: 키는 .env 에 두고 변수 이름만 지목한다(명령줄에 적으면 셸 기록에 남는다)
 //   node scripts/verify-smm.js --id 3693              그 번호가 무슨 서비스인지 확인
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -17,13 +18,16 @@ loadEnv();
 // ── 인자 파싱 (의존성 0)
 const argv = process.argv.slice(2);
 const arg = (name, dflt) => { const i = argv.indexOf('--' + name); return i >= 0 && argv[i + 1] ? argv[i + 1] : dflt; };
-const key = arg('key', process.env.SMMKINGS_API_KEY);
+// --keyenv 로 .env 의 다른 변수를 지목한다. 키를 명령줄에 적으면 셸 기록에 그대로 남는다.
+const keyEnv = arg('keyenv', '');
+const key = arg('key', keyEnv ? process.env[keyEnv] : process.env.SMMKINGS_API_KEY);
 const url = arg('url', process.env.SMM_API_URL);
 const find = arg('find', '');
 const wantIds = argv.filter((a, i) => argv[i - 1] === '--id');
 
 if (!key) {
-  console.error('\n❌ 키가 없습니다. Garden/.env 의 SMMKINGS_API_KEY 를 채우거나 --key <키> 로 넘기세요.\n');
+  if (keyEnv) console.error('\n❌ .env 에 ' + keyEnv + ' 가 없어요. 그 줄을 추가하고 저장한 뒤 다시 실행하세요.\n');
+  else console.error('\n❌ 키가 없습니다. Garden/.env 에 키를 넣고 --keyenv <변수이름> 으로 지목하세요.\n');
   process.exit(1);
 }
 
