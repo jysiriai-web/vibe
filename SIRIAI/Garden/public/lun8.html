@@ -839,7 +839,9 @@ const CAMPAIGNS = {
 /* ============ 데이터 (서버 API · 1행=1사람) ============ */
 /* 손으로 쓴 10명 + 34명 시드는 통째로 걷어냈다. 이제 화면의 유일한 출처는 마스터시트다. */
 let D = [];
-const PAY_OPTS = ['아마존','구글','애플'];
+/* 시트 드롭다운과 글자까지 같아야 한다 — 다르면 사람이 고른 값을 시트가 튕겨낸다.
+   실제 목록은 브릿지 ?action=dropdowns 로 확인한다(코드에 박아두고 시트만 바꾸면 또 어긋난다). */
+const PAY_OPTS = ['현금','기프트카드'];
 
 /* 같은 서버(3737)가 이 HTML을 서빙하므로 상대경로가 기본 — 포트를 바꿔도 따라온다.
    file:// 로 파일을 직접 열었을 때만 로컬 워커 주소로 되돌아간다. */
@@ -943,7 +945,7 @@ function fromApi(a){
     noUpload: false, oddsLow: false,
     notice: !!String(a.notice==null?'':a.notice).trim(),   // 확정메일 발송 여부 — 모집 탭에서 체크
     tk: tk, ig: ig,
-    settle: { pay: PAY_OPTS.includes(String(a.pay||'').trim()) ? String(a.pay).trim() : '아마존',
+    settle: { pay: PAY_OPTS.includes(String(a.pay||'').trim()) ? String(a.pay).trim() : '',
               best: !!String(a.best==null?'':a.best).trim(),
               override: numOrNull(a.priceOverride),
               paid: paidFlag(a.paid),
@@ -958,7 +960,7 @@ function paidFlag(v){
   if(typeof v==='boolean') return v;
   const t = String(v==null?'':v).trim().toLowerCase();
   if(t==='') return false;
-  return !/^(x|0|false|no|미지급|미완료|대기)$/.test(t);
+  return !/^(x|0|false|no|미지급|미입금|미완료|대기)$/.test(t);
 }
 
 /* 서버의 best 목록을 최우수 체크로 옮긴다. 아직 빈 배열이라 원소 모양을 단정할 수 없어
@@ -1040,7 +1042,8 @@ const REV_TEXT = { p:'준수', f:'미준수', n:'' };   // 시트 드롭다운 �
 /* 시트 어휘는 글자 하나까지 맞아야 한다 — 다르면 드롭다운이 '잘못된 값' 경고를 달고,
    사람이 시트에서 고른 값과 화면이 쓴 값이 갈린다. (우수 선정: 우수 / 빈칸) */
 const BEST_TEXT = on => (on ? '우수' : '');
-const PAID_MARK = '완료';
+// 빈칸이 아니라 '미입금'을 쓴다 — 시트 드롭다운에 있는 말이고, 빈칸은 '아직 안 봤다'와 구분이 안 된다.
+const PAID_TEXT = on => (on ? '입금' : '미입금');
 let saving = 0;
 async function saveField(row, field, value){
   // 시트에 없는 행(1행=머리, 화면에서 임시로 만든 10만번대)에 쓰면 브릿지가 범위 밖을 건드린다.
@@ -2247,7 +2250,7 @@ function viewSettle(){
   const cols = [
     { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
-    { key:'pay', label:'정산 방식', sv:r=>r.settle.pay, cell:r=>`<select class="pay-sel" data-pay="${r.id}">${PAY_OPTS.map(o=>`<option${o===r.settle.pay?' selected':''}>${o}</option>`).join('')}</select>` },
+    { key:'pay', label:'정산 방식', sv:r=>r.settle.pay, cell:r=>`<select class="pay-sel" data-pay="${r.id}"><option value=""${r.settle.pay?'':' selected'}>미정</option>${PAY_OPTS.map(o=>`<option${o===r.settle.pay?' selected':''}>${o}</option>`).join('')}</select>` },
     { key:'amt', label:'정산 금액', cls:'num', thcls:'num', sv:r=>settleCalc(r).amt, cell:r=>{ const s=settleCalc(r); return `<span class="amt" title="${s.bd}">${nf(s.amt)}엔<span class="tag ${s.tag[0]}">${s.tag[1]}</span></span>`; } },
     // 체크박스는 켜짐/꺼짐 둘뿐이라 '아직 안 봤다'와 '보고 아니라고 판단했다'가 구분되지 않았다.
     // 드롭다운이면 미확인 상태가 남아 무엇을 아직 안 봤는지 알 수 있다.
@@ -2630,7 +2633,7 @@ function openRowEdit(id, rowPlat){
         if(x.memo!==w.memo)   put(pp+'.memo', x.memo);
       });
       d.mir=selVal('reMir');
-      if(d.mir!==wasS.mir) put('mirror', {m1:'미러링',m0:'오리지널',mx:''}[d.mir]);
+      if(d.mir!==wasS.mir) put('mirror', {m1:'미러링',m0:'오리지널',mx:'미확인'}[d.mir]);
       // 날짜는 사람 단위 값이라 접두어가 없다(틱톡·인스타가 같은 날짜를 쓴다).
       const _sc = isoToMD(val('reSched'));
       if(_sc !== wasS.sched) { d.sched = _sc; put('schedDate', _sc); }
@@ -2683,7 +2686,7 @@ function openRowEdit(id, rowPlat){
     body = `<div class="mform">
       <div class="row2">
         <div class="row"><label class="h">정산 방식</label>
-          <select class="inp" id="rePay">${PAY_OPTS.map(o=>`<option${o===st.pay?' selected':''}>${o}</option>`).join('')}</select></div>
+          <select class="inp" id="rePay"><option value=""${st.pay?'':' selected'}>미정</option>${PAY_OPTS.map(o=>`<option${o===st.pay?' selected':''}>${o}</option>`).join('')}</select></div>
         <div class="row"><label class="h">개별단가 (엔 · 비우면 자동)</label><input class="inp" id="reOvr" type="number" value="${st.override==null?'':st.override}" placeholder="자동수식"></div>
       </div>
       <div class="row"><label class="h">우수 선정 <small>+10,000엔</small></label>
@@ -2701,7 +2704,7 @@ function openRowEdit(id, rowPlat){
       if(st.pay!==wasS.pay)           put('pay', st.pay);
       if(st.override!==wasS.override) put('override', st.override==null?'':st.override);
       if(st.best!==wasS.best)         put('best', BEST_TEXT(st.best));
-      if(st.paid!==wasS.paid)         put('paid', st.paid?PAID_MARK:'');
+      if(st.paid!==wasS.paid)         put('paid', PAID_TEXT(st.paid));
       if(st.memo!==wasS.memo)         put('settleMemo', st.memo);
     };
   }
@@ -2967,7 +2970,7 @@ document.getElementById('content').addEventListener('click', e=>{
     return; }
   const ed=e.target.closest('[data-edit]'); if(ed){ openRowEdit(+ed.dataset.edit, ed.dataset.editp||''); return; }
   // 입금 토글은 돈이 나갔다는 기록이다. 화면에만 남기면 20초 뒤 되돌아가 두 번 입금할 수 있다.
-  const pt=e.target.closest('[data-paidtog]'); if(pt){ const d=D.find(x=>x.id===+pt.dataset.paidtog); if(d){ d.settle.paid=!d.settle.paid; render(); saveField(d.id,'paid', d.settle.paid?PAID_MARK:''); } return; }
+  const pt=e.target.closest('[data-paidtog]'); if(pt){ const d=D.find(x=>x.id===+pt.dataset.paidtog); if(d){ d.settle.paid=!d.settle.paid; render(); saveField(d.id,'paid', PAID_TEXT(d.settle.paid)); } return; }
   const s=e.target.closest('.subtab'); if(s){ state.plat=s.dataset.plat; render(); return; }
   if(e.target.closest('#btnAddPerson')){ state.addForm=true; render(); return; }
   if(e.target.closest('#apCancel')){ state.addForm=false; render(); return; }
@@ -3030,7 +3033,7 @@ document.getElementById('content').addEventListener('change', e=>{
     return; }
   const mr=e.target.closest('[data-mir]');
   // 시트 드롭다운은 미러링 / 오리지널 / 미확인 셋뿐이다. '별개'를 보내면 시트가 '잘못된 값'으로 튕긴다.
-  if(mr){ const d=D.find(x=>x.id===+mr.dataset.mir); if(d){ d.mir=mr.value; render(); saveField(d.id,'mirror',{m1:'미러링',m0:'오리지널',mx:''}[mr.value]); } return; }
+  if(mr){ const d=D.find(x=>x.id===+mr.dataset.mir); if(d){ d.mir=mr.value; render(); saveField(d.id,'mirror',{m1:'미러링',m0:'오리지널',mx:'미확인'}[mr.value]); } return; }
   // 예전엔 '정산방식 → 아마존' 토스트만 띄웠다 — 저장으로 읽히는데 시트엔 아무것도 안 갔다.
   const py=e.target.closest('[data-pay]'); if(py){ const d=D.find(x=>x.id===+py.dataset.pay); if(d){ d.settle.pay=py.value; saveField(d.id,'pay',py.value); } return; }
   const bt=e.target.closest('[data-best]');

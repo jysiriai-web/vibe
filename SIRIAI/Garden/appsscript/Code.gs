@@ -165,6 +165,7 @@ function initCols_() {
     for (var r = 0; r < top.length; r++) {
       if (headerHasField_(top[r], 'link') && (headerHasField_(top[r], 'nick') || headerHasField_(top[r], 'company'))) {
         _dataSheet = sh; COL = resolveColsFromHeaders_(top[r]); PLAT_COL = resolvePlatCols_(top[r]);
+        _colInfo.headerRowNum = r + 1;   // 드롭다운 읽기 등에서 데이터 첫 행을 알아야 한다
         _colInfo.plats = {}; for (var pp in PLAT_COL) _colInfo.plats[pp] = Object.keys(PLAT_COL[pp]).length + '개 열';
         return;
       }
@@ -494,6 +495,31 @@ function writeState_(state) {
   }
 }
 
+
+// 시트에 실제로 걸린 드롭다운(데이터 확인) 목록을 그대로 읽어 준다.
+// 화면이 시트와 다른 어휘를 쓰면 사람이 고른 값이 시트에서 튕긴다 —
+// 어휘를 코드에 박아두지 말고 여기서 확인해 맞춘다.
+function readDropdowns_() {
+  var sh = getSheet_();
+  var head = _colInfo.headerRowNum || 1;
+  var out = {};
+  var r = head + 1;
+  for (var f in COL) {
+    var c = COL[f];
+    if (!c) continue;
+    try {
+      var dv = sh.getRange(r, c).getDataValidation();
+      if (!dv) continue;
+      var vals = dv.getCriteriaValues();
+      var list = (vals && vals[0] && vals[0].length != null) ? vals[0] : null;
+      if (!list) continue;
+      out[f] = { col: c, header: String(sh.getRange(head, c).getValue() || ''),
+                 list: list.map(function (v) { return String(v); }),
+                 strict: dv.getAllowInvalid() === false };
+    } catch (e) {}
+  }
+  return out;
+}
 function doGet(e) {
   try {
     if ((e.parameter.token || '') !== TOKEN) return json_({ error: 'unauthorized' });
@@ -501,6 +527,7 @@ function doGet(e) {
     var action = e.parameter.action || 'list';
     if (action === 'list') return json_({ accounts: readAccounts_(), colmap: COL, colinfo: _colInfo });
     if (action === 'orders') return json_({ orders: readOrders_() });
+    if (action === 'dropdowns') return json_({ dropdowns: readDropdowns_() });
     if (action === 'feedback') return json_({ feedback: readFeedback_() });
     if (action === 'state') return json_(readState_());
     if (action === 'bundle') {
