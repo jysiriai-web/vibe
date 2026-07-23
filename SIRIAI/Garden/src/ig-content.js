@@ -44,7 +44,7 @@ function inWindow(post, since) {
 
 // delayMs 2000: 인스타는 프로필을 여는 속도로는 잘 안 막힌다(실측). 3초는 과했다.
 // only: 특정 계정만 — '내일 올리는 8명만' 같은 부분 스캔에 쓴다. 전체를 30분 돌 이유가 없다.
-export async function runIgContentScan(campaign, { onProgress, onWarmup, waitForGo, since = '', delayMs = 2000, limit = 0, shouldStop, only } = {}) {
+export async function runIgContentScan(campaign, { onProgress, onWarmup, waitForGo, since = '', delayMs = 2000, limit = 0, shouldStop, only, concurrency = 5 } = {}) {
   // 캠페인 시작일이 있으면 그 전 게시물은 볼 이유가 없다 — 프로필을 직접 여는 경로에서
   // '어디까지 거슬러 올라갈지'를 정해 준다. 없으면 21일 전까지만(캠페인 콘텐츠는 늘 최근이다).
   if (!since) {
@@ -86,105 +86,116 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
   if (targets.length) {
     const b = await launchIgBrowser({ onWarmup, waitForGo });
     try {
-      const page = await openIgFetcher(b.ctx);
-      for (let i = 0; i < targets.length; i++) {
-        // 계정 하나가 끝날 때마다 확인. 중간에 끊으면 브라우저가 열린 채 남는다.
-        if (shouldStop && shouldStop()) { stopped = '중단했어요 — 여기까지는 시트에 저장됐습니다.'; break; }
-        const a = targets[i];
-        let p = null, via = 'api';
-        // ① API — 게시물 목록이 한 번에 온다. 막혔으면(apiDead) 건너뛰고 바로 페이지로.
-        if (!apiDead) {
-          try { p = await fetchIgProfileRetry(page, a.igHandle); }
-          catch (e) {
-            if (e.code === 'LOGGEDOUT' || e.code === 'BLOCKED') {
+      /* 인스타는 틱톡처럼 탭 몇 개 열었다고 막지 않는다(대표님이 수기로 확인한 사실).
+         순차로 돌면 계정당 10여 초 × 48명이라 10분 가까이 걸려서 여러 개를 동시에 연다.
+         ⚠️ 작업자마다 자기 페이지를 하나씩 갖는다 — 한 페이지를 나눠 쓰면 evaluate 가 서로 섞인다. */
+      let qi = 0, done = 0;
+      const runOne = async (page) => {
+        while (qi < targets.length) {
+          const i = qi++;
+          // 계정 하나가 끝날 때마다 확인. 중간에 끊으면 브라우저가 열린 채 남는다.
+          if (shouldStop && shouldStop()) { stopped = '중단했어요 — 여기까지는 시트에 저장됐습니다.'; break; }
+          const a = targets[i];
+          let p = null, via = 'api';
+          // ① API — 게시물 목록이 한 번에 온다. 막혔으면(apiDead) 건너뛰고 바로 페이지로.
+          if (!apiDead) {
+            try { p = await fetchIgProfileRetry(page, a.igHandle); }
+            catch (e) {
+              if (e.code === 'LOGGEDOUT' || e.code === 'BLOCKED') {
+                apiDead = true;
+                if (onProgress) onProgress({ note: 'API 가 막혀 프로필을 직접 열어 확인합니다 (느려요)' });
+              } else if (e.code === 'NOTFOUND') {
+                failedHandles.add(a.igHandle);
+                detected[a.igHandle] = { uploaded: false, scanFailed: true, error: e.message };
+                if (onProgress) onProgress({ done: ++done, total: targets.length, handle: a.igHandle, failed: true, error: e.message });
+                await sleep(delayMs); continue;
+              }
+            }
+          }
+          // 비공개(비팔로우) 계정은 200 에 is_private=true + edges:[] 를 준다 — API 가 막힌 게 아니다.
+          // 여기서 안 걸러내면 아래 조건에 걸려 apiDead 가 켜지고 남은 계정 전부가 느린 페이지 경로로 내려간다.
+          // 게다가 이 계정 자신도 페이지에서 게시물이 안 보여 '미업로드'로 확정된다 — 안 올린 사람과 섞이면 안 된다.
+          if (p && p.isPrivate && (!p.posts || !p.posts.length)) {
+            const msg = '비공개 계정 — 사람이 직접 확인해주세요';
+            failedHandles.add(a.igHandle);
+            detected[a.igHandle] = { uploaded: false, scanFailed: true, isPrivate: true, error: msg, checkedAt: new Date().toISOString() };
+            if (onProgress) onProgress({ done: ++done, total: targets.length, handle: a.igHandle, failed: true, error: msg });
+            await sleep(delayMs); continue;
+          }
+          // ⚠️ '막힘'만 폴백 조건으로 두면 안 된다. 인스타는 200 을 주면서 게시물 목록만
+          //    비워 보낸다(게시물 962개인데 edges 0). 그러면 스캔은 '정상 완료 · 감지 0건'
+          //    이라고 보고하면서 실제로는 아무것도 안 본 상태가 된다 — 가장 나쁜 실패다.
+          //    게시물이 있는 계정인데 목록이 비었으면 못 본 것으로 치고 직접 열어 확인한다.
+          if (p && (!p.posts || !p.posts.length) && (p.postCount == null || p.postCount > 0)) {
+            emptyStreak++;
+            // 한 계정만 비어 온 건 그 계정 사정일 수 있다. 연속 2회여야 API 가 죽었다고 본다.
+            if (!apiDead && emptyStreak >= 2) {
               apiDead = true;
-              if (onProgress) onProgress({ note: 'API 가 막혀 프로필을 직접 열어 확인합니다 (느려요)' });
-            } else if (e.code === 'NOTFOUND') {
+              if (onProgress) onProgress({ note: 'API 가 게시물 목록을 비워 보냅니다 — 프로필을 직접 열어 확인합니다 (느려요)' });
+            }
+            p = null;   // 이 계정 자체는 어차피 페이지로 한 번 더 본다
+          } else if (p) {
+            emptyStreak = 0;
+          }
+          // ② 프로필을 직접 열어 최근 게시물을 하나씩 확인한다 — 사람이 하는 것과 같은 경로.
+          //    느리지만 막혔을 때 스캔 전체가 멈추는 것보다 낫다.
+          if (!p) {
+            // 캠페인 해시태그가 붙은 게시물 2개(콘텐츠①②)를 찾으면 거기서 멈춘다 — 계정당 1분이 십몇 초로 준다.
+            try { p = await fetchIgPostsViaPage(b.ctx, a.igHandle, { isMatch: (post) => matchPost(post, hashtags).hit, since }); via = 'page'; }
+            catch (e) {
               failedHandles.add(a.igHandle);
               detected[a.igHandle] = { uploaded: false, scanFailed: true, error: e.message };
-              if (onProgress) onProgress({ done: i + 1, total: targets.length, handle: a.igHandle, failed: true, error: e.message });
+              if (onProgress) onProgress({ done: ++done, total: targets.length, handle: a.igHandle, failed: true, error: e.message });
               await sleep(delayMs); continue;
             }
           }
-        }
-        // 비공개(비팔로우) 계정은 200 에 is_private=true + edges:[] 를 준다 — API 가 막힌 게 아니다.
-        // 여기서 안 걸러내면 아래 조건에 걸려 apiDead 가 켜지고 남은 계정 전부가 느린 페이지 경로로 내려간다.
-        // 게다가 이 계정 자신도 페이지에서 게시물이 안 보여 '미업로드'로 확정된다 — 안 올린 사람과 섞이면 안 된다.
-        if (p && p.isPrivate && (!p.posts || !p.posts.length)) {
-          const msg = '비공개 계정 — 사람이 직접 확인해주세요';
-          failedHandles.add(a.igHandle);
-          detected[a.igHandle] = { uploaded: false, scanFailed: true, isPrivate: true, error: msg, checkedAt: new Date().toISOString() };
-          if (onProgress) onProgress({ done: i + 1, total: targets.length, handle: a.igHandle, failed: true, error: msg });
-          await sleep(delayMs); continue;
-        }
-        // ⚠️ '막힘'만 폴백 조건으로 두면 안 된다. 인스타는 200 을 주면서 게시물 목록만
-        //    비워 보낸다(게시물 962개인데 edges 0). 그러면 스캔은 '정상 완료 · 감지 0건'
-        //    이라고 보고하면서 실제로는 아무것도 안 본 상태가 된다 — 가장 나쁜 실패다.
-        //    게시물이 있는 계정인데 목록이 비었으면 못 본 것으로 치고 직접 열어 확인한다.
-        if (p && (!p.posts || !p.posts.length) && (p.postCount == null || p.postCount > 0)) {
-          emptyStreak++;
-          // 한 계정만 비어 온 건 그 계정 사정일 수 있다. 연속 2회여야 API 가 죽었다고 본다.
-          if (!apiDead && emptyStreak >= 2) {
-            apiDead = true;
-            if (onProgress) onProgress({ note: 'API 가 게시물 목록을 비워 보냅니다 — 프로필을 직접 열어 확인합니다 (느려요)' });
-          }
-          p = null;   // 이 계정 자체는 어차피 페이지로 한 번 더 본다
-        } else if (p) {
-          emptyStreak = 0;
-        }
-        // ② 프로필을 직접 열어 최근 게시물을 하나씩 확인한다 — 사람이 하는 것과 같은 경로.
-        //    느리지만 막혔을 때 스캔 전체가 멈추는 것보다 낫다.
-        if (!p) {
-          // 캠페인 해시태그가 붙은 게시물 2개(콘텐츠①②)를 찾으면 거기서 멈춘다 — 계정당 1분이 십몇 초로 준다.
-          try { p = await fetchIgPostsViaPage(b.ctx, a.igHandle, { isMatch: (post) => matchPost(post, hashtags).hit, since }); via = 'page'; }
-          catch (e) {
+          // 폴백이 예외 없이 빈 목록을 돌려준 경우까지 막는다 — 0개는 판정 근거가 아니다.
+          // (로그인 월·차단·화면 변경이면 링크가 0개로 '정상' 반환된다) '미업로드'로 확정하지 않는다.
+          if (via === 'page' && !(p.posts || []).length) {
+            const msg = '게시물 목록을 못 읽음(페이지 폴백) — 사람이 직접 확인해주세요';
             failedHandles.add(a.igHandle);
-            detected[a.igHandle] = { uploaded: false, scanFailed: true, error: e.message };
-            if (onProgress) onProgress({ done: i + 1, total: targets.length, handle: a.igHandle, failed: true, error: e.message });
+            detected[a.igHandle] = { uploaded: false, scanFailed: true, error: msg, checkedAt: new Date().toISOString() };
+            if (onProgress) onProgress({ done: ++done, total: targets.length, handle: a.igHandle, failed: true, error: msg });
             await sleep(delayMs); continue;
           }
-        }
-        // 폴백이 예외 없이 빈 목록을 돌려준 경우까지 막는다 — 0개는 판정 근거가 아니다.
-        // (로그인 월·차단·화면 변경이면 링크가 0개로 '정상' 반환된다) '미업로드'로 확정하지 않는다.
-        if (via === 'page' && !(p.posts || []).length) {
-          const msg = '게시물 목록을 못 읽음(페이지 폴백) — 사람이 직접 확인해주세요';
-          failedHandles.add(a.igHandle);
-          detected[a.igHandle] = { uploaded: false, scanFailed: true, error: msg, checkedAt: new Date().toISOString() };
-          if (onProgress) onProgress({ done: i + 1, total: targets.length, handle: a.igHandle, failed: true, error: msg });
-          await sleep(delayMs); continue;
-        }
 
-        const hits = (p.posts || []).filter((x) => inWindow(x, since)).map((x) => ({ post: x, m: matchPost(x, hashtags) })).filter((x) => x.m.hit);
-        // 여러 개면 가장 오래된 것이 ①, 그다음이 ② — 올린 순서가 곧 콘텐츠 번호다.
-        hits.sort((x, y) => new Date(x.post.takenAt || 0) - new Date(y.post.takenAt || 0));
+          const hits = (p.posts || []).filter((x) => inWindow(x, since)).map((x) => ({ post: x, m: matchPost(x, hashtags) })).filter((x) => x.m.hit);
+          // 여러 개면 가장 오래된 것이 ①, 그다음이 ② — 올린 순서가 곧 콘텐츠 번호다.
+          hits.sort((x, y) => new Date(x.post.takenAt || 0) - new Date(y.post.takenAt || 0));
 
-        if (hits.length) {
-          const first = hits[0];
-          detected[a.igHandle] = {
-            uploaded: true,
-            link: first.post.link,
-            link2: hits[1] ? hits[1].post.link : '',
-            hashtagOk: first.m.all,
-            matched: first.m.matched,
-            via,
-            likes: first.post.likes,
-            comments: first.post.comments,
-            takenAt: first.post.takenAt,
-          };
-          if (!(prev[a.igHandle] && prev[a.igHandle].uploaded)) newUploaded++;
-          wroteHandles.add(a.igHandle);
-          if (!locked(a.row, 'contentA')) cells.push({ row: a.row, field: 'ig.contentA', value: first.post.link });
-          if (hits[1] && !locked(a.row, 'contentB')) cells.push({ row: a.row, field: 'ig.contentB', value: hits[1].post.link });
-          // 해시태그는 '전부 들어갔나'로 판정한다. 일부만 맞으면 미준수 — 사람이 보고 요청해야 한다.
-          if (!locked(a.row, 'hashtagOk')) cells.push({ row: a.row, field: 'ig.hashtagOk', value: first.m.all ? '준수' : '미준수' });
-          if (first.post.likes != null) cells.push({ row: a.row, field: 'ig.likes', value: first.post.likes });
-          if (first.post.comments != null) cells.push({ row: a.row, field: 'ig.comments', value: first.post.comments });
-        } else {
-          detected[a.igHandle] = { uploaded: false, checkedAt: new Date().toISOString(), postsSeen: (p.posts || []).length };
+          if (hits.length) {
+            const first = hits[0];
+            detected[a.igHandle] = {
+              uploaded: true,
+              link: first.post.link,
+              link2: hits[1] ? hits[1].post.link : '',
+              hashtagOk: first.m.all,
+              matched: first.m.matched,
+              via,
+              likes: first.post.likes,
+              comments: first.post.comments,
+              takenAt: first.post.takenAt,
+            };
+            if (!(prev[a.igHandle] && prev[a.igHandle].uploaded)) newUploaded++;
+            wroteHandles.add(a.igHandle);
+            if (!locked(a.row, 'contentA')) cells.push({ row: a.row, field: 'ig.contentA', value: first.post.link });
+            if (hits[1] && !locked(a.row, 'contentB')) cells.push({ row: a.row, field: 'ig.contentB', value: hits[1].post.link });
+            // 해시태그는 '전부 들어갔나'로 판정한다. 일부만 맞으면 미준수 — 사람이 보고 요청해야 한다.
+            if (!locked(a.row, 'hashtagOk')) cells.push({ row: a.row, field: 'ig.hashtagOk', value: first.m.all ? '준수' : '미준수' });
+            if (first.post.likes != null) cells.push({ row: a.row, field: 'ig.likes', value: first.post.likes });
+            if (first.post.comments != null) cells.push({ row: a.row, field: 'ig.comments', value: first.post.comments });
+          } else {
+            detected[a.igHandle] = { uploaded: false, checkedAt: new Date().toISOString(), postsSeen: (p.posts || []).length };
+          }
+          if (onProgress) onProgress({ done: ++done, total: targets.length, handle: a.igHandle, uploaded: hits.length > 0 });
+          await sleep(delayMs);
         }
-        if (onProgress) onProgress({ done: i + 1, total: targets.length, handle: a.igHandle, uploaded: hits.length > 0 });
-        if (i < targets.length - 1) await sleep(delayMs);
-      }
+      };
+      const workers = Math.max(1, Math.min(concurrency, targets.length));
+      await Promise.all(Array.from({ length: workers }, async () => {
+        const page = await openIgFetcher(b.ctx);
+        try { await runOne(page); } finally { try { await page.close(); } catch {} }
+      }));
     } finally { try { await b.browser.close(); } catch {} }
   }
 
