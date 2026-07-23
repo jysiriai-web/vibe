@@ -36,7 +36,7 @@ function pwMatch(input) {
   const a = Buffer.from(String(input ?? '')), b = Buffer.from(EXEC_PW);
   return a.length === b.length && timingSafeEqual(a, b); // 상수시간 비교(길이 다르면 즉시 false)
 }
-let contentScanState = { running: false, done: 0, total: 0, up: 0, written: 0, error: null, ranAt: null };
+let contentScanState = { running: false, done: 0, total: 0, up: 0, newUp: 0, written: 0, error: null, ranAt: null };
 // 캠페인별 SMM 캐시 — 잔액·주문상태 갱신을 매 로드마다 치지 않고 30초 스로틀. { balance, balanceAt, ordersAt }
 const smmCache = new Map();
 const SMM_TTL = 30000;
@@ -449,7 +449,7 @@ export async function handler(req, res) {
           return action; // 'resume' | 'stop'
         },
       })
-        .then((r) => { contentScanState = { running: false, mode: perf ? 'perf' : full ? 'full' : 'upload', done: r.total, total: r.total, up: r.up, written: r.written, writeError: r.writeError || null, failed: r.failed, failedHandles: r.failedHandles, stopped: r.stopped, error: null, ranAt: new Date().toISOString() }; })
+        .then((r) => { contentScanState = { running: false, mode: perf ? 'perf' : full ? 'full' : 'upload', done: r.total, total: r.total, up: r.up, newUp: r.newUp || 0, written: r.written, writeError: r.writeError || null, failed: r.failed, failedHandles: r.failedHandles, stopped: r.stopped, error: null, ranAt: new Date().toISOString() }; })
         .catch((e) => { contentScanState = { running: false, done: 0, total: 0, up: 0, written: 0, failed: 0, error: e.message, ranAt: null }; })
         .finally(() => { scanConfirmResolve = null; scanResumeResolve = null; });
       return send(res, 200, { started: true });
