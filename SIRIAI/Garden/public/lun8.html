@@ -705,6 +705,8 @@ select.best.on { background:#fff8e1; color:#8a6100; border-color:#f0d48a; font-w
 .mirct b { font-weight:800; opacity:.7; margin:0 1px; }
 /* 수기 집행 — 우리가 넣은 게 아니라 사람이 다른 패널에서 직접 넣은 주문 */
 .chip.manual { background:#eef2ff; color:#4338ca; }
+/* 희망일과 합의된 날짜가 다를 때 — 회색만으로는 왜 다른지 알 수 없다 */
+.movedday { font-size:10.5px; font-weight:800; color:var(--ok-ink); background:var(--ok-bg); padding:1px 6px; border-radius:20px; vertical-align:1px; }
 </style>
 </head>
 <body>
@@ -1518,8 +1520,15 @@ function viewRecruit(){
       cell:r=> `<button class="notice ${r.notice?'sent':'unsent'}" data-notice="${r.id}">${r.notice?'발송':'미발송'}</button>` },
     { key:'refBy', label:'추천 출처', hideable:true, empty:r=>!r.refBy, sv:r=>r.refBy, cell:r=> r.refBy?`<span class="chip filling">${esc(r.refBy)} 추천</span>`:`<span class="emptydot">·</span>` },
     { key:'refCount', label:'추천 수', cls:'num', thcls:'num', hideable:true, empty:r=>!r.refCount, sv:r=>r.refCount||0, cell:r=> r.refCount?`<b>${r.refCount}</b>`:`<span class="emptydot">·</span>` },
-    { key:'sched', label:'예정일', hideable:true, empty:r=>!r.sched, sv:r=>schedKey(r.sched),
-      cell:r=> r.sched ? (r.fixed ? `<span class="cmuted">${esc(r.sched)}</span>` : `<b>${esc(r.sched)}</b>`) : `<span class="cmuted">미정</span>` },
+    /* 확정일이 잡혔으면 그게 진짜 날짜다 — 희망일이 아니라 기준일을 보여준다.
+       예전엔 '확정일이 있으면 희망일을 흐리게' 였는데, 확정일 열을 업로드탭으로 옮긴 뒤로는
+       그 회색이 무슨 뜻인지 화면에 단서가 없었다. 게다가 합의로 날짜가 바뀐 사람은
+       (희망 7/23 → 확정 7/24) 모집탭이 계속 옛 날짜를 보여줬다. */
+    { key:'sched', label:'예정일', hideable:true, empty:r=>!dueDay(r), sv:r=>schedKey(dueDay(r)),
+      cell:r=>{ const d = dueDay(r);
+        if(!d) return `<span class="cmuted">미정</span>`;
+        const moved = d !== (r.sched||'');
+        return `<b>${esc(d)}</b>` + (moved ? ` <span class="movedday" title="크리에이터 희망 ${esc(r.sched||'미정')} → 합의 ${esc(d)}">합의</span>` : ''); } },
     /* 확정일은 업로드탭(일정 미준수) 소관으로 옮겼다 — 연락하는 사람이 보는 곳에 있어야 한다.
     { key:'fixed', label:'확정일', hideable:true, empty:r=>!r.fixed, sv:r=>schedKey(r.fixed),
       cell:r=> r.fixed ? `<b class="fixdate">${esc(r.fixed)}</b>`
