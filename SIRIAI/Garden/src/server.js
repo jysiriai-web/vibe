@@ -387,8 +387,17 @@ export async function handler(req, res) {
       if (platPrefix && !['tk', 'ig'].includes(platPrefix)) return send(res, 400, { error: '플랫폼은 tk/ig 만' });
       const value = body.value == null ? '' : String(body.value);
       if (!row || !EDITABLE_FIELDS.includes(baseField)) return send(res, 400, { error: `row/field(${EDITABLE_FIELDS.join('·')}) 필요` });
-      // 계정 링크는 @핸들이 있어야 함 — 없으면 시트 읽을 때 그 행이 통째로 사라짐(계정 소실 방지)
-      if (baseField === 'link' && platPrefix !== 'ig' && !/@[A-Za-z0-9._]+/.test(value)) return send(res, 400, { error: '계정 링크에 @사용자명이 필요합니다 (예: tiktok.com/@user)' });
+      // 계정 링크는 시트에서 읽을 때 핸들을 뽑아낼 수 있어야 한다 — 못 뽑으면 그 행이 통째로 사라진다.
+      // 틱톡은 @핸들, 인스타는 instagram.com/핸들. 인스타를 예외로 두던 게 '@핸들' 을 그대로 통과시켜
+      // 행 소실을 일으켰다(브릿지 igHandleFrom_ 은 URL 만 인식).
+      if (baseField === 'link' && value.trim()) {
+        const ok = platPrefix === 'ig'
+          ? /instagram\.com\/[A-Za-z0-9._]+/i.test(value)
+          : /@[A-Za-z0-9._]+/.test(value);
+        if (!ok) return send(res, 400, { error: platPrefix === 'ig'
+          ? '인스타 링크는 instagram.com/사용자명 형태여야 해요'
+          : '계정 링크에 @사용자명이 필요합니다 (예: tiktok.com/@user)' });
+      }
       try {
         await pushCellsToSheet(campaign.sheet, [{ row, field, value }]);
         // 검수/콘텐츠 필드: 값 있으면 수동 잠금, '미확인'(빈값)이면 잠금 해제(자동 관리에 반환). nick 은 잠금 무관.

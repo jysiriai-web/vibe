@@ -891,11 +891,11 @@ function platBlock(src, fb){
            ?? numOrNull(src.followers) ?? numOrNull(src.sheetFollowers);
   return {
     h: h,
-    c1: contentObj(pick(src.contentA, src.contentLink, F.contentLink), '콘텐츠①'),
-    c2: contentObj(pick(src.contentB, F.contentB), '콘텐츠②'),
-    snd: revFlag(pick(src.soundOk, F.soundOk)),
-    sec: revFlag(pick(src.soundSection, F.soundSection)),
-    hash: revFlag(pick(src.hashtagOk, F.hashtagOk)),
+    c1: contentObj(pick(src.contentA, src.contentLink), '콘텐츠①'),
+    c2: contentObj(pick(src.contentB), '콘텐츠②'),
+    snd: revFlag(pick(src.soundOk)),
+    sec: revFlag(pick(src.soundSection)),
+    hash: revFlag(pick(src.hashtagOk)),
     fol: fol,
     inFlight: (numOrNull(src.inFlight) ?? numOrNull(F.inFlight)) || 0,
     views: String(pick(src.views, F.views)),
@@ -1717,21 +1717,29 @@ async function runPickScan(btn){
   btn.disabled = true; btn.textContent = '스캔 중…';
   const done = [];
   try {
+    const warn = [];
     if(by.ig.length){
       const r = await fetch(localApi('/api/ig-content-scan?campaign=' + state.campaign), {
         method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ only: by.ig }) });
       const j = await r.json();
       if(j.error) throw new Error('인스타: ' + j.error);
-      done.push(`인스타 ${by.ig.length}명 — 업로드 ${j.uploaded||0}건`);
+      // 실패 신호를 삼키지 않는다 — 서버는 실패해도 200 을 준다.
+      if(j.pendingWrite) warn.push(`인스타 ${j.pendingWrite}건 시트 기입 실패`);
+      if(j.writeError)   warn.push('인스타 시트 쓰기: ' + j.writeError);
+      if(j.failed)       warn.push(`인스타 ${j.failed}명 못 봄(비공개·차단)`);
+      done.push(`인스타 ${by.ig.length}명`);
     }
     if(by.tk.length){
       const r = await fetch(localApi('/api/content-scan?campaign=' + state.campaign), {
         method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ only: by.tk }) });
       const j = await r.json();
       if(j.error) throw new Error('틱톡: ' + j.error);
-      done.push(`틱톡 ${by.tk.length}명`);
+      // /api/content-scan 은 백그라운드다 — {started} 나 {running} 만 온다. '완료'라고 하면 거짓말.
+      if(j.running) warn.push('틱톡: 이미 다른 스캔이 돌고 있어요');
+      done.push(`틱톡 ${by.tk.length}명 시작(작업 콘솔에서 로봇인증 확인)`);
     }
-    toast('스캔 완료 — ' + done.join(' · '));
+    warn.forEach(w=> toast('⚠️ ' + esc(w)));
+    toast((by.ig.length && !by.tk.length ? '인스타 선택 스캔 완료 — ' : '선택 스캔 — ') + done.join(' · '));
     scanPick.clear();
     loadData();
   } catch(e){ toast('스캔 실패: ' + esc(e.message)); }
@@ -2532,8 +2540,8 @@ function openRowEdit(id, rowPlat){
          쓰기 화이트리스트엔 creator 가 없고 nick 뿐이다 — nick 으로 보내면 사람 이름이
          '틱톡 닉네임' 열을 덮어써 계정 식별이 망가진다. 열이 열릴 때까지 시트에서 고쳐야 한다. */
       // 링크는 시트에 되쓴다. 예전엔 화면 객체만 고쳐서 20초 뒤 옛 링크로 돌아갔다.
-      if(d.tk && val('reTk') && val('reTk')!==d.tk.h){ d.tk.h=val('reTk'); put('tk.link',d.tk.h); }
-      if(d.ig && val('reIg') && val('reIg')!==d.ig.h){ d.ig.h=val('reIg'); put('ig.link',d.ig.h); } };
+      if(d.tk && val('reTk') && val('reTk')!==d.tk.h){ d.tk.h=val('reTk'); put('tk.link',toLinkUrl('tk',d.tk.h)); }
+      if(d.ig && val('reIg') && val('reIg')!==d.ig.h){ d.ig.h=val('reIg'); put('ig.link',toLinkUrl('ig',d.ig.h)); } };
 
   } else if(state.view==='upload'){
     if(!d[p]){ toast('이 크리에이터는 '+pName(p)+' 미참여예요.'); return; }
@@ -2572,7 +2580,7 @@ function openRowEdit(id, rowPlat){
       const c1=val('reC1'); x.c1 = c1?{label:x.c1?x.c1.label:'🎬 영상①', url:c1}:'';
       const c2=val('reC2'); x.c2 = c2?{label:x.c2?x.c2.label:'🎬 영상②', url:c2}:'';
       x.snd=selVal('reSnd'); x.sec=selVal('reSec'); x.hash=selVal('reHash'); d.mir=selVal('reMir'); x.memo=val('rePMemo');
-      if(x.h!==was.h)            put(p+'.link', x.h);
+      if(x.h!==was.h)            put(p+'.link', toLinkUrl(p, x.h));
       if(c1!==was.c1)            put(p+'.contentA', c1);
       if(c2!==was.c2)            put(p+'.contentB', c2);
       if(x.snd!==was.snd)        put(p+'.soundOk',    REV_TEXT[x.snd]);
@@ -2668,6 +2676,14 @@ function openRowEdit(id, rowPlat){
 }
 
 /* ============ 인원 추가 (링크만) ============ */
+// 화면의 '@핸들' 을 시트에 넣기 전에 URL 로 정규화한다. 인스타 링크 열은 URL 이라야 브릿지가 읽는다.
+function toLinkUrl(plat, v){
+  var s = String(v==null?'':v).trim();
+  if(!s) return '';
+  if(/(?:tiktok|instagram)\.com/i.test(s)) return /^https?:\/\//i.test(s) ? s : 'https://'+s.replace(/^\/+/,'');
+  var h = s.replace(/^@+/,'').replace(/[\/?#].*$/,'');
+  return plat==='ig' ? 'https://www.instagram.com/'+h : 'https://www.tiktok.com/@'+h;
+}
 function handleFromLink(s){
   s=(s||'').trim(); if(!s) return '';
   let m = s.match(/@([A-Za-z0-9._]+)/); if(m) return '@'+m[1];
