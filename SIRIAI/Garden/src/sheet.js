@@ -61,6 +61,14 @@ export async function pushFollowersToSheet(sheet, updates) {
   return (await bridgePost(sheet, { updates })).updated || 0;
 }
 
+// 인원 한 명 추가 — 마스터 맨 아래에 한 줄. { company, tkLink, igLink, email }.
+// 브릿지가 {error} 를 주면 bridgeCall 이 throw 하므로, 호출부가 그 메시지를 그대로 사용자에게 보인다.
+export async function addPersonToSheet(sheet, person) {
+  ensure(sheet);
+  const r = await bridgePost(sheet, { addPerson: person });
+  return { row: r.row };
+}
+
 // 모집시트 → 마스터 자동 동기화 요청. sync = { sheetId, company, linkCol }.
 export async function syncRecruitToSheet(sheet, sync) {
   ensure(sheet);

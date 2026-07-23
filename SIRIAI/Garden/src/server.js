@@ -10,7 +10,7 @@ import { createSmm } from './smm.js';
 import { classify } from './garden.js';
 import { refreshOrders, inFlightFor } from './orders.js';
 import { runAutoRefill, refillServiceIds, REFILL_WINDOW_DAYS } from './refill.js';
-import { runSheetSetup, getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet, syncRecruitToSheet, deliverToSheet, readFeedbackFromSheet, addFeedbackToSheet, markFeedbackDone } from './sheet.js';
+import { runSheetSetup, getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet, syncRecruitToSheet, deliverToSheet, readFeedbackFromSheet, addFeedbackToSheet, markFeedbackDone, addPersonToSheet } from './sheet.js';
 import { scanAccounts, buildPlan, placeOrders, findService, tiktokOnly } from './execute-core.js';
 import { runIgSync } from './ig-sync.js';
 import { runIgContentScan } from './ig-content.js';
@@ -534,6 +534,18 @@ export async function handler(req, res) {
       return send(res, 200, { ok: true, added, handles });
     }
 
+    // 인원 추가 — 마스터 맨 아래에 한 줄. 돈 안 나감. 클라우드에서도 됨(시트 쓰기).
+    if (path === '/api/person' && req.method === 'POST') {
+      const body = await readBody(req);
+      try {
+        const r = await addPersonToSheet(campaign.sheet, { company: body.company, tkLink: body.tkLink, igLink: body.igLink, email: body.email });
+        return send(res, 200, { ok: true, row: r.row });
+      } catch (e) {
+        // 브릿지가 검증 실패(핸들 못 뽑음 등)를 throw 로 올린다 — 그대로 사용자에게.
+        return send(res, 400, { error: String((e && e.message) || e).replace(/^시트 응답:\s*/, '') });
+      }
+    }
+
     // 검수완료 콘텐츠 → 납품시트 자동 기입 (버튼). 링크 있고 3칸(음원·구간·해시) 모두 준수인 것만. 중복(계정 핸들) 제외.
     if (path === '/api/deliver' && req.method === 'POST') {
       if (!campaign.deliverySheetId) return send(res, 400, { error: '이 캠페인엔 납품시트 설정이 없어요 (campaigns.json deliverySheetId)' });
@@ -808,9 +820,10 @@ export async function handler(req, res) {
       const body = await readBody(req);
       let notFound = false;
       const { w } = await updateOrders(campaign, async (orders) => {
-        const o = orders.find((x) => String(x.id) === String(body.orderId));
+        // id 로도, uid 로도 찾는다 — '패널 확인 필요' 주문은 id 가 null 이라 uid 로만 잡힌다(탈출구).
+        const o = orders.find((x) => (x.id != null && String(x.id) === String(body.orderId)) || (x.uid && x.uid === body.orderId));
         if (!o) { notFound = true; return undefined; }
-        if (smm) { try { await smm.cancel([o.id]); } catch {} } // 마지막 취소 시도(환불 가능하면)
+        if (smm && o.id != null) { try { await smm.cancel([o.id]); } catch {} } // 마지막 취소 시도(환불 가능하면). id 없으면 취소할 게 없다.
         o.abandoned = true;
         o.abandonedAt = new Date().toISOString();
         o.cancelStuck = false;

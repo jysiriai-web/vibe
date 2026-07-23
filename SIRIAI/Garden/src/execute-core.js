@@ -122,6 +122,37 @@ export async function placeOrders(smm, orders, toOrder, service, { onEach, persi
       placed.push(rec);
     } catch (e) {
       if (e && e.abortBatch) throw e; // 추적 불가 주문 → 계속 사지 않고 배치 중단
+      // 응답을 못 받아 과금 여부가 불명이면(네트워크 끊김·502 등) '안 나갔다'고 단정할 수 없다.
+      // 단정하고 넘어가면 다음 집행에서 같은 계정을 또 산다. '패널 확인 필요' 주문으로 기록을 남겨
+      // inFlightFor 가 진행중으로 세게 하고(재주문 원천 차단), 배치를 멈춰 사람이 패널을 확인하게 한다.
+      // 확인 뒤에는 대시보드에서 '포기'(abandon)로 풀면 재주문이 열린다(uid 로 매칭).
+      if (e && e.unknownCharge) {
+        const rec = {
+          id: null,
+          uid: 'chk-' + o.handle + '-' + o.qty + '-' + orders.length,
+          handle: o.handle,
+          row: o.row,
+          service: svcId,
+          quantity: o.qty,
+          cost: o.cost != null ? o.cost : (o.qty / 1000) * Number(service.rate),
+          startCount: o.current,
+          remains: o.qty,          // 불명이라 전체를 진행중으로 — 보수적으로 재주문을 막는다
+          status: 'unknown',
+          done: false,
+          needsPanelCheck: true,
+          errorKind: e.kind || 'unknown',
+          placedAt: new Date().toISOString(),
+        };
+        orders.push(rec);
+        placed.push(rec);
+        if (onEach) onEach({ ok: false, handle: o.handle, error: e.message, needsPanelCheck: true });
+        if (persist) { try { await persist(); } catch {} } // 기록이 안 남으면 이 안전장치가 무의미하다 — 반드시 시도
+        const err = new Error('주문 응답을 못 받아 과금 여부가 불명이에요(' + (e.kind || 'unknown') + '). smmkings 패널에서 @' + o.handle + ' 을(를) 확인해 주세요. 확인 전까지 이 계정 재주문을 막았고 배치를 멈췄습니다.');
+        err.abortBatch = true;
+        err.placed = placed;
+        err.needsPanelCheck = rec;
+        throw err;
+      }
       if (onEach) onEach({ ok: false, handle: o.handle, error: e.message });
       await sleep(800);
       continue;

@@ -642,6 +642,8 @@ body.nav-collapsed .side-btn { justify-content:center; }
    버튼이 마지막 탭에 딱 붙었다. 버튼 자신이 오른쪽으로 밀리게 한다. */
 /* .sub-hide 는 배지가 없어도 DOM 에 남는다(비어 있을 뿐) → 인접 선택자가 늘 맞아
    버튼이 마지막 탭에 붙었다. 배지가 '있을 때만' 간격을 준다. */
+.subtabs .rec-tools { margin-left:auto; display:inline-flex; align-items:center; gap:8px; }
+.subtabs .rec-tools .hidebadge { margin:0; }
 .subtabs #btnPickScan { margin-left:auto; }
 .sub-hide:not(:empty) + #btnPickScan { margin-left:10px; }
 .sub-hide:not(:empty) { margin-left:auto; }
@@ -1531,22 +1533,13 @@ function viewRecruit(){
     ? `<span class="daynote"><b>${esc(filtLabel)}</b> ${rows.length}명 · ${rows.reduce((a,d)=>a+slots(d),0)}건만 보는 중<button class="btn ghost small" id="dayClear">전체 보기</button></span>`
     : '';
   const dayBar = '';   // 안내는 업로드 일정 카드 안(dayNoteSlot)으로 옮겼다
-  const tkN = all.filter(d=>d.tk).length, igN = all.filter(d=>d.ig).length;
-  const addBar = `<div class="bar">
-
-    <span id="hideSlot"></span>
-    <span class="bar-right">
-      <button class="btn small" id="btnRecScan" title="지원 응답시트에서 새로 지원한 사람을 마스터시트로 가져와요">⬇ 모집 가져오기</button>
-      <button class="btn small" id="btnAddPerson">${IC.userplus} 인원 추가</button>
-      <button class="btn small" id="btnReload">↻ 새로고침</button>
-    </span>
-    <span class="spacer"></span>
-  </div>`;
+  // 도구 버튼은 이제 하위탭 줄 오른쪽 끝(recruitTools)에 있다 — 이 줄은 비워 둔다.
+  const addBar = '';
   const addFormHTML = state.addForm ? `
     <div class="addcard">
       <h4>${IC.userplus} 새 크리에이터 추가</h4>
-      <p class="addcard-desc"><b>아직 이 화면에서는 마스터시트에 못 넣어요.</b> 새 크리에이터는 <b>⬇ 모집 가져오기</b>를 쓰거나
-        마스터시트에 직접 한 줄 추가한 뒤 <b>↻ 새로고침</b> 해주세요. (시트에 한 줄 넣는 서버 기능이 준비되면 여기서 바로 됩니다.)</p>
+      <p class="addcard-desc">링크를 넣으면 <b>마스터시트 맨 아래에 한 줄</b> 추가돼요. 이름·팔로워는 비워 두면 스캔할 때 채워집니다.
+        <br><span class="cmuted">정산 금액 수식은 자동으로 안 붙어요 — 필요하면 마스터시트에서 위 행 수식을 끌어내려 주세요.</span></p>
       <div class="addgrid">
         <div class="addfield"><label>진행사</label><select class="inp" id="apCo"><option>MARU</option><option>SIRIAI</option></select></div>
         <div class="addfield"><label>틱톡 링크</label><input class="inp wide" id="apTk" placeholder="tiktok.com/@handle"></div>
@@ -1744,6 +1737,21 @@ async function runPickScan(btn){
     loadData();
   } catch(e){ toast('스캔 실패: ' + esc(e.message)); }
   finally { btn.disabled = false; render(); }
+}
+/* '패널 확인 필요' 주문 풀기 — 응답을 못 받아 과금 여부가 불명이라 재주문을 막아둔 것.
+   대표님이 smmkings 패널에서 실제 주문 여부를 확인한 뒤에만 누른다(그래서 로컬 전용).
+   포기(abandon) 처리하면 inFlightFor 에서 빠져 그 계정 재주문이 다시 열린다. */
+async function abandonOrder(key){
+  if(!key) return;
+  if(!confirm('smmkings 패널에서 이 계정의 실제 주문 여부를 확인하셨나요?\n\n확인함 = 재주문을 다시 엽니다. 패널에 주문이 이미 있으면 다음 집행에서 이중지출될 수 있어요.')) return;
+  try {
+    const r = await fetch(localApi('/api/order/abandon?campaign=' + state.campaign), {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ orderId: key }) });
+    const j = await r.json();
+    if(j.error) throw new Error(j.error);
+    toast('확인 처리했어요 — 이 계정 재주문이 열렸어요.');
+    loadData();
+  } catch(e){ toast('처리 실패: ' + esc(e.message)); }
 }
 /* 조회수 스캔 — 업로드된 계정의 조회수만 다시 긁는다(perf=1). 로컬 서버에서만 돈다.
    예전엔 정의도 없는 scanRequest() 를 불러 버튼이 그냥 죽어 있었다(콘솔 오류 한 줄).
@@ -1999,12 +2007,14 @@ function gardenHistory(){
       cell:o=> o.delivered==null ? '<span class="cmuted">확인중</span>'
         : (Number(o.undelivered)>0 ? `${nf(o.delivered)} <span class="chip needs">${nf(o.undelivered)} 미전달</span>` : `${nf(o.delivered)}`) },
     { key:'cost', label:'금액', cls:'num', thcls:'num', sv:o=>Number(o.cost)||0, cell:o=> esc(wonOf(o.cost)) },
-    { key:'st', label:'상태', sv:o=>o.done?1:0, cell:o=>{
+    { key:'st', label:'상태', sv:o=>o.needsPanelCheck?-1:(o.done?1:0), cell:o=>{
+        // 응답을 못 받아 과금 여부가 불명인 주문 — 재주문을 막아둔 상태. 사람이 패널을 봐야 한다.
+        if(o.needsPanelCheck) return `<span class="chip needs">⚠️ 패널 확인 필요</span>${LOCAL.on?` <button class="btn ghost small" data-abandon="${esc(o.uid||o.id||'')}">확인함 · 재주문 열기</button>`:''}`;
         if(o.cancelStuck) return '<span class="chip needs">취소·환불 확인</span>';
         if(o.done) return '<span class="chip ok">완료</span>';
         if(o.stale) return '<span class="chip stale">정체 — 확인 필요</span>';
         return `<span class="lk sched">채워지는 중 ${nf(o.remains)} 남음</span>`; } },
-    { key:'id', label:'주문번호', cls:'mono', sv:o=>String(o.id||''), cell:o=> `<span class="cmuted">${esc(String(o.id||''))}</span>` },
+    { key:'id', label:'주문번호', cls:'mono', sv:o=>String(o.id||''), cell:o=> o.id!=null ? `<span class="cmuted">${esc(String(o.id))}</span>` : '<span class="chip needs">번호 없음</span>' },
   ];
   return `<div class="sec-head">가드닝 집행 내역 <span class="cmuted">${rows.length}건 · 충전 ${nf(qty)}명 · 지출 ${esc(wonOf(spentUsd))}${live?' · 진행중 '+live+'건':''}</span></div>`
     + renderTable(cols, rows, { tableId:'garden-hist', noHide:true });
@@ -2270,6 +2280,13 @@ function gardenSvcNote(){
     <span class="svc-n">${esc(String(SERVICE.name||'').replace(/[^\x20-\x7E가-힣·\[\]]/g,'').trim().slice(0,34))}</span></span>`;
 }
 // 하위탭에 그 플랫폼 인원수. 모집탭에서만 — 업로드탭은 건수를 카드에서 이미 보여준다.
+// 모집탭 도구 — 하위탭 줄 오른쪽 끝. 빈 열 배지(hideSlot)도 같이 담아 한 그룹으로 오른쪽에 붙인다.
+function recruitTools(){
+  return `<span class="rec-tools"><span id="hideSlot"></span>`
+    + `<button class="btn small" id="btnRecScan" title="지원 응답시트에서 새로 지원한 사람을 마스터시트로 가져와요">⬇ 모집 가져오기</button>`
+    + `<button class="btn small" id="btnAddPerson">${IC.userplus} 인원 추가</button>`
+    + `<button class="btn small" id="btnReload">↻ 새로고침</button></span>`;
+}
 function platCountLab(p){
   if(state.view!=='recruit' && state.view!=='upload') return '';
   const n = D.filter(inCampaign).filter(d=> d[p]).length;
@@ -2298,7 +2315,7 @@ function platSubtabs(){
     ${state.view==='upload' ? `<button class="subtab late ${state.plat==='late'?'active':''}" data-plat="late"><span class="dot"></span>일정 미준수 <span class="cmuted">${lateCount()}</span></button>` : ''}
     ${state.view==='garden' ? `<button class="subtab hist ${state.plat==='hist'?'active':''}" data-plat="hist"><span class="dot"></span>집행 내역 <span class="cmuted">${ORDERS.length}</span></button>` : ''}
     ${state.view==='recruit' ? recruitSubtabs() : ''}
-    ${gardenSvcNote()}<span id="hideSlot" class="sub-hide"></span>${state.view==='upload'?scanPickBtn():''}</div>`;
+    ${state.view==='recruit' ? recruitTools() : `${gardenSvcNote()}<span id="hideSlot" class="sub-hide"></span>${state.view==='upload'?scanPickBtn():''}`}</div>`;
 }
 /* ============ 매뉴얼 · 가이드 ============
    내용은 public/knowledge.js 하나뿐이다(MANUAL/GUIDE). 여기서 복붙하지 않는다 —
@@ -2690,16 +2707,25 @@ function handleFromLink(s){
   m = s.match(/([A-Za-z0-9._]+)\/?$/); if(m) return '@'+m[1];
   return s.startsWith('@')?s:'@'+s;
 }
-function addPersonSave(){
-  const tkH = handleFromLink(document.getElementById('apTk').value);
+async function addPersonSave(){
+  const co = document.getElementById('apCo').value;
+  const tk = document.getElementById('apTk').value.trim();
   const igEl = document.getElementById('apIg');
-  const igH = igEl ? handleFromLink(igEl.value) : '';
-  if(!tkH && !igH){ toast('틱톡 또는 인스타 링크를 하나 이상 넣어주세요'); return; }
-  /* 시트에 한 줄 추가하는 서버 경로가 아직 없다(브릿지·서버 양쪽에 append 가 필요).
-     예전엔 화면 배열에만 밀어넣고 '추가됨 — 시트에 한 줄 늘리는 것과 같아요'라고 말했다.
-     20초 자동 새로고침이 그 줄을 지우고, 그 사이 그 행의 버튼은 시트 10만번대에 쓰려고 했다.
-     못 하는 일은 못 한다고 말하고, 되는 길을 알려주는 게 낫다. */
-  toast(`아직 화면에서는 시트에 못 넣어요 — <b>⬇ 모집 가져오기</b>를 쓰거나 마스터시트에 직접 한 줄 추가하고 <b>↻ 새로고침</b> 해주세요.`);
+  const ig = igEl ? igEl.value.trim() : '';
+  if(!tk && !ig){ toast('틱톡 또는 인스타 링크를 하나 이상 넣어주세요'); return; }
+  const btn = document.getElementById('apSave'); if(btn) btn.disabled = true;
+  try {
+    // 링크는 URL 로 정규화해 보낸다 — 핸들만 들어가면 브릿지가 못 읽어 그 행이 안 보인다.
+    const r = await fetch('/api/person?campaign=' + state.campaign, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ company: co, tkLink: tk?toLinkUrl('tk',tk):'', igLink: ig?toLinkUrl('ig',ig):'' }) });
+    const j = await r.json();
+    if(j.error) throw new Error(j.error);
+    state.addForm=false;
+    toast('<b>시트 ' + j.row + '행</b>에 추가했어요 — 이름·팔로워는 스캔하면 자동으로 채워져요.');
+    await loadData();
+  } catch(e){ toast('추가 실패: ' + esc(e.message)); }
+  finally { if(btn) btn.disabled=false; }
 }
 
 /* ============ 새 캠페인 (config 한 개) ============ */
@@ -2958,6 +2984,7 @@ document.getElementById('content').addEventListener('click', e=>{
       updateGardenSum();          // 표는 그대로 두고 합계만 고친다 — 누를 때마다 표가 튀면 못 쓴다
       return; } }
   if(e.target.closest('#btnExec')){ execModal(); return; }
+  { const ab = e.target.closest('[data-abandon]'); if(ab){ abandonOrder(ab.dataset.abandon); return; } }
   { const bp = e.target.closest('#btnPerf'); if(bp){ runPerfScan(bp); return; } }
   { const bd = e.target.closest('#btnDeliver'); if(bd){ runDeliverWrite(bd); return; } }
   const bs=e.target.closest('[data-basis]'); if(bs){ setBasis(bs.dataset.basis); return; }

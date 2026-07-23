@@ -616,6 +616,25 @@ function deliverReviewed_(sheetId, rows) {
   return { added: added.length, updated: updated, handles: added };
 }
 
+// 새 크리에이터 한 줄 추가 — 대시보드 '인원 추가'. 맨 아래에 붙이고 링크를 그대로 넣는다.
+// 링크는 반드시 URL 이라야 readAccounts_ 가 핸들을 뽑는다(핸들만 들어가면 그 행이 안 보인다).
+function addPerson_(p) {
+  p = p || {};
+  var tk = String(p.tkLink || '').trim();
+  var ig = String(p.igLink || '').trim();
+  if (!tk && !ig) return { error: '틱톡 또는 인스타 링크가 하나 이상 필요해요.' };
+  if (tk && !handleFrom_(tk)) return { error: '틱톡 링크에서 @핸들을 못 찾았어요: ' + tk };
+  if (ig && !igHandleFrom_(ig)) return { error: '인스타 링크가 instagram.com/사용자명 형태가 아니에요: ' + ig };
+  var sh = getSheet_();
+  var r = sh.getLastRow() + 1;
+  if (tk && COL.link) sh.getRange(r, COL.link).setValue(tk);
+  if (ig && COL.igLink) sh.getRange(r, COL.igLink).setValue(ig);
+  if (p.company && COL.company) sh.getRange(r, COL.company).setValue(String(p.company));
+  if (p.email && COL.email) sh.getRange(r, COL.email).setValue(String(p.email));
+  SpreadsheetApp.flush();
+  return { ok: true, row: r };
+}
+
 function doPost(e) {
   try {
     var body;
@@ -639,6 +658,7 @@ function doPost(e) {
     }
     // sync 는 COL.link·COL.company 로 마스터에 쓴다 → 위 검사 뒤에 둔다.
     if (body.sync) return json_(syncRecruit_(body.sync.sheetId, body.sync.company, body.sync.linkCol));
+    if (body.addPerson) return json_(addPerson_(body.addPerson)); // 인원 추가 — 맨 아래 한 줄
     var sh = getSheet_();
     var updates = body.updates || [];
     var n = 0;
