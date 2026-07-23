@@ -358,9 +358,21 @@ function ordersSheet_() {
   return sh;
 }
 
+/* 주문 한 줄의 유일키. 주문번호가 없는 주문이 있다 —
+   수기 집행(다른 패널에서 직접 넣음)과 '패널 확인 필요'(응답을 못 받아 과금 여부 불명).
+   예전엔 id 없으면 upsert 가 그냥 건너뛰면서 응답은 성공(upserted:n)이라,
+   재주문을 막아야 할 그 기록이 시트에 한 줄도 안 남았다. 로컬 파일에만 있어서
+   배포본·팀 화면은 그 계정을 '아직 충전 안 됨'으로 봤다.
+   읽기(readOrders_)는 _json 열만 쓰므로 이 키를 바꿔도 복원값은 그대로다. */
+function orderKey_(o) {
+  if (!o) return '';
+  if (o.id != null && String(o.id) !== '') return String(o.id);
+  return o.uid ? 'uid:' + String(o.uid) : '';
+}
+
 function orderRow_(o) {
   return [
-    String(o.id), // 유일키는 항상 문자열로 (정밀도·앞자리0 무관하게 매칭 안정)
+    orderKey_(o), // 유일키는 항상 문자열로 (정밀도·앞자리0 무관하게 매칭 안정)
     o.handle || '',
     o.row == null ? '' : o.row,
     o.service == null ? '' : o.service,
@@ -392,8 +404,8 @@ function upsertOrders_(orders) {
     // (기본 1000행을 넘어 auto-expand 되면 새 행은 자동포맷이라 charge/id 가 숫자로 강제변환됨)
     var newCount = 0, seen = {};
     for (var p = 0; p < orders.length; p++) {
-      var k = String(orders[p].id);
-      if (orders[p].id == null || orders[p].id === '' || idx[k] || seen[k]) continue;
+      var k = orderKey_(orders[p]);
+      if (!k || idx[k] || seen[k]) continue;
       seen[k] = true; newCount++;
     }
     if (newCount > 0) {
@@ -404,9 +416,10 @@ function upsertOrders_(orders) {
     var n = 0;
     for (var j = 0; j < orders.length; j++) {
       var o = orders[j];
-      if (o.id == null || o.id === '') continue;
-      var row = idx[String(o.id)];
-      if (!row) { lastRow += 1; row = lastRow; idx[String(o.id)] = row; }
+      var k = orderKey_(o);
+      if (!k) continue;   // id·uid 둘 다 없으면 추적이 불가능하다 — 그건 진짜로 건너뛴다
+      var row = idx[k];
+      if (!row) { lastRow += 1; row = lastRow; idx[k] = row; }
       sh.getRange(row, 1, 1, ORDER_COLS.length).setValues([orderRow_(o)]);
       n++;
     }

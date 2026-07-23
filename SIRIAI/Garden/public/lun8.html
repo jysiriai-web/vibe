@@ -1951,7 +1951,7 @@ function viewGarden(){
   const filling = allCand.filter(d=>gStat(d,p).st==='filling');
   const needSum = targets.reduce((a,d)=> a+gStat(d,p).order, 0);
   const holdToggle = holds.length ? `<label class="toggle ${state.gardenHold?'on':''}" id="gardenHoldToggle"><span class="switch"></span><span>보류 ${holds.length}건 표시</span></label>` : '';
-  const execBar = `<div class="bar"><div class="summary">${pName(p)} 가드닝 대상 <b>${targets.length}</b>건 · 충전 합계 <b>${nf(needSum)}</b>명 ${filling.length?`<span class="cmuted">진행중 ${filling.length}건</span>`:''}</div><div class="spacer"></div>${holdToggle}${LOCAL.on?`<button class="btn danger" id="btnExec"${targets.length?'':' disabled'}>선택 집행</button>`:''}</div>`;
+  const execBar = `<div class="bar"><div class="summary">${pName(p)} 가드닝 대상 <b>${targets.length}</b><span id="gsumOf"></span>건 <span class="cmuted" id="gsumPlat"></span> · 충전 합계 <b>${nf(needSum)}</b>명 ${filling.length?`<span class="cmuted">진행중 ${filling.length}건</span>`:''}</div><div class="spacer"></div>${holdToggle}${LOCAL.on?`<button class="btn danger" id="btnExec"${targets.length?'':' disabled'}>선택 집행</button>`:''}</div>`;
   return platSubtabs() + gardenSummary() + execBar + renderTable(cols, rows, { tableId:'garden-'+p, rowClass:r=> gStat(r,p).st==='hold'?'held':'' }) +
     `<div class="finenote">충전량 = 목표 <b>${nf(GTARGET)}</b>까지 100단위 반올림(베이온 가드닝과 동일). <b>최소 ${nf(GMIN)} 미만</b>만 대상, 진행중 주문(remains)은 자동 차감. 마감임박·저확률 미업로드자는 <b>보류</b> → 업로드 확인 후 가드닝(자동 제외 X). 집행은 워커가 로컬 SMM 키로.</div>`;
 }
@@ -1993,7 +1993,7 @@ function viewGardenAll(){
   const needSum = targets.reduce((a,r)=> a+r.g.order, 0);
   const holdToggle = holdN ? `<label class="toggle ${state.gardenHold?'on':''}" id="gardenHoldToggle"><span class="switch"></span><span>보류 ${holdN}건 표시</span></label>` : '';
   const byPlat = platsOn().map(p=>{ const n = targets.filter(r=>r.p===p).length; return n?pName(p)+' '+n:''; }).filter(Boolean).join(' · ');
-  const execBar = `<div class="bar"><div class="summary">가드닝 대상 <b>${targets.length}</b>건${byPlat?' <span class="cmuted">('+byPlat+')</span>':''} · 충전 합계 <b>${nf(needSum)}</b>명 ${filling.length?'<span class="cmuted">진행중 '+filling.length+'건</span>':''}</div><span class="bar-right">${holdToggle}${LOCAL.on?`<button class="btn danger" id="btnExec"${targets.length?'':' disabled'}>선택 집행</button>`:''}</span></div>`;
+  const execBar = `<div class="bar"><div class="summary">가드닝 대상 <b>${targets.length}</b><span id="gsumOf"></span>건 <span class="cmuted" id="gsumPlat">${byPlat?'('+byPlat+')':''}</span> · 충전 합계 <b>${nf(needSum)}</b>명 ${filling.length?'<span class="cmuted">진행중 '+filling.length+'건</span>':''}</div><span class="bar-right">${holdToggle}${LOCAL.on?`<button class="btn danger" id="btnExec"${targets.length?'':' disabled'}>선택 집행</button>`:''}</span></div>`;
   return platSubtabs() + gardenSummary() + execBar + renderTable(cols, rows, { tableId:'garden-all', rowClass:r=> r.g.st==='hold'?'held':'' }) +
     `<div class="finenote">한 행 = <b>1건</b>(사람×플랫폼). 충전량 = 목표 <b>${nf(GTARGET)}</b>까지 100단위 반올림. <b>최소 ${nf(GMIN)} 미만</b>만 대상, 진행중 주문(remains)은 자동 차감. 마감임박·저확률 미업로드자는 <b>보류</b> → 업로드 확인 후 가드닝. 집행은 작업 콘솔에서.</div>`;
 }
@@ -2858,17 +2858,40 @@ function syncPickAll(){
   box.checked = on === all.length;
   box.indeterminate = on > 0 && on < all.length;
 }
+/* 체크를 바꿔도 표는 다시 안 그린다(누를 때마다 표가 튀면 못 쓴다) — 요약만 고친다.
+   ⚠️ 예전엔 숫자 두 개만 갈아끼우고 '(틱톡 6 · 인스타 1)' 은 전체 기준 그대로 뒀다.
+   그래서 "가드닝 대상 3건 (틱톡 6 · 인스타 1)" 처럼 앞뒤가 안 맞는 줄이 나왔다.
+   내역도 같이 갱신하고, 일부만 골랐을 때는 '/ 대상 N' 을 붙여 무엇을 세는지 밝힌다. */
 function updateGardenSum(){
   const picks = gardenPicks();
   const n = picks.length, sum = picks.reduce((a,x)=> a + x.order, 0);
+  const all = gardenTargetsAll();
   const el = document.querySelector('#content .summary');
   if(el){
     const b = el.querySelectorAll('b');
     if(b[0]) b[0].textContent = n;
     if(b[1]) b[1].textContent = nf(sum);
+    const of = el.querySelector('#gsumOf');
+    if(of) of.textContent = (n < all.length) ? ' / 전체 ' + all.length : '';
+    const pl = el.querySelector('#gsumPlat');
+    if(pl){
+      const by = platsOn().map(p=>{ const c = picks.filter(x=>x.p===p).length; return c?pName(p)+' '+c:''; }).filter(Boolean).join(' · ');
+      pl.textContent = by ? '('+by+')' : '';
+    }
   }
   const btn = document.getElementById('btnExec');
   if(btn) btn.disabled = !n;
+}
+// 지금 화면 기준 '가드닝 대상' 전체(체크 여부 무관) — 요약이 '선택 / 대상' 을 같이 말하려면 필요하다.
+function gardenTargetsAll(){
+  const out = [];
+  D.filter(inCampaign).forEach(d=> platsOn().forEach(p=>{
+    if(!d[p]) return;
+    if(gStat(d,p).st!=='target') return;
+    if(state.plat!=='all' && state.plat!==p) return;
+    out.push({ d, p });
+  }));
+  return out;
 }
 // 지금 켜져 있는 가드닝 대상. 화면에 보이는 것만 센다 — 안 보이는 걸 집행하면 안 된다.
 function gardenPicks(){
