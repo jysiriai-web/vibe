@@ -81,6 +81,7 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
   const wroteHandles = new Set();   // 이번 판에 시트 쓰기를 시도한 핸들 — 쓰기가 깨지면 이들만 되돌린다
   const failedHandles = new Set();  // 이번 판에 '못 본' 계정. 지난 판 기록과 섞이면 실패 건수가 거짓이 된다
   let apiDead = false, stopped = '', emptyStreak = 0;
+  let newUploaded = 0;   // 이번 판에 '새로' 찾은 업로드. 누적(uploadedN)과 섞으면 안 된다.
 
   if (targets.length) {
     const b = await launchIgBrowser({ onWarmup, waitForGo });
@@ -170,6 +171,7 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
             comments: first.post.comments,
             takenAt: first.post.takenAt,
           };
+          if (!(prev[a.igHandle] && prev[a.igHandle].uploaded)) newUploaded++;
           wroteHandles.add(a.igHandle);
           if (!locked(a.row, 'contentA')) cells.push({ row: a.row, field: 'ig.contentA', value: first.post.link });
           if (hits[1] && !locked(a.row, 'contentB')) cells.push({ row: a.row, field: 'ig.contentB', value: hits[1].post.link });
@@ -208,6 +210,7 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
     total: accounts.length,
     scannedCount: targets.length,
     uploaded: uploadedN,
+    newUploaded,
     written,
     writeError,
     pendingWrite: Object.values(detected).filter((d) => d && d.pendingWrite).length,
