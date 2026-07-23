@@ -2384,10 +2384,13 @@ function recruitTools(){
 /* 리마인드 대상 — 지금 화면(일자·플랫폼 필터 그대로)에서 아직 안 올린 사람.
    '엑셀처럼 한 번에 긁는' 자리다. 한 명씩 이메일을 복사하다 8명을 놓치는 게 실제 문제였다. */
 function remindTargets(){
+  // 하위탭을 그대로 따라간다. '일정 미준수' 탭에서는 지연된 사람만 —
+  // 예정일이 아직 안 지났으면 리마인드 보낼 사람이 아니다(0건인데 7명이라고 뜨던 것).
+  const lateOnly = state.plat==='late';
   const only = (state.plat==='tk'||state.plat==='ig') ? [state.plat] : platsOn();
   return D.filter(inCampaign).filter(inUpload).filter(dayWeekPass)
     .filter(d=> !isDropped(d))
-    .filter(d=> only.some(p=> d[p] && !uploaded(d,p)));
+    .filter(d=> only.some(p=> d[p] && !uploaded(d,p) && (!lateOnly || isLate(d,p))));
 }
 function remindBtn(){
   const t = remindTargets();
