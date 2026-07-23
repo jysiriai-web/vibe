@@ -10,13 +10,20 @@
   <style>
     /* 공유 대시보드와 같은 토큰(style.css)을 쓰고, 이 화면에만 필요한 것만 여기 둔다 */
     /* 카드를 세로로만 쌓으니 좌우가 통째로 비고 스크롤이 길었다. 2열로 깔고 폭을 넓힌다. */
-    .wk { max-width: 1080px; margin: 0 auto; padding: 24px 22px 60px; }
-    .wk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 13px; }
+    .wk { max-width: 1720px; margin: 0; padding: 22px 24px 20px; }
+    .wk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 13px; }
+    /* 작업 카드(왼쪽) + 작업 기록(오른쪽) 2단. 기록이 세로로 길어 한 화면에 다 들어온다. */
+    .wk-main { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 22px; align-items: start; }
+    .wk-right { position: sticky; top: 18px; }
+    @media (max-width: 1180px) {
+      .wk-main { grid-template-columns: 1fr; }
+      .wk-right { position: static; }
+    }
     @media (max-width: 720px) { .wk { padding: 18px 14px 50px; } }
     .wk-warn { background: var(--warn-bg); color: var(--warn-ink); border: 1px solid var(--warn); border-radius: 10px; padding: 10px 14px; font-size: 13.5px; font-weight: 700; }
-    .wk-h { display: flex; align-items: center; gap: 9px; margin: 22px 0 6px; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+    .wk-h { display: flex; align-items: center; gap: 9px; margin: 14px 0 4px; font-size: 23px; font-weight: 800; letter-spacing: -0.02em; }
     /* 요약 — 무엇으로 얼마가 나가는지가 화면에 없었다. 집행 전에 알아야 할 것을 한 줄에 세운다. */
-    .wk-sum { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 11px; margin: 16px 0 4px;
+    .wk-sum { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 11px; margin: 10px 0 4px;
       font-variant-numeric: tabular-nums; }
     .wk-s { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
     .wk-s .k { display: block; font-size: 11px; font-weight: 700; letter-spacing: .04em; color: var(--faint); text-transform: uppercase; }
@@ -35,16 +42,21 @@
     .wk-sub { display: flex; align-items: center; gap: 9px; margin-top: 13px; flex-wrap: wrap; }
     .wk-note { font-size: 12.5px; color: var(--faint); }
     /* 작업 기록 — 시각과 내용이 붙어 있어 훑기 어려웠다. 격자로 갈라 시각을 세로로 맞춘다. */
-    .wk-logbox { background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); margin-top: 24px; overflow: hidden; }
+    .wk-logbox { background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden;
+      display: flex; flex-direction: column; height: calc(100vh - 150px); min-height: 420px; }
     .wk-loghead { display: flex; align-items: center; justify-content: space-between; padding: 11px 16px; border-bottom: 1px solid var(--line);
       font-size: 12.5px; font-weight: 800; color: var(--muted); letter-spacing: .02em; }
     .wk-loghead .btn { padding: 3px 10px; font-size: 11.5px; }
-    .wk-log { padding: 6px 16px 10px; height: 230px; overflow-y: auto; font-size: 13px; line-height: 1.55; }
-    .wk-line { display: grid; grid-template-columns: 46px 1fr; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--line2); }
-    .wk-line:last-child { border-bottom: none; }
-    .wk-line .t { color: var(--faint); font-variant-numeric: tabular-nums; font-size: 11.5px; padding-top: 1px; }
-    .wk-line.err { color: var(--needs-ink); }
-    .wk-line.ok { color: var(--ok-ink); font-weight: 700; }
+    .wk-log { flex: 1; padding: 10px 14px 12px; overflow-y: auto; font-size: 13px; line-height: 1.55; }
+    /* 한 줄 = 말풍선 하나. 시각을 위에 작게 얹어 훑을 때 시간축이 보이게. */
+    .wk-line { padding: 3px 0 7px; }
+    .wk-line .t { display: block; color: var(--faint); font-variant-numeric: tabular-nums; font-size: 10.5px; margin-bottom: 3px; }
+    .wk-line .m { display: inline-block; max-width: 100%; background: var(--line2); color: var(--ink);
+      border-radius: 13px; border-top-left-radius: 4px; padding: 8px 12px; word-break: break-word; }
+    .wk-line.err .m { background: var(--needs-bg); color: var(--needs-ink); }
+    .wk-line.ok  .m { background: var(--ok-bg); color: var(--ok-ink); font-weight: 700; }
+    .wk-log:empty::after { content: '아직 한 일이 없어요. 왼쪽에서 작업을 누르면 여기에 쌓입니다.';
+      display: block; padding: 14px 2px; font-size: 12.5px; color: var(--faint); }
     .wk-camp { font-size: 12px; font-weight: 800; letter-spacing: 0.04em; background: var(--line2); color: var(--muted); padding: 3px 9px; border-radius: 20px; }
     /* 플랫폼 구획 — 카드가 어느 플랫폼 것인지 한눈에. 공통 작업은 맨 아래로 모은다. */
     .wk-sect { display: flex; align-items: center; gap: 10px; margin: 24px 0 10px; }
@@ -54,12 +66,17 @@
     .wk-plat.ig { background: linear-gradient(92deg, #c13584, #e1306c); color: #fff; }
     .wk-plat.all { background: var(--line2); color: var(--muted); }
     .wk-done { display: block; margin-top: 16px; text-align: center; text-decoration: none; }
+    /* 좁은 화면에선 2단이 안 되니 기록을 아래로 접는다.
+       ⚠️ 이 규칙은 .wk-logbox 기본값보다 뒤에 있어야 한다 — 앞에 두면 우선순위가 같아 나중 것이 이긴다. */
+    @media (max-width: 1180px) { .wk-logbox { height: 320px; min-height: 0; } }
   </style>
 </head>
 <body>
   <div class="wk">
     <div class="wk-warn">이 화면은 대표님 PC 전용입니다 — 팀 공유 URL에서는 안 열려요.</div>
     <div class="wk-h"><span class="leaf">🌱</span> 댄스챌린지 작업 콘솔<span class="wk-camp">LUN8 · SNEAKERS</span></div>
+    <div class="wk-main">
+    <div class="wk-left">
     <div class="wk-sum" id="status">상태 불러오는 중…</div>
 
     <div class="wk-sect"><span class="wk-plat tk">틱톡</span></div>
@@ -111,12 +128,16 @@
     </div>
 
     <p class="wk-svc" id="svcNote"></p>
-
-    <div class="wk-logbox">
-      <div class="wk-loghead">작업 기록<button class="btn ghost small" id="logClear">지우기</button></div>
-      <div class="wk-log" id="log" role="log" aria-live="polite"></div>
-    </div>
     <a class="btn wk-done" id="doneLink" href="/lun8.html" target="_blank" rel="noopener" hidden>결과는 공유 대시보드에서 확인 →</a>
+    </div>
+
+    <aside class="wk-right">
+      <div class="wk-logbox">
+        <div class="wk-loghead">작업 기록<button class="btn ghost small" id="logClear">지우기</button></div>
+        <div class="wk-log" id="log" role="log" aria-live="polite"></div>
+      </div>
+    </aside>
+    </div>
   </div>
 
   <div class="modal-bg" id="modal" hidden>
@@ -147,7 +168,7 @@
     function say(msg, kind) {
       var el = document.createElement('div');
       el.className = 'wk-line' + (kind ? ' ' + kind : '');
-      el.innerHTML = '<span class="t">' + new Date().toTimeString().slice(0, 5) + '</span>' + msg;
+      el.innerHTML = '<span class="t">' + new Date().toTimeString().slice(0, 5) + '</span><span class="m">' + msg + '</span>';
       var box = $('#log');
       box.appendChild(el);
       box.scrollTop = box.scrollHeight;
