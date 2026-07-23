@@ -697,6 +697,10 @@ select.best.on { background:#fff8e1; color:#8a6100; border-color:#f0d48a; font-w
 .msec { border:1px solid var(--line); border-radius:10px; padding:12px 13px 4px; margin-bottom:12px; }
 .msec-h { display:flex; align-items:center; gap:7px; font-weight:800; font-size:12.5px; margin-bottom:9px; color:var(--ink); }
 .msec-h .pmark { width:15px; height:15px; }
+/* 미러링이면 업로드는 2건이어도 콘텐츠는 1건 — 셀에서 바로 보이게 */
+.mirct { display:inline-block; margin-left:7px; font-size:11.5px; font-weight:700; color:var(--warn-ink);
+  background:var(--warn-bg); border-radius:20px; padding:2px 8px; white-space:nowrap; }
+.mirct b { font-weight:800; opacity:.7; margin:0 1px; }
 </style>
 </head>
 <body>
@@ -1106,6 +1110,7 @@ const REV = { p:['rev-pass','준수'], f:['rev-fail','미준수'], n:['rev-none'
 function revSel(k,id,field,plat){ const opts=[['n','미확인'],['p','준수'],['f','미준수']]; const [cl]=REV[k];
   return `<select class="rev-sel ${cl}" data-rev="${id}|${field}|${plat}">${opts.map(([v,l])=>`<option value="${v}"${v===k?' selected':''}>${l}</option>`).join('')}</select>`; }
 const mirName = k => ({m1:'미러링',m0:'오리지널',mx:'미확인'}[k]);
+const mirSel = r => `<select class="rev-sel mirror ${r.mir}" data-mir="${r.id}">${[['mx','미확인'],['m1','미러링 ⚠'],['m0','오리지널']].map(([v,l])=>`<option value="${v}"${v===r.mir?' selected':''}>${l}</option>`).join('')}</select>`;
 const uploaded = (d,p)=> d[p] && !!d[p].c1;
 const anyUploaded = d => platsOn().some(p=> uploaded(d,p));
 const inCampaign = d => platsOn().some(p=> d.plats.includes(p) && d[p]!==null);
@@ -1117,6 +1122,12 @@ const isMailSent = d => String(d.fixed||'').trim() === '확정메일 발송';
 // '몇 건이 비었나'가 틀리고, 그 숫자로 마루에 요청하므로 부족분이 그대로 사고가 된다.
 const slots = d => isDropped(d) ? 0 : platsOn().filter(p=> d[p]!==null && d[p]!==undefined).length;
 const reviewed = d => anyUploaded(d) && platsOn().filter(p=>uploaded(d,p)).every(p=>done(d[p]));
+/* 미러링이면 업로드는 2건이어도 만든 콘텐츠는 1건이다 — 확보 건수는 후자를 센다.
+   mirDup(d) = 미러링 때문에 빠지는 건수(2건짜리면 1). 납품 때 2건으로 밀어붙이기로 하면
+   이 값만큼 도로 더하면 되므로, 화면은 '뺀 수'를 늘 같이 보여준다. */
+const isMirrored = d => d.mir === 'm1' && slots(d) > 1;
+const mirDup = d => (isMirrored(d) ? slots(d) - 1 : 0);
+const geonOf = d => slots(d) - mirDup(d);
 const nickCell = d => `<b>${esc(d.nick)}</b>`;
 // 이메일은 눌러서 복사한다 — 모집메일을 지메일에 붙여넣는 게 실제 용도라 '보기'만으론 부족하다.
 function mailCell(v){
@@ -1516,17 +1527,19 @@ function viewRecruit(){
   const totPeople = all.length;
   const tkPeople = all.filter(d=>d.tk && platsOn().includes('tk')).length;
   const igPeople = all.filter(d=>d.ig && platsOn().includes('ig')).length;
-  const maruGeon = all.filter(d=>d.co==='MARU').reduce((a,d)=>a+slots(d),0);
-  const siGeon   = all.filter(d=>d.co==='SIRIAI').reduce((a,d)=>a+slots(d),0);
+  const maruGeon = all.filter(d=>d.co==='MARU').reduce((a,d)=>a+geonOf(d),0);
+  const siGeon   = all.filter(d=>d.co==='SIRIAI').reduce((a,d)=>a+geonOf(d),0);
   const tkGeon = tkPeople, igGeon = igPeople, totGeon = maruGeon+siGeon;
+  // 미러링으로 뺀 건수. 납품 때 2건으로 밀기로 하면 이만큼 도로 올라간다.
+  const mirCut = all.reduce((a,d)=>a+mirDup(d),0);
   // 확보는 정산 상한(105)이 아니라 확보 목표(115)를 향해 간다 — 미업로드 완충 10건을 미리 깔고 가므로.
   const sec = cfg().secure;
   const coSub = sec
-    ? `확보 목표 <b>${sec.target}건</b> = 시리아이 ${sec.SIRIAI} + 마루 ${sec.MARU}(요청함) · 현재 <b>${totGeon}건</b>`
+    ? `확보 목표 <b>${sec.target}건</b> = 시리아이 ${sec.SIRIAI} + 마루 ${sec.MARU}(요청함) · 현재 <b>${totGeon}건</b>${mirCut?` · 미러링 ${mirCut}건 뺀 수(밀면 ${totGeon+mirCut})`:''}`
     : `콘텐츠 총 ${totGeon}건 (1명이 여러 건)`;
   const kpis = `<div class="cards">
     ${kpi('모집 인원 · 명', `${totPeople}<span class="of"> 명</span>`, { ic:IC.users, sub:`${hasIG()?`틱톡 ${tkPeople}명 · 인스타 ${igPeople}명`:`틱톡 ${tkPeople}명`} · 확보 ${totGeon}건` })}
-    ${secureKpi(totGeon)}
+    ${secureKpi(totGeon, mirCut)}
     ${hasIG() ? kpi('플랫폼 · 건', `${tkGeon}<span class="of"> 틱톡</span> · ${igGeon}<span class="of"> 인스타</span>`, { ic:IC.layers, two:true, sub:`콘텐츠 총 ${totGeon}건` }) : ''}
     ${schedStrip()}
   </div>`;
@@ -1605,9 +1618,10 @@ function viewUploadAll(){
         `<span class="cp">${PLAT_MARK[p]?`<i class="pmark ${p}">${PLAT_MARK[p]}</i>`:''}${upStateCell(r,p)}</span>`).join('')}</div>` },
     { key:'mir', label:'미러링', sv:r=>r.mir,
       cell:r=> r.plats.length<2 ? '<span class="cmuted">해당 없음</span>'
+        : r.mir==='m1' ? mirSel(r) + `<span class="mirct" title="같은 영상이라 만든 콘텐츠는 1건으로 셉니다. 납품 때 2건으로 밀기로 하면 확보가 그만큼 올라가요.">${slots(r)}건 <b>×</b> 1건</span>`
         // 미러링은 계약 위반이고 '따로 촬영'이 정상이다. 이름과 색이 그걸 말해야 한다 —
         // '별개'는 중립적이라 무엇이 좋은 상태인지 안 보였다.
-        : `<select class="rev-sel mirror ${r.mir}" data-mir="${r.id}">${[['mx','미확인'],['m1','미러링 ⚠'],['m0','오리지널']].map(([v,l])=>`<option value="${v}"${v===r.mir?' selected':''}>${l}</option>`).join('')}</select>` },
+        : mirSel(r) },
     // 날짜는 미러링 뒤로. 앞쪽은 '올라왔나·같은 영상인가'를 보는 자리고,
     // 날짜는 그다음에 챙기는 것이다. 확정일은 모집탭에서 여기로 옮겼다 —
     // 날짜를 다시 잡는 일은 업로드를 쫓는 사람 몫이다.
@@ -1641,14 +1655,16 @@ function viewUploadAll(){
    모집이 늘면 곧바로 사실과 어긋나는데, 화면이 틀린 말을 하는 게 설명이 없는 것보다 나쁘다.
    대신 색으로 말한다: 목표 넘으면 초록 · 인정상한은 넘었으면 노랑 · 그 아래면 빨강.
    기준이 두 개인 이유 — 인정상한(105)은 계약 물량이고 목표(115)는 미업로드까지 감안한 여유다. */
-function secureKpi(geon){
+function secureKpi(geon, mirCut){
   const sec = cfg().secure, cap = cfg().settleCap || 0;
   if(!sec) return kpi('확보 · 건', String(geon), { ic:IC.split });
+  // 미러링을 1건으로 센 결과라는 걸 숨기지 않는다 — 납품 때 2건으로 밀 여지가 있어서다.
+  const mirNote = mirCut ? ` <span class="cmuted">· 미러링 ${mirCut}건 제외</span>` : '';
   const ok = geon >= sec.target, mid = geon >= cap;
   const accent = ok ? 'var(--ok-ink)' : mid ? 'var(--warn)' : 'var(--needs)';
-  const sub = ok ? `목표 ${sec.target}건 달성 — 미업로드 여유까지 확보`
+  const sub = (ok ? `목표 ${sec.target}건 달성 — 미업로드 여유까지 확보`
     : mid ? `인정상한 ${cap}건은 넘었어요 · 목표 ${sec.target}건까지 ${sec.target-geon}건`
-          : `<b class="warn-t">인정상한 ${cap}건에 ${cap-geon}건 모자라요</b> — 정산 물량이 안 채워집니다`;
+          : `<b class="warn-t">인정상한 ${cap}건에 ${cap-geon}건 모자라요</b> — 정산 물량이 안 채워집니다`) + mirNote;
   return kpi('확보 · 건', ofTot(geon, sec.target), { ic:IC.split, accent, sub });
 }
 function bufferKpi(){
