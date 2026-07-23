@@ -1,17 +1,25 @@
 // 집행 공용 로직 — CLI(execute.js)와 웹 대시보드(server.js)가 같은 돈 로직을 씀.
 import { sleep } from './tiktok.js';
-import { launchBrowser, fetchProfile } from './tiktok-videos.js';
+import { launchBrowser, fetchProfile, warmContext } from './tiktok-videos.js';
 import { orderQuantity } from './garden.js';
 import { inFlightFor } from './orders.js';
 
 // 계정 리스트 팔로워·닉네임 스크랩 — 실제 브라우저(Playwright headless:false)로 봇 차단 우회.
 // 직접 fetch 방식은 틱톡이 'Please wait'로 전부 차단해서 폐기(2026-07-09).
 // 동시성 3 + 계정 간 랜덤 간격 — 탭을 많이 열면 틱톡이 막아서 차단을 줄이려 낮췄다(5→3).
-export async function scanAccounts(accounts, { delayMs = 500, onProgress, onWait, concurrency = 3 } = {}) {
+// reuse: 살아 있는 브라우저를 다시 쓴다(집행 직전 재확인용).
+// 집행은 이미 계획을 본 뒤라 창을 새로 띄우고 로봇 인증 게이트까지 다시 거칠 이유가 없다 —
+// 그게 '주문 중…' 이 오래 걸리던 이유였다. 저장된 세션으로 바로 긁고 브라우저는 안 닫는다.
+// 긁기에 실패하면 followers=null 이 되고 buildPlan 이 errored 로 빼므로, 막혀도 주문은 안 나간다.
+export async function scanAccounts(accounts, { delayMs = 500, onProgress, onWait, concurrency = 3, reuse = false } = {}) {
   if (!accounts.length) return [];
   const out = new Array(accounts.length);
-  // 창 하나 먼저 띄워 로봇 인증을 사람이 끝낼 때까지 대기 (인증 실패면 throw — 빈 결과로 진행하지 않는다)
-  const { browser, ctx } = await launchBrowser({ onWait }); // Playwright 미설치면 여기서 throw
+  let browser = null, ctx;
+  if (reuse) { ctx = await warmContext(); }
+  else {
+    // 창 하나 먼저 띄워 로봇 인증을 사람이 끝낼 때까지 대기 (인증 실패면 throw — 빈 결과로 진행하지 않는다)
+    const b = await launchBrowser({ onWait }); browser = b.browser; ctx = b.ctx; // Playwright 미설치면 여기서 throw
+  }
   let idx = 0;
   let done = 0;
   const worker = async () => {
@@ -38,7 +46,7 @@ export async function scanAccounts(accounts, { delayMs = 500, onProgress, onWait
   try {
     await Promise.all(Array.from({ length: Math.min(concurrency, accounts.length) || 1 }, worker));
   } finally {
-    try { await browser.close(); } catch {}
+    if (browser) { try { await browser.close(); } catch {} }   // 재사용 브라우저는 안 닫는다(다음 작업이 또 쓴다)
   }
   return out;
 }

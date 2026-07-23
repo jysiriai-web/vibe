@@ -689,12 +689,18 @@ export async function handler(req, res) {
       try {
       const svc = serviceOf(campaign);
       if (!svc) return send(res, 400, { error: '서비스 정보 없음' });
-      let orders = await readOrders(campaign);
+      // 시트 왕복이 건당 3초쯤이라 순서대로 부르면 그만큼 쌓인다 —
+      // 주문기록과 계정목록은 서로 의존하지 않으니 같이 부른다.
+      let [orders, accounts] = await Promise.all([
+        readOrders(campaign),
+        getAccountsFromSheet(campaign.sheet),
+      ]);
       orders = await refreshOrders(smm, orders);
-      let accounts = await getAccountsFromSheet(campaign.sheet);
       accounts = tiktokOnly(accounts);   // 틱톡 서비스로 주문하므로 틱톡 계정만
       if (Array.isArray(body.handles)) accounts = accounts.filter((a) => body.handles.includes(a.handle));
-      const scanned = await scanAccounts(accounts);
+      // reuse: 이미 계획을 확인하고 비번까지 넣은 단계다 — 창을 새로 띄우고 로봇 인증을
+      //        다시 거칠 이유가 없다. 살아 있는 브라우저로 팔로워만 다시 확인한다.
+      const scanned = await scanAccounts(accounts, { reuse: true });
       const plan = buildPlan(scanned, orders, { target: campaign.target, min: campaign.min, service: svc });
       // 스캔에 수 분이 걸렸다. 그 사이 다른 경로(CLI·앞선 집행)가 주문을 넣었을 수 있으니
       // 돈을 쓰기 직전에 주문기록을 다시 읽어 이미 진행중인 계정은 뺀다.
