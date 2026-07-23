@@ -47,14 +47,14 @@
     .wk-loghead { display: flex; align-items: center; justify-content: space-between; padding: 11px 16px; border-bottom: 1px solid var(--line);
       font-size: 12.5px; font-weight: 800; color: var(--muted); letter-spacing: .02em; }
     .wk-loghead .btn { padding: 3px 10px; font-size: 11.5px; }
-    .wk-log { flex: 1; padding: 10px 14px 12px; overflow-y: auto; font-size: 13px; line-height: 1.55; }
-    /* 한 줄 = 말풍선 하나. 시각을 위에 작게 얹어 훑을 때 시간축이 보이게. */
-    .wk-line { padding: 3px 0 7px; }
-    .wk-line .t { display: block; color: var(--faint); font-variant-numeric: tabular-nums; font-size: 10.5px; margin-bottom: 3px; }
-    .wk-line .m { display: inline-block; max-width: 100%; background: var(--line2); color: var(--ink);
-      border-radius: 13px; border-top-left-radius: 4px; padding: 8px 12px; word-break: break-word; }
-    .wk-line.err .m { background: var(--needs-bg); color: var(--needs-ink); }
-    .wk-line.ok  .m { background: var(--ok-bg); color: var(--ok-ink); font-weight: 700; }
+    .wk-log { flex: 1; padding: 6px 16px 10px; overflow-y: auto; font-size: 13px; line-height: 1.55; }
+    /* 시각과 내용을 격자로 갈라 시각을 세로로 맞춘다 — 훑을 때 시간축이 보인다. */
+    .wk-line { display: grid; grid-template-columns: 44px 1fr; gap: 9px; padding: 5px 0; border-bottom: 1px solid var(--line2); }
+    .wk-line:last-child { border-bottom: none; }
+    .wk-line .t { color: var(--faint); font-variant-numeric: tabular-nums; font-size: 11.5px; padding-top: 1px; }
+    .wk-line .m { min-width: 0; word-break: break-word; }
+    .wk-line.err { color: var(--needs-ink); }
+    .wk-line.ok { color: var(--ok-ink); font-weight: 700; }
     .wk-log:empty::after { content: '아직 한 일이 없어요. 왼쪽에서 작업을 누르면 여기에 쌓입니다.';
       display: block; padding: 14px 2px; font-size: 12.5px; color: var(--faint); }
     .wk-camp { font-size: 12px; font-weight: 800; letter-spacing: 0.04em; background: var(--line2); color: var(--muted); padding: 3px 9px; border-radius: 20px; }

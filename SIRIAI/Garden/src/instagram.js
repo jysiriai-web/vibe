@@ -260,6 +260,9 @@ export async function fetchIgPostsViaPage(ctx, handleRaw, { max = 12, timeout = 
     const noCaption = (t) => !String(t || '').trim()
       || /^(Photo|Video|Reel|사진|동영상)\s+by\s+/i.test(String(t).trim())
       || /^(Photo|Video|Reel)\s+shared\s+by/i.test(String(t).trim());
+    // 인스타가 스스로 '사진'이라고 적어준 것 — 댄스 챌린지 영상일 수가 없다.
+    // 캡션이 없다는 이유로 이런 걸 열고 있었다(계정당 서너 장 = 십몇 초). 'Video'/'Reel' 이면 연다.
+    const photoOnly = (t) => /^(Photo|사진)\s+(by|shared\s+by)\s/i.test(String(t || '').trim());
 
     // 그리드에서 얻은 '얇은' 게시물. 캡션만 있고 좋아요·시각은 없다.
     const posts = links.map((l) => ({
@@ -277,9 +280,12 @@ export async function fetchIgPostsViaPage(ctx, handleRaw, { max = 12, timeout = 
     // 열어볼 것만 고른다: ① 캠페인 해시태그가 보이는 것 ② 캡션을 모르는 것.
     // 판정자가 없으면(옛 호출) 예전처럼 전부 연다.
     const idxToOpen = [];
+    let skippedPhotos = 0;
     for (let i = 0; i < posts.length; i++) {
       if (!isMatch) { idxToOpen.push(i); continue; }
-      if (noCaption(links[i].alt) || isMatch(posts[i])) idxToOpen.push(i);
+      if (isMatch(posts[i])) { idxToOpen.push(i); continue; }   // 캡션에서 이미 보였다
+      if (photoOnly(links[i].alt)) { skippedPhotos++; continue; } // 사진은 챌린지 영상이 아니다
+      if (noCaption(links[i].alt)) idxToOpen.push(i);            // 캡션을 모르면 열어서 확인
     }
 
     const failed = [];
@@ -351,7 +357,7 @@ export async function fetchIgPostsViaPage(ctx, handleRaw, { max = 12, timeout = 
     const mine = posts.filter((x) => !x.foreign);
     // 그리드 순서가 최신순이 아닐 때가 있다(고정 게시물 등) → 시각을 아는 것부터 최신순으로.
     mine.sort((x, y) => new Date(y.takenAt || 0) - new Date(x.takenAt || 0));
-    return { handle, followers: null, name: '', isPrivate: false, postCount: null, posts: mine, via: 'page', opened };
+    return { handle, followers: null, name: '', isPrivate: false, postCount: null, posts: mine, via: 'page', opened, skippedPhotos };
   } finally { try { await page.close(); } catch {} }
 }
 
