@@ -129,6 +129,20 @@ td.nick { max-width: 220px; overflow-wrap: anywhere; }
 .empty-tr td { padding: 34px 16px; text-align: center; color: var(--muted); font-size: 15px; }
 .empty-tr:hover td { background: transparent; }
 .note-line { font-size: 12.5px; color: var(--faint); margin: 0 0 14px; line-height:1.55; }
+/* 리마인드 요약 줄 — 표 바로 위. '몇 명한테 보내야 하나'를 한눈에. */
+.remind-bar { display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; margin:2px 0 12px; padding:11px 15px;
+  background:var(--needs-bg); border:1px solid var(--needs-bg); border-radius:12px; }
+.remind-bar.ok { background:var(--ok-bg); border-color:var(--ok-bg); }
+.remind-bar .rb-head { display:flex; align-items:center; gap:7px; font-size:14px; color:var(--ink); }
+.remind-bar .rb-ic { font-size:15px; }
+.remind-bar .rb-n { font-size:19px; font-weight:800; color:var(--needs-ink); font-variant-numeric:tabular-nums; }
+.remind-bar .rb-by { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.remind-bar .rb-p { display:inline-flex; align-items:center; gap:4px; font-size:12.5px; padding:2px 10px; border-radius:20px; background:var(--card); white-space:nowrap; }
+.remind-bar .rb-p .pmark { width:13px; height:13px; }
+.remind-bar .rb-p.done { color:var(--faint); }
+.remind-bar .rb-done { font-size:12px; color:var(--faint); }
+.remind-bar .rb-act { display:flex; gap:8px; flex-wrap:wrap; margin-left:auto; }
+.remind-bar .rb-act .btn { font-size:13px; padding:7px 13px; }
 .note-line b { color: var(--muted); }
 
 /* KPI 카드 */
@@ -706,7 +720,8 @@ select.best.on { background:#fff8e1; color:#8a6100; border-color:#f0d48a; font-w
 /* 수기 집행 — 우리가 넣은 게 아니라 사람이 다른 패널에서 직접 넣은 주문 */
 .chip.manual { background:#eef2ff; color:#4338ca; }
 /* 희망일과 합의된 날짜가 다를 때 — 회색만으로는 왜 다른지 알 수 없다 */
-.movedday { font-size:10.5px; font-weight:800; color:var(--ok-ink); background:var(--ok-bg); padding:1px 6px; border-radius:20px; vertical-align:1px; }
+.movedday { font-size:10.5px; font-weight:800; color:var(--ok-ink); background:var(--ok-bg); padding:1px 6px; border-radius:20px; white-space:nowrap; }
+.daycell { display:inline-flex; flex-direction:column; align-items:flex-start; gap:3px; line-height:1.2; }
 </style>
 </head>
 <body>
@@ -1535,7 +1550,8 @@ function viewRecruit(){
       cell:r=>{ const d = dueDay(r);
         if(!d) return `<span class="cmuted">미정</span>`;
         const moved = d !== (r.sched||'');
-        return `<b>${esc(d)}</b>` + (moved ? ` <span class="movedday" title="크리에이터 희망 ${esc(r.sched||'미정')} → 합의 ${esc(d)}">합의</span>` : ''); } },
+        // 날짜 / '합의' 를 세로로 — 한 줄에 두면 좁은 칸에서 '합','의'가 따로 떨어진다.
+        return `<span class="daycell"><b>${esc(d)}</b>` + (moved ? `<span class="movedday" title="크리에이터 희망 ${esc(r.sched||'미정')} → 합의 ${esc(d)}">합의</span>` : '') + `</span>`; } },
     /* 확정일은 업로드탭(일정 미준수) 소관으로 옮겼다 — 연락하는 사람이 보는 곳에 있어야 한다.
     { key:'fixed', label:'확정일', hideable:true, empty:r=>!r.fixed, sv:r=>schedKey(r.fixed),
       cell:r=> r.fixed ? `<b class="fixdate">${esc(r.fixed)}</b>`
@@ -1676,7 +1692,7 @@ function viewUploadAll(){
     ${bufferKpi()}
     ${schedStrip()}
   </div>`;
-  return kpis + platSubtabs() + filterBar() +
+  return kpis + platSubtabs() + filterBar() + remindSummary() +
     renderTable(cols, rows, {tableId:'upload-all', emptyMsg:'조건에 맞는 사람이 없어요.'}) +
     `<div class="note-line">한 사람 한 줄이에요. <b>미러링</b>은 두 영상을 나란히 보고 판단하는 것이라 여기에만 있어요 —
      플랫폼 탭에서는 같은 사람을 두 번 찾아야 해서 판단이 안 됩니다.</div>`;
@@ -1882,7 +1898,7 @@ function viewUploadLate(){
     ${kpi('드랍 · 명', dropped, { ic:IC.x||IC.clock, sub:'최종 포기 — 추가 모집 계산에 들어감' })}
     ${schedStrip()}
   </div>`;
-  return kpis + platSubtabs() +
+  return kpis + platSubtabs() + remindSummary() +
     renderTable(cols, rows, { tableId:'upload-late', emptyMsg:'지금은 연락할 사람이 없어요 — 예정일이 지난 미업로드가 없습니다.' }) +
     `<div class="note-line">이메일을 눌러 복사 → 메일 보내고 → <b>편집</b>에서 <b>확정메일 발송</b>을 눌러 두세요. 새 날짜를 받으면 확정일에 날짜를 넣고, 그 날짜에도 안 올라오면 <b>최종 드랍</b>입니다.</div>`;
 }
@@ -1925,7 +1941,7 @@ function viewUpload(){
   </div>`;
   const scanBar = filterBar(allRows.map(d=>({ d, p })));
   const exNote = excluded ? `<div class="note-line">🎯 ${pName(p)} 미참여 <b>${excluded}명</b>은 이 탭에서 자동 숨김.</div>` : '';
-  return kpis + platSubtabs() + scanBar + exNote + renderTable(cols, rows, {tableId:'upload-'+p, noHide: state.upFilter!=='all', emptyMsg: upFilter().empty}) +
+  return kpis + platSubtabs() + scanBar + exNote + remindSummary() + renderTable(cols, rows, {tableId:'upload-'+p, noHide: state.upFilter!=='all', emptyMsg: upFilter().empty}) +
     `<div class="note-line">틱톡·인스타 모두 <b>집 IP·실제 크롬으로 자동 스캔</b>. 검수 3칸은 드롭다운으로 바로 고치고(수동=자동보다 우선), 행 전체는 <b>편집</b>으로.</div>`;
 }
 
@@ -2413,14 +2429,51 @@ function recruitTools(){
 }
 /* 리마인드 대상 — 지금 화면(일자·플랫폼 필터 그대로)에서 아직 안 올린 사람.
    '엑셀처럼 한 번에 긁는' 자리다. 한 명씩 이메일을 복사하다 8명을 놓치는 게 실제 문제였다. */
-function remindTargets(){
+function remindTargets(onlyPlat){
   // 하위탭을 그대로 따라간다. '일정 미준수' 탭에서는 지연된 사람만 —
   // 예정일이 아직 안 지났으면 리마인드 보낼 사람이 아니다(0건인데 7명이라고 뜨던 것).
+  // onlyPlat 이 오면 그 플랫폼 하나만 — 요약 줄의 '틱톡 이메일'·'인스타 이메일' 을 갈라 복사할 때 쓴다.
   const lateOnly = state.plat==='late';
-  const only = (state.plat==='tk'||state.plat==='ig') ? [state.plat] : platsOn();
+  const only = onlyPlat ? [onlyPlat] : ((state.plat==='tk'||state.plat==='ig') ? [state.plat] : platsOn());
   return D.filter(inCampaign).filter(inUpload).filter(dayWeekPass)
     .filter(d=> !isDropped(d))
     .filter(d=> only.some(p=> d[p] && !uploaded(d,p) && (!lateOnly || isLate(d,p))));
+}
+/* 리마인드 요약 — '지금 이 조건에서 몇 명한테 보내야 하나'를 표 바로 위에 세운다.
+   소통 담당자는 개별 스캔 체크박스(집 PC 전용)가 없어서 '몇 명 대상인지'를 셀 방법이 없었다.
+   일자·주차를 고른 상태(또는 일정 미준수 탭)에서만 뜬다 — 날짜 필터가 없으면
+   예정일도 안 온 사람까지 세서 '오늘 보낼 사람' 숫자가 부풀려진다. */
+function remindSummary(){
+  if(state.view!=='upload') return '';
+  if(!(state.day || state.week || state.plat==='late')) return '';
+  const lateOnly = state.plat==='late';
+  const plats = (state.plat==='tk'||state.plat==='ig') ? [state.plat] : platsOn();
+  const scope = D.filter(inCampaign).filter(inUpload).filter(dayWeekPass).filter(d=> !isDropped(d))
+    .filter(d=> plats.some(p=>d[p]));
+  if(!scope.length) return '';
+  const isTarget = d=> plats.some(p=> d[p] && !uploaded(d,p) && (!lateOnly||isLate(d,p)));
+  const targets = scope.filter(isTarget);
+  const doneList = scope.filter(d=> !isTarget(d));
+  const byPlat = plats.map(p=>({ p, n: scope.filter(d=> d[p] && !uploaded(d,p) && (!lateOnly||isLate(d,p))).length }));
+  const scopeLab = state.day ? (state.day==='__unset'?'예정일 미정 ':state.day==='__off'?'일정 밖 ':esc(state.day)+' ')
+                 : state.week ? esc(state.week)+' ' : '';
+  if(!targets.length)
+    return `<div class="remind-bar ok"><span class="rb-ic">✅</span> <b>${scopeLab}리마인드 대상 0명</b> <span class="rb-done">이 조건은 다 올렸어요.</span></div>`;
+  // 사람 수(명)와 플랫폼 합은 다르다 — 양쪽 다 안 올린 사람은 두 플랫폼에 다 세지만 사람은 하나다.
+  const byHtml = byPlat.map(x=> x.n
+    ? `<span class="rb-p ${x.p}">${PLAT_MARK[x.p]?`<i class="pmark ${x.p}">${PLAT_MARK[x.p]}</i>`:''}${pName(x.p)} <b>${x.n}</b>명</span>`
+    : `<span class="rb-p done">${pName(x.p)} 완료</span>`).join('');
+  // '완료 · 제외'는 일자·주차 필터에서만 뜻이 맞다(그 날 다 올린 사람). 지연 탭에서는
+  // '제외된 나머지'가 대부분 '아직 예정일 안 온 사람'이라 완료라고 하면 거짓말이다.
+  const doneNote = (!lateOnly && doneList.length)
+    ? `<span class="rb-done">${doneList.length<=3 ? esc(doneList.map(d=>d.nick).join(', '))+' ' : ''}${doneList.length}명 완료 · 제외</span>` : '';
+  const btns = byPlat.filter(x=>x.n).map(x=>
+    `<button class="btn small" data-remindp="${x.p}">✉ ${pName(x.p)} ${x.n}명 이메일</button>`).join('');
+  return `<div class="remind-bar">
+    <div class="rb-head"><span class="rb-ic">🔔</span> <b>${scopeLab}리마인드 대상</b> <span class="rb-n">${targets.length}명</span></div>
+    <div class="rb-by">${byHtml}${doneNote}</div>
+    <div class="rb-act">${btns}</div>
+  </div>`;
 }
 function remindBtn(){
   const t = remindTargets();
@@ -2428,13 +2481,14 @@ function remindBtn(){
   const withMail = t.filter(d=> String(d.email||'').trim()).length;
   return `<button class="btn small" id="btnRemind" title="지금 보이는 조건에서 아직 안 올린 사람들의 이메일을 한 번에 복사해요">✉ 미업로드 ${t.length}명 이메일${withMail<t.length?` <span class="cmuted">(${withMail})</span>`:''}</button>`;
 }
-function copyRemind(){
-  const t = remindTargets();
+function copyRemind(onlyPlat){
+  const t = remindTargets(onlyPlat);
   const mails = [...new Set(t.map(d=>String(d.email||'').trim()).filter(Boolean))];
   const noMail = t.filter(d=> !String(d.email||'').trim()).map(d=>d.nick);
+  const lab = onlyPlat ? pName(onlyPlat)+' ' : '';
   if(!mails.length) return toast('이메일이 적힌 사람이 없어요.');
   copyText(mails.join(', '),
-    `<b>${mails.length}명</b> 이메일 복사됨 — 메일 받는사람(숨은참조)에 붙여넣으세요.`
+    `${lab}<b>${mails.length}명</b> 이메일 복사됨 — 메일 받는사람(숨은참조)에 붙여넣으세요.`
     + (noMail.length? `<br><span class="cmuted">이메일 없는 ${noMail.length}명: ${esc(noMail.slice(0,4).join(', '))}${noMail.length>4?' 외':''}</span>`:''));
 }
 function platCountLab(p){
@@ -2466,7 +2520,7 @@ function platSubtabs(){
     ${state.view==='upload' ? ((n,g)=>`<button class="subtab late ${n?'urgent':''} ${state.plat==='late'?'active':''}" data-plat="late" title="연락할 사람 ${n}명 · 미업로드 ${g}건"><span class="dot"></span>일정 미준수 <span class="cmuted">${n}명</span></button>`)(lateCount(), lateGeon()) : ''}
     ${state.view==='garden' ? `<button class="subtab hist ${state.plat==='hist'?'active':''}" data-plat="hist"><span class="dot"></span>집행 내역 <span class="cmuted">${ORDERS.length}</span></button>` : ''}
     ${state.view==='recruit' ? recruitSubtabs() : ''}
-    ${state.view==='recruit' ? recruitTools() : `${gardenSvcNote()}<span id="hideSlot" class="sub-hide"></span>${state.view==='upload'?remindBtn()+scanPickBtn():''}`}</div>`;
+    ${state.view==='recruit' ? recruitTools() : `${gardenSvcNote()}<span id="hideSlot" class="sub-hide"></span>${state.view==='upload'?scanPickBtn():''}`}</div>`;
 }
 /* ============ 매뉴얼 · 가이드 ============
    내용은 public/knowledge.js 하나뿐이다(MANUAL/GUIDE). 여기서 복붙하지 않는다 —
@@ -3204,6 +3258,7 @@ document.getElementById('content').addEventListener('click', e=>{
       return; } }
   if(e.target.closest('#btnExec')){ execModal(); return; }
   { const ab = e.target.closest('[data-abandon]'); if(ab){ abandonOrder(ab.dataset.abandon); return; } }
+  { const rp=e.target.closest('[data-remindp]'); if(rp){ copyRemind(rp.dataset.remindp); return; } }
   if(e.target.closest('#btnRemind')){ copyRemind(); return; }
   { const bp = e.target.closest('#btnPerf'); if(bp){ runPerfScan(bp); return; } }
   { const bd = e.target.closest('#btnDeliver'); if(bd){ runDeliverWrite(bd); return; } }
