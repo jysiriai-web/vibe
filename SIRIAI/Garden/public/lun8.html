@@ -129,6 +129,17 @@ td.nick { max-width: 220px; overflow-wrap: anywhere; }
 .empty-tr td { padding: 34px 16px; text-align: center; color: var(--muted); font-size: 15px; }
 .empty-tr:hover td { background: transparent; }
 .note-line { font-size: 12.5px; color: var(--faint); margin: 0 0 14px; line-height:1.55; }
+/* 필터 줄 — 진행사·콘텐츠. 하위탭(플랫폼)·일정 칩과 다른 축이라 따로 둔다. */
+.fbar { display:flex; align-items:center; gap:8px 18px; flex-wrap:wrap; margin:0 0 10px; }
+.fchip-g { display:inline-flex; align-items:center; gap:6px; }
+.fchip-lab { font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--faint); font-weight:700; }
+.fchip { font-family:inherit; cursor:pointer; font-size:12.5px; font-weight:600; padding:4px 11px; border-radius:20px;
+  background:var(--card); border:1px solid var(--line); color:var(--muted); white-space:nowrap; }
+.fchip:hover { border-color:var(--accent); color:var(--accent); }
+.fchip.on { background:var(--accent-soft); border-color:var(--accent); color:var(--accent-ink); }
+.fchip.on b { color:var(--accent-ink); }
+.fchip b { font-weight:800; color:var(--ink); }
+.fchip.clear { border-style:dashed; }
 /* 리마인드 요약 줄 — 표 바로 위 한 줄. '몇 명한테 보내야 하나'를 한눈에.
    색이 곧 성격이다: 빨강=경고(예정일 지남) · 노랑=리마인드(아직 안 지남) · 초록=보낼 사람 없음. */
 .remind-bar { display:flex; align-items:center; gap:8px 14px; flex-wrap:wrap;
@@ -1124,7 +1135,7 @@ function gStat(d, p){
 }
 
 /* ============ 상태 ============ */
-const state = { view:'recruit', plat:'all', platOnly:'', qaLang:'ja', raw:false, campaign:'lun8', worker:'online', addForm:false, gardenHold:true, simOpen:false, sim:null, simCampaign:null, sort:{}, day:null, week:null, stripOpen:false, upFilter:'all', noticeOnly:false, unfixedOnly:false };
+const state = { view:'recruit', plat:'all', platOnly:'', qaLang:'ja', raw:false, campaign:'lun8', worker:'online', addForm:false, gardenHold:true, simOpen:false, sim:null, simCampaign:null, sort:{}, day:null, week:null, stripOpen:false, coOnly:'', hasContent:false, upFilter:'all', noticeOnly:false, unfixedOnly:false };
 const cfg = ()=> CAMPAIGNS[state.campaign];
 const platsOn = ()=> cfg().plats;
 const hasIG = ()=> platsOn().includes('ig');
@@ -1145,6 +1156,22 @@ const inCampaign = d => platsOn().some(p=> d.plats.includes(p) && d[p]!==null);
 // 확정일 칸에 담기는 진행상태. slots 가 이걸 쓰므로 반드시 먼저 선언한다 —
 // const 는 선언 전에 참조하면 초기화 전 오류로 스크립트 전체가 죽는다.
 const isDropped = d => String(d.fixed||'').trim() === '최종 드랍';
+/* 마루가 모집한 사람은 마루가 LINE 오픈챗으로 직접 챙긴다 — 우리 확정메일·날짜 확정 대상이 아니다.
+   여기에 섞으면 '확정메일 미발송 14명' 처럼 우리가 할 일이 아닌 게 할 일로 잡힌다. */
+const oursToContact = d => d.co !== 'MARU';
+/* 진행사 필터(마루/시리아이). 여러 진행사가 섞인 캠페인에서만 뜻이 있다. */
+function companiesOn(){
+  const s = new Set(); D.filter(inCampaign).forEach(d=>{ if(d.co) s.add(d.co); });
+  return [...s].sort();
+}
+const coPass = d => !state.coOnly || d.co === state.coOnly;
+function coChips(){
+  const cs = companiesOn(); if(cs.length < 2) return '';   // 하나뿐이면 필터가 아니다
+  const n = c => D.filter(inCampaign).filter(d=> d.co===c).length;
+  return `<span class="fchip-g"><span class="fchip-lab">진행사</span>`
+    + cs.map(c=>`<button class="fchip${state.coOnly===c?' on':''}" data-cofilt="${esc(c)}">${esc(c)} <b>${n(c)}</b></button>`).join('')
+    + (state.coOnly?`<button class="fchip clear" data-cofilt="">해제</button>`:'') + `</span>`;
+}
 const isMailSent = d => String(d.fixed||'').trim() === '확정메일 발송';
 // 이 사람이 차지하는 콘텐츠 '건' 수. 최종 드랍한 사람은 0 — 안 올라올 콘텐츠를 확보로 세면
 // '몇 건이 비었나'가 틀리고, 그 숫자로 마루에 요청하므로 부족분이 그대로 사고가 된다.
@@ -1425,6 +1452,21 @@ let SERVICE = null;   // 지금 쓰는 SMM 서비스 {id,name,rate} — 화면�
 let GARDEN_RATE = 4.13;   // 서비스 1,000명당 USD. 서버가 주면 그 값으로 바꾼다.
 let BALANCE_USD = null;   // SMM 잔액. 클라우드엔 키가 없어 null 로 온다 — '확인 불가'로 표시한다.   // 가드닝 집행 기록. 돈이 나간 내역이라 화면에서 확인 가능해야 한다.
 let _lastDayNote = '';   // 일자·주차 필터 안내 — 업로드 일정 카드 안에 나중에 꽂는다
+/* '지금 무엇으로 걸러져 있나 + 전체로 돌아가기'. 모집탭에만 있었는데 업로드탭에서도
+   일자 칩을 누르고 나면 왜 줄었는지 알 방법이 없어서 같은 것을 쓴다.
+   rows 는 이미 걸러진 목록 — 몇 명/몇 건이 보이는지 그대로 말한다. */
+function setFilterNote(rows, extra){
+  const on = [];
+  if(state.week) on.push(state.week);
+  if(state.day)  on.push(state.day==='__unset'?'예정일 미정':state.day==='__off'?'캠페인 일정 밖':state.day);
+  if(state.coOnly) on.push(state.coOnly);
+  if(state.hasContent) on.push('콘텐츠 올라온 사람만');
+  (extra||[]).forEach(x=> on.push(x));
+  if(!on.length){ _lastDayNote = ''; return; }
+  const geon = rows.reduce((a,d)=>a+slots(d),0);
+  _lastDayNote = `<span class="daynote"><b>${on.map(esc).join(' · ')}</b> ${rows.length}명 · ${geon}건만 보는 중`
+    + `<button class="btn ghost small" id="dayClear">전체 보기</button></span>`;
+}
 let _lastHideNote = '';   // 표를 그릴 때 계산된 '빈 열 숨김' 배지 — 필터 줄에서 꺼내 쓴다
 function renderTable(cols, rows, opts={}){
   const tableId = opts.tableId || state.view;
@@ -1528,8 +1570,9 @@ function viewRecruit(){
     cell:r=>platIcons(r) };
   // 하위탭이 거른다(업로드탭과 같은 방식). 플랫폼과 '해야 할 일'을 같은 줄에서 고른다.
   if(state.plat==='tk' || state.plat==='ig') rows = rows.filter(d=> d[state.plat]);
-  else if(state.plat==='unsent')  rows = rows.filter(d=> !d.notice);
-  else if(state.plat==='unfixed') rows = rows.filter(d=> !d.sched);
+  else if(state.plat==='unsent')  rows = rows.filter(oursToContact).filter(d=> !d.notice);
+  else if(state.plat==='unfixed') rows = rows.filter(oursToContact).filter(d=> !d.sched);
+  rows = rows.filter(coPass);
   const cols = [
     { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
@@ -1586,24 +1629,17 @@ function viewRecruit(){
     ${hasIG() ? kpi('플랫폼 · 건', `${tkGeon}<span class="of"> 틱톡</span> · ${igGeon}<span class="of"> 인스타</span>`, { ic:IC.layers, two:true, sub:`콘텐츠 총 ${totGeon}건` }) : ''}
     ${schedStrip()}
   </div>`;
-  const unsent = all.filter(d=> !d.notice).length;
-  const unfixed = all.filter(d=> !d.fixed).length;
+  const unsent = all.filter(oursToContact).filter(d=> !d.notice).length;
+  const unfixed = all.filter(oursToContact).filter(d=> !d.fixed).length;
   if(state.platOnly) rows = rows.filter(d=> d[state.platOnly]);
   if(state.noticeOnly) rows = rows.filter(d=> !d.notice);
   if(state.unfixedOnly) rows = rows.filter(d=> !d.fixed);
   const dayLabel = state.day==='__unset' ? '예정일 미정' : state.day==='__off' ? '캠페인 일정 밖' : state.day;
-  const filtLabel = state.day ? dayLabel : state.week;   // 주차 필터도 같은 줄로 알린다
-  const _fon = [];
-  if(state.week) _fon.push(state.week);
-  if(state.day)  _fon.push(state.day==='__unset'?'예정일 미정':state.day==='__off'?'캠페인 일정 밖':state.day);
-  if(state.platOnly) _fon.push(pName(state.platOnly));
-  if(state.noticeOnly) _fon.push('확정메일 미발송');
-  if(state.unfixedOnly) _fon.push('날짜 미확정');
-  _lastDayNote = _fon.length && !((state.day || state.week) && WEEKS().length)
-    ? `<span class="daynote"><b>${_fon.map(esc).join(' · ')}</b><button class="btn ghost small" id="dayClear">전부 보기</button></span>`
-    : ((state.day || state.week) && WEEKS().length)
-    ? `<span class="daynote"><b>${esc(filtLabel)}</b> ${rows.length}명 · ${rows.reduce((a,d)=>a+slots(d),0)}건만 보는 중<button class="btn ghost small" id="dayClear">전체 보기</button></span>`
-    : '';
+  const _extra = [];
+  if(state.platOnly) _extra.push(pName(state.platOnly));
+  if(state.noticeOnly) _extra.push('확정메일 미발송');
+  if(state.unfixedOnly) _extra.push('날짜 미확정');
+  setFilterNote(rows, _extra);
   const dayBar = '';   // 안내는 업로드 일정 카드 안(dayNoteSlot)으로 옮겼다
   // 도구 버튼은 이제 하위탭 줄 오른쪽 끝(recruitTools)에 있다 — 이 줄은 비워 둔다.
   const addBar = '';
@@ -1623,7 +1659,9 @@ function viewRecruit(){
   const emptyMsg = state.day==='__unset' ? '예정일이 비어 있는 사람이 없어요.'
     : state.day ? `${esc(dayLabel)}에 잡힌 사람이 없어요. 다른 날에서 이리로 옮길 사람을 찾아보세요.`
     : state.week ? `${esc(state.week)}에 올린다고 한 사람이 없어요.` : undefined;
-  return kpis + platSubtabs() + dayBar + addBar + addFormHTML +
+  // 진행사 필터 — 업로드탭과 같은 칩. 마루/시리아이가 섞여 있어야만 뜬다.
+  const coBar = coChips() ? `<div class="fbar">${coChips()}</div>` : '';
+  return kpis + platSubtabs() + coBar + dayBar + addBar + addFormHTML +
     renderTable(cols, rows, {tableId:'recruit', emptyMsg, noHide: !!(state.day || state.week)}) +
     `<div class="note-line">한 행 = 한 사람(<b>명</b>). 콘텐츠는 사람×플랫폼 = <b>건</b>이라 총 건수가 인원보다 많아요. 모집은 상한 없이 무제한 — 상한은 <b>정산 105건</b>(목표 100 + 오버부킹 5)만.</div>`;
 }
@@ -1655,7 +1693,8 @@ function uploadAllCols(){
       `<div class="cpair">${platsOn().filter(p=>r[p]).map(p=>
         `<span class="cp">${acctLink(r[p].h, p)}</span>`).join('')}</div>` },
     // 콘텐츠는 플랫폼별로 나란히 — 두 영상을 같은 줄에서 열어야 미러링을 본다.
-    { key:'content', label:'콘텐츠', sortable:false, cell:r=>
+    // 몇 개 올라왔나로 정렬한다 — 눌러서 올라온 사람을 위로 모으는 게 이 열을 정렬하는 이유다.
+    { key:'content', label:'콘텐츠', sv:r=> platsOn().filter(p=>r[p] && r[p].c1).length, cell:r=>
       `<div class="cpair">${platsOn().filter(p=>r[p]).map(p=>
         `<span class="cp">${PLAT_MARK[p]?`<i class="pmark ${p}">${PLAT_MARK[p]}</i>`:''}${contentCell(r[p].c1, p)}</span>`).join('')}</div>` },
     { key:'st', label:'상태', sv:r=> platsOn().filter(p=>r[p]&&uploaded(r,p)).length,
@@ -1679,7 +1718,8 @@ function uploadAllCols(){
 }
 
 function viewUploadAll(){
-  const rows = D.filter(inCampaign).filter(inUpload).filter(dayWeekPass).filter(d=> platsOn().some(p=>d[p]));
+  const rows = D.filter(inCampaign).filter(inUpload).filter(dayWeekPass)
+    .filter(coPass).filter(contentPass).filter(d=> platsOn().some(p=>d[p]));
   const cols = uploadAllCols();
   const pairs = [];
   rows.forEach(d=> platsOn().forEach(p=>{ if(d[p]) pairs.push({ d, p }); }));
@@ -1699,6 +1739,7 @@ function viewUploadAll(){
     ${bufferKpi()}
     ${schedStrip()}
   </div>`;
+  setFilterNote(rows);
   return kpis + platSubtabs() + filterBar() + remindSummary() +
     renderTable(cols, rows, {tableId:'upload-all', emptyMsg:'조건에 맞는 사람이 없어요.'}) +
     `<div class="note-line">한 사람 한 줄이에요. <b>미러링</b>은 두 영상을 나란히 보고 판단하는 것이라 여기에만 있어요 —
@@ -1882,7 +1923,18 @@ async function runDeliverWrite(btn){
    빈 열 배지는 하위탭 오른쪽 끝(subSlot)으로 보낸다 — 표에 관한 정보라 표를 고르는 줄에 붙는 게 맞다. */
 /* 업로드탭 도구줄. 지금은 하위탭 줄이 도구를 다 안고 있어서 여기서 그릴 게 없다 —
    버튼 하나 때문에 줄을 하나 더 만들면 표가 그만큼 아래로 밀린다. */
-function filterBar(){ return ''; }
+/* 업로드탭 필터 줄 — 진행사(마루/시리아이)와 '콘텐츠 올라온 사람만'.
+   플랫폼·일정은 하위탭과 일정 칩이 이미 맡고 있어서 여기엔 그 둘만 둔다. */
+function filterBar(){
+  const co = coChips();
+  const n = D.filter(inCampaign).filter(inUpload).filter(coPass)
+    .filter(d=> platsOn().some(p=> d[p] && d[p].c1)).length;
+  const ct = `<span class="fchip-g"><span class="fchip-lab">콘텐츠</span>`
+    + `<button class="fchip${state.hasContent?' on':''}" data-contentf="${state.hasContent?0:1}">올라온 사람만 <b>${n}</b></button></span>`;
+  return (co || n) ? `<div class="fbar">${co}${ct}</div>` : '';
+}
+// 콘텐츠가 하나라도 올라온 사람인가. 플랫폼 탭에서는 그 플랫폼만 본다.
+const contentPass = d => !state.hasContent || viewPlats().some(p=> d[p] && d[p].c1);
 
 /* 일정 미준수 — 윤경님이 '연락하고 표기하는' 한 가지 일만 하는 화면.
    업로드탭 다른 하위탭은 '올라왔나'를 보지만, 여기는 '아직 안 올라온 사람에게 무엇을 했나'를 본다.
@@ -1892,6 +1944,7 @@ function viewUploadLate(){
      열이 다르면 같은 사람을 두 화면에서 다르게 읽게 된다.
      일자·주차 칩도 전체탭처럼 그대로 먹는다(안 그러면 눌러도 아무 일이 안 일어난다). */
   const rows = D.filter(inCampaign).filter(inUpload).filter(dayWeekPass)
+    .filter(coPass).filter(contentPass)
     .filter(d=> !isDropped(d) && lateSlots(d));
   // 오래 지난 사람부터. 늦을수록 급하다.
   rows.sort((a,b)=> schedKey(dueDay(a)) - schedKey(dueDay(b)));
@@ -1905,7 +1958,8 @@ function viewUploadLate(){
     ${kpi('드랍 · 명', dropped, { ic:IC.x||IC.clock, sub:'최종 포기 — 추가 모집 계산에 들어감' })}
     ${schedStrip()}
   </div>`;
-  return kpis + platSubtabs() + remindSummary() +
+  setFilterNote(rows);
+  return kpis + platSubtabs() + filterBar() + remindSummary() +
     renderTable(cols, rows, { tableId:'upload-late', emptyMsg:'지금은 연락할 사람이 없어요 — 예정일이 지난 미업로드가 없습니다.' }) +
     `<div class="note-line">이메일을 눌러 복사 → 메일 보내고 → <b>편집</b>에서 <b>확정메일 발송</b>을 눌러 두세요. 새 날짜를 받으면 확정일에 날짜를 넣고, 그 날짜에도 안 올라오면 <b>최종 드랍</b>입니다.</div>`;
 }
@@ -1914,7 +1968,8 @@ function viewUpload(){
   if(state.plat==='late') return viewUploadLate();
   if(state.plat==='all') return viewUploadAll();
   const p = state.plat;
-  let rows = D.filter(inCampaign).filter(inUpload).filter(d=> d.plats.includes(p) && d[p]!==null).filter(dayWeekPass);
+  let rows = D.filter(inCampaign).filter(inUpload).filter(d=> d.plats.includes(p) && d[p]!==null)
+    .filter(dayWeekPass).filter(coPass).filter(contentPass);
   const allRows = rows;
   const f = upFilter(); if(f.test) rows = rows.filter(d=> f.test(d,p));
   const cols = [
@@ -1925,7 +1980,7 @@ function viewUpload(){
     { key:'h', label:pName(p)+' 닉네임', cls:'handle', grp:p, sv:r=>r[p].h, cell:r=>`${acctLink(r[p].h, p)}` },
     // 이 표엔 확정일 열이 없다. 희망일을 그대로 보여주면 뒤로 합의한 사람에게 '7/24 지남'이라는 거짓말이 남는다 → 기준일로 표시·정렬한다.
     { key:'sched', label:'예정일', hideable:true, empty:r=>!dueDay(r), sv:r=>schedKey(dueDay(r)), cell:r=> dueDay(r) ? (isLate(r,p)?`<span class="chip needs">${esc(dueDay(r))} 지남</span>`:`<b>${esc(dueDay(r))}</b>`) : `<span class="cmuted">미정</span>` },
-    { key:'c1', label:'콘텐츠①', sortable:false, cell:r=>contentCell(r[p].c1, p) },
+    { key:'c1', label:'콘텐츠①', sv:r=> r[p].c1?1:0, cell:r=>contentCell(r[p].c1, p) },
     { key:'c2', label:'콘텐츠②', hideable:true, empty:r=>!r[p].c2, sortable:false, cell:r=>contentCell(r[p].c2, p) },
     { key:'snd', label:'음원', hideable:true, empty:()=>false, sv:r=>r[p].snd, cell:r=>revSel(r[p].snd, r.id, 'snd', p) },
     { key:'sec', label:'음원구간', hideable:true, empty:()=>false, sv:r=>r[p].sec, cell:r=>revSel(r[p].sec, r.id, 'sec', p) },
@@ -1946,7 +2001,8 @@ function viewUpload(){
     ${bufferKpi()}
     ${schedStrip()}
   </div>`;
-  const scanBar = filterBar(allRows.map(d=>({ d, p })));
+  const scanBar = filterBar();
+  setFilterNote(rows);
   const exNote = excluded ? `<div class="note-line">🎯 ${pName(p)} 미참여 <b>${excluded}명</b>은 이 탭에서 자동 숨김.</div>` : '';
   return kpis + platSubtabs() + scanBar + exNote + remindSummary() + renderTable(cols, rows, {tableId:'upload-'+p, noHide: state.upFilter!=='all', emptyMsg: upFilter().empty}) +
     `<div class="note-line">틱톡·인스타 모두 <b>집 IP·실제 크롬으로 자동 스캔</b>. 검수 3칸은 드롭다운으로 바로 고치고(수동=자동보다 우선), 행 전체는 <b>편집</b>으로.</div>`;
@@ -2549,8 +2605,9 @@ function platCountLab(p){
    지금 무엇으로 걸러졌는지 두 군데를 봐야 한다. */
 function recruitSubtabs(){
   const inC = D.filter(inCampaign);
-  const unsent = inC.filter(d=> !d.notice).length;
-  const unfixed = inC.filter(d=> !d.sched).length;
+  // 마루 인원은 마루가 LINE 으로 직접 챙긴다 — 우리 '해야 할 일'에서 뺀다.
+  const unsent = inC.filter(oursToContact).filter(d=> !d.notice).length;
+  const unfixed = inC.filter(oursToContact).filter(d=> !d.sched).length;
   // 건수가 0 이면 평범한 탭, 남아 있으면 긴급 표시. 숫자만 바뀌면 아무도 안 본다.
   const todoTab = (k, label, n) => `<button class="subtab ${n?'urgent':'pend'} ${state.plat===k?'active':''}" data-plat="${k}"><span class="dot"></span>${label} <span class="cmuted">${n}</span></button>`;
   return todoTab('unsent', '확정메일 미발송', unsent) + todoTab('unfixed', '날짜 미확정', unfixed);
@@ -3271,6 +3328,10 @@ document.getElementById('content').addEventListener('click', e=>{
   if(e.target.closest('#btnReload')){ loadData(); toast('시트에서 다시 읽는 중…'); return; }
   { const pf = e.target.closest('[data-platf]');
     if(pf){ const v = pf.dataset.platf; state.platOnly = (state.platOnly===v ? '' : v); render(); return; } }
+  { const cf = e.target.closest('[data-cofilt]');
+    if(cf){ const v = cf.dataset.cofilt; state.coOnly = (state.coOnly===v ? '' : v); render(); return; } }
+  { const nf = e.target.closest('[data-contentf]');
+    if(nf){ state.hasContent = nf.dataset.contentf==='1'; render(); return; } }
   { const b = e.target.closest('#btnRecScan'); if(b){ syncRecruit(b); return; } }
   if(e.target.closest('#gardenHoldToggle')){ state.gardenHold=!state.gardenHold; render(); return; }
   { const ga = e.target.closest('#gPickAll');
