@@ -129,20 +129,27 @@ td.nick { max-width: 220px; overflow-wrap: anywhere; }
 .empty-tr td { padding: 34px 16px; text-align: center; color: var(--muted); font-size: 15px; }
 .empty-tr:hover td { background: transparent; }
 .note-line { font-size: 12.5px; color: var(--faint); margin: 0 0 14px; line-height:1.55; }
-/* 리마인드 요약 줄 — 표 바로 위. '몇 명한테 보내야 하나'를 한눈에. */
-.remind-bar { display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; margin:2px 0 12px; padding:11px 15px;
-  background:var(--needs-bg); border:1px solid var(--needs-bg); border-radius:12px; }
-.remind-bar.ok { background:var(--ok-bg); border-color:var(--ok-bg); }
-.remind-bar .rb-head { display:flex; align-items:center; gap:7px; font-size:14px; color:var(--ink); }
+/* 리마인드 요약 줄 — 표 바로 위 한 줄. '몇 명한테 보내야 하나'를 한눈에.
+   색이 곧 성격이다: 빨강=경고(예정일 지남) · 노랑=리마인드(아직 안 지남) · 초록=보낼 사람 없음. */
+.remind-bar { display:flex; align-items:center; gap:8px 14px; flex-wrap:wrap;
+  margin:2px 0 12px; padding:11px 15px; border-radius:12px;
+  background:var(--warn-bg); border:1px solid var(--warn-bg); }
+.remind-bar.warn { background:var(--needs-bg); border-color:var(--needs-bg); }
+.remind-bar.ok   { background:var(--ok-bg);   border-color:var(--ok-bg); }
+.remind-bar .rb-head { display:flex; align-items:center; gap:8px; font-size:14px; color:var(--ink); }
 .remind-bar .rb-ic { font-size:15px; }
-.remind-bar .rb-n { font-size:19px; font-weight:800; color:var(--needs-ink); font-variant-numeric:tabular-nums; }
-.remind-bar .rb-by { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-.remind-bar .rb-p { display:inline-flex; align-items:center; gap:4px; font-size:12.5px; padding:2px 10px; border-radius:20px; background:var(--card); white-space:nowrap; }
-.remind-bar .rb-p .pmark { width:13px; height:13px; }
-.remind-bar .rb-p.done { color:var(--faint); }
+.remind-bar .rb-n { font-size:19px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--warn-ink); }
+.remind-bar.warn .rb-n { color:var(--needs-ink); }
+.remind-bar.ok   .rb-n { color:var(--ok-ink); }
+.remind-bar .rb-notes { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+/* 복사 기능끼리 한자리에 — 전체 복사 옆에 그룹별 복사를 작게 */
+.remind-bar .rb-acts { display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-left:auto; }
+.remind-bar .rb-acts .btn { font-size:13px; padding:7px 13px; }
+.remind-bar .rb-g { font-family:inherit; cursor:pointer; font-size:11.5px; padding:4px 10px; border-radius:20px;
+  background:var(--card); border:1px solid var(--line); color:var(--faint); white-space:nowrap; }
+.remind-bar .rb-g:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
+.remind-bar .rb-g b { font-weight:800; }
 .remind-bar .rb-done { font-size:12px; color:var(--faint); }
-.remind-bar .rb-act { display:flex; gap:8px; flex-wrap:wrap; margin-left:auto; }
-.remind-bar .rb-act .btn { font-size:13px; padding:7px 13px; }
 .note-line b { color: var(--muted); }
 
 /* KPI 카드 */
@@ -2429,50 +2436,90 @@ function recruitTools(){
 }
 /* 리마인드 대상 — 지금 화면(일자·플랫폼 필터 그대로)에서 아직 안 올린 사람.
    '엑셀처럼 한 번에 긁는' 자리다. 한 명씩 이메일을 복사하다 8명을 놓치는 게 실제 문제였다. */
-function remindTargets(onlyPlat){
-  // 하위탭을 그대로 따라간다. '일정 미준수' 탭에서는 지연된 사람만 —
-  // 예정일이 아직 안 지났으면 리마인드 보낼 사람이 아니다(0건인데 7명이라고 뜨던 것).
-  // onlyPlat 이 오면 그 플랫폼 하나만 — 요약 줄의 '틱톡 이메일'·'인스타 이메일' 을 갈라 복사할 때 쓴다.
+/* 리마인드 대상 — 반드시 **사람 단위**. ⚠️ 사람 하나에 이메일 하나다.
+   플랫폼별로 목록을 가르면 틱톡·인스타 둘 다 하는 사람에게 같은 메일이 두 번 간다.
+   대신 '무엇이 안 올라왔나'로 가른다 — 이러면 한 사람은 정확히 한 그룹에만 들어가고
+   (틱톡만 / 인스타만 / 둘 다), 그룹 합이 전체 인원과 정확히 맞는다.
+   missKey 를 주면 그 그룹만, 안 주면 전부. */
+function remindPlats(){
+  return (state.plat==='tk'||state.plat==='ig') ? [state.plat] : platsOn();
+}
+function remindMissing(d){
   const lateOnly = state.plat==='late';
-  const only = onlyPlat ? [onlyPlat] : ((state.plat==='tk'||state.plat==='ig') ? [state.plat] : platsOn());
+  return remindPlats().filter(p=> d[p] && !uploaded(d,p) && (!lateOnly || isLate(d,p)));
+}
+function remindTargets(missKey){
   return D.filter(inCampaign).filter(inUpload).filter(dayWeekPass)
     .filter(d=> !isDropped(d))
-    .filter(d=> only.some(p=> d[p] && !uploaded(d,p) && (!lateOnly || isLate(d,p))));
+    .filter(d=>{ const m = remindMissing(d); if(!m.length) return false;
+      return missKey ? m.join('+')===missKey : true; });
 }
-/* 리마인드 요약 — '지금 이 조건에서 몇 명한테 보내야 하나'를 표 바로 위에 세운다.
-   소통 담당자는 개별 스캔 체크박스(집 PC 전용)가 없어서 '몇 명 대상인지'를 셀 방법이 없었다.
+// 안 올라온 곳의 이름. 'tk+ig' → '틱톡·인스타 미업로드'
+function missLabel(key){
+  return String(key).split('+').map(pName).join('·') + ' 미업로드';
+}
+/* 보내는 메일의 성격 — 날짜가 지났으면 경고, 아직이면 리마인드.
+   같은 화면인데 어제 사람과 오늘 사람에게 같은 말을 쓰면 안 된다. */
+function remindMode(targets){
+  if(state.plat==='late') return '경고';                       // 지연 탭은 전부 예정일이 지난 사람
+  if(state.day && state.day!=='__unset' && state.day!=='__off'){
+    const i = dayIdx(state.day), t = dayIdx(TODAY());
+    if(i>=0 && t>=0) return i < t ? '경고' : '리마인드';
+  }
+  // 주차처럼 여러 날이 섞이면 실제로 지난 사람이 있는지로 가른다.
+  return (targets.length && targets.every(d=> isLate(d))) ? '경고' : '리마인드';
+}
+/* 원래 희망일은 지났는데 새 날짜를 받아 아직 그 날이 안 온 사람.
+   오늘 메일 보낼 대상이 아니다 — 답을 이미 받았으니 기다리는 중이다.
+   이걸 안 보여주면 '어제 7명이었는데 오늘 2명이네? 5명 어디 갔지' 가 된다. */
+function waitingNewDate(){
+  return D.filter(inCampaign).filter(inUpload).filter(d=> !isDropped(d))
+    .filter(d=> platsOn().some(p=> d[p] && !uploaded(d,p)))
+    .filter(d=>{ const i=dayIdx(normDay(d.sched)), t=dayIdx(TODAY()); return i>=0 && t>=0 && i<t; })
+    .filter(d=> !lateSlots(d));
+}
+/* 리마인드 요약 — '오늘 누구한테, 총 몇 명한테 보내야 하나'를 표 바로 위에 세운다.
+   소통 담당자는 개별 스캔 체크박스(집 PC 전용)가 없어서 셀 방법이 아예 없었다.
+   한 줄로 끝낸다 — 접었다 폈다 하게도 만들어 봤는데, 볼 때마다 한 번 더 눌러야 해서 폐기했다.
    일자·주차를 고른 상태(또는 일정 미준수 탭)에서만 뜬다 — 날짜 필터가 없으면
    예정일도 안 온 사람까지 세서 '오늘 보낼 사람' 숫자가 부풀려진다. */
 function remindSummary(){
   if(state.view!=='upload') return '';
   if(!(state.day || state.week || state.plat==='late')) return '';
   const lateOnly = state.plat==='late';
-  const plats = (state.plat==='tk'||state.plat==='ig') ? [state.plat] : platsOn();
+  const plats = remindPlats();
   const scope = D.filter(inCampaign).filter(inUpload).filter(dayWeekPass).filter(d=> !isDropped(d))
     .filter(d=> plats.some(p=>d[p]));
   if(!scope.length) return '';
-  const isTarget = d=> plats.some(p=> d[p] && !uploaded(d,p) && (!lateOnly||isLate(d,p)));
-  const targets = scope.filter(isTarget);
-  const doneList = scope.filter(d=> !isTarget(d));
-  const byPlat = plats.map(p=>({ p, n: scope.filter(d=> d[p] && !uploaded(d,p) && (!lateOnly||isLate(d,p))).length }));
+  const targets = scope.filter(d=> remindMissing(d).length);
+  const doneList = scope.filter(d=> !remindMissing(d).length);
   const scopeLab = state.day ? (state.day==='__unset'?'예정일 미정 ':state.day==='__off'?'일정 밖 ':esc(state.day)+' ')
                  : state.week ? esc(state.week)+' ' : '';
+  const waiting = lateOnly ? waitingNewDate() : [];
+  const waitNote = waiting.length
+    ? `<span class="rb-done" title="${esc(waiting.map(d=>d.nick+' → '+(d.fixed||'')).join(', '))}">새 날짜 받아 대기 <b>${waiting.length}명</b>은 뺐어요</span>` : '';
   if(!targets.length)
-    return `<div class="remind-bar ok"><span class="rb-ic">✅</span> <b>${scopeLab}리마인드 대상 0명</b> <span class="rb-done">이 조건은 다 올렸어요.</span></div>`;
-  // 사람 수(명)와 플랫폼 합은 다르다 — 양쪽 다 안 올린 사람은 두 플랫폼에 다 세지만 사람은 하나다.
-  const byHtml = byPlat.map(x=> x.n
-    ? `<span class="rb-p ${x.p}">${PLAT_MARK[x.p]?`<i class="pmark ${x.p}">${PLAT_MARK[x.p]}</i>`:''}${pName(x.p)} <b>${x.n}</b>명</span>`
-    : `<span class="rb-p done">${pName(x.p)} 완료</span>`).join('');
-  // '완료 · 제외'는 일자·주차 필터에서만 뜻이 맞다(그 날 다 올린 사람). 지연 탭에서는
-  // '제외된 나머지'가 대부분 '아직 예정일 안 온 사람'이라 완료라고 하면 거짓말이다.
+    return `<div class="remind-bar ok"><div class="rb-head"><span class="rb-ic">✅</span> <b>${scopeLab}보낼 메일 없어요</b>`
+      + `<span class="rb-done">이 조건은 챙길 사람이 없습니다.</span>${waitNote}</div></div>`;
+  const mode = remindMode(targets);
+  // 겹치지 않는 그룹 — 한 사람은 한 그룹, 그룹 합 = 전체 인원. 그래야 메일이 두 번 안 간다.
+  const groups = new Map();
+  targets.forEach(d=>{ const k = remindMissing(d).join('+'); if(!groups.has(k)) groups.set(k, []); groups.get(k).push(d); });
+  const gHtml = groups.size>1
+    ? [...groups.entries()].map(([k,list])=>
+        `<button class="rb-g" data-remindg="${esc(k)}" title="이 ${list.length}명 이메일만 복사 — ${esc(list.map(d=>d.nick).join(', '))}">${missLabel(k)} <b>${list.length}</b>명</button>`).join('')
+    : '';
+  const resend = targets.filter(isMailSent).length;
+  const resendNote = resend ? `<span class="rb-done">이 중 답 없어 재발송 <b>${resend}명</b></span>` : '';
   const doneNote = (!lateOnly && doneList.length)
     ? `<span class="rb-done">${doneList.length<=3 ? esc(doneList.map(d=>d.nick).join(', '))+' ' : ''}${doneList.length}명 완료 · 제외</span>` : '';
-  const btns = byPlat.filter(x=>x.n).map(x=>
-    `<button class="btn small" data-remindp="${x.p}">✉ ${pName(x.p)} ${x.n}명 이메일</button>`).join('');
-  return `<div class="remind-bar">
-    <div class="rb-head"><span class="rb-ic">🔔</span> <b>${scopeLab}리마인드 대상</b> <span class="rb-n">${targets.length}명</span></div>
-    <div class="rb-by">${byHtml}${doneNote}</div>
-    <div class="rb-act">${btns}</div>
+  // 색이 곧 성격이다 — 빨강=경고(예정일 지남), 노랑=리마인드(아직 안 지남).
+  const tone = mode==='경고' ? 'warn' : 'soon';
+  return `<div class="remind-bar ${tone}">
+    <div class="rb-head"><span class="rb-ic">${mode==='경고'?'🚨':'🔔'}</span>
+      <b>${scopeLab}${mode} 메일 발송 대상</b> <span class="rb-n">${targets.length}명</span></div>
+    <div class="rb-notes">${resendNote}${doneNote}${waitNote}</div>
+    <div class="rb-acts"><button class="btn small" data-remindg="">✉ 전체 이메일 복사하기</button>${gHtml}</div>
   </div>`;
 }
 function remindBtn(){
@@ -2481,11 +2528,12 @@ function remindBtn(){
   const withMail = t.filter(d=> String(d.email||'').trim()).length;
   return `<button class="btn small" id="btnRemind" title="지금 보이는 조건에서 아직 안 올린 사람들의 이메일을 한 번에 복사해요">✉ 미업로드 ${t.length}명 이메일${withMail<t.length?` <span class="cmuted">(${withMail})</span>`:''}</button>`;
 }
-function copyRemind(onlyPlat){
-  const t = remindTargets(onlyPlat);
-  const mails = [...new Set(t.map(d=>String(d.email||'').trim()).filter(Boolean))];
+function copyRemind(missKey){
+  const t = remindTargets(missKey);
+  // 사람 단위로 중복 제거 — 같은 이메일이 두 번 들어가면 메일이 두 번 간다.
+  const mails = [...new Set(t.map(d=>String(d.email||'').trim().toLowerCase()).filter(Boolean))];
   const noMail = t.filter(d=> !String(d.email||'').trim()).map(d=>d.nick);
-  const lab = onlyPlat ? pName(onlyPlat)+' ' : '';
+  const lab = missKey ? missLabel(missKey)+' ' : '';
   if(!mails.length) return toast('이메일이 적힌 사람이 없어요.');
   copyText(mails.join(', '),
     `${lab}<b>${mails.length}명</b> 이메일 복사됨 — 메일 받는사람(숨은참조)에 붙여넣으세요.`
@@ -3258,7 +3306,7 @@ document.getElementById('content').addEventListener('click', e=>{
       return; } }
   if(e.target.closest('#btnExec')){ execModal(); return; }
   { const ab = e.target.closest('[data-abandon]'); if(ab){ abandonOrder(ab.dataset.abandon); return; } }
-  { const rp=e.target.closest('[data-remindp]'); if(rp){ copyRemind(rp.dataset.remindp); return; } }
+  { const rg=e.target.closest('[data-remindg]'); if(rg){ copyRemind(rg.dataset.remindg); return; } }   // 빈 값 = 전체
   if(e.target.closest('#btnRemind')){ copyRemind(); return; }
   { const bp = e.target.closest('#btnPerf'); if(bp){ runPerfScan(bp); return; } }
   { const bd = e.target.closest('#btnDeliver'); if(bd){ runDeliverWrite(bd); return; } }
