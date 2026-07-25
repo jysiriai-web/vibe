@@ -124,25 +124,38 @@ export async function checkExitLocation() {
 }
 
 // 한 계정 프로필의 팔로워수·닉네임 반환 (실제 브라우저 = 봇 차단 우회). 못 가져오면 { followers:null, nickname:'' }.
-export async function fetchProfile(ctx, handle, { timeout = 30000 } = {}) {
+/* 프로필에서 팔로워·닉네임. 실패하면 followers:null 로 돌려준다(throw 안 함).
+   ⚠️ 예전엔 8회×1.2초=9.6초만 기다리고 포기했다. 틱톡이 'Please wait...' 봇월을 띄우면
+   그 화면엔 __UNIVERSAL_DATA__ 자체가 없어서, 통과가 늦은 계정은 멀쩡한데도 실패로 잡혔다
+   (실측: @t1013u 는 자동 스캔 3회 연속 실패했지만 브라우저로 열어보니 6초 뒤 팔로워 1,285 정상 표시).
+   그래서 ① 대기를 20회×1.2초=24초로 늘리고 ② 중간에 한 번 새로고침한다 —
+   봇월은 재요청 때 풀리는 경우가 많아 마냥 기다리는 것보다 낫다. */
+export async function fetchProfile(ctx, handle, { timeout = 30000, tries = 20 } = {}) {
   const page = await ctx.newPage();
   let out = { followers: null, nickname: '' };
+  const read = () => page.evaluate(() => {
+    const el = document.getElementById('__UNIVERSAL_DATA_FOR_REHYDRATION__');
+    if (!el) return null;
+    try {
+      const info = JSON.parse(el.textContent)?.['__DEFAULT_SCOPE__']?.['webapp.user-detail']?.userInfo;
+      if (info?.stats && Number.isFinite(info.stats.followerCount)) {
+        return { followers: info.stats.followerCount, nickname: info?.user?.nickname || '' };
+      }
+    } catch {}
+    return null;
+  });
   try {
-    await page.goto(`https://www.tiktok.com/@${handle}`, { waitUntil: 'domcontentloaded', timeout });
-    // __UNIVERSAL_DATA__ 가 채워질 때까지 잠깐 폴링 (봇월 통과 대기)
-    for (let i = 0; i < 8; i++) {
-      const r = await page.evaluate(() => {
-        const el = document.getElementById('__UNIVERSAL_DATA_FOR_REHYDRATION__');
-        if (!el) return null;
-        try {
-          const info = JSON.parse(el.textContent)?.['__DEFAULT_SCOPE__']?.['webapp.user-detail']?.userInfo;
-          if (info?.stats && Number.isFinite(info.stats.followerCount)) {
-            return { followers: info.stats.followerCount, nickname: info?.user?.nickname || '' };
-          }
-        } catch {}
-        return null;
-      });
+    const url = `https://www.tiktok.com/@${handle}`;
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
+    let reloaded = false;
+    for (let i = 0; i < tries; i++) {
+      const r = await read().catch(() => null);
       if (r) { out = r; break; }
+      // 절반쯤 지나도 못 읽었으면 한 번만 새로고침 — 봇월이 그때 풀리는 경우가 많다.
+      if (!reloaded && i === Math.floor(tries / 2)) {
+        reloaded = true;
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout }).catch(() => {});
+      }
       await page.waitForTimeout(1200);
     }
   } catch {}

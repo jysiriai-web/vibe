@@ -652,7 +652,7 @@ export async function handler(req, res) {
           if (r.requested) { await writeOrders(campaign, orders); refill = r; }
         } catch (e) { console.error('[자동리필] 실패(스캔은 정상):', (e && e.message) || e); }
       }
-      return send(res, 200, { ok: true, scannedAt: scanLatest(campaign).ranAt, scannedCount: sync.scannedCount, scanTried: sync.scanTried, scanFailed: sync.scanFailed, writeError: sync.writeError || null, nicksWritten: sync.nicksWritten, refill, accounts: await buildAccounts(campaign, orders), orders: markStale(orders) });
+      return send(res, 200, { ok: true, scannedAt: scanLatest(campaign).ranAt, scannedCount: sync.scannedCount, scanTried: sync.scanTried, scanFailed: sync.scanFailed, scanFailedHandles: sync.scanFailedHandles || [], writeError: sync.writeError || null, nicksWritten: sync.nicksWritten, refill, accounts: await buildAccounts(campaign, orders), orders: markStale(orders) });
     }
 
     // 인스타 모집 스캔 — 팔로워·닉네임을 인스타 열에 채운다. 틱톡 스캔(/api/scan)과 별개다:

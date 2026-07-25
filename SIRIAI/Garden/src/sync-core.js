@@ -38,6 +38,9 @@ export async function runSync(campaign, { onProgress, full = false } = {}) {
   const scanned = await scanAccounts(targets, { onProgress });
   const scannedCur = {};
   scanned.forEach((a) => { scannedCur[a.handle] = a.current; });
+  /* 이번 판에 긁었는데 값을 못 받은 계정. 개수(scanFailed)만으로는 누구를 다시 봐야 할지 모른다 —
+     아래 merged 는 이전 값으로 폴백하므로, 여기서 안 남기면 '실패 2건'인데 대상이 안 잡힌다. */
+  const failedHandles = scanned.filter((a) => a.current == null).map((a) => a.handle);
 
   // 시트 되쓰기: 새로 스캔한 것만
   const updates = scanned.filter((a) => a.current != null).map((a) => ({ row: a.row, followers: a.current }));
@@ -77,7 +80,8 @@ export async function runSync(campaign, { onProgress, full = false } = {}) {
     // 예전엔 targets.length 였다 — 전건 실패해도 '완료 N개' 로 보였다. 실제로 값을 받은 수만 센다.
     scannedCount: scanned.filter((a) => a.current != null).length,
     scanTried: targets.length,
-    scanFailed: scanned.filter((a) => a.current == null).length,
+    scanFailed: failedHandles.length,
+    scanFailedHandles: failedHandles,   // 누가 실패했나 — 화면·재시도가 이걸 쓴다
     writeError,
     total: accounts.length,
     accounts: mergedAccounts,

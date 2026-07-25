@@ -658,6 +658,37 @@ function deliverReviewed_(sheetId, rows) {
 
 // 새 크리에이터 한 줄 추가 — 대시보드 '인원 추가'. 맨 아래에 붙이고 링크를 그대로 넣는다.
 // 링크는 반드시 URL 이라야 readAccounts_ 가 핸들을 뽑는다(핸들만 들어가면 그 행이 안 보인다).
+/* 새 사람을 넣을 행을 찾는다.
+   ⚠️ getLastRow() 는 '어떤 열이든 값이 있는 마지막 행'이라, 시트 아래쪽에 남은 서식·수식·메모
+   한 칸 때문에 한참 밑으로 간다. 실제로 마루 14명이 410~423 행에 들어갔다
+   (크리에이터 데이터는 61 행에서 끝나는데). 대시보드는 링크 있는 행만 읽어서 멀쩡했지만,
+   시트에서는 348 줄짜리 빈 구간이 생기고 정산 수식·교차색이 거기까지 안 간다.
+   → 계정 링크가 실제로 있는 마지막 행 다음에 쓴다. 그 자리가 안 비어 있으면
+     덮어쓰지 않고 예전 방식(맨 아래)으로 물러난다. */
+function nextPersonRow_(sh) {
+  var last = sh.getLastRow();
+  var lastCol = sh.getLastColumn();
+  if (last < 1) return 1;
+  var linkCols = [COL.link, COL.igLink].filter(function (c) { return c; });
+  if (!linkCols.length) return last + 1;
+  var lastCre = 0;
+  var vals = sh.getRange(1, 1, last, lastCol).getValues();
+  for (var i = 0; i < vals.length; i++) {
+    for (var j = 0; j < linkCols.length; j++) {
+      if (String(vals[i][linkCols[j] - 1] || '').trim()) { lastCre = i + 1; break; }
+    }
+  }
+  if (!lastCre) return last + 1;
+  var r = lastCre + 1;
+  if (r > last) return r;                      // 데이터 바로 아래가 시트 끝 — 그대로 쓴다
+  // 그 행에 뭔가 있으면(요약·합계 등) 건드리지 않는다.
+  var rowVals = vals[r - 1] || [];
+  for (var k = 0; k < rowVals.length; k++) {
+    if (String(rowVals[k] || '').trim()) return last + 1;
+  }
+  return r;
+}
+
 function addPerson_(p) {
   p = p || {};
   var tk = String(p.tkLink || '').trim();
@@ -666,7 +697,7 @@ function addPerson_(p) {
   if (tk && !handleFrom_(tk)) return { error: '틱톡 링크에서 @핸들을 못 찾았어요: ' + tk };
   if (ig && !igHandleFrom_(ig)) return { error: '인스타 링크가 instagram.com/사용자명 형태가 아니에요: ' + ig };
   var sh = getSheet_();
-  var r = sh.getLastRow() + 1;
+  var r = nextPersonRow_(sh);
   if (tk && COL.link) sh.getRange(r, COL.link).setValue(tk);
   if (ig && COL.igLink) sh.getRange(r, COL.igLink).setValue(ig);
   if (p.company && COL.company) sh.getRange(r, COL.company).setValue(String(p.company));
