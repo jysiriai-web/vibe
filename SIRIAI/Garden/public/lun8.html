@@ -605,6 +605,11 @@ input.inp[type=date]:disabled { opacity:.45; }
 .chip.wait { background:#fff4e0; color:#9a5b00; }
 .subtab.late .dot { background:#c9ced8; }
 .subtab.late.urgent .dot { background:var(--needs-ink); }
+/* 탈락 예정 — 미준수보다 한 단계 더 나간 상태라 색을 더 진하게. */
+.subtab.drop .dot { background:#c9ced8; }
+.subtab.drop.urgent .dot { background:#111; }
+.subtab.drop.urgent { color:#111; }
+.subtab.drop.active { color:#111; border-bottom-color:#111; }
 /* 이력 제목 — 표 위 구분선 */
 .sec-head { display:flex; align-items:baseline; gap:10px; font-size:14px; font-weight:800; margin:26px 0 10px; padding-top:18px; border-top:1px solid var(--line); }
 .sec-head .cmuted { font-size:12.5px; font-weight:600; }
@@ -627,10 +632,17 @@ td.mono, th.mono { font-family:var(--mono); font-size:12px; }
   font-size:11.5px; font-weight:800; color:var(--muted); border-bottom:1px solid var(--line2); }
 .qa-one pre { margin:0; padding:11px 13px; font:inherit; font-size:12.5px; line-height:1.7; color:var(--muted);
   white-space:pre-wrap; word-break:break-word; }
-.qa-cats { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
-.chipf { font:inherit; font-size:12.5px; font-weight:700; padding:5px 12px; border-radius:20px; cursor:pointer;
-  background:var(--card); color:var(--muted); border:1px solid var(--line); }
-.chipf.on { background:var(--ink); color:var(--paper,#fff); border-color:var(--ink); }
+/* 카테고리 고르기 — 다른 탭의 하위탭(.subtabs)과 같은 모양으로 맞춘다.
+   화면마다 고르는 방식이 다르면 팀원이 탭마다 새로 배워야 한다. */
+.qa-cats { display:flex; flex-wrap:wrap; gap:8px 20px; margin-bottom:14px; border-bottom:1px solid var(--line); }
+.chipf { font-family:var(--sans); font-size:15px; font-weight:700; cursor:pointer; padding:9px 2px;
+  border:none; background:none; color:var(--muted); border-bottom:2.5px solid transparent; margin-bottom:-1px;
+  display:inline-flex; align-items:center; gap:7px; white-space:nowrap; flex-shrink:0; transition:color .12s; }
+.chipf:hover { color:var(--ink); }
+.chipf.on { color:var(--accent); border-bottom-color:var(--accent); }
+.chipf .cf-ic { font-size:13px; opacity:.7; }
+.chipf.on .cf-ic { opacity:1; }
+.chipf .cf-n { font-size:12.5px; font-weight:700; color:var(--faint); }
 .qa-note { font-size:12.5px; color:var(--muted); margin-bottom:14px; }
 /* 한 줄짜리 리스트는 폭 넓은 화면에서 질문 오른쪽이 통째로 빈다. 카드 2열로 깐다. */
 .qa-list { display:grid; grid-template-columns:repeat(auto-fill, minmax(420px, 1fr)); gap:11px; align-items:start; }
@@ -1385,6 +1397,12 @@ function isLate(d, p){
   return p ? (d[p] && !uploaded(d,p)) : platsOn().some(x=> d[x] && !uploaded(d,x));
 }
 const lateSlots = d => platsOn().filter(p=> isLate(d,p)).length;
+/* 며칠 지나면 '탈락 예정'인가. 기준일(dueDay)은 확정일이 날짜면 그것, 아니면 예정일이다.
+   운영 흐름: 24일 예정자에게 25일 리마인드 → 26일까지 기한 → 27일 탈락 통보.
+   즉 2일이 지나면 '기한을 준 뒤에도 안 올린 사람'이라 다른 메일(탈락 예고)이 나가야 한다.
+   한 탭에 섞여 있으면 23일 예정자와 24일 예정자에게 같은 메일이 나가 히스토리가 꼬인다. */
+const DROP_AFTER_DAYS = 2;
+const isDropSoon = d => !isDropped(d) && lateSlots(d) > 0 && daysLate(d) >= DROP_AFTER_DAYS;
 
 /* excludeId: 편집 모달에서 '나를 뺀' 값이 필요할 때. 표시 숫자는 항상 나를 포함해 스트립과 일치시킨다. */
 /* 지금 화면이 보고 있는 플랫폼들. 하위탭이 특정 플랫폼이면 그것만 —
@@ -2008,9 +2026,11 @@ function viewUploadLate(){
   /* 전체탭 표를 그대로 쓰고 대상만 좁힌다. 지연은 별개의 화면이 아니라 전체탭의 한 필터다 —
      열이 다르면 같은 사람을 두 화면에서 다르게 읽게 된다.
      일자·주차 칩도 전체탭처럼 그대로 먹는다(안 그러면 눌러도 아무 일이 안 일어난다). */
+  /* 여기는 '이제 막 늦은 사람'만 — 2일 넘게 지난 사람은 [탈락 예정] 탭으로 뺀다.
+     둘을 섞으면 기한을 이미 준 사람과 오늘 처음 연락할 사람에게 같은 메일이 나간다. */
   const rows = D.filter(inCampaign).filter(inUpload).filter(dayWeekPass)
     .filter(coPass).filter(contentPass)
-    .filter(d=> !isDropped(d) && lateSlots(d));
+    .filter(d=> !isDropped(d) && lateSlots(d) && !isDropSoon(d));
   // 오래 지난 사람부터. 늦을수록 급하다.
   rows.sort((a,b)=> schedKey(dueDay(a)) - schedKey(dueDay(b)));
   const cols = uploadAllCols();
@@ -2018,7 +2038,7 @@ function viewUploadLate(){
   const sent = D.filter(inCampaign).filter(isMailSent).length;
   const dropped = D.filter(inCampaign).filter(isDropped).length;
   const kpis = `<div class="cards">
-    ${kpi('연락해야 함 · 명', rows.length, { ic:IC.clock, accent: rows.length?'var(--needs)':undefined, sub:`미업로드 ${geon}건 — 예정일이 지났는데 아직 안 올라온 것` })}
+    ${kpi('연락해야 함 · 명', rows.length, { ic:IC.clock, accent: rows.length?'var(--needs)':undefined, sub:`미업로드 ${geon}건 — 기준일이 지난 지 ${DROP_AFTER_DAYS}일 안쪽` })}
     ${kpi('답 대기 · 명', sent, { ic:IC.mail||IC.check, sub:'확정메일 보내고 새 날짜를 기다리는 사람' })}
     ${kpi('드랍 · 명', dropped, { ic:IC.x||IC.clock, sub:'최종 포기 — 추가 모집 계산에 들어감' })}
     ${schedStrip()}
@@ -2029,8 +2049,38 @@ function viewUploadLate(){
     `<div class="note-line">이메일을 눌러 복사 → 메일 보내고 → <b>편집</b>에서 <b>확정메일 발송</b>을 눌러 두세요. 새 날짜를 받으면 확정일에 날짜를 넣고, 그 날짜에도 안 올라오면 <b>최종 드랍</b>입니다.</div>`;
 }
 
+/* 탈락 예정 — 기준일이 2일 넘게 지난 사람. 리마인드는 이미 나갔고, 이제 '탈락 예고'를 보낼 차례다.
+   기준일은 확정일이 날짜면 그것, 없으면 예정일(dueDay 가 그 판정을 한다).
+   여기 있는 사람에게 보내는 메일은 문구가 다르므로 반드시 따로 모아야 한다. */
+function viewUploadDropSoon(){
+  const rows = D.filter(inCampaign).filter(inUpload).filter(dayWeekPass)
+    .filter(coPass).filter(contentPass).filter(isDropSoon);
+  // 오래 지난 사람부터 — 제일 먼저 결론 내야 할 사람이 위로.
+  rows.sort((a,b)=> daysLate(b) - daysLate(a));
+  const cols = uploadAllCols();
+  const geon = rows.reduce((a,d)=> a + lateSlots(d), 0);
+  const dropped = D.filter(inCampaign).filter(isDropped).length;
+  // 확정일을 받아 뒤로 미룬 사람 vs 처음 예정일 그대로인 사람 — 대응이 다르다.
+  const refixed = rows.filter(d=>{ const f=String(d.fixed||'').trim(); return f && !isFixedState(f) && normDay(f); }).length;
+  const kpis = `<div class="cards">
+    ${kpi('탈락 예정 · 명', rows.length, { ic:IC.x||IC.clock, accent: rows.length?'var(--needs)':undefined,
+       sub:`미업로드 ${geon}건 — 기준일 ${DROP_AFTER_DAYS}일 이상 지남` })}
+    ${kpi('새 날짜 받고도 넘김 · 명', refixed, { ic:IC.clock,
+       sub: refixed?'확정일을 다시 잡아줬는데 그 날짜도 지났어요':'해당 없음' })}
+    ${kpi('최종 드랍 · 명', dropped, { ic:IC.x||IC.clock, sub:'이미 포기 처리 — 추가 모집 계산에 들어감' })}
+    ${schedStrip()}
+  </div>`;
+  setFilterNote(rows);
+  return kpis + platSubtabs() + filterBar() + remindSummary() +
+    renderTable(cols, rows, { tableId:'upload-dropsoon', emptyMsg:`기준일이 ${DROP_AFTER_DAYS}일 넘게 지난 사람이 없어요.` }) +
+    `<div class="note-line">여기는 <b>리마인드를 이미 보낸 뒤에도 안 올라온</b> 사람이에요 — 다음 메일은 <b>탈락 예고</b>입니다.
+     기한을 한 번 더 주기로 했다면 <b>편집 → 확정일</b>에 새 날짜를 넣으세요(그러면 그 날짜 기준으로 다시 셉니다).
+     결론이 나면 확정일을 <b>최종 드랍</b>으로 바꿔 주세요.</div>`;
+}
+
 function viewUpload(){
   if(state.plat==='late') return viewUploadLate();
+  if(state.plat==='dropsoon') return viewUploadDropSoon();
   if(state.plat==='all') return viewUploadAll();
   const p = state.plat;
   let rows = D.filter(inCampaign).filter(inUpload).filter(d=> d.plats.includes(p) && d[p]!==null)
@@ -2543,7 +2593,11 @@ function viewSettle(){
    탭엔 10, 표엔 6줄이면 4줄을 어디서 놓쳤나 찾게 된다. 건수는 툴팁과 KPI 가 말한다.
    확정메일 안 보낸 사람은 지연으로 안 센다(inUpload) — 확정을 안 해놓고 늦었다고 할 수 없다. */
 function lateCount(){
-  return D.filter(inCampaign).filter(inUpload).filter(d=> !isDropped(d) && lateSlots(d)).length;
+  return D.filter(inCampaign).filter(inUpload).filter(d=> !isDropped(d) && lateSlots(d) && !isDropSoon(d)).length;
+}
+// 탈락 예정 — 기준일이 DROP_AFTER_DAYS 일 넘게 지난 사람.
+function dropSoonCount(){
+  return D.filter(inCampaign).filter(inUpload).filter(isDropSoon).length;
 }
 // 같은 조건의 건수(사람×플랫폼). 확보·정산은 건으로 세므로 이 숫자도 어딘가엔 있어야 한다.
 function lateGeon(){
@@ -2579,13 +2633,22 @@ function remindPlats(){
   return (state.plat==='tk'||state.plat==='ig') ? [state.plat] : platsOn();
 }
 function remindMissing(d){
-  const lateOnly = state.plat==='late';
+  const lateOnly = state.plat==='late' || state.plat==='dropsoon';
   return remindPlats().filter(p=> d[p] && !uploaded(d,p) && (!lateOnly || isLate(d,p)));
+}
+/* 지금 탭에서 메일 받을 사람. ⚠️ 탭이 나뉜 만큼 목록도 나뉘어야 한다 —
+   안 그러면 '일정 미준수'와 '탈락 예정' 양쪽에서 같은 사람 주소가 복사돼
+   리마인드와 탈락예고가 둘 다 나간다(실측: 표는 5명/1명인데 목록은 둘 다 6명이었다). */
+function remindScope(d){
+  if(state.plat==='dropsoon') return isDropSoon(d);
+  if(state.plat==='late')     return !isDropSoon(d);
+  return true;
 }
 function remindTargets(missKey){
   return D.filter(inCampaign).filter(inUpload).filter(dayWeekPass)
     .filter(oursToSchedule)          // 마루는 마루가 LINE 으로 챙긴다
     .filter(d=> !isDropped(d))
+    .filter(remindScope)
     .filter(d=>{ const m = remindMissing(d); if(!m.length) return false;
       return missKey ? m.join('+')===missKey : true; });
 }
@@ -2596,6 +2659,7 @@ function missLabel(key){
 /* 보내는 메일의 성격 — 날짜가 지났으면 경고, 아직이면 리마인드.
    같은 화면인데 어제 사람과 오늘 사람에게 같은 말을 쓰면 안 된다. */
 function remindMode(targets){
+  if(state.plat==='dropsoon') return '탈락 예고';               // 기한까지 줬는데 안 올린 사람
   if(state.plat==='late') return '경고';                       // 지연 탭은 전부 예정일이 지난 사람
   if(state.day && state.day!=='__unset' && state.day!=='__off'){
     const i = dayIdx(state.day), t = dayIdx(TODAY());
@@ -2620,18 +2684,18 @@ function waitingNewDate(){
    예정일도 안 온 사람까지 세서 '오늘 보낼 사람' 숫자가 부풀려진다. */
 function remindSummary(){
   if(state.view!=='upload') return '';
-  if(!(state.day || state.week || state.plat==='late')) return '';
-  const lateOnly = state.plat==='late';
+  if(!(state.day || state.week || state.plat==='late' || state.plat==='dropsoon')) return '';
+  const lateOnly = state.plat==='late' || state.plat==='dropsoon';
   const plats = remindPlats();
   const scope = D.filter(inCampaign).filter(inUpload).filter(dayWeekPass)
-    .filter(oursToSchedule).filter(d=> !isDropped(d))
+    .filter(oursToSchedule).filter(d=> !isDropped(d)).filter(remindScope)
     .filter(d=> plats.some(p=>d[p]));
   if(!scope.length) return '';
   const targets = scope.filter(d=> remindMissing(d).length);
   const doneList = scope.filter(d=> !remindMissing(d).length);
   const scopeLab = state.day ? (state.day==='__unset'?'예정일 미정 ':state.day==='__off'?'일정 밖 ':esc(state.day)+' ')
                  : state.week ? esc(state.week)+' ' : '';
-  const waiting = lateOnly ? waitingNewDate() : [];
+  const waiting = (state.plat==='late') ? waitingNewDate() : [];
   const waitNote = waiting.length
     ? `<span class="rb-done" title="${esc(waiting.map(d=>d.nick+' → '+(d.fixed||'')).join(', '))}">새 날짜 받아 대기 <b>${waiting.length}명</b>은 뺐어요</span>` : '';
   if(!targets.length)
@@ -2702,7 +2766,8 @@ function platSubtabs(){
     <button class="subtab all ${state.plat==='all'?'active':''}" data-plat="all"><span class="dot"></span>${allLab}</button>
     <button class="subtab tk ${state.plat==='tk'?'active':''}" data-plat="tk"><i class="pmark tk">${PLAT_MARK.tk}</i>틱톡${platCountLab('tk')}</button>
     <button class="subtab ig ${state.plat==='ig'?'active':''}" data-plat="ig"><i class="pmark ig">${PLAT_MARK.ig}</i>인스타${platCountLab('ig')}</button>
-    ${state.view==='upload' ? ((n,g)=>`<button class="subtab late ${n?'urgent':''} ${state.plat==='late'?'active':''}" data-plat="late" title="연락할 사람 ${n}명 · 미업로드 ${g}건"><span class="dot"></span>일정 미준수 <span class="cmuted">${n}명</span></button>`)(lateCount(), lateGeon()) : ''}
+    ${state.view==='upload' ? ((n,g)=>`<button class="subtab late ${n?'urgent':''} ${state.plat==='late'?'active':''}" data-plat="late" title="기준일이 지난 지 ${DROP_AFTER_DAYS}일 안쪽 — 리마인드 대상 · 미업로드 ${g}건"><span class="dot"></span>일정 미준수 <span class="cmuted">${n}명</span></button>`)(lateCount(), lateGeon()) : ''}
+    ${state.view==='upload' ? ((n)=>`<button class="subtab drop ${n?'urgent':''} ${state.plat==='dropsoon'?'active':''}" data-plat="dropsoon" title="기준일이 ${DROP_AFTER_DAYS}일 넘게 지났어요 — 탈락 예고를 보낼 차례"><span class="dot"></span>탈락 예정 <span class="cmuted">${n}명</span></button>`)(dropSoonCount()) : ''}
     ${state.view==='garden' ? `<button class="subtab hist ${state.plat==='hist'?'active':''}" data-plat="hist"><span class="dot"></span>집행 내역 <span class="cmuted">${ORDERS.length}</span></button>` : ''}
     ${state.view==='recruit' ? recruitSubtabs() : ''}
     ${state.view==='recruit' ? recruitTools() : `${gardenSvcNote()}<span id="hideSlot" class="sub-hide"></span>${state.view==='upload'?scanPickBtn():''}`}</div>`;
@@ -2755,8 +2820,10 @@ function viewManual(){
     + '<input id="mSearch" class="msearch" type="search" placeholder="질문·답변으로 검색…" autocomplete="off" />'
     + '</div>'
     + '<div class="qa-cats">' + cats.map(function(c,i){
+        var n = i ? MANUAL.filter(function(m){ return m.cat===c; }).length : MANUAL.length;
         return '<button class="chipf m-f'+(i?'':' on')+'" data-k="'+esc(c)+'">'
-          + (i ? '<span class="cf-ic">'+(CAT_ICON[c]||'·')+'</span>' : '') + esc(c) + '</button>'; }).join('') + '</div>'
+          + (i ? '<span class="cf-ic">'+(CAT_ICON[c]||'·')+'</span>' : '') + esc(c)
+          + '<span class="cf-n">'+n+'</span></button>'; }).join('') + '</div>'
     + '<div class="qa-note">문의가 오면 찾아서 <b>복사</b> → 그대로 답장. 목록의 <b>복사</b>는 일본어 답변이에요. <b class="warn-t">[확인필요]</b>는 아직 안 정해진 자리라 그대로 보내면 안 돼요.</div>'
     + '<div id="qaList" class="qa-list">'+items+'</div>'
     + '<div class="kempty" id="qaEmpty" hidden>검색 결과가 없어요.</div>';
@@ -3521,7 +3588,9 @@ document.getElementById('content').addEventListener('click', e=>{
   const f = e.target.closest('.m-f');
   if(f){
     document.querySelectorAll('#content .m-f').forEach(o=> o.classList.remove('on'));
-    f.classList.add('primary'); filterManual(); return;
+    // ⚠️ 켜짐 표시는 'on' 이다 — 예전엔 여기서 'primary' 를 붙였는데,
+    //    filterManual() 은 '.m-f.on' 을 찾으므로 눌러도 늘 '전체'로 동작했다.
+    f.classList.add('on'); filterManual(); return;
   }
   const ca = e.target.closest('.copy-ans');
   if(ca){
