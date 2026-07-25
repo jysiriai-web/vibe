@@ -318,13 +318,17 @@ th.ghost-h { color:var(--gray-ink); }
 .rowedit { font-size:12.5px; font-weight:700; cursor:pointer; background:none; border:1px solid var(--line); border-radius:8px; color:var(--muted); padding:5px 11px; display:inline-flex; align-items:center; gap:5px; font-family:var(--sans); }
 .rowedit svg { width:13px; height:13px; }
 .rowedit:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
-.memo-cell { text-align:left; background:none; border:1px dashed transparent; border-radius:8px; cursor:pointer; font-family:var(--sans); font-size:13px; color:var(--ink); padding:4px 9px; max-width:260px; line-height:1.45; }
+.memo-cell { text-align:left; background:none; border:1px dashed transparent; border-radius:8px; cursor:pointer; font-family:var(--sans); font-size:13px; color:var(--ink); padding:4px 9px; line-height:1.45; }
+th.memo-col, td.memo-col { width:44px; text-align:center; }
 .memo-cell:hover { border-color:var(--accent); background:var(--accent-soft); }
 .memo-cell.empty { color:#c3c8d0; font-weight:700; }
-/* 비고 있음 — 점으로 먼저 알리고, 내용은 한 줄로 눌러 담는다(전문은 툴팁). */
-.memo-cell.has { display:inline-flex; align-items:center; gap:6px; max-width:230px; }
-.memo-cell.has .mdot { width:7px; height:7px; border-radius:50%; background:var(--accent); flex-shrink:0; }
-.memo-cell.has .mtxt { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* 비고는 '있다'만 알린다 — 내용은 툴팁·편집 모달에서. 열 폭을 262px 에서 40px 로 줄인 이유다. */
+.memo-cell { padding:4px 6px; min-width:0; }
+.memo-cell.has { display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; }
+.memo-cell.has .mdot { width:9px; height:9px; border-radius:50%; background:var(--accent); flex-shrink:0;
+  box-shadow:0 0 0 3px var(--accent-soft); }
+.memo-cell.has:hover .mdot { background:var(--accent-ink); }
+.memo-cell.empty { color:#d5d9e0; font-weight:700; padding:4px 8px; }
 
 /* 모달 */
 .modal-bg { position: fixed; inset: 0; background: rgba(20,20,35,.42); display: flex; align-items: center; justify-content: center; z-index: 50; padding:18px; }
@@ -1406,16 +1410,17 @@ function contentCell(c, p){
   // 콘텐츠는 검수하려고 여는 것이라 열려야 한다. 주소는 시트에서 온 값이므로 이스케이프한다.
   return `<a class="clink ${p==='ig'?'ig':''}" href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.label)}</a>`;
 }
-/* 비고 칸. 실제 비고엔 줄바꿈과 URL 이 들어 있어(예: '비상시 인스타 업로드 요청\nhttps://...')
-   그대로 흘리면 그 행만 두세 줄로 늘어나 표가 들쭉날쭉해진다.
-   → 한 줄로 눌러 담고, 앞에 점을 찍어 '여기 뭔가 있다'를 먼저 보이게 한다.
-   전문은 마우스를 올리면 뜨고, 누르면 편집 모달이 열린다(지금까지와 같음). */
+/* 비고 칸 — 내용을 칸에 흘리지 않는다.
+   실측: 비고 열 하나가 262px(표 전체의 17.8%)를 먹어 표가 1471px 이 되고,
+   1280px 화면에서 가로 스크롤이 생겼다. 비고는 대개 길고(줄바꿈·URL 포함) 늘 보고 있을
+   내용도 아니라, 자리를 그만큼 내줄 이유가 없다.
+   → 칸에는 '있다/없다'만. 내용은 마우스를 올리거나(툴팁) 눌러서(편집 모달) 본다. */
 function memoCell(id, text){
   const t=(text||'').trim();
-  if(!t) return `<button class="memo-cell empty" data-edit="${id}" title="행 편집">＋ 비고</button>`;
-  const oneLine = t.replace(/\s+/g,' ');
+  if(!t) return `<button class="memo-cell empty" data-edit="${id}" title="비고 추가">＋</button>`;
+  // 툴팁에 전문을 그대로(줄바꿈 유지) — 열지 않고도 훑을 수 있게.
   return `<button class="memo-cell has" data-edit="${id}" title="${esc(t)}">`
-       + `<i class="mdot"></i><span class="mtxt">${esc(oneLine)}</span></button>`;
+       + `<i class="mdot"></i></button>`;
 }
 // plat: 한 행이 특정 플랫폼을 가리키는 표(플랫폼 탭·가드닝)에서만 넘긴다.
 // 사람 단위 표는 안 넘겨도 된다 — openRowEdit 이 viewPlats() 로 알아서 고른다.
@@ -1637,7 +1642,7 @@ function viewRecruit(){
     { key:'fixed', label:'확정일', hideable:true, empty:r=>!r.fixed, sv:r=>schedKey(r.fixed),
       cell:r=> r.fixed ? `<b class="fixdate">${esc(r.fixed)}</b>`
                        : `<span class="chip stale">협의중</span>` }, */
-    { key:'memo', label:'비고', hideable:true, empty:r=>!r.memo, sv:r=>r.memo||'', cell:r=>memoCell(r.id, r.memo) },
+    { key:'memo', label:'비고', cls:'memo-col', thcls:'memo-col', hideable:true, empty:r=>!r.memo, sv:r=>r.memo?1:0, cell:r=>memoCell(r.id, r.memo) },
     { key:'edit', label:'', cell:r=>editBtn(r.id) },
   ];
   // 명(사람) vs 건(콘텐츠) — KPI는 항상 전체 기준(일자 필터를 걸어도 헤드라인 숫자는 안 흔들린다)
@@ -2019,7 +2024,7 @@ function viewUpload(){
     { key:'sec', label:'음원구간', hideable:true, empty:()=>false, sv:r=>r[p].sec, cell:r=>revSel(r[p].sec, r.id, 'sec', p) },
     { key:'hash', label:'해시태그', hideable:true, empty:()=>false, sv:r=>r[p].hash, cell:r=>revSel(r[p].hash, r.id, 'hash', p) },
     // 미러링은 통합탭 소관 — 여기선 다른 플랫폼 영상이 안 보여 판단할 수 없다.
-    { key:'memo', label:pName(p)+' 비고', hideable:true, empty:r=>!r[p].memo, sv:r=>r[p].memo||'', cell:r=>memoCell(r.id, r[p].memo) },
+    { key:'memo', label:'비고', cls:'memo-col', thcls:'memo-col', hideable:true, empty:r=>!r[p].memo, sv:r=>r[p].memo?1:0, cell:r=>memoCell(r.id, r[p].memo) },
     { key:'edit', label:'', cell:r=>editBtn(r.id) },
   ];
   const excluded = D.filter(inCampaign).filter(d=> !(d.plats.includes(p) && d[p]!==null)).length;
@@ -2476,7 +2481,7 @@ function viewSettle(){
         [['','미선정'],['1','우수 ★']].map(([v,l])=>`<option value="${v}"${(r.settle.best?'1':'')===v?' selected':''}>${l}</option>`).join('')
       }</select>` },
     { key:'paid', label:'입금', sv:r=>r.settle.paid?1:0, cell:r=>`<button class="paid-tog ${r.settle.paid?'y':'n'}" data-paidtog="${r.id}">${r.settle.paid?'입금':'미입금'}</button>` },
-    { key:'memo', label:'정산 비고', hideable:true, empty:r=>!r.settle.memo, sv:r=>r.settle.memo||'', cell:r=>memoCell(r.id, r.settle.memo) },
+    { key:'memo', label:'비고', cls:'memo-col', thcls:'memo-col', hideable:true, empty:r=>!r.settle.memo, sv:r=>r.settle.memo?1:0, cell:r=>memoCell(r.id, r.settle.memo) },
     { key:'edit', label:'', cell:r=>editBtn(r.id) },
   ];
   const total = rows.reduce((a,r)=> a+settleCalc(r).amt, 0);
