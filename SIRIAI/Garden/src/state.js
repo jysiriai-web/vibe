@@ -72,7 +72,8 @@ export async function getBundle(sheet) {
   if (d.colinfo && d.colinfo.headerFound === false) {
     throw new Error('마스터 헤더행(계정링크 + 닉네임/진행사)을 못 찾았어요 — 열 위치를 몰라 값을 읽지 않았습니다. 시트 헤더 이름을 확인해 주세요.');
   }
-  return { accounts: d.accounts || [], orders: d.orders || [], overrides: d.overrides || {}, best: d.best || [] };
+  // scans = 마지막 스캔 시각. 여기서 안 넘기면 배포본(로컬 파일 없음)이 영영 '아직' 이다.
+  return { accounts: d.accounts || [], orders: d.orders || [], overrides: d.overrides || {}, best: d.best || [], scans: d.scans || {} };
 }
 
 // ── 로컬 파일 폴백 (2단계 전환·백업 이중쓰기용) ─────────────
