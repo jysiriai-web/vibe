@@ -130,7 +130,10 @@ td.nick { max-width: 220px; overflow-wrap: anywhere; }
 .empty-tr:hover td { background: transparent; }
 .note-line { font-size: 12.5px; color: var(--faint); margin: 0 0 14px; line-height:1.55; }
 /* 필터 줄 — 진행사·콘텐츠. 하위탭(플랫폼)·일정 칩과 다른 축이라 따로 둔다. */
-.fbar { display:flex; align-items:center; gap:8px 18px; flex-wrap:wrap; margin:0 0 10px; }
+.fbar { display:flex; align-items:center; gap:8px 18px; flex-wrap:wrap; margin:0 0 10px; min-height:30px; }
+/* 안내줄은 필터를 켜는 줄 오른쪽 끝에 — 켜는 곳과 끄는 곳이 같아야 찾는다. */
+.fbar-note { margin-left:auto; display:inline-flex; }
+.fbar-note:empty { display:none; }
 .fchip-g { display:inline-flex; align-items:center; gap:6px; }
 .fchip-lab { font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--faint); font-weight:700; }
 .fchip { font-family:inherit; cursor:pointer; font-size:12.5px; font-weight:600; padding:4px 11px; border-radius:20px;
@@ -371,6 +374,19 @@ th.memo-col, td.memo-col { width:44px; text-align:center; }
 .msub { font-family: var(--sans); font-size: 13px; font-weight: 700; padding: 7px 13px; border-radius: 20px;
   border: 1px solid var(--line); background: var(--card); color: var(--muted); cursor: pointer; white-space: nowrap; }
 .msub.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
+/* 일자 묶음 — 폰에서 55명을 한 줄로 늘어놓으면 스크롤만 길다. */
+.mday { margin-bottom: 12px; }
+.mday > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 9px;
+  padding: 9px 12px; background: var(--line2); border-radius: 10px; margin-bottom: 8px; }
+.mday > summary::-webkit-details-marker { display: none; }
+.mday > summary b { font-size: 14px; font-weight: 800; }
+.mday > summary b::before { content: '▸ '; opacity: .55; }
+.mday[open] > summary b::before { content: '▾ '; }
+.mday .md-n { font-size: 12px; color: var(--faint); font-weight: 700; margin-left: auto; }
+.mday.today > summary { background: var(--accent-soft); }
+.mday.today > summary b { color: var(--accent-ink); }
+.mday.past > summary { background: var(--needs-bg); }
+.mday.past > summary b, .mday.past .md-n { color: var(--needs-ink); }
 .mcard { background: var(--card); border: 1px solid var(--line); border-radius: 13px; padding: 12px 14px;
   box-shadow: var(--shadow); margin-bottom: 9px; }
 .mc-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -450,8 +466,13 @@ body.phone #content { padding: 0; }
 .set-lab { font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--faint); font-weight:800; }
 /* 무엇이 바뀌었나 — 팀원이 오랜만에 들어와도 화면이 왜 다른지 알 수 있게. */
 .wn-blk { margin-top:8px; }
+.wn-blk > summary { list-style:none; cursor:pointer; }
+.wn-blk > summary::-webkit-details-marker { display:none; }
 .wn-d { font-size:12px; font-weight:800; color:var(--accent-ink); background:var(--accent-soft);
-  display:inline-block; padding:2px 9px; border-radius:20px; }
+  display:inline-block; padding:3px 10px; border-radius:20px; }
+.wn-d::before { content:'▸ '; }
+.wn-blk[open] .wn-d::before { content:'▾ '; }
+.wn-n { font-weight:700; opacity:.7; }
 .wn-ul { margin:7px 0 0; padding-left:17px; }
 .wn-ul li { font-size:12.5px; color:var(--muted); line-height:1.65; margin-bottom:4px; }
 .wn-ul li b { color:var(--ink); }
@@ -1790,7 +1811,7 @@ function schedStrip(){
     <div class="ds-row">
       <div class="kpi-top"><span class="kpi-ic">${oneP?PLAT_MARK[oneP]:IC.clock}</span><span class="lab">${oneP?pName(oneP)+' 업로드 일정':'업로드 일정'}</span></div>
       ${st.weeks.map(wchip).join('')}${unsetChip}
-      <span class="ds-right"><span id="dayNoteSlot"></span>${toggle}</span>
+      <span class="ds-right">${toggle}</span>
     </div>${days}</div>`;
 }
 
@@ -1896,7 +1917,7 @@ function viewRecruit(){
     : state.day ? `${esc(dayLabel)}에 잡힌 사람이 없어요. 다른 날에서 이리로 옮길 사람을 찾아보세요.`
     : state.week ? `${esc(state.week)}에 올린다고 한 사람이 없어요.` : undefined;
   // 진행사 필터 — 업로드탭과 같은 칩. 마루/시리아이가 섞여 있어야만 뜬다.
-  const coBar = coChips() ? `<div class="fbar">${coChips()}</div>` : '';
+  const coBar = `<div class="fbar">${coChips()}<span id="dayNoteSlot" class="fbar-note"></span></div>`;
   return kpis + platSubtabs() + coBar + dayBar + addBar + addFormHTML +
     renderTable(cols, rows, {tableId:'recruit', emptyMsg, noHide: !!(state.day || state.week)}) +
     `<div class="note-line">한 행 = 한 사람(<b>명</b>). 콘텐츠는 사람×플랫폼 = <b>건</b>이라 총 건수가 인원보다 많아요. 모집은 상한 없이 무제한 — 상한은 <b>정산 105건</b>(목표 100 + 오버부킹 5)만.</div>`;
@@ -1975,7 +1996,10 @@ function viewUploadAll(){
   const upBy  = byUp.map(x=>`${pName(x.p)} <b>${x.up}</b>/${x.tot}`).join(' · ');
   const revBy = byUp.map(x=>`${pName(x.p)} <b>${x.rev}</b>`).join(' · ');
   const kpis = `<div class="cards">
-    ${kpi('업로드 · 건', ofTot(up, tot), { ic:IC.video, sub:`${upBy} <span class="cmuted">· 계약 목표 ${goal}건</span>` })}
+    ${/* 분모는 계약 목표(100)로 — 옆 '검수 완료'와 같은 잣대여야 둘을 나란히 읽을 수 있다.
+         예전엔 지금 시트에 있는 슬롯 수(102)라, 목표 100과 달라 '102가 뭐지'가 됐다.
+         확보 슬롯 수는 설명줄로 내린다(그건 모집 진도지 업로드 진도가 아니다). */''}
+    ${kpi('업로드 · 건', ofTot(up, goal||tot), { ic:IC.video, sub:`${upBy} <span class="cmuted">· 확보 ${tot}건</span>` })}
     ${kpi('검수 완료 · 건', ofTot(rev, goal||tot), { ic:IC.check, sub:`${revBy} <span class="cmuted">· 음원·구간·해시 모두 준수</span>` })}
     ${kpi('일정 미준수 · 건', late, { ic:IC.clock, accent: late?'var(--needs)':undefined, sub:'예정일이 지났는데 미업로드' })}
     ${bufferKpi()}
@@ -2173,7 +2197,8 @@ function filterBar(){
     .filter(d=> platsOn().some(p=> d[p] && d[p].c1)).length;
   const ct = `<span class="fchip-g"><span class="fchip-lab">콘텐츠</span>`
     + `<button class="fchip${state.hasContent?' on':''}" data-contentf="${state.hasContent?0:1}">올라온 사람만 <b>${n}</b></button></span>`;
-  return (co || n) ? `<div class="fbar">${co}${ct}</div>` : '';
+  // 안내줄('무엇으로 걸러졌나 + 필터 초기화')은 필터를 켜는 이 줄에 붙는다.
+  return `<div class="fbar">${co}${ct}<span id="dayNoteSlot" class="fbar-note"></span></div>`;
 }
 // 콘텐츠가 하나라도 올라온 사람인가. 플랫폼 탭에서는 그 플랫폼만 본다.
 const contentPass = d => !state.hasContent || viewPlats().some(p=> d[p] && d[p].c1);
@@ -3139,6 +3164,32 @@ function mSummary(){
   </div>`;
 }
 
+/* 일자별로 묶어 접는다 — 폰에서 55명을 한 줄로 늘어놓으면 스크롤만 길다.
+   기준일(확정일 우선)로 묶고, 오늘·지난 날은 펼쳐 둔다(지금 손댈 것이니까).
+   앞으로 올 날은 접어 둔다 — 오늘 할 일이 아니다. */
+function mByDay(list, card){
+  if(!list.length) return '<div class="note-line">해당하는 사람이 없어요.</div>';
+  const groups = new Map();
+  list.forEach(d=>{ const k = normDay(dueDay(d)) || '__unset'; if(!groups.has(k)) groups.set(k, []); groups.get(k).push(d); });
+  const keys = [...groups.keys()].sort((a,b)=>{
+    if(a==='__unset') return 1; if(b==='__unset') return -1;
+    return schedKey(a) - schedKey(b);
+  });
+  const t = dayIdx(TODAY());
+  return keys.map(k=>{
+    const rows = groups.get(k);
+    const i = k==='__unset' ? -1 : dayIdx(k);
+    const past = i>=0 && t>=0 && i < t;
+    const isToday = i>=0 && i===t;
+    const open = past || isToday;                       // 지난 날·오늘만 펼침
+    const label = k==='__unset' ? '예정일 미정' : k + (isToday?' · 오늘':past?' · 지남':'');
+    const left = rows.reduce((a,d)=> a + platsOn().filter(p=> d[p] && !uploaded(d,p)).length, 0);
+    return `<details class="mday${past?' past':''}${isToday?' today':''}"${open?' open':''}>
+      <summary><b>${esc(label)}</b><span class="md-n">${rows.length}명${left?` · 남음 ${left}건`:' · 다 올림'}</span></summary>
+      ${rows.map(card).join('')}</details>`;
+  }).join('');
+}
+
 /* 폰 상세 — 사람 한 줄, 실무에 필요한 것만(누가·올렸나·언제·메일).
    PC 표를 그대로 밀어넣으면 열 10개가 가로로 넘쳐 아무것도 못 한다. */
 function mDetail(){
@@ -3172,7 +3223,7 @@ function mDetail(){
         k==='all'?'전체':k==='late'?'일정 미준수':'탈락 예정'}</button>`).join('')}
     </div>
     ${remindSummary()}
-    ${list.length? list.map(card).join('') : '<div class="note-line">해당하는 사람이 없어요.</div>'}
+    ${mByDay(list, card)}
   </div>`;
 }
 
@@ -3206,9 +3257,12 @@ function markSeen(){ try { localStorage.setItem(SEEN_KEY, CHANGELOG[0].v); } cat
 function hasNews(){ return CHANGELOG.length && lastSeenVer() !== CHANGELOG[0].v; }
 function renderWhatsNew(){
   const box = document.getElementById('whatsnewBox'); if(!box) return;
+  /* 날짜별로 접는다 — 이력이 쌓이면 드로어가 끝없이 길어진다.
+     맨 위(최신)만 펼쳐 둔다: 방금 뭐가 바뀌었는지가 궁금해서 여는 것이니까. */
   box.innerHTML = '<span class="set-lab">무엇이 바뀌었나</span>'
-    + CHANGELOG.map(c=>`<div class="wn-blk"><div class="wn-d">${esc(c.d)}</div>
-        <ul class="wn-ul">${c.items.map(t=>`<li>${t}</li>`).join('')}</ul></div>`).join('')
+    + CHANGELOG.map((c,i)=>`<details class="wn-blk"${i?'':' open'}>
+        <summary class="wn-d">${esc(c.d)} <span class="wn-n">${c.items.length}건</span></summary>
+        <ul class="wn-ul">${c.items.map(t=>`<li>${t}</li>`).join('')}</ul></details>`).join('')
     + '<span class="set-desc">문제가 있으면 사이드바 <b>💬 의견</b>으로 알려주세요.</span>';
 }
 // 새 소식이 있으면 설정 버튼에 점 — 열어보면 사라진다.
