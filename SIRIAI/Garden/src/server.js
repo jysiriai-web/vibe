@@ -416,7 +416,10 @@ export async function handler(req, res) {
       return send(res, 200, {
         campaign: { id: campaign.id, name: campaign.name, group: campaign.group },
         config: { target: campaign.target, min: campaign.min, krwPerUsd: await effectiveRate(), staleDays: getStaleDays(), hasKey: !!smm, confirmNotice: !!campaign.confirmNotice, execPwRequired: !!EXEC_PW, stateMode: stateMode(), cloud: CLOUD, readOnly: !!campaign.readOnly,
-          service: svc ? { id: svc.service, name: svc.name, rate: svc.rate } : { id: campaign.serviceId, name: `#${campaign.serviceId}`, rate: 0 } },
+          service: svc ? { id: svc.service, name: svc.name, rate: svc.rate } : { id: campaign.serviceId, name: `#${campaign.serviceId}`, rate: 0 },
+          // 플랫폼마다 서비스도 단가도 다르다 — 화면이 틱톡 단가로 인스타까지 계산하면 안 된다.
+          services: ['tk', 'ig'].map((pl) => { const r = resolveService(campaign, pl);
+            return r.svc ? { plat: pl, id: r.svc.service, name: r.svc.name, rate: r.svc.rate } : null; }).filter(Boolean) },
         balance, scannedAt: scanLatest(campaign).ranAt, uploadScannedAt: detectedRanAt(campaign),
         // 화면이 가드닝 예상 금액을 계산하려면 단가와 환율이 필요하다.
         // 여기서 안 주면 프론트가 상수를 박아두게 되고, 서비스를 바꾼 날 조용히 틀린 금액이 뜬다.

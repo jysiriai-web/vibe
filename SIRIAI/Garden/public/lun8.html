@@ -77,7 +77,7 @@ body.nav-collapsed .side-toggle { justify-content: center; padding: 9px; }
 .stat .k { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--faint); font-weight: 700; }
 .stat .v { font-weight: 700; font-size: 17px; }
 .stat .v small { font-weight: 600; font-size: 12px; color: var(--faint); }
-.btn { font-family: var(--sans); font-size: 15px; font-weight: 700; cursor: pointer; padding: 10px 18px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--card); color: var(--ink); box-shadow: var(--shadow); transition: transform .05s, background .15s, border-color .15s, color .15s; display:inline-flex; align-items:center; gap:6px; }
+.btn { font-family: var(--sans); font-size: 15px; font-weight: 700; cursor: pointer; padding: 10px 18px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--card); color: var(--ink); box-shadow: var(--shadow); transition: transform .05s, background .15s, border-color .15s, color .15s; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; flex-shrink:0; }
 .btn svg { width: 15px; height: 15px; flex-shrink:0; }
 .btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .btn:active { transform: translateY(1px); }
@@ -177,8 +177,13 @@ td.nick { max-width: 220px; overflow-wrap: anywhere; }
 .kpi-top { margin-bottom: 6px; }
 /* 숫자 크기 — 카드 폭에 맞춰 자란다. 옆이 비는 건 숫자가 작아서지 칸이 커서가 아니다.
    clamp 하한을 지금(26px)보다 훨씬 위에 두고, 폭이 넓으면 더 커지게 한다. */
-.kpi .big { font-size: clamp(38px, 5.2vw, 66px); font-weight: 800; letter-spacing: -0.035em; line-height: 1;
-  font-variant-numeric: tabular-nums; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+/* ⚠️ flex-wrap:wrap 이면 '11,491원' 이 '11,491'/'원' 으로 갈라진다 — 숫자와 단위는 한 덩어리다.
+   대신 폭이 모자라면 글자 크기가 줄도록 두고(clamp), 줄바꿈은 막는다. */
+.kpi .big { font-size: clamp(30px, 4.4vw, 60px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.05;
+  font-variant-numeric: tabular-nums; display: flex; align-items: baseline; gap: 5px;
+  flex-wrap: nowrap; white-space: nowrap; min-width: 0; }
+/* 원화처럼 자릿수가 큰 값은 한 칸에 다 들어가야 한다 — 카드가 좁아도 숫자를 더 줄여서 맞춘다. */
+.kpi .big.money { font-size: clamp(24px, 3.2vw, 42px); letter-spacing: -0.02em; }
 .kpi .big.two { font-size: clamp(26px, 3vw, 36px); letter-spacing: -0.02em; }
 /* 단위·분모는 숫자에 딸린 것이지 숫자가 아니다 — 크기를 확실히 낮춰 눈이 숫자만 잡게 */
 .kpi .big .of { font-size: clamp(15px, 1.5vw, 20px); font-weight: 700; color: var(--faint); letter-spacing: -0.01em; }
@@ -186,8 +191,10 @@ td.nick { max-width: 220px; overflow-wrap: anywhere; }
 .kpi .sub { font-size: 12.5px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
 
 /* 서브탭 (플랫폼) */
-.subtabs { display: flex; gap: 24px; margin-bottom: 20px; border-bottom: 1px solid var(--line); }
-.subtab { font-family: var(--sans); font-size: 15px; font-weight: 700; cursor: pointer; padding: 9px 2px; border: none; background: none; color: var(--muted); border-bottom: 2.5px solid transparent; margin-bottom: -1px; transition: color .12s; display:inline-flex; align-items:center; gap:7px; }
+/* 탭 이름은 절대 세로로 깨지면 안 된다('확정메일 미발송' → '확정메일 미발/송').
+   대신 줄이 넘치면 다음 줄로 넘어가게 두고(wrap), 각 탭 안에서는 nowrap. */
+.subtabs { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 20px; border-bottom: 1px solid var(--line); }
+.subtab { font-family: var(--sans); font-size: 15px; font-weight: 700; cursor: pointer; padding: 9px 2px; border: none; background: none; color: var(--muted); border-bottom: 2.5px solid transparent; margin-bottom: -1px; transition: color .12s; display:inline-flex; align-items:center; gap:7px; white-space:nowrap; flex-shrink:0; }
 .subtab:hover { color: var(--ink); }
 .subtab.active { color: var(--accent); border-bottom-color: var(--accent); }
 .subtab.tk.active { color: var(--tk-ink); border-bottom-color: var(--tk-ink); }
@@ -296,7 +303,10 @@ tr.held td { opacity:.6; }
 @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(12,166,120,.5);} 70%{box-shadow:0 0 0 7px rgba(12,166,120,0);} 100%{box-shadow:0 0 0 0 rgba(12,166,120,0);} }
 
 /* 빈 열 숨김 배지(작게) */
-.hidebadge { display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:700; color:var(--accent-ink); background:var(--accent-soft); border:1px solid #ddd8ff; padding:4px 11px; border-radius:20px; margin-bottom:14px; }
+/* 숨긴 열 안내 — 열 이름이 길어 두 줄로 깨지곤 했다. 한 줄로 눌러 담고 넘치면 …,
+   전체 목록은 툴팁으로. 이 배지는 '무엇이 숨겨졌나'만 알리면 되는 자리다. */
+.hidebadge { display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:700; color:var(--accent-ink); background:var(--accent-soft); border:1px solid #ddd8ff; padding:4px 11px; border-radius:20px; margin-bottom:14px; max-width:min(420px, 40vw); white-space:nowrap; }
+.hidebadge > span:last-child { overflow:hidden; text-overflow:ellipsis; }
 .hidebadge .k { font-family:var(--mono); font-size:11px; color:var(--accent); }
 .hidebadge.raw { background:var(--gray-bg); color:var(--gray-ink); border-color:var(--line); }
 .col-ghost-c { background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(107,116,128,.06) 5px, rgba(107,116,128,.06) 10px) !important; }
@@ -1074,6 +1084,8 @@ async function loadData(){
     ORDERS = Array.isArray(j.orders) ? j.orders : [];
     if(j.krwPerUsd) KRW_PER_USD = j.krwPerUsd;
     if(j.service){ SERVICE = j.service; if(j.service.rate) GARDEN_RATE = Number(j.service.rate) || GARDEN_RATE; }
+    // 서버는 config 안에 담아 보낸다 — 최상위(j.services)엔 없다.
+    SERVICES = {}; ((j.config&&j.config.services)||j.services||[]).forEach(x=>{ SERVICES[x.plat] = x; });
     BALANCE_USD = (j.balance==null || j.balance==='') ? null : Number(j.balance);
     clearErr();
     render();
@@ -1130,10 +1142,20 @@ const GTARGET = 1100, GMIN = 1000;
 const roundTo100 = n => Math.round(n/100)*100;
 function gOrder(current, inFlight=0){ const q = roundTo100(GTARGET - (current + inFlight)); return q>0?q:0; }
 // 상태: ok(충족·숨김) / filling(채워지는 중) / target(가드닝 대상) / hold(보류·업로드 대기) / scan(스캔 대기)
+/* 환불 신청해 둔 주문이 있는 계정인가. 있으면 재주문을 막는다 —
+   환불이 확정되기 전에 또 사면, 환불이 안 될 경우 이중지출이 된다.
+   '채워지는 중'과는 다른 상태다(그건 잘 돌고 있다는 뜻이고, 이건 안 돌아서 무른 것). */
+function refundWait(d, p){
+  const h = d[p] && String(d[p].h||'').replace(/^@/,'').toLowerCase();
+  if(!h) return null;
+  return ORDERS.find(o=> o.refundPending && !o.done
+    && String(o.handle||'').toLowerCase()===h && (o.plat||'tk')===p) || null;
+}
 function gStat(d, p){
   const x = d[p]; if(!x) return { st:'na', order:0 };
   const cur = x.fol, inF = x.inFlight||0;
   if(cur==null) return { st:'scan', order:0 };
+  if(refundWait(d,p)) return { st:'refund', order:0 };
   if(inF>0)     return { st:'filling', order:0, projected:cur+inF };
   if(cur>=GMIN) return { st:'ok', order:0 };
   const order = gOrder(cur);
@@ -1485,7 +1507,12 @@ function renderLocalBadge(){
 }
 let ORDERS = [];
 let SERVICE = null;   // 지금 쓰는 SMM 서비스 {id,name,rate} — 화면에 무엇으로 사는지 밝힌다
-let GARDEN_RATE = 4.13;   // 서비스 1,000명당 USD. 서버가 주면 그 값으로 바꾼다.
+let GARDEN_RATE = 4.13;   // 서비스 1,000명당 USD(틱톡 기본). 서버가 주면 그 값으로 바꾼다.
+/* 플랫폼별 단가. 예전엔 GARDEN_RATE 하나로 인스타까지 계산해서
+   '지금 필요한 금액'이 실제 집행액과 달랐다(실측: 화면 11,491원 vs 서버 계획 9,566원).
+   서버가 주는 플랫폼별 서비스로 각각 곱한다. */
+let SERVICES = {};        // { tk:{id,rate}, ig:{id,rate} }
+const rateOf = p => { const s = SERVICES[p]; return s && s.rate!=null ? Number(s.rate) : GARDEN_RATE; };
 let BALANCE_USD = null;   // SMM 잔액. 클라우드엔 키가 없어 null 로 온다 — '확인 불가'로 표시한다.   // 가드닝 집행 기록. 돈이 나간 내역이라 화면에서 확인 가능해야 한다.
 let _lastDayNote = '';   // 일자·주차 필터 안내 — 업로드 일정 카드 안에 나중에 꽂는다
 /* '지금 무엇으로 걸러져 있나 + 전체로 돌아가기'. 모집탭에만 있었는데 업로드탭에서도
@@ -2063,7 +2090,7 @@ function lkSort(d,p){
 }
 /* 가드닝 상태 정렬 순서. 글자순(filling<hold<scan<target)으로 두면
    '대상'이 맨 뒤로 가서 급한 것부터 못 본다. 기본 정렬과 같은 순서를 쓴다. */
-const G_RANK = { target:3, filling:2, scan:1, hold:0 };
+const G_RANK = { target:3, refund:2.5, filling:2, scan:1, hold:0 };
 /* 확정일 정렬 — 이 칸엔 날짜만 있는 게 아니라 진행상태('확정메일 발송'·'최종 드랍')도 들어간다.
    문자열로 비교하면 한글과 날짜가 섞여 뒤죽박죽이 된다. 날짜는 날짜순, 상태는 그 뒤로. */
 function fixedKey(v){
@@ -2084,7 +2111,7 @@ function viewGarden(){
   // 기본 정렬: 대상 먼저 → filling → 보류/스캔, 그 안에서 팔로워 낮은(급한) 순
   rows = rows.slice().sort((a,b)=> (G_RANK[gStat(b,p).st]-G_RANK[gStat(a,p).st]) || ((a[p].fol||0)-(b[p].fol||0)));
 
-  const stChip = st => ({ target:'<span class="chip needs">가드닝 대상</span>', hold:'<span class="chip stale">보류 · 업로드 대기</span>', filling:'<span class="lk sched">채워지는 중</span>', scan:'<span class="cmuted">스캔 대기</span>' }[st] || '');
+  const stChip = st => ({ target:'<span class="chip needs">가드닝 대상</span>', hold:'<span class="chip stale">보류 · 업로드 대기</span>', filling:'<span class="lk sched">채워지는 중</span>', refund:'<span class="chip stale" title="환불이 확정되기 전에 재주문하면, 환불이 안 될 경우 이중지출이 됩니다.">환불 대기 · 재주문 보류</span>', scan:'<span class="cmuted">스캔 대기</span>' }[st] || '');
   const cols = [
     { key:'pick', label:gPickAllBox(), sortable:false, cell:r=>{ const g=gStat(r,p);
         return g.st==='target'?`<input type="checkbox" data-gpick="${r.id}|${p}"${gPicked(r.id,p)?' checked':''}>`
@@ -2100,6 +2127,7 @@ function viewGarden(){
         if(g.st==='target') return `<b>${nf(g.order)}</b>`;
         if(g.st==='hold')   return `<span class="cmuted">${nf(g.order)} <small>업로드 시</small></span>`;
         if(g.st==='filling')return `<span class="cmuted">진행중 ${nf(r[p].inFlight)}</span>`;
+        if(g.st==='refund') return `<span class="cmuted">환불 확인 후</span>`;
         return `<span class="emptydot">·</span>`; } },
     { key:'edit', label:'', cell:r=>editBtn(r.id) },
   ];
@@ -2125,7 +2153,7 @@ function viewGardenAll(){
     pairs.push({ d, p, id:d.id+'|'+p, g:gStat(d,p) });
   }));
   const rows = pairs.slice().sort((a,b)=> (G_RANK[b.g.st]-G_RANK[a.g.st]) || ((a.d[a.p].fol||0)-(b.d[b.p].fol||0)));
-  const stChip = st => ({ target:'<span class="chip needs">가드닝 대상</span>', hold:'<span class="chip stale">보류 · 업로드 대기</span>', filling:'<span class="lk sched">채워지는 중</span>', scan:'<span class="cmuted">스캔 대기</span>' }[st] || '');
+  const stChip = st => ({ target:'<span class="chip needs">가드닝 대상</span>', hold:'<span class="chip stale">보류 · 업로드 대기</span>', filling:'<span class="lk sched">채워지는 중</span>', refund:'<span class="chip stale" title="환불이 확정되기 전에 재주문하면, 환불이 안 될 경우 이중지출이 됩니다.">환불 대기 · 재주문 보류</span>', scan:'<span class="cmuted">스캔 대기</span>' }[st] || '');
   const cols = [
     { key:'pick', label: LOCAL.on?gPickAllBox():'', hide:!LOCAL.on, sortable:false, cell:r=> !LOCAL.on ? '' : r.g.st==='target'?`<input type="checkbox" data-gpick="${r.d.id}|${r.p}"${gPicked(r.d.id,r.p)?' checked':''}>`
         : r.g.st==='hold'?`<span class="cmuted" title="업로드 확인 후 가드닝">보류</span>` : `<span class="emptydot">·</span>` },
@@ -2141,6 +2169,7 @@ function viewGardenAll(){
         if(r.g.st==='target') return `<b>${nf(r.g.order)}</b>`;
         if(r.g.st==='hold')   return `<span class="cmuted">${nf(r.g.order)} <small>업로드 시</small></span>`;
         if(r.g.st==='filling')return `<span class="cmuted">진행중 ${nf(r.d[r.p].inFlight)}</span>`;
+        if(r.g.st==='refund') return `<span class="cmuted">환불 확인 후</span>`;
         return `<span class="emptydot">·</span>`; } },
     { key:'edit', label:'', cell:r=>editBtn(r.d.id, r.p) },
   ];
@@ -2165,27 +2194,36 @@ function viewGardenAll(){
    플랫폼 하위탭을 타지 않는다 — 돈은 캠페인 단위로 본다. */
 function gardenSummary(){
   // 대상: 지금 채워야 하는 것. 진행중: 이미 주문이 돌고 있는 것. 둘을 섞으면 이중지출로 보인다.
-  let need = 0, needQty = 0, needUsd = 0, filling = 0, fillQty = 0, ok = 0, scan = 0;
+  let need = 0, needQty = 0, needUsd = 0, filling = 0, fillQty = 0, ok = 0, scan = 0, refund = 0;
   D.filter(inCampaign).forEach(d=> platsOn().forEach(p=>{
     if(!d[p]) return;
     const g = gStat(d,p);
-    if(g.st==='target'){ need++; needQty += g.order; needUsd += (g.order/1000) * GARDEN_RATE; }
+    if(g.st==='target'){ need++; needQty += g.order; needUsd += (g.order/1000) * rateOf(p); }
     else if(g.st==='filling'){ filling++; fillQty += (d[p].inFlight||0); }
+    else if(g.st==='refund') refund++;
     else if(g.st==='ok') ok++;
     else if(g.st==='scan') scan++;
   }));
-  const spentUsd = ORDERS.reduce((a,o)=> a + (Number(o.cost)||0), 0);
-  const spentQty = ORDERS.reduce((a,o)=> a + (Number(o.quantity)||0), 0);
+  /* 지출 = 실제로 나간 돈. 두 가지를 놓치고 있었다:
+     ① 수기 집행은 패널 통화가 달라 원화(costKrw)로만 적힌다 — USD 만 세면 통째로 빠진다.
+     ② 포기(환불 신청)한 주문은 돌려받을 돈이라 '쓴 돈'이 아니다. 건수·명수에서도 뺀다. */
+  const live = ORDERS.filter(o=> !o.abandoned);
+  const spentUsd = live.reduce((a,o)=> a + (Number(o.cost)||0), 0);
+  const spentKrw = live.reduce((a,o)=> a + (Number(o.costKrw)||0), 0);
+  const spentQty = live.reduce((a,o)=> a + (Number(o.quantity)||0), 0);
+  const dropped  = ORDERS.length - live.length;
   const bal = BALANCE_USD;
   // 잔액으로 지금 필요한 만큼을 감당할 수 있나. 모자라면 충전해야 하니 미리 알린다.
   const shortUsd = bal!=null ? (needUsd - bal) : null;
   return `<div class="cards">
     ${kpi('가드닝 대상 · 건', need, { ic:IC.split, accent: need?'var(--needs)':undefined,
-       sub: need ? `${nf(needQty)}명 충전 필요${filling?` · 진행중 ${filling}건(${nf(fillQty)}명)`:''}` : `지금 채울 계정이 없어요${filling?` · 진행중 ${filling}건`:''}` })}
+       sub: (need ? `${nf(needQty)}명 충전 필요` : '지금 채울 계정이 없어요')
+          + (filling?` · 진행중 ${filling}건(${nf(fillQty)}명)`:'')
+          + (refund?` · <b class="warn-t">환불 대기 ${refund}건</b>`:'') })}
     ${kpi('지금 필요한 금액', wonOf(needUsd), { ic:IC.coin||IC.split,
        sub: shortUsd!=null && shortUsd>0 ? `<b class="warn-t">잔액이 ${wonOf(shortUsd)} 모자라요</b>` : (bal!=null?`잔액 ${wonOf(bal)}`:'잔액 확인 불가') })}
-    ${kpi('지금까지 지출', wonOf(spentUsd), { ic:IC.check,
-       sub: ORDERS.length ? `${ORDERS.length}건 · ${nf(spentQty)}명 충전` : '아직 집행 없음' })}
+    ${kpi('지금까지 지출', (Math.round(wonNum(spentUsd)+spentKrw)).toLocaleString('ko-KR')+'원', { ic:IC.check,
+       sub: live.length ? `${live.length}건 · ${nf(spentQty)}명 충전${dropped?` <span class="cmuted">· 포기 ${dropped}건 제외</span>`:''}` : '아직 집행 없음' })}
     ${kpi('충족 · 계정', ok, { ic:IC.users, sub: `${nf(GMIN)}명 이상 확보됨${scan?` · 스캔 대기 ${scan}건`:''}` })}
   </div>`;
 }
@@ -2234,7 +2272,9 @@ function gardenHistory(){
 }
 // 달러를 원으로. 환율은 서버가 준 값이 있으면 그걸, 없으면 대략치를 쓴다(표기용).
 let KRW_PER_USD = 1400;
-const wonOf = usd => Math.round((Number(usd)||0) * KRW_PER_USD).toLocaleString('ko-KR') + '원';
+// 원화 숫자만 — 수기 집행은 원화로 기록되는데 문자열끼리는 더할 수 없다.
+const wonNum = usd => Math.round((Number(usd)||0) * KRW_PER_USD);
+const wonOf = usd => wonNum(usd).toLocaleString('ko-KR') + '원';
 /* 납품 도구줄 — 통합·플랫폼 탭이 같은 줄을 쓴다.
    조회수 스캔은 대표님 PC 에서만 돈다(가드닝 집행과 같은 규칙) — 팀원 화면에 띄워두면 눌러도 아무 일이 없다.
    납품시트 기입 라벨에 플랫폼 이름을 안 붙인 이유: 서버(/api/deliver)는 캠페인당 납품시트 하나만 알고
