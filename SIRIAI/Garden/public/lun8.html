@@ -1545,7 +1545,11 @@ function schedStats(excludeId){
      그 칩을 눌렀을 때 표에 뜨는 수(63건)가 어긋난다 — 실제로 마루 2명이 7/24 를 갖고 있었다.
      기준: 날짜가 있으면 우리 일정판에 올린다. 없으면 빼서 '미정'을 더럽히지 않는다. */
   const hasDay = d => !!normDay(dueDay(d));
-  const rows = D.filter(inCampaign).filter(d=> oursToSchedule(d) || hasDay(d)).filter(d=> d.id!==excludeId);
+  /* 표(업로드탭)와 같은 대상만 센다. 예전엔 확정메일을 아직 안 보낸 사람도 세서
+     스트립은 7건인데 표는 6건이 되는 어긋남이 났다(8/2 はな 건).
+     확정 전인 사람은 '그날 올리기로 한 사람'이 아직 아니다 — 모집탭에서 확정부터 해야 한다. */
+  const rows = D.filter(inCampaign).filter(inUpload)
+    .filter(d=> oursToSchedule(d) || hasDay(d)).filter(d=> d.id!==excludeId);
   const byDay = {}; ALLDAYS().forEach(dy=> byDay[dy] = { day:dy, geon:0, left:0, myeong:0 });
   const unset = {geon:0,left:0,myeong:0}, off = {geon:0,left:0,myeong:0};
   rows.forEach(d=>{
@@ -2073,7 +2077,14 @@ const scanPick = new Set();
    '안 올렸다'고 셀 대상이 아니다 — 지연 목록만 부풀린다.
    ⚠️ 단, 확정 전인데 이미 올린 사람은 보여준다. 그건 숨기면 안 되는 사실이다
    (확정도 안 했는데 올라왔다는 건 확인할 일이지, 없는 일이 아니다). */
-function inUpload(d){ return !!d.notice || anyUploaded(d); }
+function inUpload(d){
+  /* 마루가 모집한 사람은 확정메일을 우리가 안 보낸다(마루가 LINE 오픈챗으로 챙긴다).
+     그 사람들에게 이 조건을 그대로 걸면 확정메일 칸이 영영 빈칸이라 업로드탭에
+     아예 안 나타난다 — 실제로 마루 14명 중 12명이 사라져 있었다.
+     업로드 확인은 마루 것도 우리 일이다(계약 건수에 들어간다). */
+  if(!oursToContact(d)) return true;
+  return !!d.notice || anyUploaded(d);
+}
 function scanTargetsOf(d){
   return platsOn().filter(p=> d[p] && !uploaded(d,p));
 }
