@@ -131,6 +131,17 @@ export async function pushCellsToSheet(sheet, cells) {
 }
 
 // 의견 남기기 — 마스터 데이터와 분리된 '의견' 탭. 읽기전용 캠페인에서도 열려 있다.
+/* _state 탭 읽기·쓰기 — overrides/best 와 같은 자리에 스캔 시각(scans)도 둔다.
+   배포본엔 data/ 가 없어 로컬 파일을 못 읽으므로, 시트가 유일한 공유 경로다. */
+export async function readStateFromSheet(sheet) {
+  ensure(sheet);
+  return bridgeCall(`${sheet.url}?action=state&token=${encodeURIComponent(sheet.token)}`, {});
+}
+export async function writeStateToSheet(sheet, state) {
+  ensure(sheet);
+  return bridgePost(sheet, { state });
+}
+
 export async function readFeedbackFromSheet(sheet) {
   ensure(sheet);
   const data = await bridgeCall(`${sheet.url}?action=feedback&token=${encodeURIComponent(sheet.token)}`, {});

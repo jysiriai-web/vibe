@@ -16,6 +16,18 @@ import { normH } from './orders.js';
 import { runIgSync } from './ig-sync.js';
 import { runIgContentScan } from './ig-content.js';
 import { runSync } from './sync-core.js';
+/* 스캔 시각을 시트에 남긴다 — 로컬 파일(data/)은 배포에 안 올라가서
+   팀원 화면에서는 '마지막 스캔'이 영영 '아직'이었다. 시트는 양쪽이 다 읽는다.
+   실패해도 스캔 자체는 성공이므로 조용히 넘긴다(로그만). */
+async function stampScan(campaign, kind) {
+  try {
+    const { readStateFromSheet, writeStateToSheet } = await import('./sheet.js');
+    if (!writeStateToSheet) return;
+    const cur = (await readStateFromSheet(campaign.sheet).catch(() => ({}))) || {};
+    const scans = { ...(cur.scans || {}), [kind]: new Date().toISOString() };
+    await writeStateToSheet(campaign.sheet, { scans });
+  } catch (e) { console.warn('[스캔시각] 시트 기록 실패(무해):', (e && e.message) || e); }
+}
 import { runContentScan, judgeOneLink, scanOneProfile } from './content-core.js';
 import { checkExitLocation } from './tiktok-videos.js';
 import { listCampaigns, getCampaign, getFx, setCalibration, setFallbackRate, getStaleDays, setService } from './campaigns.js';
@@ -420,7 +432,10 @@ export async function handler(req, res) {
           // 플랫폼마다 서비스도 단가도 다르다 — 화면이 틱톡 단가로 인스타까지 계산하면 안 된다.
           services: ['tk', 'ig'].map((pl) => { const r = resolveService(campaign, pl);
             return r.svc ? { plat: pl, id: r.svc.service, name: r.svc.name, rate: r.svc.rate } : null; }).filter(Boolean) },
-        balance, scannedAt: scanLatest(campaign).ranAt, uploadScannedAt: detectedRanAt(campaign),
+        /* 로컬 파일이 없으면(배포본) 시트에 적어둔 시각을 쓴다 — 팀원 화면에서 '아직'만 뜨던 이유다. */
+        balance,
+        scannedAt: scanLatest(campaign).ranAt || (all.scans && all.scans.follower) || null,
+        uploadScannedAt: detectedRanAt(campaign) || (all.scans && all.scans.upload) || null,
         // 화면이 가드닝 예상 금액을 계산하려면 단가와 환율이 필요하다.
         // 여기서 안 주면 프론트가 상수를 박아두게 되고, 서비스를 바꾼 날 조용히 틀린 금액이 뜬다.
         service: (() => { const v = serviceOf(campaign); return v ? { id: v.service, name: v.name, rate: v.rate } : null; })(),
@@ -515,7 +530,7 @@ export async function handler(req, res) {
           return action; // 'resume' | 'stop'
         },
       })
-        .then((r) => { contentScanState = { running: false, mode: perf ? 'perf' : full ? 'full' : 'upload', done: r.total, total: r.total, up: r.up, newUp: r.newUp || 0, written: r.written, writeError: r.writeError || null, failed: r.failed, failedHandles: r.failedHandles, stopped: r.stopped, error: null, ranAt: new Date().toISOString() }; })
+        .then((r) => { stampScan(campaign, perf ? 'perf' : 'upload'); contentScanState = { running: false, mode: perf ? 'perf' : full ? 'full' : 'upload', done: r.total, total: r.total, up: r.up, newUp: r.newUp || 0, written: r.written, writeError: r.writeError || null, failed: r.failed, failedHandles: r.failedHandles, stopped: r.stopped, error: null, ranAt: new Date().toISOString() }; })
         .catch((e) => { contentScanState = { running: false, done: 0, total: 0, up: 0, written: 0, failed: 0, error: e.message, ranAt: null }; })
         .finally(() => { scanConfirmResolve = null; scanResumeResolve = null; });
       return send(res, 200, { started: true });
@@ -655,6 +670,7 @@ export async function handler(req, res) {
           if (r.requested) { await writeOrders(campaign, orders); refill = r; }
         } catch (e) { console.error('[자동리필] 실패(스캔은 정상):', (e && e.message) || e); }
       }
+      stampScan(campaign, 'follower');   // 기다리지 않는다 — 실패해도 스캔은 성공이다
       return send(res, 200, { ok: true, scannedAt: scanLatest(campaign).ranAt, scannedCount: sync.scannedCount, scanTried: sync.scanTried, scanFailed: sync.scanFailed, scanFailedHandles: sync.scanFailedHandles || [], writeError: sync.writeError || null, nicksWritten: sync.nicksWritten, refill, accounts: await buildAccounts(campaign, orders), orders: markStale(orders) });
     }
 
@@ -675,6 +691,7 @@ export async function handler(req, res) {
           },
         });
         igScanState = { phase: 'done', done: out.scannedCount, total: out.total };
+        stampScan(campaign, 'follower');
         return send(res, 200, { ok: true, ...out, accounts: undefined });
       } catch (e) {
         igScanState = { phase: 'error', error: e.message };
@@ -704,6 +721,7 @@ export async function handler(req, res) {
           onProgress: (p) => { igContentState = { phase: 'scan', done: p.done, total: p.total, handle: p.handle, uploaded: p.uploaded }; },
         });
         igContentState = { phase: 'done', done: out.scannedCount, total: out.total };
+        stampScan(campaign, 'upload');
         return send(res, 200, { ok: true, ...out, detected: undefined });
       } catch (e) {
         igContentState = { phase: 'error', error: e.message };

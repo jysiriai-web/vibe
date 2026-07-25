@@ -1149,6 +1149,18 @@ function applyBest(best){
 
 /* 스캔 시각을 '몇 분 전'으로. 시각 자체를 그대로 보여주면 지금 것인지 어제 것인지 매번 계산해야 한다. */
 let _lastScanIso = null;   // 마지막 스캔 시각(요약 화면이 '언제 기준인지'를 말할 때 쓴다)
+/* 마지막 스캔은 '언제였나'를 바로 알아야 한다. 'N시간 전'은 머리로 환산해야 해서
+   실제 시각으로 적는다. 오늘이면 시:분만, 어제 이전이면 날짜를 앞에 붙인다. */
+function clockText(iso){
+  if(!iso) return '';
+  const d = new Date(iso); if(!isFinite(d.getTime())) return '';
+  const two = n => String(n).padStart(2,'0');
+  const hm = two(d.getHours()) + ':' + two(d.getMinutes());
+  const now = new Date();
+  return d.toDateString() === now.toDateString()
+    ? hm
+    : (d.getMonth()+1) + '/' + d.getDate() + ' ' + hm;
+}
 function agoText(iso){
   if(!iso) return '아직';
   const t = new Date(iso).getTime();
@@ -1187,7 +1199,7 @@ async function loadData(){
     D = rows.map(fromApi);
     applyBest(j.best);
     _lastScanIso = j.uploadScannedAt || j.scannedAt || null;
-    CAMPAIGNS.lun8.scan = agoText(_lastScanIso);
+    CAMPAIGNS.lun8.scan = clockText(_lastScanIso) || '아직';
     ORDERS = Array.isArray(j.orders) ? j.orders : [];
     if(j.krwPerUsd) KRW_PER_USD = j.krwPerUsd;
     if(j.service){ SERVICE = j.service; if(j.service.rate) GARDEN_RATE = Number(j.service.rate) || GARDEN_RATE; }
@@ -3109,14 +3121,14 @@ function mSummary(){
   // 미업로드(지연) — 기준일이 지났는데 아직 안 올린 건
   const lateG = lateGeon();
   const lateN = lateCount() + dropSoonCount();
-  const stamp = agoText(_lastScanIso);
+  const stamp = clockText(_lastScanIso);
   const fresh = _lastScanIso ? '' : ' unknown';
   return `<div class="msum">
     <div class="msum-h">
       <img class="msum-logo" src="/siriai-mark.png" alt="SIRIAI">
       <div class="msum-t"><b>${esc(cfg().name)}</b><span>${esc(cfg().sub||'')}</span></div>
     </div>
-    <div class="msum-when${fresh}">${_lastScanIso ? '스캔 기준 <b>'+esc(stamp)+'</b>' : '마지막 스캔 시각을 몰라요 — 대표님 PC에서 스캔하면 갱신돼요'}</div>
+    <div class="msum-when${fresh}">${_lastScanIso ? '마지막 스캔 <b>'+esc(stamp)+'</b>' : '마지막 스캔 시각을 몰라요 — 스캔하면 갱신돼요'}</div>
     <div class="msum-grid">
       <div class="ms-c"><span class="ms-k">업로드</span><span class="ms-v">${up}<small> / ${goal||pairs.length}건</small></span></div>
       <div class="ms-c"><span class="ms-k">오늘 예정</span><span class="ms-v">${todayRows.length}<small>명 · ${todayUp}/${todayGeon}건</small></span></div>

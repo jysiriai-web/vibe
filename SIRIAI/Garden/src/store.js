@@ -258,5 +258,5 @@ export async function readAll(campaign) {
   const overrides = pend ? unionOverrides(local, sheetOv) : unionOverrides(sheetOv, local);
   // 원본과 비교 → 정규화만 일어나도 한 번 밀어 넣어 시트를 필드 키로 마이그레이션한다.
   if (!eq(overrides, sheetRaw)) { try { await putOverrides(campaign.sheet, overrides); clearPending(campaign, 'overrides'); } catch {} }
-  return { accounts: b.accounts, orders, overrides, best: b.best || [] };
+  return { accounts: b.accounts, orders, overrides, best: b.best || [], scans: b.scans || {} };
 }

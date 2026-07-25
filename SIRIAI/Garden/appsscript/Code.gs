@@ -459,7 +459,7 @@ function stateSheet_() {
 function readState_() {
   var sh = stateSheet_();
   var lastRow = sh.getLastRow();
-  var out = { overrides: {}, best: [] };
+  var out = { overrides: {}, best: [], scans: {} };
   if (lastRow < 2) return out;
   var v = sh.getRange(2, 1, lastRow - 1, 2).getValues();
   for (var i = 0; i < v.length; i++) {
@@ -469,6 +469,8 @@ function readState_() {
     try {
       if (k === 'overrides') out.overrides = JSON.parse(raw);
       else if (k === 'best') out.best = JSON.parse(raw);
+      // 스캔 시각 — 배포본엔 로컬 파일이 없어서(.vercelignore data/) 시트가 유일한 공유 경로다.
+      else if (k === 'scans') out.scans = JSON.parse(raw);
     } catch (err) { throw new Error('_state ' + k + ' JSON 파손: ' + err); }
   }
   return out;
@@ -487,7 +489,8 @@ function writeState_(state) {
       for (var i = 0; i < ks.length; i++) idx[String(ks[i][0])] = i + 2;
     }
     var n = 0;
-    var keys = ['overrides', 'best'];
+    // scans = 마지막 스캔 시각. 배포본엔 로컬 파일이 없어 시트가 유일한 공유 경로다.
+    var keys = ['overrides', 'best', 'scans'];
     for (var j = 0; j < keys.length; j++) {
       var k = keys[j];
       if (state[k] === undefined) continue;
@@ -545,7 +548,8 @@ function doGet(e) {
     if (action === 'state') return json_(readState_());
     if (action === 'bundle') {
       var s = readState_();
-      return json_({ accounts: readAccounts_(), orders: readOrders_(), overrides: s.overrides, best: s.best, colmap: COL, colinfo: _colInfo });
+      // scans(마지막 스캔 시각)도 함께 — 배포본엔 로컬 파일이 없어 시트가 유일한 공유 경로다.
+      return json_({ accounts: readAccounts_(), orders: readOrders_(), overrides: s.overrides, best: s.best, scans: s.scans || {}, colmap: COL, colinfo: _colInfo });
     }
     return json_({ error: 'unknown action' });
   } catch (err) {
