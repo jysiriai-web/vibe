@@ -522,7 +522,31 @@ body.phone #content { padding: 0; }
 .legend .amt { font-weight:700; color:var(--ink); margin-left:auto; font-variant-numeric:tabular-nums; }
 
 /* 토스트 */
-.toast { position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 13px 22px; border-radius: 12px; font-size: 14.5px; font-weight: 600; z-index: 60; box-shadow: 0 10px 30px rgba(20,20,35,.3); max-width: min(92vw, 480px); text-align: center; line-height:1.5; }
+/* 알림 — 오른쪽 아래. 가운데에 뜨면 방금 누른 버튼과 표를 같이 가린다. */
+.toastbox { position: fixed; right: 20px; bottom: 20px; z-index: 60;
+  display: flex; flex-direction: column; gap: 9px; align-items: flex-end; pointer-events: none; }
+.tst { pointer-events: auto; position: relative; overflow: hidden;
+  background: var(--card); color: var(--ink); border: 1px solid var(--line);
+  border-radius: 13px; box-shadow: 0 12px 34px rgba(20,20,35,.18);
+  padding: 13px 40px 14px 15px; font-size: 13.5px; font-weight: 600; line-height: 1.55;
+  width: min(92vw, 380px); animation: tstin .18s ease; }
+@keyframes tstin { from { opacity: 0; transform: translateY(8px); } }
+.tst.out { opacity: 0; transform: translateY(6px); transition: opacity .2s, transform .2s; }
+.tst .tst-m { word-break: break-word; }
+.tst .tst-m b { color: var(--accent-ink); }
+.tst .tst-x { position: absolute; top: 8px; right: 8px; width: 24px; height: 24px; border: none;
+  background: none; color: var(--faint); font-size: 17px; line-height: 1; cursor: pointer; border-radius: 7px; }
+.tst .tst-x:hover { background: var(--line2); color: var(--ink); }
+/* 남은 시간 — 언제 사라질지 보이면 조급하지 않다. 마우스를 올리면 멈춘다. */
+.tst .tst-bar { position: absolute; left: 0; bottom: 0; height: 2.5px; background: var(--accent);
+  width: 100%; transform-origin: left; animation: tstbar 8s linear forwards; }
+.tst.hold .tst-bar { animation-play-state: paused; }
+@keyframes tstbar { to { transform: scaleX(0); } }
+.tst.err { border-color: #f3cccc; }
+.tst.err .tst-bar { background: var(--needs); }
+.tst.ok .tst-bar { background: var(--ok); }
+@media (max-width: 640px){ .toastbox { right: 10px; left: 10px; bottom: 12px; align-items: stretch; }
+  .tst { width: auto; } }
 
 @media (max-width: 900px) {
   .layout { flex-direction: column; }
@@ -963,7 +987,7 @@ select.best.on { background:#fff8e1; color:#8a6100; border-color:#f0d48a; font-w
     <div class="modal-actions" id="modalActions"></div>
   </div>
 </div>
-<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<div class="toastbox" id="toastBox" role="status" aria-live="polite"></div>
 
 <!-- 의견 남기기: 화면 요소를 집어서 "여기 이런 기능 있으면 좋겠다"를 적어두는 패널 -->
 <div class="fb-panel" id="fbPanel" hidden>
@@ -1577,7 +1601,31 @@ function schedStats(excludeId){
            over: all.filter(x=>x.flag==='over'), zero: all.filter(x=>x.flag==='zero') };
 }
 
-function toast(msg){ const t=document.getElementById('toast'); t.innerHTML=msg; t.hidden=false; clearTimeout(t._t); t._t=setTimeout(()=>t.hidden=true,3800); }
+/* 알림 — 화면 가운데를 가리던 검은 띠에서 오른쪽 아래 카드로 옮겼다.
+   가운데에 뜨면 방금 누른 버튼과 표를 동시에 가려서, 결과를 읽는 동안 아무것도 못 한다.
+   여러 개가 겹칠 때는 위로 쌓고, 닫기 버튼과 남은 시간 막대를 둔다(언제 사라질지 보이게).
+   ⚠️ toast(msg) 호출부가 47곳이라 이름·인자는 그대로 둔다. */
+const TOAST_MS = 8000;   // 5~10초 사이 — 긴 문장도 읽고 링크도 누를 수 있게
+function toast(msg, kind){
+  const box = document.getElementById('toastBox') || (function(){
+    const b = document.createElement('div'); b.id='toastBox'; b.className='toastbox';
+    document.body.appendChild(b); return b; })();
+  const el = document.createElement('div');
+  el.className = 'tst' + (kind ? ' ' + kind : '');
+  el.innerHTML = '<div class="tst-m">' + msg + '</div>'
+    + '<button class="tst-x" title="닫기">×</button><i class="tst-bar"></i>';
+  box.appendChild(el);
+  // 오래된 것부터 정리 — 쌓이면 화면 절반을 먹는다.
+  while(box.children.length > 4) box.removeChild(box.firstChild);
+  const kill = ()=>{ if(el._d) return; el._d=1; el.classList.add('out');
+    setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); }, 200); };
+  el.querySelector('.tst-x').addEventListener('click', kill);
+  el._t = setTimeout(kill, TOAST_MS);
+  // 마우스를 올리면 멈춘다 — 읽는 중에 사라지면 다시 띄울 방법이 없다.
+  el.addEventListener('mouseenter', ()=>{ clearTimeout(el._t); el.classList.add('hold'); });
+  el.addEventListener('mouseleave', ()=>{ el.classList.remove('hold'); el._t = setTimeout(kill, 2500); });
+  return el;
+}
 
 function contentCell(c, p){
   if(!c) return `<span class="emptydot">·</span>`;
