@@ -1528,7 +1528,7 @@ function setFilterNote(rows, extra){
   if(!on.length){ _lastDayNote = ''; return; }
   const geon = rows.reduce((a,d)=>a+slots(d),0);
   _lastDayNote = `<span class="daynote"><b>${on.map(esc).join(' · ')}</b> ${rows.length}명 · ${geon}건만 보는 중`
-    + `<button class="btn ghost small" id="dayClear">전체 보기</button></span>`;
+    + `<button class="btn ghost small" id="dayClear">필터 초기화</button></span>`;
 }
 let _lastHideNote = '';   // 표를 그릴 때 계산된 '빈 열 숨김' 배지 — 필터 줄에서 꺼내 쓴다
 function renderTable(cols, rows, opts={}){
@@ -3385,8 +3385,11 @@ document.getElementById('content').addEventListener('click', e=>{
   const uf=e.target.closest('[data-upf]'); if(uf){ state.upFilter = uf.dataset.upf; render(); return; }
   const dy=e.target.closest('[data-day]'); if(dy){ state.day = (state.day===dy.dataset.day) ? null : dy.dataset.day; state.week=null; render(); return; }
   if(e.target.closest('#dayClear')){
-    // '전부 보기'는 말 그대로 전부다 — 하나씩 되돌리면 클릭이 너무 많다(의견 #11).
+    /* '필터 초기화'는 말 그대로 전부다 — 하나씩 되돌리면 클릭이 너무 많다(의견 #11).
+       ⚠️ 새 필터를 만들면 여기에도 반드시 추가할 것. 안내줄엔 '진행사'라고 떠 있는데
+       초기화를 눌러도 안 풀리면, 사람은 화면이 고장난 줄 알고 새로고침한다. */
     state.day=null; state.week=null; state.platOnly=''; state.noticeOnly=false; state.unfixedOnly=false;
+    state.coOnly=''; state.hasContent=false;
     if(state.plat==='tk'||state.plat==='ig') state.plat='all';
     render(); return; }
   const th=e.target.closest('.th-sort'); if(th){ toggleSort(th.dataset.table, th.dataset.sort); return; }
