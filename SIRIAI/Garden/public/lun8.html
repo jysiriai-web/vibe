@@ -427,6 +427,14 @@ th.memo-col, td.memo-col { width:44px; text-align:center; }
   background: var(--accent-soft); border: none; border-radius: 8px; padding: 5px 10px; cursor: pointer;
   max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* 폰에서는 사이드바·상단바를 숨긴다 — 요약 화면이 곧 전부다. */
+/* ⚠️ 미디어쿼리로 숨긴다 — body.phone 은 render() 가 붙이는데, 그건 데이터를 다 받은 뒤다.
+   그 전까지 PC용 사이드바·상단바가 폰 폭에 눌려 깨진 채로 보였다(로딩 몇 초 내내).
+   CSS 는 첫 페인트부터 걸리므로 깨질 틈이 없다. body.phone 은 JS 쪽 판단용으로만 남긴다. */
+@media (max-width: 640px){
+  .sidebar, .topbar { display: none !important; }
+  .main { padding: 0 !important; }
+  #content { padding: 0 !important; }
+}
 body.phone .sidebar, body.phone .topbar { display: none; }
 body.phone .main { padding: 0; }
 body.phone #content { padding: 0; }
@@ -981,7 +989,13 @@ select.best.on { background:#fff8e1; color:#8a6100; border-color:#f0d48a; font-w
         <div class="stats" id="stats"></div>
       </div>
     </header>
-    <main id="content"></main>
+    <!-- 로딩 마크업을 HTML 에 미리 둔다 — JS 가 채우기 전(스크립트 파싱·첫 fetch)까지
+         빈 화면이라 '안 열리나' 싶었다. CSS 는 첫 페인트부터 걸린다. -->
+    <main id="content"><div class="loadwrap">
+      <div class="loadspin"></div>
+      <div class="loadt">시트에서 불러오는 중…</div>
+      <div class="loads">인원이 많으면 몇 초 걸려요. 잠시만요.</div>
+    </div></main>
   </div>
 </div>
 
