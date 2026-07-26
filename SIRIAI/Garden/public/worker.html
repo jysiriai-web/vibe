@@ -568,36 +568,67 @@
         api(url, { method: 'POST' }).catch(function () {});
       });
     }
+    /* 틱톡 업로드 결과를 기록에 남긴다. 폴링과 분리해 둔 이유:
+       스캔이 도는 중에 창을 새로고침하면 폴링만 죽고 서버 스캔은 계속 돈다.
+       그때 결과를 아무도 안 읽어서 '틱톡은 어떻게 됐는지 기록에 없다'가 됐다.
+       이제 부팅할 때(reattachTk) 이 함수로 놓친 결과를 한 번 남긴다. */
+    function reportTk(s) {
+      try { if (s.ranAt) localStorage.setItem('wk.tkReported', s.ranAt); } catch (e) {}
+      var clean = !s.failed && !s.writeError;
+      if (s.stopped) say('⏹ 틱톡 업로드 스캔 중지 — 여기까지 ' + (s.written || 0) + '칸 반영');
+      else if (s.newUp) say('틱톡 업로드 스캔 완료 — 새로 <b>' + s.newUp + '건</b> · 시트 ' + (s.written || 0) + '칸', clean ? 'ok' : '');
+      else say('틱톡 업로드 스캔 완료 — 새로 올라온 건 없어요 (누적 ' + (s.up || 0) + '건)', clean ? 'ok' : '');
+      if (s.writeError) say('⚠️ 틱톡 시트 쓰기: ' + s.writeError, 'err');
+      if (s.failed) say('⚠️ 틱톡 <b>' + s.failed + '개는 못 봤어요</b> — 눌러서 직접 확인해 주세요.' + acctLinks(s.failedHandles, 'tk'), 'err');
+      return clean;
+    }
+    // 지금 도는 스캔을 끝까지 지켜본다. POST 와 분리돼 있어 '다시 붙기'에도 그대로 쓴다.
+    function pollTkContent() {
+      return new Promise(function (done) {
+        var poll = setInterval(function () {
+          api('/api/content-scan/status').then(function (s) {
+           try {
+            if (s.error) { clearInterval(poll); panel(null); leg('btnContent', 'tk', '실패', 0, 0, 'err'); fail(s, '틱톡 업로드 스캔'); return done(false); }
+            if (s.running) {
+              /* ⚠️ panel(mode, info) 다. 예전엔 panel(s) 로 상태 객체를 mode 자리에 넣어서
+                 어떤 분기에도 안 걸리고 늘 마지막 else(재개·중지)만 그렸다 —
+                 로봇 인증 '스캔 시작' 버튼이 아예 안 떴고, dataset.mode 비교도 매번 어긋나
+                 2초마다 버튼을 새로 그려서 누르는 순간 사라졌다. */
+              panel(s.phase === 'confirm' ? 'confirm' : s.phase === 'blocked' ? 'blocked' : 'scan', s);
+              // 어느 창을 풀어야 하는지 대야 사람이 찾는다. 계정명이 곧 창 제목이다.
+              if (s.captcha) leg('btnContent', 'tk', '🤖 인증 풀어주세요 @' + s.captcha);
+              else if (s.phase === 'confirm') leg('btnContent', 'tk', '로봇 인증 대기');
+              // 본 스캔 뒤의 두 구간 — 여기가 안 보여서 45/45 무한로딩으로 읽혔다.
+              else if (s.stage === 'retry') leg('btnContent', 'tk', '못 본 것 재시도', s.retryDone || 0, s.retryTotal || 0);
+              else if (s.stage === 'write') leg('btnContent', 'tk', '시트에 반영 중');
+              else leg('btnContent', 'tk', '진행', s.done || 0, s.total || 0);
+              return;
+            }
+            clearInterval(poll); panel(null);
+            leg('btnContent', 'tk', (s.failed || s.writeError) ? '완료(일부 실패)' : '완료', 0, 0, (s.failed || s.writeError) ? 'err' : 'ok');
+            done(reportTk(s));
+           } catch(err) { clearInterval(poll); leg('btnContent','tk','실패',0,0,'err'); say('틱톡 업로드 스캔 화면 오류: '+esc(err.message), 'err'); done(false); }
+          }).catch(function () {});
+        }, 2000);
+      });
+    }
     // 틱톡 업로드 — 백그라운드 + 로봇 인증 게이트
     function legTkContent() {
       leg('btnContent', 'tk', '시작하는 중');
-      return new Promise(function (done) {
-        api('/api/content-scan?campaign=' + CAMP, { method: 'POST' }).catch(netErr).then(function (r) {
-          if (!r || r.error) { leg('btnContent', 'tk', '실패', 0, 0, 'err'); fail(r, '틱톡 업로드 스캔'); return done(false); }
-          var poll = setInterval(function () {
-            api('/api/content-scan/status').then(function (s) {
-             try {
-              if (s.error) { clearInterval(poll); panel(null); leg('btnContent', 'tk', '실패', 0, 0, 'err'); fail(s, '틱톡 업로드 스캔'); return done(false); }
-              if (s.running) {
-                panel(s);
-                if (s.phase === 'confirm') leg('btnContent', 'tk', '로봇 인증 대기');
-                else leg('btnContent', 'tk', '진행', s.done || 0, s.total || 0);
-                return;
-              }
-              clearInterval(poll); panel(null);
-              leg('btnContent', 'tk', (s.failed || s.writeError) ? '완료(일부 실패)' : '완료', 0, 0, (s.failed || s.writeError) ? 'err' : 'ok');
-              var clean = !s.failed && !s.writeError;
-              if (s.stopped) say('⏹ 틱톡 업로드 스캔 중지 — 여기까지 ' + (s.written || 0) + '칸 반영');
-              else if (s.newUp) say('틱톡 업로드 스캔 완료 — 새로 <b>' + s.newUp + '건</b> · 시트 ' + (s.written || 0) + '칸', clean ? 'ok' : '');
-              else say('틱톡 업로드 스캔 완료 — 새로 올라온 건 없어요 (누적 ' + (s.up || 0) + '건)', clean ? 'ok' : '');
-              if (s.writeError) say('⚠️ 틱톡 시트 쓰기: ' + s.writeError, 'err');
-              if (s.failed) say('⚠️ 틱톡 <b>' + s.failed + '개는 못 봤어요</b> — 눌러서 직접 확인해 주세요.' + acctLinks(s.failedHandles, 'tk'), 'err');
-              done(!s.failed && !s.writeError);
-             } catch(err) { clearInterval(poll); leg('btnContent','tk','실패',0,0,'err'); say('틱톡 업로드 스캔 화면 오류: '+esc(err.message), 'err'); done(false); }
-            }).catch(function () {});
-          }, 2000);
-        });
+      return api('/api/content-scan?campaign=' + CAMP, { method: 'POST' }).catch(netErr).then(function (r) {
+        if (!r || r.error) { leg('btnContent', 'tk', '실패', 0, 0, 'err'); fail(r, '틱톡 업로드 스캔'); return false; }
+        return pollTkContent();
       });
+    }
+    function reportIg(r, ranAt) {
+      try { if (ranAt) localStorage.setItem('wk.igReported', ranAt); } catch (e) {}
+      var okAll = !r.failed && !r.pendingWrite && !r.writeError;
+      if (r.newUploaded) say('인스타 업로드 스캔 완료 — 새로 <b>' + r.newUploaded + '건</b> · 시트 ' + (r.written || 0) + '칸', okAll ? 'ok' : '');
+      else say('인스타 업로드 스캔 완료 — 새로 올라온 건 없어요 (누적 ' + (r.uploaded || 0) + '건)', okAll ? 'ok' : '');
+      if (r.pendingWrite) say('⚠️ 인스타 ' + r.pendingWrite + '건은 시트에 안 들어갔어요.', 'err');
+      if (r.writeError) say('⚠️ 인스타 시트 쓰기: ' + r.writeError, 'err');
+      if (r.failed) say('⚠️ 인스타 <b>' + r.failed + '개는 못 봤어요</b> (비공개·차단 등)' + acctLinks(r.failures, 'ig'), 'err');
+      return okAll;
     }
     // 인스타 업로드
     function legIgContent() {
@@ -622,13 +653,8 @@
         clearInterval(timer); el.hidden = true;
         if (!r || r.error) { leg('btnContent', 'ig', '실패', 0, 0, 'err'); fail(r, '인스타 업로드 스캔'); return false; }
         if (r.stopped) { leg('btnContent', 'ig', '중단됨', 0, 0, 'err'); igResume('upload'); say('인스타 업로드 스캔 중단 — 여기까지 시트에 저장됐어요.', ''); return false; }
-        var okAll = !r.failed && !r.pendingWrite && !r.writeError;
+        var okAll = reportIg(r);
         leg('btnContent', 'ig', okAll ? '완료' : '완료(일부 실패)', 0, 0, okAll ? 'ok' : 'err');
-        if (r.newUploaded) say('인스타 업로드 스캔 완료 — 새로 <b>' + r.newUploaded + '건</b> · 시트 ' + (r.written || 0) + '칸', okAll ? 'ok' : '');
-        else say('인스타 업로드 스캔 완료 — 새로 올라온 건 없어요 (누적 ' + (r.uploaded || 0) + '건)', okAll ? 'ok' : '');
-        if (r.pendingWrite) say('⚠️ 인스타 ' + r.pendingWrite + '건은 시트에 안 들어갔어요.', 'err');
-        if (r.writeError) say('⚠️ 인스타 시트 쓰기: ' + r.writeError, 'err');
-        if (r.failed) say('⚠️ 인스타 <b>' + r.failed + '개는 못 봤어요</b> (비공개·차단 등)' + acctLinks(r.failures, 'ig'), 'err');
         return okAll;
       });
     }
@@ -744,11 +770,37 @@
     // 작업이 하나라도 돌고 있으면 창 닫기를 막는다 — 스캔은 이 탭이 살아 있어야 끝난다.
     window.addEventListener('beforeunload', function (e) { if (LOCK.tk || LOCK.ig) { e.preventDefault(); e.returnValue = ''; } });
 
+    /* 창을 새로고침해도 서버 스캔은 계속 돈다. 예전엔 그때 폴링만 죽어서
+       '틱톡이 어떻게 끝났는지'가 기록에 영영 안 남았다. 다시 붙거나, 이미 끝났으면 한 번 남긴다. */
+    function reattachScans() {
+      api('/api/content-scan/status').then(function (s) {
+        if (!s) return;
+        if (s.running) {
+          if (!take('btnContent')) return;
+          legsReset('btnContent');
+          say('진행 중이던 틱톡 업로드 스캔에 다시 붙었어요.');
+          leg('btnContent', 'tk', '진행', s.done || 0, s.total || 0);
+          leg('btnContent', 'ig', '이 창 밖에서 돎', 0, 0, '');
+          pollTkContent().then(function (ok) { release('btnContent', ok ? 'ok' : 'err'); showDone(); loadStatus(); });
+          return;
+        }
+        // 이미 끝난 스캔인데 아무도 못 읽었으면 지금 남긴다(같은 스캔을 두 번 남기지 않게 ranAt 으로 표시).
+        var seen = null; try { seen = localStorage.getItem('wk.tkReported'); } catch (e) {}
+        if (s.ranAt && s.ranAt !== seen) { say('직전 틱톡 스캔 결과예요 (창이 닫혀 있는 동안 끝났어요).'); reportTk(s); }
+      }).catch(function () {});
+      api('/api/ig-content-status?campaign=' + CAMP).then(function (st) {
+        if (!st || st.phase !== 'done' || !st.result) return;
+        var seen = null; try { seen = localStorage.getItem('wk.igReported'); } catch (e) {}
+        if (st.ranAt && st.ranAt !== seen) { say('직전 인스타 스캔 결과예요 (창이 닫혀 있는 동안 끝났어요).'); reportIg(st.result, st.ranAt); }
+      }).catch(function () {});
+    }
+
     logLoad();
     logRender();
     // 안내문은 기록에 남기지 않는다(noKeep) — 기록이 비었을 때만 보인다.
     say('작업 콘솔 준비됨. 위에서 할 일을 골라 주세요.', '', true);
     loadStatus();
+    reattachScans();
   </script>
 </body>
 </html>

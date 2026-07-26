@@ -515,8 +515,18 @@ export async function handler(req, res) {
         full, perf, only: _only,
         onWarmup: () => { contentScanState.phase = 'confirm'; },
         waitForGo: () => goPromise,
-        onProgress: (p) => { if (contentScanState.phase !== 'blocked') contentScanState.phase = 'scan'; contentScanState.done = p.done; contentScanState.total = p.total; },
+        onProgress: (p) => {
+          if (contentScanState.phase !== 'blocked') contentScanState.phase = 'scan';
+          contentScanState.done = p.done; contentScanState.total = p.total;
+          // 본 스캔이 끝난 뒤의 재시도·시트쓰기 구간. 이걸 안 실으면 화면이 45/45 에 굳는다.
+          contentScanState.stage = p.stage || '';
+          contentScanState.retryDone = p.retryDone || 0;
+          contentScanState.retryTotal = p.retryTotal || 0;
+        },
         shouldPause: () => contentScanState.pauseRequested,
+        shouldStop: () => contentScanState.stopRequested,   // 계정 사이에서 스스로 접는다
+        // 봇 인증이 떴다 — 어느 계정 창을 풀어야 하는지 워커 화면에 그대로 띄운다.
+        onCaptcha: (c) => { contentScanState.captcha = c && c.waiting ? c.handle : null; },
         // 막히면(연속 실패) 또는 수동 중지 → phase=blocked, 사람이 /resume(재개) 또는 /stop(중지) 누를 때까지 대기.
         onBlocked: async ({ reason, done, total, failed }) => {
           contentScanState.phase = 'blocked';
@@ -555,10 +565,14 @@ export async function handler(req, res) {
       scanResumeResolve('resume');
       return send(res, 200, { ok: true });
     }
-    // 중지 — 스캔을 접는다(여기까지 한 건 저장됨).
+    /* 중지 — 스캔을 접는다(여기까지 한 건 저장됨).
+       ⚠️ 예전엔 scanResumeResolve 가 있을 때만, 즉 '연속 실패로 멈춰 선 동안'에만 먹었다.
+       정상적으로 도는 중엔 눌러도 '멈춘 스캔이 없어요' 였고, 실제로 스캔이 붙들리자
+       서버를 죽이는 것 말고는 접을 방법이 없었다. 이제 깃발을 세워 루프가 스스로 접는다. */
     if (path === '/api/content-scan/stop' && req.method === 'POST') {
-      if (!scanResumeResolve) return send(res, 200, { ok: false, error: '멈춘 스캔이 없어요' });
-      scanResumeResolve('stop');
+      if (!contentScanState.running) return send(res, 200, { ok: false, error: '도는 스캔이 없어요' });
+      contentScanState.stopRequested = true;
+      if (scanResumeResolve) scanResumeResolve('stop');   // 멈춰 있으면 그 자리에서
       return send(res, 200, { ok: true, stopped: true });
     }
     if (path === '/api/content-scan/status' && req.method === 'GET') {
@@ -720,7 +734,10 @@ export async function handler(req, res) {
           onWarmup: () => { igContentState.phase = 'login'; },
           onProgress: (p) => { igContentState = { phase: 'scan', done: p.done, total: p.total, handle: p.handle, uploaded: p.uploaded }; },
         });
-        igContentState = { phase: 'done', done: out.scannedCount, total: out.total };
+        /* 결과를 상태에도 남긴다 — 예전엔 POST 응답에만 담아서, 작업 콘솔을 새로고침하면
+           '몇 건 올라왔는지'가 영영 사라졌다. 상태에 두면 다시 열어도 읽어 갈 수 있다. */
+        igContentState = { phase: 'done', done: out.scannedCount, total: out.total,
+          ranAt: new Date().toISOString(), result: { ...out, detected: undefined } };
         stampScan(campaign, 'upload');
         return send(res, 200, { ok: true, ...out, detected: undefined });
       } catch (e) {

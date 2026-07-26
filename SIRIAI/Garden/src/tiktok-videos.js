@@ -23,17 +23,79 @@ export function proxyFromEnv() {
   } catch { return undefined; }
 }
 
+/* ⚠️ page.evaluate 에는 기본 타임아웃이 없다. 캡차 페이지처럼 렌더러가 붙들려 있으면
+   영영 안 돌아온다 — 실제로 업로드 스캔이 45/45 에서 10분 넘게 선 채로 있었다.
+   화면에는 진행률만 멈춰 보이고, 중단 버튼도 안 먹었다(멈춤 상태가 아니라 대기 중이라서).
+   페이지에 묻는 모든 질문에 상한을 건다. 답이 늦으면 '못 읽었다'로 넘어간다. */
+const EVAL_MS = 8000;
+function withTimeout(p, ms, fallback) {
+  return new Promise((resolve) => {
+    let settled = false;
+    const t = setTimeout(() => { if (!settled) { settled = true; resolve(fallback); } }, ms);
+    if (t.unref) t.unref();
+    const fin = (v) => { if (!settled) { settled = true; clearTimeout(t); resolve(v); } };
+    Promise.resolve(p).then(fin, () => fin(fallback));
+  });
+}
+
 // 프로필 데이터가 실제로 렌더됐는가 = 봇월/로봇인증을 통과했는가.
 async function profileRendered(page) {
   try {
-    return await page.evaluate(() => {
+    return await withTimeout(page.evaluate(() => {
       const el = document.getElementById('__UNIVERSAL_DATA_FOR_REHYDRATION__');
       if (!el) return false;
       const scope = JSON.parse(el.textContent)['__DEFAULT_SCOPE__'] || {};
       const info = scope['webapp.user-detail'] && scope['webapp.user-detail'].userInfo;
       return !!(info && info.user && info.user.id);
-    });
+    }), EVAL_MS, false);
   } catch { return false; }
+}
+
+/* 지금 이 페이지가 무슨 상태인가. 셋을 구분해야 한다:
+     ok       — 프로필이 떴다(통과)
+     captcha  — 봇 인증/봇월. 사람이 풀면 통과한다
+     notfound — 없는 계정. 기다려봐야 소용없다
+   이 구분이 없으면 둘 중 하나로 망한다: 없는 계정까지 2분씩 기다려 45명 스캔이 한 시간이 되거나,
+   반대로 진짜 캡차를 5초 만에 닫아버려 사람이 슬라이더를 잡는 순간 창이 사라진다. */
+async function pageKind(page) {
+  return withTimeout(page.evaluate(() => {
+    if (document.querySelector('.captcha_verify_container, #captcha_container, #captcha-verify-image, [class*="captcha_verify"], [id*="captcha"]')) return 'captcha';
+    const el = document.getElementById('__UNIVERSAL_DATA_FOR_REHYDRATION__');
+    if (el) {
+      try {
+        const scope = JSON.parse(el.textContent)['__DEFAULT_SCOPE__'] || {};
+        const ud = scope['webapp.user-detail'];
+        if (ud && ud.userInfo && ud.userInfo.user && ud.userInfo.user.id) return 'ok';
+        if (ud && ud.statusCode) return 'notfound';   // 10221 등 = 계정 없음/비공개
+      } catch {}
+    }
+    const t = ((document.body && document.body.innerText) || '').slice(0, 600);
+    if (/Couldn't find this account|該当するアカウント|계정을 찾을 수 없/i.test(t)) return 'notfound';
+    if (/Please wait|Too many requests|Access Denied|Verify to continue|認証|보안 확인/i.test(t)) return 'captcha';
+    return 'unknown';
+  }), EVAL_MS, 'unknown');
+}
+
+/* 봇 인증이 떴으면 사람이 풀 때까지 탭을 열어 둔다.
+   ⚠️ 이게 없어서 실제로 이런 일이 있었다: 스캔이 스크롤 3회(5.4초)만 돌고 page.close() 를 해서,
+   사람이 슬라이더를 맞추는 도중에 창이 사라졌다. 기다림은 '캡차가 실제로 떠 있을 때만' 건다.
+   창은 앞으로 끌어와 준다 — 탭이 둘 도는데 어느 창인지 찾느라 시간을 쓰면 안 된다. */
+const CAPTCHA_WAIT_MS = Number(process.env.TIKTOK_CAPTCHA_WAIT_MS || 150000);
+async function waitForHuman(page, handle, onCaptcha) {
+  let kind = await pageKind(page);
+  if (kind !== 'captcha') return kind === 'ok';
+  try { await page.bringToFront(); } catch {}
+  if (onCaptcha) { try { onCaptcha({ handle, waiting: true, ms: CAPTCHA_WAIT_MS }); } catch {} }
+  const start = Date.now();
+  let solved = false;
+  while (Date.now() - start < CAPTCHA_WAIT_MS) {
+    await page.waitForTimeout(1200).catch(() => {});
+    kind = await pageKind(page);
+    if (kind === 'ok') { solved = true; break; }
+    if (kind === 'notfound') break;
+  }
+  if (onCaptcha) { try { onCaptcha({ handle, waiting: false, solved }); } catch {} }
+  return solved;
 }
 
 // 창 하나만 먼저 띄운다. 이 창에서 로봇 인증을 사람이 끝내고, 대시보드에서 '스캔 시작'을 누르면
@@ -130,10 +192,10 @@ export async function checkExitLocation() {
    (실측: @t1013u 는 자동 스캔 3회 연속 실패했지만 브라우저로 열어보니 6초 뒤 팔로워 1,285 정상 표시).
    그래서 ① 대기를 20회×1.2초=24초로 늘리고 ② 중간에 한 번 새로고침한다 —
    봇월은 재요청 때 풀리는 경우가 많아 마냥 기다리는 것보다 낫다. */
-export async function fetchProfile(ctx, handle, { timeout = 30000, tries = 20 } = {}) {
+export async function fetchProfile(ctx, handle, { timeout = 30000, tries = 20, onCaptcha } = {}) {
   const page = await ctx.newPage();
   let out = { followers: null, nickname: '' };
-  const read = () => page.evaluate(() => {
+  const read = () => withTimeout(page.evaluate(() => {
     const el = document.getElementById('__UNIVERSAL_DATA_FOR_REHYDRATION__');
     if (!el) return null;
     try {
@@ -143,7 +205,7 @@ export async function fetchProfile(ctx, handle, { timeout = 30000, tries = 20 } 
       }
     } catch {}
     return null;
-  });
+  }), EVAL_MS, null);
   try {
     const url = `https://www.tiktok.com/@${handle}`;
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
@@ -157,6 +219,11 @@ export async function fetchProfile(ctx, handle, { timeout = 30000, tries = 20 } 
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout }).catch(() => {});
       }
       await page.waitForTimeout(1200);
+    }
+    // 24초를 다 쓰고도 못 읽었으면 봇 인증일 수 있다 — 여기서도 사람을 기다린다.
+    if (out.followers == null && await waitForHuman(page, handle, onCaptcha)) {
+      const r2 = await read().catch(() => null);
+      if (r2) out = r2;
     }
   } catch {}
   await page.close();
@@ -209,7 +276,7 @@ export async function fetchVideoByLink(ctx, link, { timeout = 45000 } = {}) {
 //
 // 영상 목록(itemList)은 XHR 로만 온다. 프로필은 떴는데 목록만 못 받는 경우가 실제로 있어
 // (@mnrdance: 게시물 1,597개인데 0개 수신) 프로필이 말하는 게시물 수와 대조해 판정한다.
-export async function fetchVideos(ctx, handle, { timeout = 45000, attempts = 2, quick = false } = {}) {
+export async function fetchVideos(ctx, handle, { timeout = 45000, attempts = 2, quick = false, onCaptcha } = {}) {
   const page = await ctx.newPage();
   let videos = [];
   page.on('response', async (res) => {
@@ -224,7 +291,7 @@ export async function fetchVideos(ctx, handle, { timeout = 45000, attempts = 2, 
   let hasUser = false;
   let videoCount = null; // 프로필이 밝힌 게시물 수. null = 못 읽음.
   let error = '';
-  const probeInline = () => page.evaluate(() => {
+  const probeInline = () => withTimeout(page.evaluate(() => {
     const el = document.getElementById('__UNIVERSAL_DATA_FOR_REHYDRATION__');
     if (!el) return null;
     const scope = JSON.parse(el.textContent)['__DEFAULT_SCOPE__'] || {};
@@ -236,7 +303,7 @@ export async function fetchVideos(ctx, handle, { timeout = 45000, attempts = 2, 
       videoCount: ud && ud.stats && Number.isFinite(ud.stats.videoCount) ? ud.stats.videoCount : null,
       inline,
     };
-  }).catch(() => null);
+  }), EVAL_MS, null);
   const applyProbe = (probe) => { if (!probe) return; hasUser = probe.hasUser; if (probe.videoCount != null) videoCount = probe.videoCount; if (!videos.length && Array.isArray(probe.inline)) videos = probe.inline; };
   /* 스크롤 전에 인라인 데이터부터 본다 — 최근 영상은 대개 첫 응답(__UNIVERSAL_DATA__)에 들어 있다.
      예전엔 전체 스캔이 이걸 안 보고 무조건 6회×2.2초(최대 13초)를 돌아, 이미 손에 든 답을
@@ -252,6 +319,18 @@ export async function fetchVideos(ctx, handle, { timeout = 45000, attempts = 2, 
         await page.waitForTimeout(waitMs);
       }
       if (!videos.length) applyProbe(await probeInline());
+      /* 아직도 못 읽었다면 봇 인증일 수 있다 — 사람이 풀 시간을 주고 다시 읽는다.
+         (캡차가 아니면 waitForHuman 이 즉시 false 로 빠지므로 없는 계정에서 시간을 안 버린다) */
+      if (!videos.length && !hasUser) {
+        if (await waitForHuman(page, handle, onCaptcha)) {
+          applyProbe(await probeInline());
+          for (let i = 0; i < scrolls && !videos.length; i++) {
+            await page.mouse.wheel(0, 2200);
+            await page.waitForTimeout(waitMs);
+          }
+          if (!videos.length) applyProbe(await probeInline());
+        }
+      }
     } catch (e) {
       error = String((e && e.message) || e).slice(0, 120);
     }

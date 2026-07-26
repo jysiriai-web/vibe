@@ -56,12 +56,12 @@ export async function judgeOneLink(campaign, { row, handle, link }) {
 
 // 미업로드 계정 하나만 확인 — 전체 스캔 대신 이 프로필 한 장만 열어 업로드/검수/성과 판정.
 // (전체 스캔보다 훨씬 빠르고, 탭 하나만 여니 덜 막힌다. 작성자 가드는 detectCampaign 이 알아서.)
-export async function scanOneProfile(campaign, { row, handle }) {
+export async function scanOneProfile(campaign, { row, handle, onCaptcha }) {
   if (!handle) throw new Error('계정 핸들이 없어요.');
   const cfg = { hashtags: campaign.campaignHashtags || [], soundId: campaign.campaignSoundId || '' };
   let r = { videos: [], ok: false, error: '' };
   let ctx = await warmContext(); // 워밍 브라우저 재사용(연속 확인 빠름). 브라우저는 안 닫고 page만 닫힌다.
-  try { r = await fetchVideos(ctx, handle, { quick: true }); }
+  try { r = await fetchVideos(ctx, handle, { quick: true, onCaptcha }); }
   catch (e) {
     const msg = String((e && e.message) || e);
     if (/closed|crash|Target|Browser|context|disconnect/i.test(msg)) { // 워밍 브라우저가 죽었으면 새로 띄워 1회 재시도
@@ -110,7 +110,7 @@ const jitter = () => 900 + Math.floor(Math.random() * 1700); // 계정 간 0.9~2
 // onBlocked({reason,done,total,failed}) → 'resume'|'stop' : 막혔을 때 멈추고 사용자를 기다림(VPN 바꾸고 재개).
 // shouldPause() → boolean : 사용자가 '중지'를 눌렀는지(수동). 계정 사이에서 멈춘다.
 // only: 특정 계정만 — '오늘 올리는 몇 명'만 확인할 때. 전체를 길게 돌 이유가 없다.
-export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo, onBlocked, shouldPause, full = false, perf = false, concurrency = 2, only } = {}) {
+export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo, onBlocked, onCaptcha, shouldPause, shouldStop, full = false, perf = false, concurrency = 2, only } = {}) {
   const cfg = { hashtags: campaign.campaignHashtags || [], soundId: campaign.campaignSoundId || '' };
   const all = await getAccountsFromSheet(campaign.sheet);
   // 틱톡 스캐너는 틱톡 계정만 본다(sync-core 와 같은 규칙). 브릿지는 틱톡 핸들이 없으면
@@ -146,7 +146,7 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
   // 한 계정 처리 — 성공하면 true. 링크 폴백·판정·기록까지. (실패해도 이전 판정은 안 지운다)
   const processOne = async (a) => {
     let r = { videos: [], ok: false, error: '' };
-    try { r = await fetchVideos(ctx, a.handle); } catch (e) { r.error = String((e && e.message) || e); }
+    try { r = await fetchVideos(ctx, a.handle, { onCaptcha }); } catch (e) { r.error = String((e && e.message) || e); }
     // 시트에 사람이 찍어준 링크가 있는데 목록에 없으면 영상 페이지를 직접 연다(@mnrdance: 게시물 1,597개).
     const wantId = videoIdFromLink(a.contentLink);
     if (wantId && !r.videos.some((v) => String(v.id || '') === wantId)) {
@@ -165,10 +165,25 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
     return true;
   };
 
-  // 막혔을 때: 멈추고 사용자를 기다린다(VPN 바꾸고 재개). onBlocked 없으면(CLI) 30초 쉬고 자동 재개.
+  /* 막혔을 때: 멈추고 사용자를 기다린다(VPN 바꾸고 재개). onBlocked 없으면(CLI) 30초 쉬고 자동 재개.
+   *
+   * ⚠️ 대기는 반드시 '스캔 단위'로 하나여야 한다. 예전엔 워커마다 각자 들어갔는데,
+   * server.js 의 onBlocked 는 resolve 함수를 모듈 전역 한 칸(scanResumeResolve)에 담는다.
+   * 두 워커가 같이 들어가면 뒤에 온 쪽이 앞의 resolve 를 덮어써서, [재개]를 눌러도
+   * 한 워커만 풀리고 다른 하나는 영영 await 상태로 남는다. 그러면 Promise.all 이 끝나지 않아
+   * 브라우저도 안 닫히고 detected.json 도 시트도 안 써진다 — 그 판 결과가 통째로 사라진다.
+   * (실제로 45/45 에서 20분 넘게 선 채로 있었고, 도는 중이라 중지 버튼도 안 먹었다)
+   *
+   * 그래서 대기 promise 를 하나만 만들고 나머지는 거기에 얹는다 — 사람이 한 번 누르면 다 같이 깬다. */
+  let pauseShared = null;
   const pauseForUser = async (reason) => {
-    if (onBlocked) { try { return (await onBlocked({ reason, done, total: targets.length, failed: failedHandles.size })) || 'resume'; } catch { return 'resume'; } }
-    await sleep(30000); return 'resume';
+    if (pauseShared) return pauseShared;   // 이미 누가 사람을 기다리는 중 — 같은 결정을 따른다
+    const run = (async () => {
+      if (onBlocked) { try { return (await onBlocked({ reason, done, total: targets.length, failed: failedHandles.size })) || 'resume'; } catch { return 'resume'; } }
+      await sleep(30000); return 'resume';
+    })();
+    pauseShared = run;
+    try { return await run; } finally { pauseShared = null; }
   };
 
   try {
@@ -180,6 +195,10 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
     let idx = 0;
     const worker = async () => {
       while (idx < targets.length && !stopped) {
+        if (shouldStop && shouldStop()) { stopped = true; break; }   // 사람이 접으라고 했다
+        // 다른 워커가 막혀서 사람을 기다리는 중이면 나도 새 계정을 집지 않는다.
+        // (계속 긁으면 차단만 더 굳히고, 재개 뒤 이어가야 할 자리도 흐트러진다)
+        if (pauseShared) { if ((await pauseShared) === 'stop') { stopped = true; break; } }
         if (shouldPause && shouldPause()) {
           if ((await pauseForUser('manual')) === 'stop') { stopped = true; break; }
           consecFail = 0;
@@ -201,14 +220,25 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
     };
     await Promise.all(Array.from({ length: Math.max(1, Math.min(concurrency, targets.length)) }, worker));
 
-    // 실패한 계정 순차 재시도 (중지 안 했을 때만). 여기서도 연속으로 막히면 다시 멈춘다.
+    /* 실패한 계정 순차 재시도 (중지 안 했을 때만). 여기서도 연속으로 막히면 다시 멈춘다.
+       ⚠️ 예전엔 이 구간이 화면에 아무것도 안 알렸다. done 은 이미 total 과 같아서
+       '45/45' 에 멈춘 채로 몇 분이 흘렀고, 보는 사람은 무한로딩으로 읽었다.
+       (계정 하나가 최대 45초 x 2회다 — 4건이면 6분까지 간다) */
     if (!stopped) {
       let rFail = 0;
-      for (const a of targets.filter((t) => failedHandles.has(t.handle))) {
+      const retryList = targets.filter((t) => failedHandles.has(t.handle));
+      let rDone = 0;
+      const rProg = (handle) => { if (onProgress) onProgress({ stage: 'retry', done, total: targets.length, handle, retryDone: rDone, retryTotal: retryList.length }); };
+      if (retryList.length) rProg('');
+      for (const a of retryList) {
+        if (shouldStop && shouldStop()) { stopped = true; break; }
         if (shouldPause && shouldPause()) { if ((await pauseForUser('manual')) === 'stop') break; rFail = 0; }
+        rProg(a.handle);
         await sleep(1500);
         const ok = await processOne(a);
-        if (ok) { rFail = 0; if (onProgress) onProgress({ done, total: targets.length, handle: a.handle, uploaded: !!detected[a.handle].uploaded, retried: true }); }
+        rDone++;
+        rProg(a.handle);
+        if (ok) rFail = 0;
         else { rFail++; if (rFail >= BLOCK_STREAK) { if ((await pauseForUser('blocked')) === 'stop') break; rFail = 0; } }
       }
     }
@@ -278,6 +308,8 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
 
   let written = 0, writeError = null;
   if (cells.length) {
+    // 브라우저는 이미 닫혔는데 여기서 몇 초가 더 간다 — 안 알리면 그것도 멈춘 것으로 보인다.
+    if (onProgress) onProgress({ stage: 'write', done: targets.length, total: targets.length, cells: cells.length });
     try { written = await pushCellsToSheet(campaign.sheet, cells); }
   catch (e) { writeError = String((e && e.message) || e); }   // 조용히 삼키면 '왜 0칸이지'를 아무도 못 푼다
   }
