@@ -570,7 +570,15 @@ body.phone #content { padding: 0; }
 .howto div { display:flex; gap:9px; padding:9px 12px; font-size:12.5px; color:var(--muted); border-bottom:1px solid var(--line2); }
 .howto div:last-child { border-bottom:none; }
 .howto b { color:var(--ink); flex:none; min-width:52px; }
-.howto-flow { font-size:12.5px; color:var(--muted); margin-bottom:9px; line-height:1.7; }
+.howto-flow { font-size:12.5px; color:var(--muted); margin:9px 0; line-height:1.7; }
+/* 접어 둔다 — 매번 읽을 것이 아니라 처음 한 번, 그리고 가끔 확인하는 것이다.
+   드로어를 열 때마다 일곱 줄이 펼쳐져 있으면 정작 자주 쓰는 아래 항목들이 밀린다. */
+.setfold > summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:7px; }
+.setfold > summary::-webkit-details-marker { display:none; }
+.setfold > summary::after { content:'▸'; margin-left:auto; color:var(--faint); font-size:11px; }
+.setfold[open] > summary::after { content:'▾'; }
+.setfold > summary:hover { color:var(--ink); }
+.sf-hint { font-size:11.5px; font-weight:600; color:var(--faint); text-transform:none; letter-spacing:0; }
 .howto-flow b { color:var(--ink); }
 .seg { display:inline-flex; background:var(--line2); border-radius:10px; padding:3px; gap:2px; }
 .seg button { font-family:var(--sans); font-size:13.5px; font-weight:700; border:none; background:none; color:var(--muted); padding:8px 14px; border-radius:8px; cursor:pointer; transition:.12s; }
@@ -1077,7 +1085,8 @@ select.best.on { background:#fff8e1; color:#8a6100; border-color:#f0d48a; font-w
       <span class="set-desc"><b>기기설정</b>은 PC·폰의 다크모드를 따라가요. 고른 값은 이 브라우저에 저장돼요.</span>
     </div>
     <div class="set-group">
-      <span class="set-lab">설명서</span>
+      <details class="setfold">
+      <summary class="set-lab">설명서 <span class="sf-hint">어느 탭에서 뭘 하나</span></summary>
       <div class="howto-flow"><b>모집</b> → 예정일 잡고 확정메일 → <b>업로드</b> 확인·리마인드 → <b>가드닝</b>(팔로워 보충) → <b>납품</b> → <b>정산</b></div>
       <div class="howto">
         <div><b>모집</b><span>사람을 넣고 예정일·확정메일을 관리해요. 마루가 모은 사람도 여기 들어와요.</span></div>
@@ -1089,6 +1098,7 @@ select.best.on { background:#fff8e1; color:#8a6100; border-color:#f0d48a; font-w
         <div><b>가이드</b><span>이번 캠페인의 조건 — 단가·지급 시점·팔로워 기준 등.</span></div>
       </div>
       <span class="set-desc">스캔·주문 실행은 팀원용 <b>작업 콘솔</b>(대표님 PC의 3737)에서 해요. 이 화면은 보고 고치는 곳이에요.</span>
+      </details>
     </div>
     <div class="set-group">
       <span class="set-lab">캠페인 바로가기 · 마스터시트</span>
@@ -1443,6 +1453,13 @@ function refundWait(d, p){
 }
 function gStat(d, p){
   const x = d[p]; if(!x) return { st:'na', order:0 };
+  /* ⚠️ 최종 드랍한 사람에게는 돈을 쓰지 않는다.
+     isDropped 는 이 파일 여기저기서 쓰이는데 하필 돈이 나가는 이 함수에만 없었다 —
+     팔로워 1,000 미만인 드랍자가 체크박스가 켜진 채 집행 목록에 들어갔고,
+     확인 모달은 핸들·수량·금액만 보여줘 사람이 걸러낼 방법이 없었다.
+     ('보류'를 손으로 켜도 20초 자동 새로고침이 noUpload/oddsLow 를 되돌려 영구히 뺄 수도 없었다)
+     안 올라올 콘텐츠의 팔로워를 채울 이유가 없다. */
+  if(isDropped(d)) return { st:'drop', order:0 };
   const cur = x.fol, inF = x.inFlight||0;
   if(cur==null) return { st:'scan', order:0 };
   if(refundWait(d,p)) return { st:'refund', order:0 };
@@ -1672,6 +1689,11 @@ const dayIdx = s => ALLDAYS().indexOf(normDay(s));
 function isLate(d, p){
   if(!WEEKS().length) return false;
   if(!oursToSchedule(d)) return false;   // 마루는 외주 — 우리가 쫓는 일정이 아니다
+  /* 최종 드랍한 사람도 쫓지 않는다. 여기 넣는 이유: 호출부가 17곳인데 그중 셋만
+     각자 isDropped 를 걸고 있어서 같은 '일정 미준수'가 화면마다 다른 값이었다.
+     (전체탭 KPI 5건 / 툴팁 3건 — 드랍 하나 찍으면 그대로 갈라졌다)
+     '지연'의 정의를 한 곳에 두면 전부 저절로 맞는다. */
+  if(isDropped(d)) return false;
   // 희망일이 아니라 기준일로 본다 — 뒤로 합의한 사람을 '미준수'로 잡으면 완충 KPI 가 헛되이 깎인다.
   const i = dayIdx(dueDay(d)), t = dayIdx(TODAY());
   if(i < 0 || t < 0 || i >= t) return false;
@@ -2520,6 +2542,8 @@ function viewUpload(){
 
 /* ============ 업로드 가능성 (가드닝 우선순위) ============ */
 function likelihood(d,p){
+  // 드랍한 사람을 '예정 7/23' 이라 부르면 안 된다 — 업로드탭은 같은 사람을 '드랍'이라 부른다.
+  if(isDropped(d)) return {k:'none',t:'최종 드랍',rank:-1};
   if(d.noUpload) return {k:'none',t:'확률 낮음',rank:0};
   if(uploaded(d,p)) return {k:'done',t:'업로드 완료',rank:3};
   if(d.oddsLow) return {k:'maybe',t:'가능성 낮음',rank:1};
@@ -2539,7 +2563,7 @@ function lkSort(d,p){
 }
 /* 가드닝 상태 정렬 순서. 글자순(filling<hold<scan<target)으로 두면
    '대상'이 맨 뒤로 가서 급한 것부터 못 본다. 기본 정렬과 같은 순서를 쓴다. */
-const G_RANK = { target:3, refund:2.5, filling:2, scan:1, hold:0 };
+const G_RANK = { target:3, refund:2.5, filling:2, scan:1, hold:0, drop:-1 };
 /* 확정일 정렬 — 이 칸엔 날짜만 있는 게 아니라 진행상태('확정메일 발송'·'최종 드랍')도 들어간다.
    문자열로 비교하면 한글과 날짜가 섞여 뒤죽박죽이 된다. 날짜는 날짜순, 상태는 그 뒤로. */
 function fixedKey(v){
@@ -2555,7 +2579,7 @@ function viewGarden(){
   if(state.plat==='all') return viewGardenAll();
   const p = state.plat;
   // 후보 = 이 플랫폼 참여자 중, 충족(ok)·미참여(na) 아닌 사람만 (필요없는 사람 숨김)
-  let rows = D.filter(d=> d.plats.includes(p) && d[p]!==null).filter(d=>{ const st=gStat(d,p).st; return st!=='ok' && st!=='na'; });
+  let rows = D.filter(d=> d.plats.includes(p) && d[p]!==null).filter(d=>{ const st=gStat(d,p).st; return st!=='ok' && st!=='na' && st!=='drop'; });
   if(!state.gardenHold) rows = rows.filter(d=> gStat(d,p).st!=='hold');
   // 기본 정렬: 대상 먼저 → filling → 보류/스캔, 그 안에서 팔로워 낮은(급한) 순
   rows = rows.slice().sort((a,b)=> (G_RANK[gStat(b,p).st]-G_RANK[gStat(a,p).st]) || ((a[p].fol||0)-(b[p].fol||0)));
@@ -2597,7 +2621,7 @@ function viewGardenAll(){
   D.filter(inCampaign).forEach(d=> platsOn().forEach(p=>{
     if(!d[p]) return;
     const st = gStat(d,p).st;
-    if(st==='ok' || st==='na') return;                 // 이미 충족·미참여는 숨긴다
+    if(st==='ok' || st==='na' || st==='drop') return;  // 충족·미참여·최종드랍은 숨긴다
     if(st==='hold' && !state.gardenHold) return;
     pairs.push({ d, p, id:d.id+'|'+p, g:gStat(d,p) });
   }));
