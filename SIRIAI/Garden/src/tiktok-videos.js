@@ -238,18 +238,20 @@ export async function fetchVideos(ctx, handle, { timeout = 45000, attempts = 2, 
     };
   }).catch(() => null);
   const applyProbe = (probe) => { if (!probe) return; hasUser = probe.hasUser; if (probe.videoCount != null) videoCount = probe.videoCount; if (!videos.length && Array.isArray(probe.inline)) videos = probe.inline; };
-  // quick(개별 확인): 스크롤 전에 초기 데이터부터 확인(최근 영상은 보통 거기 있음) → 없을 때만 짧게 2회, 1회 시도.
-  // 전체 스캔(quick=false)은 기존대로 6회×2.2초 스크롤 후 인라인 확인.
-  const maxAtt = quick ? 1 : attempts, scrolls = quick ? 2 : 6, waitMs = quick ? 900 : 2200;
+  /* 스크롤 전에 인라인 데이터부터 본다 — 최근 영상은 대개 첫 응답(__UNIVERSAL_DATA__)에 들어 있다.
+     예전엔 전체 스캔이 이걸 안 보고 무조건 6회×2.2초(최대 13초)를 돌아, 이미 손에 든 답을
+     두고 기다렸다. quick 모드에만 있던 선확인을 전체 스캔에도 적용하고 스크롤을 3회로 줄인다.
+     스크롤은 '인라인에 없을 때'의 보험이지 기본 경로가 아니다. */
+  const maxAtt = quick ? 1 : attempts, scrolls = quick ? 2 : 3, waitMs = quick ? 900 : 1800;
   for (let att = 0; att < maxAtt; att++) {
     try {
       await page.goto(`https://www.tiktok.com/@${handle}`, { waitUntil: 'domcontentloaded', timeout });
-      if (quick) applyProbe(await probeInline()); // 스크롤 전 선확인 → 있으면 바로 끝
+      applyProbe(await probeInline()); // 스크롤 전 선확인 → 있으면 바로 끝(대부분 여기서 끝난다)
       for (let i = 0; i < scrolls && !videos.length; i++) {
         await page.mouse.wheel(0, 2200);
         await page.waitForTimeout(waitMs);
       }
-      applyProbe(await probeInline());
+      if (!videos.length) applyProbe(await probeInline());
     } catch (e) {
       error = String((e && e.message) || e).slice(0, 120);
     }

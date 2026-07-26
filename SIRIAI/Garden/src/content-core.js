@@ -102,13 +102,15 @@ export async function scanOneProfile(campaign, { row, handle }) {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // onWarmup: 인증 창이 떠서 '스캔 시작' 대기 중일 때 1회 호출. waitForGo: 사람이 '스캔 시작' 누르면 resolve.
-// concurrency=1(순차)이 기본 — 탭을 여럿 열면 틱톡이 봇으로 보고 콘텐츠를 잠근다(사용자 반복 지적).
-//   느리지만(업로드 스캔은 미업로드 계정만 = 소량) 훨씬 안 막힌다. 아래 jitter+백오프와 함께.
+/* 동시 2개. 예전엔 1(순차)이었다 — 탭을 여럿 열면 틱톡이 봇으로 보고 잠근다는 이유였는데,
+   실제로 막히는 건 '탭 수'보다 '요청 간격'에 가깝다. 2로 올리되 간격은 그대로 두고(jitter),
+   연속 실패 감시(BLOCK_STREAK)도 그대로다 — 막히면 예전처럼 멈추고 사람을 기다린다.
+   3 이상은 올리지 않는다: 예전에 실제로 콘텐츠가 잠긴 적이 있다. */
 const jitter = () => 900 + Math.floor(Math.random() * 1700); // 계정 간 0.9~2.6초 랜덤(사람처럼)
 // onBlocked({reason,done,total,failed}) → 'resume'|'stop' : 막혔을 때 멈추고 사용자를 기다림(VPN 바꾸고 재개).
 // shouldPause() → boolean : 사용자가 '중지'를 눌렀는지(수동). 계정 사이에서 멈춘다.
 // only: 특정 계정만 — '오늘 올리는 몇 명'만 확인할 때. 전체를 길게 돌 이유가 없다.
-export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo, onBlocked, shouldPause, full = false, perf = false, concurrency = 1, only } = {}) {
+export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo, onBlocked, shouldPause, full = false, perf = false, concurrency = 2, only } = {}) {
   const cfg = { hashtags: campaign.campaignHashtags || [], soundId: campaign.campaignSoundId || '' };
   const all = await getAccountsFromSheet(campaign.sheet);
   // 틱톡 스캐너는 틱톡 계정만 본다(sync-core 와 같은 규칙). 브릿지는 틱톡 핸들이 없으면
@@ -171,19 +173,33 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
 
   try {
     let consecFail = 0;
-    for (let i = 0; i < targets.length; i++) {
-      // 사용자가 '중지'를 눌렀으면(수동) 계정 사이에서 멈춘다.
-      if (shouldPause && shouldPause()) { if ((await pauseForUser('manual')) === 'stop') { stopped = true; break; } consecFail = 0; }
-      const a = targets[i];
-      await sleep(jitter()); // 사람처럼 뜸 들이기
-      const ok = await processOne(a);
-      done++;
-      if (onProgress) onProgress({ done, total: targets.length, handle: a.handle, uploaded: ok ? !!detected[a.handle].uploaded : false, failed: !ok });
-      if (ok) { consecFail = 0; continue; }
-      consecFail++;
-      // 연속으로 막히면 = 틱톡이 잠갔다. 멈추고 사용자에게 넘긴다(VPN 바꾸고 [재개]하면 여기서 이어감).
-      if (consecFail >= BLOCK_STREAK) { if ((await pauseForUser('blocked')) === 'stop') { stopped = true; break; } consecFail = 0; }
-    }
+    /* 일꾼 여럿이 같은 목록을 나눠 가진다(기본 2). 예전엔 concurrency 를 받아만 놓고
+       for 루프로 한 명씩 돌았다 — 인자는 있는데 아무 효과가 없었다.
+       ⚠️ 멈춤 판단(중지·연속실패)은 일꾼 사이에서 공유해야 한다. 각자 세면
+       두 일꾼이 각각 3연속 실패해야 멈춰서, 실제로는 6건이 막힌 뒤에야 선다. */
+    let idx = 0;
+    const worker = async () => {
+      while (idx < targets.length && !stopped) {
+        if (shouldPause && shouldPause()) {
+          if ((await pauseForUser('manual')) === 'stop') { stopped = true; break; }
+          consecFail = 0;
+        }
+        const a = targets[idx++];
+        if (!a) break;
+        await sleep(jitter()); // 사람처럼 뜸 들이기
+        const ok = await processOne(a);
+        done++;
+        if (onProgress) onProgress({ done, total: targets.length, handle: a.handle, uploaded: ok ? !!detected[a.handle].uploaded : false, failed: !ok });
+        if (ok) { consecFail = 0; continue; }
+        consecFail++;
+        // 연속으로 막히면 = 틱톡이 잠갔다. 멈추고 사용자에게 넘긴다(VPN 바꾸고 [재개]하면 여기서 이어감).
+        if (consecFail >= BLOCK_STREAK) {
+          if ((await pauseForUser('blocked')) === 'stop') { stopped = true; break; }
+          consecFail = 0;
+        }
+      }
+    };
+    await Promise.all(Array.from({ length: Math.max(1, Math.min(concurrency, targets.length)) }, worker));
 
     // 실패한 계정 순차 재시도 (중지 안 했을 때만). 여기서도 연속으로 막히면 다시 멈춘다.
     if (!stopped) {
