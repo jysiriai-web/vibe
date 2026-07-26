@@ -155,6 +155,10 @@ td.nick { max-width: 220px; overflow-wrap: anywhere; }
   margin:2px 0 12px; padding:11px 15px; border-radius:12px;
   background:var(--warn-bg); border:1px solid var(--warn-bg); }
 .remind-bar.warn { background:var(--needs-bg); border-color:var(--needs-bg); }
+/* 탈락 예고 — 경고보다 한 단계 위. 테두리를 살려 같은 빨강 안에서도 갈린다. */
+.remind-bar.gone { background:#fce8e6; border-color:var(--needs); }
+.remind-bar.gone .rb-n { color:#8c1d18; }
+.remind-bar.gone .rb-head b { color:#8c1d18; }
 .remind-bar.ok   { background:var(--ok-bg);   border-color:var(--ok-bg); }
 .remind-bar .rb-head { display:flex; align-items:center; gap:8px; font-size:14px; color:var(--ink); }
 .remind-bar .rb-ic { font-size:15px; }
@@ -3033,10 +3037,12 @@ function remindSummary(){
   const resendNote = resend ? `<span class="rb-done">이 중 답 없어 재발송 <b>${resend}명</b></span>` : '';
   const doneNote = (!lateOnly && doneList.length)
     ? `<span class="rb-done">${doneList.length<=3 ? esc(doneList.map(d=>d.nick).join(', '))+' ' : ''}${doneList.length}명 완료 · 제외</span>` : '';
-  // 색이 곧 성격이다 — 빨강=경고(예정일 지남), 노랑=리마인드(아직 안 지남).
-  const tone = mode==='경고' ? 'warn' : 'soon';
+  /* 색이 곧 성격이다 — 노랑=리마인드(아직 안 지남), 빨강=경고(예정일 지남),
+     진한 빨강=탈락 예고(사람을 떨어뜨리는 메일). 셋은 하는 일이 다르므로 색도 달라야 한다.
+     예전엔 탈락 예고가 '경고'가 아니라는 이유로 리마인드와 같은 노랑이었다 — 제일 무거운 메일인데. */
+  const tone = mode==='탈락 예고' ? 'gone' : mode==='경고' ? 'warn' : 'soon';
   return `<div class="remind-bar ${tone}">
-    <div class="rb-head"><span class="rb-ic">${mode==='경고'?'🚨':'🔔'}</span>
+    <div class="rb-head"><span class="rb-ic">${mode==='탈락 예고'?'⛔':mode==='경고'?'🚨':'🔔'}</span>
       <b>${scopeLab}${mode} 메일 발송 대상</b> <span class="rb-n">${targets.length}명</span></div>
     <div class="rb-notes">${resendNote}${doneNote}${waitNote}</div>
     <div class="rb-acts"><button class="btn small" data-remindg="">✉ 전체 이메일 복사하기</button>${gHtml}</div>
@@ -3303,6 +3309,16 @@ function mSummary(){
 /* 일자별로 묶어 접는다 — 폰에서 55명을 한 줄로 늘어놓으면 스크롤만 길다.
    기준일(확정일 우선)로 묶고, 오늘·지난 날은 펼쳐 둔다(지금 손댈 것이니까).
    앞으로 올 날은 접어 둔다 — 오늘 할 일이 아니다. */
+/* 사람이 펼쳐 둔 날짜. render() 가 20초마다 innerHTML 을 통째로 갈아끼우기 때문에
+   여기 담아두지 않으면 펼친 것이 그때마다 도로 접힌다.
+   (toggle 은 버블링을 안 하므로 캡처 단계로 받는다) */
+const MDAY_OPEN = new Set();
+document.addEventListener('toggle', e=>{
+  const el = e.target;
+  if(!el || !el.classList || !el.classList.contains('mday')) return;
+  const k = el.dataset.day || '';
+  if(el.open) MDAY_OPEN.add(k); else MDAY_OPEN.delete(k);
+}, true);
 function mByDay(list, card){
   if(!list.length) return '<div class="note-line">해당하는 사람이 없어요.</div>';
   const groups = new Map();
@@ -3323,15 +3339,20 @@ function mByDay(list, card){
     return { k, rows, i, past, isToday, left };
   };
   const ms = keys.map(meta);
-  const rank = m => (m.past && m.left) ? 0 : m.isToday ? 1 : 2;   // 지난+미업로드 → 오늘 → 나머지
+  /* 순서는 날짜순 하나로 간다 — 예정일 미정 → 7/23 … 8/4 → 일정 밖.
+     예전엔 '급한 날을 위로' 올렸는데(지난+미업로드 → 오늘 → 나머지) 7/26 다음에 미정,
+     그 다음에 7/25 가 오는 식이라 목록을 훑을 때 날짜가 튀어서 어디를 보는지 알 수 없었다.
+     급한 것은 색(빨강·검정)이 이미 말한다. 순서까지 흔들 이유가 없다. */
+  const rank = m => m.k==='__unset' ? 0 : m.k==='__off' ? 2 : 1;
   ms.sort((a,b)=> (rank(a)-rank(b)) || (a.i - b.i));
   return ms.map(m=>{
-    /* 기본은 접힘. 다 펼쳐 두면 첫 화면이 카드로 가득 차 무엇이 급한지 안 보인다.
-       단 '지난 날인데 아직 안 올린 날'만 펼친다 — 오늘 손댈 바로 그것이다. */
-    const open = m.past && m.left > 0;
+    /* 전부 접어서 시작한다. 하나라도 펼쳐 두면 그 날 카드가 화면을 채워
+       나머지 날짜가 스크롤 밖으로 밀린다 — 목록의 목적이 '어느 날이 급한가'인데.
+       사람이 펼친 것은 MDAY_OPEN 이 기억한다(20초 자동 갱신에도 안 접힌다). */
+    const open = MDAY_OPEN.has(m.k);
     const label = m.k==='__unset' ? '예정일 미정' : m.k + (m.isToday?' · 오늘':m.past?' · 지남':'');
     const urgent = m.past && m.left > 0;
-    return `<details class="mday${m.past?' past':''}${m.isToday?' today':''}${urgent?' urgent':''}"${open?' open':''}>
+    return `<details class="mday${m.past?' past':''}${m.isToday?' today':''}${urgent?' urgent':''}" data-day="${esc(m.k)}"${open?' open':''}>
       <summary><b>${esc(label)}</b><span class="md-n">${m.rows.length}명${m.left?` · 남음 ${m.left}건`:' · 다 올림'}</span></summary>
       ${m.rows.map(card).join('')}</details>`;
   }).join('');

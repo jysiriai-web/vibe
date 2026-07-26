@@ -722,6 +722,11 @@ export async function handler(req, res) {
     // 게시물 목록이 필요해 API 경로로만 된다(프로필 페이지엔 안 온다) → 막히면 중단하고 나중에 재개.
     if (path === '/api/ig-content-scan' && req.method === 'POST') {
       if (CLOUD) return send(res, 501, { error: '인스타 업로드 스캔은 대표님 PC 에서만 돌아요(크롬 창이 필요해요).' });
+      /* 이미 돌고 있으면 새로 시작하지 않는다 — 틱톡 쪽엔 있던 가드가 여기만 없어서,
+         두 번 누르거나 창을 두 개 열면 크롬 두 개가 같은 시트에 동시에 썼다. */
+      if (igContentState && ['confirm', 'login', 'scan'].includes(igContentState.phase)) {
+        return send(res, 200, { running: true });
+      }
       igContentState = { phase: 'confirm', done: 0, total: 0 };
       const body = await readBody(req).catch(() => ({}));
       try {
