@@ -138,6 +138,21 @@ async function effectiveRate() {
  * 핸들만으로 맞추면 남의 플랫폼 주문까지 같이 막힐 수 있다.
  */
 const hKey = (h) => String(h || '').replace(/^@/, '').trim().toLowerCase();
+
+/* 시트 '가드닝' 열에 '제외' 라고 적힌 계정·플랫폼 — 주문에서 뺀다.
+   ⚠️ 화면(gStat)에도 같은 가드가 있지만 그것만으로는 소용없다. 실제로 주문을 넣는 건
+   이 경로이고 작업 콘솔은 화면의 판단을 거치지 않는다(드랍 가드에서 이미 겪었다). */
+const gardenOffV = (v) => /제외|안\s*함|하지\s*않|금지/.test(String(v || ''));
+function gardenOffKeys(accounts) {
+  const s = new Set();
+  for (const a of accounts || []) {
+    if (a && a.tk && gardenOffV(a.tk.gardening) && hKey(a.handle)) s.add('tk|' + hKey(a.handle));
+    if (a && a.ig && gardenOffV(a.ig.gardening) && hKey(a.igHandle)) s.add('ig|' + hKey(a.igHandle));
+    // 플랫폼 하위 객체가 없는 형태(옛 기록)면 최상위 열을 틱톡으로 본다
+    if (a && !a.tk && gardenOffV(a.gardening) && hKey(a.handle)) s.add('tk|' + hKey(a.handle));
+  }
+  return s;
+}
 function droppedKeys(accounts) {
   const s = new Set();
   for (const a of accounts || []) {
@@ -834,11 +849,13 @@ export async function handler(req, res) {
       // 최종 드랍한 사람은 계획에서 뺀다. 몇 건을 뺐는지 말해 준다 — 조용히 빠지면
       // '왜 이 사람이 목록에 없지'를 아무도 못 풀고, 잘못 뺀 경우도 안 드러난다.
       const dropped = droppedKeys(liveAccounts);
-      let cutN = 0;
+      const offKeys = gardenOffKeys(liveAccounts);
+      let cutN = 0, offN = 0;
       if (tk.svc) {
         const pick = pickFilter(body.handles, 'tk');
         let rows = pick ? accs.filter(pick) : accs;
         const b4 = rows.length; rows = rows.filter(notDropped(dropped, 'tk')); cutN += b4 - rows.length;
+        const b4o = rows.length; rows = rows.filter(notDropped(offKeys, 'tk')); offN += b4o - rows.length;
         plans.push({ plat: 'tk', svc: tk.svc, ...buildPlan(rows, orders, { target: campaign.target, min: campaign.min, service: tk.svc, plat: 'tk' }) });
       }
       if (ig.svc) {
@@ -847,9 +864,11 @@ export async function handler(req, res) {
         const pick = pickFilter(body.handles, 'ig');
         let igRows = pick ? r.rows.filter(pick) : r.rows;
         const b4 = igRows.length; igRows = igRows.filter(notDropped(dropped, 'ig')); cutN += b4 - igRows.length;
+        const b4o = igRows.length; igRows = igRows.filter(notDropped(offKeys, 'ig')); offN += b4o - igRows.length;
         plans.push({ plat: 'ig', svc: ig.svc, ...buildPlan(igRows, orders, { target: campaign.target, min: campaign.min, service: ig.svc, plat: 'ig' }) });
       }
       if (cutN) { notes.push('최종 드랍 ' + cutN + '건은 제외했어요'); console.log('[집행계획] 최종 드랍 ' + cutN + '건 제외'); }
+      if (offN) { notes.push("시트에 '제외' 로 적힌 " + offN + '건은 빼고 계산했어요'); console.log('[집행계획] 시트 제외 ' + offN + '건'); }
       const igNote = notes.join(' · ') || null;
       const plan = {
         toOrder: plans.flatMap((p) => p.toOrder),
@@ -905,10 +924,11 @@ export async function handler(req, res) {
       /* 여기가 진짜 돈이다 — 계획 단계와 같은 가드를 다시 건다.
          /api/execute 는 body 의 계획을 믿지 않고 스스로 다시 세우므로, 계획 쪽만 막으면 뚫린다. */
       const xDropped = droppedKeys(allAccounts);
-      let xCut = 0;
+      const xOff = gardenOffKeys(allAccounts);
+      let xCut = 0, xOffN = 0;
       if (xTk.svc) {
         const b4 = scanned.length;
-        const rows = scanned.filter(notDropped(xDropped, 'tk'));
+        const rows = scanned.filter(notDropped(xDropped, 'tk')).filter(notDropped(xOff, 'tk'));
         xCut += b4 - rows.length;
         xPlans.push({ plat: 'tk', svc: xTk.svc, ...buildPlan(rows, orders, { target: campaign.target, min: campaign.min, service: xTk.svc, plat: 'tk' }) });
       }
@@ -917,10 +937,12 @@ export async function handler(req, res) {
         if (r.why) xNotes.push(r.why);
         const pickIg = pickFilter(body.handles, 'ig');
         let igRows = pickIg ? r.rows.filter(pickIg) : r.rows;
-        const b4 = igRows.length; igRows = igRows.filter(notDropped(xDropped, 'ig')); xCut += b4 - igRows.length;
+        const b4 = igRows.length;
+        igRows = igRows.filter(notDropped(xDropped, 'ig')).filter(notDropped(xOff, 'ig'));
+        xCut += b4 - igRows.length;
         xPlans.push({ plat: 'ig', svc: xIg.svc, ...buildPlan(igRows, orders, { target: campaign.target, min: campaign.min, service: xIg.svc, plat: 'ig' }) });
       }
-      if (xCut) console.log('[집행] 최종 드랍 ' + xCut + '건 제외');
+      if (xCut) console.log('[집행] 최종 드랍·시트제외 ' + xCut + '건 제외');
       if (xNotes.length) console.warn('[집행] 인스타 주의:', xNotes.join(' · '));
       const plan = {
         toOrder: xPlans.flatMap((p) => p.toOrder),

@@ -1459,12 +1459,28 @@ function refundWait(d, p){
   return ORDERS.find(o=> o.refundPending && !o.done
     && String(o.handle||'').toLowerCase()===h && (o.plat||'tk')===p) || null;
 }
+/* 시트 '가드닝' 열에 '제외' 라고 적으면 그 계정·플랫폼은 영구히 가드닝 대상에서 빠진다.
+ *
+ * 왜 필요한가: 지금까지 특정 계정을 가드닝에서 빼는 방법이 없었다.
+ * 편집 모달의 '보류' 체크는 noUpload/oddsLow 에 담기는데 그 둘은 매 로드마다 false 로
+ * 초기화된다(:1305) — 20초 자동 갱신 한 번에 풀려서 영구 제외가 불가능했다.
+ * 반면 이 열은 동기화가 건드리지 않아 사람이 적은 값이 그대로 남는다.
+ *
+ * 실제 사례(2026-07-26): @zn09_k2 인스타에 600명(9,000원)을 채웠는데 패널이
+ * "이 사람이 받은 팔로워를 수동으로 지운다"고 통보했다. 다시 사면 그대로 또 날아간다.
+ * 그런데 이 사람은 콘텐츠를 정상적으로 올렸으므로 '최종 드랍'으로 처리할 수는 없다
+ * (드랍은 확보 건수·정산에서 빼는 뜻이다). 가드닝만 끄는 스위치가 따로 필요했다.
+ *
+ * 쓰는 법: 마스터시트의 그 플랫폼 '가드닝' 칸에 '제외' 라고 적는다. (틱톡·인스타 각각) */
+const gardenOff = v => /제외|안\s*함|하지\s*않|금지/.test(String(v||''));
 function gStat(d, p){
   const x = d[p]; if(!x) return { st:'na', order:0 };
   const cur = x.fol, inF = x.inFlight||0;
   if(cur==null) return { st:'scan', order:0 };
   if(refundWait(d,p)) return { st:'refund', order:0 };
   if(inF>0)     return { st:'filling', order:0, projected:cur+inF };
+  // 시트에서 '제외' 라고 못 박은 계정 — 새 주문을 만들지 않는다(진행중 주문은 위에서 이미 보인다).
+  if(gardenOff(x.gardening)) return { st:'off', order:0 };
   /* ⚠️ 최종 드랍한 사람에게는 새로 돈을 쓰지 않는다.
      isDropped 는 이 파일 여기저기서 쓰이는데 하필 돈이 나가는 이 함수에만 없었다 —
      팔로워 1,000 미만인 드랍자가 체크박스가 켜진 채 집행 목록에 들어갔고,
@@ -2620,7 +2636,7 @@ function lkSort(d,p){
 }
 /* 가드닝 상태 정렬 순서. 글자순(filling<hold<scan<target)으로 두면
    '대상'이 맨 뒤로 가서 급한 것부터 못 본다. 기본 정렬과 같은 순서를 쓴다. */
-const G_RANK = { target:3, refund:2.5, filling:2, scan:1, hold:0, drop:-1 };
+const G_RANK = { target:3, refund:2.5, filling:2, scan:1, hold:0, drop:-1, off:-1 };
 /* 확정일 정렬 — 이 칸엔 날짜만 있는 게 아니라 진행상태('확정메일 발송'·'최종 드랍')도 들어간다.
    문자열로 비교하면 한글과 날짜가 섞여 뒤죽박죽이 된다. 날짜는 날짜순, 상태는 그 뒤로. */
 function fixedKey(v){
@@ -2636,7 +2652,7 @@ function viewGarden(){
   if(state.plat==='all') return viewGardenAll();
   const p = state.plat;
   // 후보 = 이 플랫폼 참여자 중, 충족(ok)·미참여(na) 아닌 사람만 (필요없는 사람 숨김)
-  let rows = D.filter(d=> d.plats.includes(p) && d[p]!==null).filter(d=>{ const st=gStat(d,p).st; return st!=='ok' && st!=='na' && st!=='drop'; });
+  let rows = D.filter(d=> d.plats.includes(p) && d[p]!==null).filter(d=>{ const st=gStat(d,p).st; return st!=='ok' && st!=='na' && st!=='drop' && st!=='off'; });
   if(!state.gardenHold) rows = rows.filter(d=> gStat(d,p).st!=='hold');
   // 기본 정렬: 대상 먼저 → filling → 보류/스캔, 그 안에서 팔로워 낮은(급한) 순
   rows = rows.slice().sort((a,b)=> (G_RANK[gStat(b,p).st]-G_RANK[gStat(a,p).st]) || ((a[p].fol||0)-(b[p].fol||0)));
@@ -2678,7 +2694,7 @@ function viewGardenAll(){
   D.filter(inCampaign).forEach(d=> platsOn().forEach(p=>{
     if(!d[p]) return;
     const st = gStat(d,p).st;
-    if(st==='ok' || st==='na' || st==='drop') return;  // 충족·미참여·최종드랍은 숨긴다
+    if(st==='ok' || st==='na' || st==='drop' || st==='off') return;  // 충족·미참여·최종드랍·시트제외는 숨긴다
     if(st==='hold' && !state.gardenHold) return;
     pairs.push({ d, p, id:d.id+'|'+p, g:gStat(d,p) });
   }));
