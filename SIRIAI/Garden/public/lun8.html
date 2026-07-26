@@ -1453,17 +1453,18 @@ function refundWait(d, p){
 }
 function gStat(d, p){
   const x = d[p]; if(!x) return { st:'na', order:0 };
-  /* ⚠️ 최종 드랍한 사람에게는 돈을 쓰지 않는다.
-     isDropped 는 이 파일 여기저기서 쓰이는데 하필 돈이 나가는 이 함수에만 없었다 —
-     팔로워 1,000 미만인 드랍자가 체크박스가 켜진 채 집행 목록에 들어갔고,
-     확인 모달은 핸들·수량·금액만 보여줘 사람이 걸러낼 방법이 없었다.
-     ('보류'를 손으로 켜도 20초 자동 새로고침이 noUpload/oddsLow 를 되돌려 영구히 뺄 수도 없었다)
-     안 올라올 콘텐츠의 팔로워를 채울 이유가 없다. */
-  if(isDropped(d)) return { st:'drop', order:0 };
   const cur = x.fol, inF = x.inFlight||0;
   if(cur==null) return { st:'scan', order:0 };
   if(refundWait(d,p)) return { st:'refund', order:0 };
   if(inF>0)     return { st:'filling', order:0, projected:cur+inF };
+  /* ⚠️ 최종 드랍한 사람에게는 새로 돈을 쓰지 않는다.
+     isDropped 는 이 파일 여기저기서 쓰이는데 하필 돈이 나가는 이 함수에만 없었다 —
+     팔로워 1,000 미만인 드랍자가 체크박스가 켜진 채 집행 목록에 들어갔고,
+     확인 모달은 핸들·수량·금액만 보여줘 사람이 걸러낼 방법이 없었다.
+     ('보류'를 손으로 켜도 20초 자동 새로고침이 noUpload/oddsLow 를 되돌려 영구히 뺄 수도 없었다)
+     ⚠️ 단 환불 대기·진행중(위 두 줄)보다 뒤에 둔다. 이미 나간 돈은 드랍했다고 화면에서
+     사라지면 안 된다 — 그러면 진행중인 주문을 아무도 확인할 수 없다. 막을 것은 '새 주문'뿐이다. */
+  if(isDropped(d)) return { st:'drop', order:0 };
   if(cur>=GMIN) return { st:'ok', order:0 };
   const order = gOrder(cur);
   if(order<=0)  return { st:'ok', order:0 };
@@ -2511,7 +2512,14 @@ function viewUpload(){
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
     { key:'h', label:pName(p)+' 닉네임', cls:'handle', grp:p, sv:r=>r[p].h, cell:r=>`${acctLink(r[p].h, p)}` },
     // 이 표엔 확정일 열이 없다. 희망일을 그대로 보여주면 뒤로 합의한 사람에게 '7/24 지남'이라는 거짓말이 남는다 → 기준일로 표시·정렬한다.
-    { key:'sched', label:'예정일', hideable:true, empty:r=>!dueDay(r), sv:r=>schedKey(dueDay(r)), cell:r=> dueDay(r) ? (isLate(r,p)?`<span class="chip needs">${esc(dueDay(r))} 지남</span>`:`<b>${esc(dueDay(r))}</b>`) : `<span class="cmuted">미정</span>` },
+    /* 이 표엔 상태·확정일 열이 없다(통합탭에만 있다) — 그래서 드랍을 여기서 말해 줘야 한다.
+       isLate 가 드랍자를 false 로 돌리게 되면서 빨간 '지남' 칩이 사라졌고, 그러면
+       아직 날짜가 안 온 정상 대기자와 글자까지 똑같아진다. 이미 포기한 계정을
+       '올릴 사람'으로 읽으면 검수·스캔 선택이 그대로 틀어진다. */
+    { key:'sched', label:'예정일', hideable:true, empty:r=>!dueDay(r), sv:r=>schedKey(dueDay(r)),
+      cell:r=> isDropped(r) ? `<span class="chip drop">최종 드랍</span>`
+        : dueDay(r) ? (isLate(r,p)?`<span class="chip needs">${esc(dueDay(r))} 지남</span>`:`<b>${esc(dueDay(r))}</b>`)
+        : `<span class="cmuted">미정</span>` },
     { key:'c1', label:'콘텐츠①', sv:r=> r[p].c1?1:0, cell:r=>contentCell(r[p].c1, p) },
     { key:'c2', label:'콘텐츠②', hideable:true, empty:r=>!r[p].c2, sortable:false, cell:r=>contentCell(r[p].c2, p) },
     { key:'snd', label:'음원', hideable:true, empty:()=>false, sv:r=>r[p].snd, cell:r=>revSel(r[p].snd, r.id, 'snd', p) },

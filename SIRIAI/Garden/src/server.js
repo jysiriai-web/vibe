@@ -120,6 +120,28 @@ async function effectiveRate() {
 /* 인스타 가드닝 대상. 팔로워는 반드시 인스타 스캔 결과에서 가져온다 —
    틱톡 스크래퍼에 인스타 핸들을 주면 같은 이름의 남의 틱톡 계정 숫자가 들어온다(실측 16건).
    igFollowers 가 낡은 기록(12시간 초과)도 거부한다. */
+/* 최종 드랍한 사람의 핸들 — 돈이 나가는 계획에서 뺀다.
+ *
+ * ⚠️ 이 가드는 반드시 서버에 있어야 한다. 화면(lun8.html 의 gStat)에도 같은 가드를 넣었지만
+ * 그것만으로는 아무 의미가 없다 — 실제로 주문을 넣는 건 이 경로이고, 작업 콘솔은
+ * 화면의 판단을 거치지 않는다. 화면만 막으면 '목록에서는 안 보이는데 주문은 나가는'
+ * 최악의 상태가 된다(사람이 걸러낼 수단까지 없애는 셈이다).
+ *
+ * 키를 plat 으로 가르는 이유: 같은 이름을 틱톡·인스타 양쪽에 가진 사람이 16명이다.
+ * 핸들만으로 맞추면 남의 플랫폼 주문까지 같이 막힐 수 있다.
+ */
+const hKey = (h) => String(h || '').replace(/^@/, '').trim().toLowerCase();
+function droppedKeys(accounts) {
+  const s = new Set();
+  for (const a of accounts || []) {
+    if (String(a.fixedDate || '').trim() !== '최종 드랍') continue;
+    if (hKey(a.handle)) s.add('tk|' + hKey(a.handle));
+    if (hKey(a.igHandle)) s.add('ig|' + hKey(a.igHandle));
+  }
+  return s;
+}
+const notDropped = (set, plat) => (a) => !set.has(plat + '|' + hKey(a.handle));
+
 function igPlanRows(campaign, live) {
   const p = join(campaign.dataDir, 'ig-scan-latest.json');
   let latest = null;
@@ -783,18 +805,25 @@ export async function handler(req, res) {
       if (!tk.svc && !ig.svc) return send(res, 400, { error: [tk.why, ig.why].filter(Boolean).join(' · ') || '집행할 서비스가 설정돼 있지 않아요' });
       if (tk.why) notes.push(tk.why);
       if (ig.why) notes.push(ig.why);
+      // 최종 드랍한 사람은 계획에서 뺀다. 몇 건을 뺐는지 말해 준다 — 조용히 빠지면
+      // '왜 이 사람이 목록에 없지'를 아무도 못 풀고, 잘못 뺀 경우도 안 드러난다.
+      const dropped = droppedKeys(liveAccounts);
+      let cutN = 0;
       if (tk.svc) {
         const pick = pickFilter(body.handles, 'tk');
-        const rows = pick ? accs.filter(pick) : accs;
+        let rows = pick ? accs.filter(pick) : accs;
+        const b4 = rows.length; rows = rows.filter(notDropped(dropped, 'tk')); cutN += b4 - rows.length;
         plans.push({ plat: 'tk', svc: tk.svc, ...buildPlan(rows, orders, { target: campaign.target, min: campaign.min, service: tk.svc, plat: 'tk' }) });
       }
       if (ig.svc) {
         const r = igPlanRows(campaign, liveAccounts);
         if (r.why) notes.push(r.why);
         const pick = pickFilter(body.handles, 'ig');
-        const igRows = pick ? r.rows.filter(pick) : r.rows;
+        let igRows = pick ? r.rows.filter(pick) : r.rows;
+        const b4 = igRows.length; igRows = igRows.filter(notDropped(dropped, 'ig')); cutN += b4 - igRows.length;
         plans.push({ plat: 'ig', svc: ig.svc, ...buildPlan(igRows, orders, { target: campaign.target, min: campaign.min, service: ig.svc, plat: 'ig' }) });
       }
+      if (cutN) { notes.push('최종 드랍 ' + cutN + '건은 제외했어요'); console.log('[집행계획] 최종 드랍 ' + cutN + '건 제외'); }
       const igNote = notes.join(' · ') || null;
       const plan = {
         toOrder: plans.flatMap((p) => p.toOrder),
@@ -847,14 +876,25 @@ export async function handler(req, res) {
          scanAccounts 는 틱톡 스크래퍼라 인스타 핸들을 주면 남의 숫자를 돌려준다. */
       const xPlans = [];
       const xNotes = [xTk.why, xIg.why].filter(Boolean);
-      if (xTk.svc) xPlans.push({ plat: 'tk', svc: xTk.svc, ...buildPlan(scanned, orders, { target: campaign.target, min: campaign.min, service: xTk.svc, plat: 'tk' }) });
+      /* 여기가 진짜 돈이다 — 계획 단계와 같은 가드를 다시 건다.
+         /api/execute 는 body 의 계획을 믿지 않고 스스로 다시 세우므로, 계획 쪽만 막으면 뚫린다. */
+      const xDropped = droppedKeys(allAccounts);
+      let xCut = 0;
+      if (xTk.svc) {
+        const b4 = scanned.length;
+        const rows = scanned.filter(notDropped(xDropped, 'tk'));
+        xCut += b4 - rows.length;
+        xPlans.push({ plat: 'tk', svc: xTk.svc, ...buildPlan(rows, orders, { target: campaign.target, min: campaign.min, service: xTk.svc, plat: 'tk' }) });
+      }
       if (xIg.svc) {
         const r = igPlanRows(campaign, allAccounts);
         if (r.why) xNotes.push(r.why);
         const pickIg = pickFilter(body.handles, 'ig');
-        const igRows = pickIg ? r.rows.filter(pickIg) : r.rows;
+        let igRows = pickIg ? r.rows.filter(pickIg) : r.rows;
+        const b4 = igRows.length; igRows = igRows.filter(notDropped(xDropped, 'ig')); xCut += b4 - igRows.length;
         xPlans.push({ plat: 'ig', svc: xIg.svc, ...buildPlan(igRows, orders, { target: campaign.target, min: campaign.min, service: xIg.svc, plat: 'ig' }) });
       }
+      if (xCut) console.log('[집행] 최종 드랍 ' + xCut + '건 제외');
       if (xNotes.length) console.warn('[집행] 인스타 주의:', xNotes.join(' · '));
       const plan = {
         toOrder: xPlans.flatMap((p) => p.toOrder),
