@@ -1286,7 +1286,11 @@ async function loadData(){
     const rows = Array.isArray(j.accounts) ? j.accounts : [];
     D = rows.map(fromApi);
     applyBest(j.best);
-    _lastScanIso = j.uploadScannedAt || j.scannedAt || null;
+    /* 둘 중 '더 최근'을 쓴다. 예전엔 업로드 스캔을 무조건 앞에 뒀는데,
+       팔로워만 돌린 날에는 화면이 어제 시각을 그대로 보여줬다 —
+       방금 스캔했는데 '어제'라고 하면 최신인지 아닌지를 판단할 수 없다. */
+    _lastScanIso = [j.uploadScannedAt, j.scannedAt].filter(Boolean)
+      .sort((x,y)=> new Date(y) - new Date(x))[0] || null;
     CAMPAIGNS.lun8.scan = clockText(_lastScanIso) || '아직';
     ORDERS = Array.isArray(j.orders) ? j.orders : [];
     if(j.krwPerUsd) KRW_PER_USD = j.krwPerUsd;
