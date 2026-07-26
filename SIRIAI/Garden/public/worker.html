@@ -96,6 +96,11 @@
     .wk-line .m { min-width: 0; word-break: break-word; }
     .wk-line.err { color: var(--needs-ink); }
     .wk-line.ok { color: var(--ok-ink); font-weight: 700; }
+    /* 날짜 구분 — 기록이 하루를 넘겨 쌓이므로 어디까지가 오늘인지 갈라 준다. */
+    .wk-day { position: sticky; top: -6px; z-index: 1; background: var(--card); margin: 8px 0 2px;
+      padding: 4px 0 5px; font-size: 11px; font-weight: 800; color: var(--faint); letter-spacing: .06em;
+      border-bottom: 1px solid var(--line); }
+    .wk-day:first-child { margin-top: 0; }
     .wk-log:empty::after { content: '아직 한 일이 없어요. 왼쪽에서 작업을 누르면 여기에 쌓입니다.';
       display: block; padding: 14px 2px; font-size: 12.5px; color: var(--faint); }
     .wk-camp { font-size: 12px; font-weight: 800; letter-spacing: 0.04em; background: var(--line2); color: var(--muted); padding: 3px 9px; border-radius: 20px; }
@@ -239,13 +244,52 @@
       return items.length ? '<div class="wk-fails">' + items.join('') + '</div>' : '';
     }
 
-    // 진행 로그 — 뭘 하고 있는지 안 보이면 사람이 불안해서 또 누른다. 그래서 화면에 쌓는다.
-    function say(msg, kind) {
-      var el = document.createElement('div');
-      el.className = 'wk-line' + (kind ? ' ' + kind : '');
-      el.innerHTML = '<span class="t">' + new Date().toTimeString().slice(0, 5) + '</span><span class="m">' + msg + '</span>';
+    /* 진행 로그 — 뭘 하고 있는지 안 보이면 사람이 불안해서 또 누른다. 그래서 화면에 쌓는다.
+       그리고 새로고침해도 남는다: 스캔이 10분씩 걸리는데 창을 한 번 잘못 새로고침하면
+       '아까 뭐가 실패했더라'가 통째로 날아갔다. 브라우저에 최근 400줄을 들고 있는다.
+       (기기·브라우저별로 남는다 — 팀 공용 기록이 아니라 내 콘솔의 기록이다) */
+    var LOG_KEY = 'wk.log.v1', LOG_MAX = 400;
+    var LOG = [];
+    function logLoad() { try { LOG = JSON.parse(localStorage.getItem(LOG_KEY) || '[]') || []; } catch (e) { LOG = []; } }
+    function logSave() {
+      try { LOG = LOG.slice(-LOG_MAX); localStorage.setItem(LOG_KEY, JSON.stringify(LOG)); }
+      catch (e) { /* 용량 초과 등 — 기록 못 남겨도 작업은 계속돼야 한다 */ }
+    }
+    var dayKey = function (iso) { var d = new Date(iso); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
+    var dayLabel = function (iso) {
+      var d = new Date(iso), t = new Date();
+      var same = dayKey(iso) === dayKey(t.toISOString());
+      t.setDate(t.getDate() - 1);
+      return same ? '오늘' : (dayKey(iso) === dayKey(t.toISOString()) ? '어제' : (d.getMonth() + 1) + '월 ' + d.getDate() + '일');
+    };
+    function lineHtml(r) {
+      var hm = new Date(r.at).toTimeString().slice(0, 5);
+      return '<div class="wk-line' + (r.k ? ' ' + r.k : '') + '">' +
+             '<span class="t">' + hm + '</span><span class="m">' + r.m + '</span></div>';
+    }
+    function logRender() {
+      var box = $('#log'), out = '', prev = '';
+      for (var i = 0; i < LOG.length; i++) {
+        var r = LOG[i], dk = dayKey(r.at);
+        // 날짜가 바뀌면 구분선 — 안 그으면 어제 11:20 과 오늘 11:20 이 나란히 붙어 보인다.
+        if (dk !== prev) { out += '<div class="wk-day">' + dayLabel(r.at) + '</div>'; prev = dk; }
+        out += lineHtml(r);
+      }
+      box.innerHTML = out;
+      box.scrollTop = box.scrollHeight;
+    }
+    function say(msg, kind, noKeep) {
+      var r = { at: new Date().toISOString(), m: msg, k: kind || '' };
+      if (noKeep) {   // 매 새로고침마다 찍히는 안내문까지 쌓이면 기록이 그 줄로 도배된다
+        var box0 = $('#log');
+        if (box0.querySelector('.wk-day') === null && !LOG.length) box0.innerHTML = lineHtml(r);
+        return;
+      }
+      LOG.push(r); logSave();
       var box = $('#log');
-      box.appendChild(el);
+      var last = LOG.length > 1 ? LOG[LOG.length - 2] : null;
+      if (!last || dayKey(last.at) !== dayKey(r.at)) box.insertAdjacentHTML('beforeend', '<div class="wk-day">' + dayLabel(r.at) + '</div>');
+      box.insertAdjacentHTML('beforeend', lineHtml(r));
       box.scrollTop = box.scrollHeight;
     }
     /* 작업 잠금 — 예전엔 busy 하나로 모든 버튼을 막아, 틱톡이 도는 10분 동안
@@ -683,7 +727,11 @@
           .catch(function () { say('중단 요청 실패', 'err'); });
         return;
       }
-      if (t.id === 'logClear') { $('#log').innerHTML = ''; return; }
+      if (t.id === 'logClear') {
+        // 화면만 비우면 새로고침 때 되살아난다 — 저장분까지 지운다.
+        LOG = []; try { localStorage.removeItem(LOG_KEY); } catch (e) {}
+        $('#log').innerHTML = ''; return;
+      }
     });
     $('#btnContent').addEventListener('click', contentScan);
     $('#btnExec').addEventListener('click', openExec);
@@ -696,7 +744,10 @@
     // 작업이 하나라도 돌고 있으면 창 닫기를 막는다 — 스캔은 이 탭이 살아 있어야 끝난다.
     window.addEventListener('beforeunload', function (e) { if (LOCK.tk || LOCK.ig) { e.preventDefault(); e.returnValue = ''; } });
 
-    say('작업 콘솔 준비됨. 위에서 할 일을 골라 주세요.');
+    logLoad();
+    logRender();
+    // 안내문은 기록에 남기지 않는다(noKeep) — 기록이 비었을 때만 보인다.
+    say('작업 콘솔 준비됨. 위에서 할 일을 골라 주세요.', '', true);
     loadStatus();
   </script>
 </body>
