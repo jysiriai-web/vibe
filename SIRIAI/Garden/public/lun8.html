@@ -2793,6 +2793,26 @@ function gardenSummary(){
   </div>`;
 }
 function gardenHistory(){
+  /* 산 팔로워가 지금도 남아 있나.
+     계기(2026-07-26): @zn09_k2 인스타에 600명을 채웠는데 패널이 "이 사람이 받은 팔로워를
+     수동으로 지운다" 고 통보했다. 그때 우리 화면에는 '샀다' 만 있고 '남아 있나' 가 없어서
+     주문 전후를 비교할 방법이 없었다 — 판정도 못 하고 재주문만 계속 열려 있었다.
+     계산은 이미 있는 값으로 한다(주문의 startCount + 지금 팔로워). 새 스캔은 필요 없다.
+     자동으로 빼지는 않는다 — 사람이 보고 시트 '가드닝' 칸에 '제외' 를 적으면 된다. */
+  const keepOf = (o)=>{
+    const start = numOrNull(o.startCount);
+    if(start==null) return null;                       // 집행 전 값이 없는 주문(손으로 넣은 것)
+    const p = o.plat==='ig' ? 'ig' : 'tk';
+    const h = String(o.handle||'').replace(/^@/,'').toLowerCase();
+    const d = D.find(x=> x[p] && String(x[p].h||'').replace(/^@/,'').toLowerCase()===h);
+    const cur = d && d[p] ? numOrNull(d[p].fol) : null;
+    if(cur==null) return null;                         // 아직 스캔 안 된 계정
+    const rem = numOrNull(o.remains);
+    const got = rem!=null ? (Number(o.quantity)||0) - rem : (Number(o.quantity)||0);
+    if(got <= 0) return null;
+    const kept = cur - start;                          // 산 것 중 지금도 남아 있는 양
+    return { got, kept: Math.max(0, kept), pct: Math.round(Math.max(0, kept) / got * 100), cur };
+  };
   if(!ORDERS.length) return '<div class="note-line">아직 가드닝 집행 내역이 없어요.</div>';
   const rows = ORDERS.slice().sort((a,b)=> String(b.placedAt||'').localeCompare(String(a.placedAt||'')));
   // 수기 집행은 패널마다 통화가 달라 원화로 적는다 — USD 합계만 세면 그 금액이 통째로 빠진다.
@@ -2812,6 +2832,17 @@ function gardenHistory(){
         const left = Number(o.undelivered)||0;
         if(left>0) return `${nf(o.delivered)} <span class="chip needs">${nf(left)}명 남음</span>`;
         return `${nf(o.delivered)} <span class="chip ok">다 들어옴</span>`;
+      } },
+    /* 산 것이 지금도 남아 있나. 이 열이 '또 사도 되는 계정인가' 를 말해 준다. */
+    { key:'keep', label:'지금 남음', cls:'num', thcls:'num',
+      sv:o=>{ const k=keepOf(o); return k ? k.pct : -1; },
+      cell:o=>{
+        const k = keepOf(o);
+        if(!k) return `<span class="cmuted" title="집행 전 팔로워 값이 없어 비교할 수 없어요(손으로 넣은 주문)">비교 불가</span>`;
+        const cls = k.pct >= 70 ? 'ok' : k.pct >= 40 ? 'stale' : 'needs';
+        const tip = `집행 전 ${nf(numOrNull(o.startCount))} → 지금 ${nf(k.cur)} · 들어온 ${nf(k.got)}명 중 ${nf(k.kept)}명 남음`;
+        return `<span class="chip ${cls}" title="${esc(tip)}">${k.pct}%</span>`
+          + (k.pct < 40 ? ` <span class="cmuted" title="이 계정은 또 사도 그만큼 빠질 수 있어요. 시트 '가드닝' 칸에 '제외' 를 적으면 집행에서 빠집니다.">제외 검토</span>` : '');
       } },
     // 수기 집행은 패널마다 통화가 달라 원화로 직접 적는다(costKrw).
     { key:'cost', label:'금액', cls:'num', thcls:'num', sv:o=>Number(o.costKrw)||Number(o.cost)*KRW_PER_USD||0,
