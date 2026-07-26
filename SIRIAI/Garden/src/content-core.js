@@ -19,6 +19,7 @@ function prevDetected(campaign) {
 // 프로필 그리드(잘 막힘) 대신 영상 페이지 한 장이라 훨씬 안 막힌다. 저장된 세션으로 인증 게이트 없이 시도.
 export async function judgeOneLink(campaign, { row, handle, link }) {
   if (!videoIdFromLink(link)) throw new Error('틱톡 영상 링크가 아니에요 (…/video/숫자 형태여야 해요).');
+  // since 는 안 넘긴다 — 사람이 직접 찍어준 링크는 기간 밖이어도 그 사람의 판단을 존중한다.
   const cfg = { hashtags: campaign.campaignHashtags || [], soundId: campaign.campaignSoundId || '' };
   const { browser, ctx } = await launchBrowser({ warmup: false }); // 영상 한 장 → 인증 게이트 생략
   let one;
@@ -58,7 +59,7 @@ export async function judgeOneLink(campaign, { row, handle, link }) {
 // (전체 스캔보다 훨씬 빠르고, 탭 하나만 여니 덜 막힌다. 작성자 가드는 detectCampaign 이 알아서.)
 export async function scanOneProfile(campaign, { row, handle, onCaptcha }) {
   if (!handle) throw new Error('계정 핸들이 없어요.');
-  const cfg = { hashtags: campaign.campaignHashtags || [], soundId: campaign.campaignSoundId || '' };
+  const cfg = { hashtags: campaign.campaignHashtags || [], soundId: campaign.campaignSoundId || '', since: campaign.campaignStart || '' };
   let r = { videos: [], ok: false, error: '' };
   let ctx = await warmContext(); // 워밍 브라우저 재사용(연속 확인 빠름). 브라우저는 안 닫고 page만 닫힌다.
   try { r = await fetchVideos(ctx, handle, { quick: true, onCaptcha }); }
@@ -111,7 +112,8 @@ const jitter = () => 900 + Math.floor(Math.random() * 1700); // 계정 간 0.9~2
 // shouldPause() → boolean : 사용자가 '중지'를 눌렀는지(수동). 계정 사이에서 멈춘다.
 // only: 특정 계정만 — '오늘 올리는 몇 명'만 확인할 때. 전체를 길게 돌 이유가 없다.
 export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo, onBlocked, onCaptcha, shouldPause, shouldStop, full = false, perf = false, concurrency = 2, only } = {}) {
-  const cfg = { hashtags: campaign.campaignHashtags || [], soundId: campaign.campaignSoundId || '' };
+  // since: 캠페인 시작 전 영상은 이번 콘텐츠가 아니다(인스타는 원래 이렇게 하고 있었다).
+  const cfg = { hashtags: campaign.campaignHashtags || [], soundId: campaign.campaignSoundId || '', since: campaign.campaignStart || '' };
   const all = await getAccountsFromSheet(campaign.sheet);
   // 틱톡 스캐너는 틱톡 계정만 본다(sync-core 와 같은 규칙). 브릿지는 틱톡 핸들이 없으면
   // handle 칸에 인스타 핸들을 넣어주기 때문에, 안 거르면 인스타 핸들로 틱톡을 뒤지다

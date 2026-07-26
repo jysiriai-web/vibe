@@ -51,9 +51,23 @@ function judge(v, wanted, soundId) {
 // ⚠️ 작성자 가드: 틱톡 프로필 item_list 에는 리포스트(남이 만든 영상)가 섞여 온다. 그 영상은
 //    author 가 원작자라, 걸러내지 않으면 그 원작자 링크가 '이 계정' 행에 써져 시트가 오염된다
 //    (@nagisa__n 행에 @k_n_m07 링크가 박힌 사례). 그래서 '이 계정이 작성한' 영상만 인정한다.
-export function detectCampaign(videos, { hashtags = [], soundId = '' } = {}, { knownLink = '', handle = '' } = {}) {
+/* 캠페인 기간 안에 올라온 영상인가.
+   ⚠️ 인스타(ig-content.js 의 inWindow)에는 있고 틱톡에만 없었다. createTime 을 judge 가
+   뽑아만 두고 아무도 안 읽었다 — 음원만 맞으면 해시태그 0개로도 통과하고, 태그 2개 조건도
+   'LUN8'·'루네이트'가 같은 그룹의 두 표기라 옛 게시물이 맞을 수 있다.
+   한 번 박히면 content-core 가 그 계정을 이후 스캔에서 빼버려 스스로 안 고쳐지고
+   납품 링크·정산으로 굳는다. */
+function inCampaignWindow(v, sinceMs) {
+  if (!sinceMs) return true;
+  const t = Number(v.createTime) || 0;
+  if (!t) return true;                  // 시각을 못 읽었으면 막지 않는다(있는 것을 놓치는 게 더 나쁘다)
+  return t * 1000 >= sinceMs;
+}
+
+export function detectCampaign(videos, { hashtags = [], soundId = '', since = '' } = {}, { knownLink = '', handle = '' } = {}) {
   const wanted = hashtags.map((h) => String(h).toLowerCase().replace(/^#/, ''));
   const need = wanted.length >= 2 ? 2 : 1; // 태그 2개 이상 설정 시 2개 이상 일치 요구(#MUAH 등 흔한 단일태그 오탐 방지)
+  const sinceMs = since ? new Date(since).getTime() : 0;
   const list = videos || [];
 
   // ① 사람이 링크를 찍어줬으면 그 영상이 답이다 — 단, 그 영상 작성자가 '이 계정'일 때만.
@@ -68,6 +82,7 @@ export function detectCampaign(videos, { hashtags = [], soundId = '' } = {}, { k
   // ② 링크가 없으면 캠페인 음원(강신호) 또는 해시태그 need개 이상으로 찾되, 반드시 '이 계정이 작성한' 영상만.
   for (const v of list) {
     if (!sameAuthor(v, handle)) continue; // 작성자≠계정(리포스트 등) → 이 계정 영상 아님, 건너뜀
+    if (!inCampaignWindow(v, sinceMs)) continue; // 캠페인 시작 전 영상 → 이번 콘텐츠 아님
     const tags = tagsOf(v);
     const matchCount = wanted.filter((w) => tags.has(w)).length;
     const hasSound = soundId && String(v.music?.id) === String(soundId);

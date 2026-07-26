@@ -1048,6 +1048,28 @@ export async function handler(req, res) {
 
     // 주문 포기 — 배송 중이라 취소가 안 먹혀도, 이 주문을 접고 계정을 재가드닝 가능하게(inFlightFor 제외).
     // 돈 안 나감(재주문은 별도 집행+비번). smm 취소를 마지막으로 한 번 더 시도(환불 여지)하되 결과와 무관하게 포기 처리.
+    /* 수기 집행 '완료 처리' — 사람이 패널에서 채워진 걸 보고 닫는다.
+       ⚠️ 예전엔 이 버튼이 /abandon 을 불렀다. abandoned 는 (1) 지출 합계에서 빠지고
+       (2) 재주문 차단(inFlightFor)에서도 빠진다. 즉 '완료 처리'를 누르면 실제로 나간 돈이
+       장부에서 사라지고 같은 계정을 또 살 수 있게 됐다 — 실제로 9,000원짜리 한 건이 그 상태였다.
+       완료는 done 이다: 지출에 남고, 재주문은 열린다(팔로워가 들어왔으니 그건 맞다). */
+    if (path === '/api/order/done' && req.method === 'POST') {
+      const body = await readBody(req);
+      let notFound = false;
+      const { w } = await updateOrders(campaign, async (orders) => {
+        const o = orders.find((x) => (x.id != null && String(x.id) === String(body.orderId)) || (x.uid && x.uid === body.orderId));
+        if (!o) { notFound = true; return undefined; }
+        o.done = true;
+        o.doneAt = new Date().toISOString();
+        o.remains = 0;            // 다 들어왔다는 뜻 — 진행중으로 다시 세지 않게
+        o.abandoned = false;      // 예전에 잘못 눌러 포기로 박힌 건을 여기서 정정한다
+        o.cancelStuck = false;
+        return orders;
+      });
+      if (notFound) return send(res, 404, { error: '주문 없음' });
+      if (!w.durable) return send(res, 500, { error: '완료 기록에 실패했어요. 다시 시도해 주세요.' });
+      return send(res, 200, { ok: true });
+    }
     if (path === '/api/order/abandon' && req.method === 'POST') {
       const body = await readBody(req);
       let notFound = false;
