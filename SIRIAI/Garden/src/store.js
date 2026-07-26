@@ -61,7 +61,11 @@ function withLock(key, fn) {
 }
 
 // ── 주문 (돈) ────────────────────────────────────────────
-const idsOf = (arr) => new Set(arr.map((o) => String(o.id)));
+/* 주문을 가리키는 키. id 가 없는 주문(수기 집행·'패널 확인 필요')이 있어서
+   id 만 쓰면 전부 'null' 한 칸으로 뭉친다 — 재주문 차단 기록이 조용히 사라진다.
+   브릿지(Code.gs)는 같은 사고를 겪고 uid 키로 고쳤는데 Node 쪽만 안 따라왔다. */
+const okey = (o) => (o && o.id != null) ? String(o.id) : (o && o.uid ? 'uid:' + o.uid : '');
+const idsOf = (arr) => new Set(arr.map(okey).filter(Boolean));
 
 // 시트 결과 + 로컬을 합쳐 '과금된 주문이 절대 빠지지 않는' 배열을 만든다.
 // pending 이면 로컬이 더 최신(변경분 포함) → 로컬 우선. 아니면 시트 우선 + 로컬에만 있는 것 추가.
@@ -98,8 +102,8 @@ export function readOrders(campaign) {
 // 이게 없으면 20초 폴링이 낡은 배열로 방금 나간 주문을 통째로 지운다 — 돈은 나갔는데 기록이 없어진다.
 function mergeById(base, incoming) {
   const out = incoming.slice();
-  const ids = new Set(out.map((o) => String(o.id)));
-  for (const o of base) if (o && o.id != null && !ids.has(String(o.id))) out.push(o);
+  const ids = new Set(out.map(okey).filter(Boolean));
+  for (const o of base) { const k = okey(o); if (k && !ids.has(k)) out.push(o); }
   return out;
 }
 

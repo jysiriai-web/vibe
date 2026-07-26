@@ -24,7 +24,7 @@
   --tk:#111417; --tk-bg:#eceef0; --tk-ink:#111417; --ig:#c0288f; --ig-bg:#fbe9f4; --ig-ink:#a01f77;
   /* 탈락 예정 = 지연(빨강)보다 한 단계 위. 하드코딩하면 다크모드에서 배경에 묻힌다. */
   --gone-bg:#1b1b1f; --gone-ink:#ffffff; --gone-line:#1b1b1f; --gone-t:#8c1d18;
-  --drop-bg:#2b2b31; --drop-ink:#ffffff;
+  --drop-bg:#e7e8ec; --drop-ink:#4b5160;   /* 드랍 = 끝난 것. 회색으로 물러난다 */
   --newsbg:#e7f7ee; --newsink:#0f6b44; --newsline:#a9e0c4;   /* 무엇이 바뀌었나 */
 }
 /* 다크모드 — 토큰만 다시 정의한다. 컴포넌트 CSS 는 손대지 않는다(둘로 갈리면 한쪽이 반드시 썩는다).
@@ -835,7 +835,7 @@ input.inp[type=date]:disabled { opacity:.45; }
 .btn.pf.tk:not(.on) { color:#15171a; }
 .btn.pf.ig:not(.on) { color:#d62976; }
 /* 일정 미준수 — 진행상태 칩 */
-.chip.drop { background:#2b2b31; color:#fff; }
+.chip.drop { background:var(--drop-bg); color:var(--drop-ink); }
 .chip.wait { background:#fff4e0; color:#9a5b00; }
 .subtab.late .dot { background:#c9ced8; }
 .subtab.late.urgent .dot { background:var(--needs-ink); }
@@ -964,7 +964,12 @@ body.nav-collapsed .side-btn { justify-content:center; }
 .ust.gone  { background:var(--gone-bg); color:var(--gone-ink); font-weight:800; }
 .ust.wait  { background:#ffeee2; color:#a34a00; }
 .ust.refix { background:#efeaff; color:#5b3fd6; }
-.ust.drop  { background:#2b2b31; color:#fff; }
+/* 드랍 = 이미 끝나 손댈 것이 없는 상태다. 회색으로 내린다.
+   ⚠️ 예전엔 탈락 예정(#1b1b1f)과 드랍(#2b2b31) 이 같은 무게의 검정이라 대비가 1.22:1 이었다 —
+   '오늘 탈락 예고 메일 보낼 사람'과 '이미 포기한 사람'이 한 열에서 구분되지 않았다.
+   설계 원칙(글자를 다 안 읽어도 급한 것이 먼저 눈에 걸리게)과 정반대였다.
+   지금은 탈락 예정만 붉은색을 쓰고, 드랍은 여기서 물러난다. */
+.ust.drop  { background:var(--drop-bg); color:var(--drop-ink); }
 .ust.rev   { background:#e8f0ff; color:#1d4ed8; }
 .ust.fail  { background:var(--needs-bg); color:var(--needs-ink); font-weight:800; }
 .ust.ok    { background:var(--ok-bg); color:var(--ok-ink); }
@@ -4156,6 +4161,10 @@ document.getElementById('nav').addEventListener('click', e=>{
      (납품탭에만 정규화 가드가 있었고 그 주석이 이 누수를 인정하고 있었다) */
   if(!['all','tk','ig'].includes(state.plat)) state.plat='all';
   if(!hasIG()) state.plat='tk';
+  /* 선택도 비운다. 키가 두 종류(row:id / plat:handle)라 통합탭에서 5명 고르고 [틱톡] 으로 가면
+     화면엔 아무것도 안 켜졌는데 버튼은 '선택 5명 스캔' 이었다. 그대로 누르면 지금 화면에
+     없는 사람의 틱톡·인스타를 둘 다 스캔한다(로봇인증 대기까지 포함). */
+  scanPick.clear();
   render();
 });
 
@@ -4186,6 +4195,7 @@ document.getElementById('content').addEventListener('click', e=>{
        초기화를 눌러도 안 풀리면, 사람은 화면이 고장난 줄 알고 새로고침한다. */
     state.day=null; state.week=null; state.platOnly=''; state.noticeOnly=false; state.unfixedOnly=false;
     state.coOnly=''; state.hasContent=false;
+    scanPick.clear();        // '처음 상태'라면 골라둔 것도 없어야 한다
     /* 하위탭도 되돌린다 — '처음 상태'라면 틱톡·일정 미준수·탈락 예정도 풀려야 한다.
        가드닝의 '집행 내역'(hist)만 남긴다: 그건 필터가 아니라 다른 화면이다. */
     if(state.plat!=='hist') state.plat='all';
@@ -4394,10 +4404,23 @@ document.getElementById('content').addEventListener('input', e=>{
   detectLocal();
   // 60초 자동 갱신. 모달이 열려 있으면 건너뛴다 — render()가 화면을 다시 그리는 동안
   // 사용자가 보고 있던 모달의 근거 값이 소리 없이 바뀌어버리기 때문.
-  setInterval(()=>{
-    if(!document.getElementById('modal').hidden) return;
-    loadData();
-  }, 20000);   // 20초 — 시트에서 고친 값이 1분이나 안 보이면 고장난 줄 안다
+  /* 20초 — 시트에서 고친 값이 오래 안 보이면 고장난 줄 안다.
+     ⚠️ 다만 render() 는 표를 innerHTML 로 통째로 갈아끼운다. 플랫폼탭 검수 드롭다운이
+     약 195개인데, 고르던 중에 다시 그려지면 목록이 손에서 닫히고 change 가 안 나서
+     조용히 안 먹는다(토스트도 안 뜬다). 폰은 펼친 날짜와 스크롤이 되감긴다.
+     그래서 '사람이 지금 무언가를 조작하고 있으면' 이번 차례는 건너뛴다. */
+  const busyNow = ()=>{
+    if(!document.getElementById('modal').hidden) return true;      // 모달 열림
+    if(document.hidden) return true;                               // 탭이 안 보임 — 그릴 이유가 없다
+    const a = document.activeElement;
+    if(a && a !== document.body && /^(SELECT|INPUT|TEXTAREA)$/.test(a.tagName)) return true;
+    if(document.querySelector('.drawer-bg:not([hidden])')) return true;   // 설정 드로어 열림
+    if(window.getSelection && String(window.getSelection()).length > 4) return true; // 뭔가 선택해 복사 중
+    return false;
+  };
+  setInterval(()=>{ if(busyNow()) return; loadData(); }, 20000);
+  // 탭으로 돌아오면 그때 한 번 당겨온다 — 건너뛴 동안 낡아 있으니까.
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && !busyNow()) loadData(); });
 })();
 </script>
 <script src="/feedback.js"></script>

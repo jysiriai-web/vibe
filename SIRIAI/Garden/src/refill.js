@@ -26,7 +26,13 @@ export function refillServiceIds(services) {
 
 // 순수 함수 — 어떤 주문에 리필이 필요한지 계산(요청은 안 함). 테스트 위해 now 주입.
 // followersByHandle: { handle: 현재팔로워(숫자|null) }
-export function planRefills(orders, followersByHandle, refillIds, now) {
+/* followersByPlat: { tk:{handle:수}, ig:{handle:수} }
+   ⚠️ 예전엔 { handle:수 } 하나만 받아 틱톡 스캔 결과로 인스타 주문까지 판정했다.
+   양쪽에 같은 이름을 가진 사람이 16명이다(@zn09_k2 는 ig 532 / tk 11,100).
+   그래서 인스타 리필은 dropped 가 음수로 나와 영영 안 나가고(빠진 팔로워를 회수 못 한다),
+   반대 경우엔 헛리필 + 12시간 쿨다운을 먹었다.
+   다른 돈 경로(buildPlan·inFlightFor·orderLink)는 이미 plat 을 가리는데 리필만 밖에 있었다. */
+export function planRefills(orders, followersByPlat, refillIds, now) {
   const due = [];
   for (const o of orders || []) {
     if (o.abandoned) continue;
@@ -41,8 +47,10 @@ export function planRefills(orders, followersByHandle, refillIds, now) {
     const qty = Number(o.quantity) || 0;
     const delivered = Number.isFinite(rem) ? qty - rem : qty; // 이 주문이 실제 넣은 양
     const endCount = (Number.isFinite(start) ? start : 0) + delivered; // 도달했어야 하는 팔로워
-    const cur = num(followersByHandle[o.handle]);
-    if (!Number.isFinite(cur)) continue; // 팔로워 모름(null·빈값·숫자아님) → 보류
+    // 이 주문의 플랫폼 팔로워만 본다. 출처를 못 대는 주문은 보류한다(남의 숫자로 판정하지 않는다).
+    const src = followersByPlat && followersByPlat[o.plat || 'tk'];
+    const cur = num(src && src[o.handle]);
+    if (!Number.isFinite(cur)) continue; // 팔로워 모름(null·빈값·숫자아님·출처없음) → 보류
     const dropped = endCount - cur;
     if (dropped < REFILL_MIN_DROP) continue; // 안 빠졌음(또는 오히려 늘어남)
     due.push({ order: o, dropped, endCount, current: cur });
@@ -51,10 +59,10 @@ export function planRefills(orders, followersByHandle, refillIds, now) {
 }
 
 // 실제 리필 요청 + 주문 객체에 결과 기록(호출부가 writeOrders 로 저장). smm 없으면 아무것도 안 함.
-export async function runAutoRefill({ orders, followersByHandle, smm, services, now = Date.now() }) {
+export async function runAutoRefill({ orders, followersByPlat, smm, services, now = Date.now() }) {
   if (!smm) return { requested: 0, ok: 0, results: [] };
   const ids = refillServiceIds(services);
-  const due = planRefills(orders, followersByHandle, ids, now);
+  const due = planRefills(orders, followersByPlat, ids, now);
   if (!due.length) return { requested: 0, ok: 0, results: [] };
 
   let res = [];

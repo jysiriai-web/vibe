@@ -5,7 +5,22 @@
  * 설치: 확장 프로그램 → Apps Script → 이 코드 전체 붙여넣기 → 배포 → 새 배포 → 웹 앱
  *       (실행: 나 / 액세스: 링크 있는 모든 사용자) → 배포 → 웹 앱 URL 복사
  */
-const TOKEN = 'grdn_2f8a91c4e7b3';
+/* 브릿지의 유일한 인증. 이것만 있으면 doPost 로 마스터시트 셀 덮어쓰기·인원 추가·납품 기입이
+ * 전부 열린다. 그래서 코드에 박아 두지 않는다 — 이 파일은 git 에 올라간다.
+ *
+ * 넣는 곳: Apps Script 편집기 → 프로젝트 설정 → 스크립트 속성 → SHEET_TOKEN
+ * (없으면 아래 setBridgeToken('새토큰') 을 편집기에서 한 번 실행해도 된다)
+ */
+const TOKEN = (function () {
+  try { return PropertiesService.getScriptProperties().getProperty('SHEET_TOKEN') || ''; }
+  catch (e) { return ''; }
+})();
+// 편집기에서 한 번 실행해 토큰을 심는다. 실행 후 이 줄의 값은 지우세요(히스토리에 남지 않게).
+function setBridgeToken(v) {
+  if (!v) throw new Error('토큰을 넣어주세요');
+  PropertiesService.getScriptProperties().setProperty('SHEET_TOKEN', String(v).trim());
+  return '저장했어요';
+}
 const MIN_FOLLOWERS = 1000;
 
 // ─── 필드 ↔ 열 매핑 (헤더 기반 자동 인식) ───────────────────────────────────

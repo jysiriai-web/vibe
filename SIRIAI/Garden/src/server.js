@@ -95,7 +95,14 @@ function serviceWhy(svc, id, plat) {
 /* svc 는 검증을 통과했을 때만 준다. why 가 있으면 그 플랫폼은 집행하지 않는다. */
 function resolveService(c, plat = 'tk') {
   const id = serviceIdOf(c, plat);
-  const svc = id == null ? null : findService(catalog(), id);
+  let svc = id == null ? null : findService(catalog(), id);
+  /* 배포본(Vercel)에는 data/ 가 .vercelignore 로 빠져 있어 카탈로그가 통째로 비어 있다.
+     그러면 화면이 단가를 못 받아 틱톡 단가(4.13)로 인스타까지 계산한다 —
+     인스타 실단가는 1.94 로 2.13배다. 실측 차이: 팀원 화면 22,379원 / 로컬 20,455원.
+     경고도 한 줄 없어서 팀원은 단서조차 못 잡는다.
+     campaigns.json 의 serviceInfo 로 메운다. 돈이 실제로 나가는 판단은 로컬에서만 하므로
+     이 폴백은 '화면에 맞는 금액을 보여주기' 용도다(클라우드엔 API 키가 없다). */
+  if (!svc && id != null) svc = findService(c.serviceInfo || [], id);
   const why = serviceWhy(svc, id, plat);
   return { id, svc: why ? null : svc, why };
 }
@@ -307,10 +314,14 @@ function corsFor(origin) {
   return '';
 }
 
-let _origin = '';   // 지금 처리 중인 요청의 Origin. send 가 CORS 헤더를 붙일 때 쓴다.
+/* ⚠️ Origin 을 모듈 전역에 담으면 안 된다.
+   집행은 수 분 걸리는데 그 사이 작업 콘솔 폴링(2초)이 한 번만 들어와도 값이 바뀌어,
+   먼저 온 응답에 Access-Control-Allow-Origin 이 안 붙는다 — 주문은 실제로 나갔는데
+   화면은 "응답을 못 받았어요" 라고 말한다. 돈 경로에서 뜨는 가짜 실패 경보다.
+   그래서 res 객체에 실어 응답과 함께 다닌다(요청 하나에 하나). */
 function send(res, code, body, type = 'application/json') {
   const t = type + (type.startsWith('text') || type === 'application/json' ? '; charset=utf-8' : '');
-  const allow = corsFor(_origin);
+  const allow = corsFor(res._origin || '');
   // 캐시 금지 — 고친 화면이 안 바뀌어 "요청한 게 하나도 적용이 안 됐다"로 보이던 원인.
   // 매일 고치는 내부 도구라 캐시 이득보다 '새로고침했는데 옛 화면'이 훨씬 비싸다.
   res.writeHead(code, Object.assign({ 'Content-Type': t, 'Cache-Control': 'no-store, must-revalidate', Pragma: 'no-cache' },
@@ -328,10 +339,10 @@ function readBody(req) {
 
 // 요청 핸들러 — 로컬(http 서버)과 Vercel(서버리스 함수)이 같은 함수를 쓴다.
 export async function handler(req, res) {
-  _origin = req.headers.origin || '';
+  res._origin = req.headers.origin || '';   // 이 응답 전용 — 전역에 두면 동시 요청끼리 섞인다
   // 브라우저는 POST 전에 OPTIONS 로 먼저 물어본다. 여기서 허용을 답하지 않으면 요청 자체가 안 간다.
   if (req.method === 'OPTIONS') {
-    const allow = corsFor(_origin);
+    const allow = corsFor(res._origin || '');
     res.writeHead(allow ? 204 : 403, allow
       ? { 'Access-Control-Allow-Origin': allow, 'Access-Control-Allow-Methods': 'GET,POST,OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '600', Vary: 'Origin' }
       : {});
@@ -562,7 +573,12 @@ export async function handler(req, res) {
           return action; // 'resume' | 'stop'
         },
       })
-        .then((r) => { stampScan(campaign, perf ? 'perf' : 'upload'); contentScanState = { running: false, mode: perf ? 'perf' : full ? 'full' : 'upload', done: r.total, total: r.total, up: r.up, newUp: r.newUp || 0, written: r.written, writeError: r.writeError || null, failed: r.failed, failedHandles: r.failedHandles, stopped: r.stopped, error: null, ranAt: new Date().toISOString() }; })
+        .then((r) => {
+          /* 중지했거나 못 본 계정이 있으면 '방금 완료' 도장을 찍지 않는다.
+             40명 중 3명 돌고 중지해도 배포본 팀원 화면엔 '업로드 스캔: 방금' 이라고 떴다.
+             perf(조회수) 스캔은 업로드된 계정만 도는 다른 일이므로 업로드 시계를 건드리지 않는다. */
+          if (!perf && !r.stopped && !r.failed) stampScan(campaign, 'upload');
+          contentScanState = { running: false, mode: perf ? 'perf' : full ? 'full' : 'upload', done: r.total, total: r.total, up: r.up, newUp: r.newUp || 0, written: r.written, writeError: r.writeError || null, failed: r.failed, failedHandles: r.failedHandles, stopped: r.stopped, error: null, ranAt: new Date().toISOString() }; })
         .catch((e) => { contentScanState = { running: false, done: 0, total: 0, up: 0, written: 0, failed: 0, error: e.message, ranAt: null }; })
         .finally(() => { scanConfirmResolve = null; scanResumeResolve = null; });
       return send(res, 200, { started: true });
@@ -699,14 +715,24 @@ export async function handler(req, res) {
       let refill = null;
       if (smm) {
         try {
+          /* 플랫폼별로 출처를 가른다 — 틱톡 스캔 결과로 인스타 주문을 판정하면 안 된다.
+             인스타 팔로워는 ig-scan-latest.json 에서만 온다. */
           const latest = scanLatest(campaign);
-          const fol = {};
-          (latest.accounts || latest.results || []).forEach((a) => { fol[a.handle] = a.current; });
-          const r = await runAutoRefill({ orders, followersByHandle: fol, smm, services: catalog() });
+          const fol = { tk: {}, ig: {} };
+          (latest.accounts || latest.results || []).forEach((a) => { fol.tk[a.handle] = a.current; });
+          try {
+            const igp = join(campaign.dataDir, 'ig-scan-latest.json');
+            if (existsSync(igp)) {
+              const igl = JSON.parse(readFileSync(igp, 'utf8'));
+              (igl.rows || igl.accounts || igl.results || []).forEach((a) => { if (a && a.handle) fol.ig[a.handle] = a.current != null ? a.current : a.followers; });
+            }
+          } catch (e) { console.warn('[자동리필] 인스타 스캔 기록을 못 읽었어요(인스타 리필만 보류):', (e && e.message) || e); }
+          const r = await runAutoRefill({ orders, followersByPlat: fol, smm, services: catalog() });
           if (r.requested) { await writeOrders(campaign, orders); refill = r; }
         } catch (e) { console.error('[자동리필] 실패(스캔은 정상):', (e && e.message) || e); }
       }
-      stampScan(campaign, 'follower');   // 기다리지 않는다 — 실패해도 스캔은 성공이다
+      // 못 본 계정이 있으면 '방금' 이라고 하지 않는다 — 그 결과는 완전하지 않다.
+      if (!sync.scanFailed) stampScan(campaign, 'follower');   // 기다리지 않는다(실패해도 응답은 성공)
       return send(res, 200, { ok: true, scannedAt: scanLatest(campaign).ranAt, scannedCount: sync.scannedCount, scanTried: sync.scanTried, scanFailed: sync.scanFailed, scanFailedHandles: sync.scanFailedHandles || [], writeError: sync.writeError || null, nicksWritten: sync.nicksWritten, refill, accounts: await buildAccounts(campaign, orders), orders: markStale(orders) });
     }
 
@@ -765,7 +791,7 @@ export async function handler(req, res) {
            '몇 건 올라왔는지'가 영영 사라졌다. 상태에 두면 다시 열어도 읽어 갈 수 있다. */
         igContentState = { phase: 'done', done: out.scannedCount, total: out.total,
           ranAt: new Date().toISOString(), result: { ...out, detected: undefined } };
-        stampScan(campaign, 'upload');
+        if (!out.stopped && !out.failed) stampScan(campaign, 'upload');   // 중지·부분실패는 '방금'이 아니다
         return send(res, 200, { ok: true, ...out, detected: undefined });
       } catch (e) {
         igContentState = { phase: 'error', error: e.message };
