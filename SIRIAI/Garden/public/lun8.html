@@ -132,6 +132,12 @@ td.nick { max-width: 220px; overflow-wrap: anywhere; }
 /* 필터 줄 — 진행사·콘텐츠. 하위탭(플랫폼)·일정 칩과 다른 축이라 따로 둔다. */
 .fbar { display:flex; align-items:center; gap:8px 18px; flex-wrap:wrap; margin:0 0 10px; min-height:30px; }
 /* 안내줄은 필터를 켜는 줄 오른쪽 끝에 — 켜는 곳과 끄는 곳이 같아야 찾는다. */
+/* 초기화 버튼 — 하위탭 줄 오른쪽. 필터가 걸렸을 때만 나타나므로 눈에 띄어도 된다. */
+.subtabs .resetf { margin-left:8px; font-size:12.5px; padding:5px 11px; border-color:var(--accent);
+  color:var(--accent-ink); background:var(--accent-soft); }
+.subtabs .resetf:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+.subtabs .resetf b { font-weight:800; }
+.rec-tools .resetf { margin-right:2px; }
 .fbar-note { margin-left:auto; display:inline-flex; }
 .fbar-note:empty { display:none; }
 .fchip-g { display:inline-flex; align-items:center; gap:6px; }
@@ -1771,8 +1777,8 @@ function setFilterNote(rows, extra){
   (extra||[]).forEach(x=> on.push(x));
   if(!on.length){ _lastDayNote = ''; return; }
   const geon = rows.reduce((a,d)=>a+slots(d),0);
-  _lastDayNote = `<span class="daynote"><b>${on.map(esc).join(' · ')}</b> ${rows.length}명 · ${geon}건만 보는 중`
-    + `<button class="btn ghost small" id="dayClear">필터 초기화</button></span>`;
+  // 버튼은 하위탭 줄(resetBtn)에 하나만 둔다 — 여기선 '무엇으로 걸러졌나'만 말한다.
+  _lastDayNote = `<span class="daynote"><b>${on.map(esc).join(' · ')}</b> ${rows.length}명 · ${geon}건만 보는 중</span>`;
 }
 let _lastHideNote = '';   // 표를 그릴 때 계산된 '빈 열 숨김' 배지 — 필터 줄에서 꺼내 쓴다
 function renderTable(cols, rows, opts={}){
@@ -2151,6 +2157,29 @@ function syncScanBtn(){
   if(!b) return;
   b.textContent = scanPick.size ? `선택 ${scanPick.size}명 스캔` : '선택 스캔';
   b.classList.toggle('primary', !!scanPick.size);
+}
+/* 지금 걸려 있는 필터 수. '초기화'가 무엇을 되돌리는지 숫자로 보여주면
+   눌러도 되는지 망설이지 않는다(0이면 버튼 자체가 안 뜬다). */
+function filterCount(){
+  let n = 0;
+  if(state.day) n++;
+  if(state.week) n++;
+  if(state.coOnly) n++;
+  if(state.hasContent) n++;
+  if(state.platOnly) n++;
+  if(state.noticeOnly) n++;
+  if(state.unfixedOnly) n++;
+  // 하위탭도 필터다 — '전체'가 아니면 걸러진 상태다.
+  if(state.plat && state.plat!=='all' && state.plat!=='hist') n++;
+  return n;
+}
+/* 초기화 버튼 — 하위탭 줄 오른쪽 끝(선택 스캔 옆).
+   예전엔 일정 스트립 카드 안 오른쪽에 있어, 필터를 켠 자리와 멀어 찾지 못했다.
+   탭을 고르는 줄에 두면 '이 화면을 처음 상태로'가 바로 읽힌다. */
+function resetBtn(){
+  const n = filterCount();
+  if(!n) return '';
+  return `<button class="btn small resetf" id="dayClear" title="이 탭을 처음 상태로 — 하위탭·날짜·진행사·콘텐츠 필터를 모두 풉니다">↺ 필터 초기화 <b>${n}</b></button>`;
 }
 function scanPickBtn(){
   if(!LOCAL.on) return '';
@@ -2864,7 +2893,7 @@ function gardenSvcNote(){
 // 하위탭에 그 플랫폼 인원수. 모집탭에서만 — 업로드탭은 건수를 카드에서 이미 보여준다.
 // 모집탭 도구 — 하위탭 줄 오른쪽 끝. 빈 열 배지(hideSlot)도 같이 담아 한 그룹으로 오른쪽에 붙인다.
 function recruitTools(){
-  return `<span class="rec-tools"><span id="hideSlot"></span>`
+  return `<span class="rec-tools"><span id="hideSlot"></span>${resetBtn()}`
     + `<button class="btn small" id="btnRecScan" title="지원 응답시트에서 새로 지원한 사람을 마스터시트로 가져와요">⬇ 모집 가져오기</button>`
     + `<button class="btn small" id="btnAddPerson">${IC.userplus} 인원 추가</button>`
     + `<button class="btn small" id="btnReload">↻ 새로고침</button></span>`;
@@ -3017,7 +3046,7 @@ function platSubtabs(){
     ${state.view==='upload' ? ((n)=>`<button class="subtab drop ${n?'urgent':''} ${state.plat==='dropsoon'?'active':''}" data-plat="dropsoon" title="기준일이 ${DROP_AFTER_DAYS}일 넘게 지났어요 — 탈락 예고를 보낼 차례"><span class="dot"></span>탈락 예정 <span class="cmuted">${n}명</span></button>`)(dropSoonCount()) : ''}
     ${state.view==='garden' ? `<button class="subtab hist ${state.plat==='hist'?'active':''}" data-plat="hist"><span class="dot"></span>집행 내역 <span class="cmuted">${ORDERS.length}</span></button>` : ''}
     ${state.view==='recruit' ? recruitSubtabs() : ''}
-    ${state.view==='recruit' ? recruitTools() : `${gardenSvcNote()}<span id="hideSlot" class="sub-hide"></span>${state.view==='upload'?scanPickBtn():''}`}</div>`;
+    ${state.view==='recruit' ? recruitTools() : `${gardenSvcNote()}<span id="hideSlot" class="sub-hide"></span>${resetBtn()}${state.view==='upload'?scanPickBtn():''}`}</div>`;
 }
 /* ============ 매뉴얼 · 가이드 ============
    내용은 public/knowledge.js 하나뿐이다(MANUAL/GUIDE). 여기서 복붙하지 않는다 —
@@ -3877,7 +3906,10 @@ document.getElementById('content').addEventListener('click', e=>{
        초기화를 눌러도 안 풀리면, 사람은 화면이 고장난 줄 알고 새로고침한다. */
     state.day=null; state.week=null; state.platOnly=''; state.noticeOnly=false; state.unfixedOnly=false;
     state.coOnly=''; state.hasContent=false;
-    if(state.plat==='tk'||state.plat==='ig') state.plat='all';
+    /* 하위탭도 되돌린다 — '처음 상태'라면 틱톡·일정 미준수·탈락 예정도 풀려야 한다.
+       가드닝의 '집행 내역'(hist)만 남긴다: 그건 필터가 아니라 다른 화면이다. */
+    if(state.plat!=='hist') state.plat='all';
+    state.sort = {};        // 정렬도 처음대로
     render(); return; }
   const th=e.target.closest('.th-sort'); if(th){ toggleSort(th.dataset.table, th.dataset.sort); return; }
   const mc=e.target.closest('[data-mail]');
