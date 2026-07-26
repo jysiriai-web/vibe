@@ -22,7 +22,50 @@
   --mono: 'Pretendard', -apple-system, 'Helvetica Neue', Arial, sans-serif;
   --sans: 'Pretendard', -apple-system, 'Helvetica Neue', Arial, sans-serif;
   --tk:#111417; --tk-bg:#eceef0; --tk-ink:#111417; --ig:#c0288f; --ig-bg:#fbe9f4; --ig-ink:#a01f77;
+  /* 탈락 예정 = 지연(빨강)보다 한 단계 위. 하드코딩하면 다크모드에서 배경에 묻힌다. */
+  --gone-bg:#1b1b1f; --gone-ink:#ffffff; --gone-line:#1b1b1f; --gone-t:#8c1d18;
+  --drop-bg:#2b2b31; --drop-ink:#ffffff;
+  --newsbg:#e7f7ee; --newsink:#0f6b44; --newsline:#a9e0c4;   /* 무엇이 바뀌었나 */
 }
+/* 다크모드 — 토큰만 다시 정의한다. 컴포넌트 CSS 는 손대지 않는다(둘로 갈리면 한쪽이 반드시 썩는다).
+   :root[data-theme] 가 미디어쿼리를 이긴다 — 사람이 고른 값이 OS 설정보다 우선이어야 하므로. */
+:root[data-theme="dark"], :root:not([data-theme="light"]) {}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) {
+    --bg:#14161a; --card:#1c1f25; --ink:#e8eaed; --muted:#9aa3b2; --faint:#828b99;
+    --line:#2b2f37; --line2:#23262d;
+    --accent:#8b82ff; --accent-soft:#262347; --accent-ink:#aaa3ff;
+    --ok:#2dd4a0; --ok-bg:#12312a; --ok-ink:#4fdfa9;
+    --needs:#ff6b70; --needs-bg:#3a1e20; --needs-ink:#ff9a9e;
+    --fill:#38a9ea; --fill-bg:#122c3d; --fill-ink:#79c8f3;
+    --warn:#f0a83a; --warn-bg:#38290f; --warn-ink:#f2c176;
+    --gray:#8b93a1; --gray-bg:#23262d; --gray-ink:#aab2bf;
+    --gold:#f0a83a; --blue:#38a9ea; --slate:#8b93a1;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+    --tk:#e8eaed; --tk-bg:#2b2f37; --tk-ink:#e8eaed; --ig:#f06cc0; --ig-bg:#3a1b30; --ig-ink:#f7a0d8;
+    --gone-bg:#ff6b70; --gone-ink:#1a0d0e; --gone-line:#ff6b70; --gone-t:#ff8a8f;
+    --drop-bg:#3a3f49; --drop-ink:#cfd5de;
+    --newsbg:#12312a; --newsink:#5fe0ab; --newsline:#1f6b4c;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:#14161a; --card:#1c1f25; --ink:#e8eaed; --muted:#9aa3b2; --faint:#828b99;
+  --line:#2b2f37; --line2:#23262d;
+  --accent:#8b82ff; --accent-soft:#262347; --accent-ink:#aaa3ff;
+  --ok:#2dd4a0; --ok-bg:#12312a; --ok-ink:#4fdfa9;
+  --needs:#ff6b70; --needs-bg:#3a1e20; --needs-ink:#ff9a9e;
+  --fill:#38a9ea; --fill-bg:#122c3d; --fill-ink:#79c8f3;
+  --warn:#f0a83a; --warn-bg:#38290f; --warn-ink:#f2c176;
+  --gray:#8b93a1; --gray-bg:#23262d; --gray-ink:#aab2bf;
+  --gold:#f0a83a; --blue:#38a9ea; --slate:#8b93a1;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+  --tk:#e8eaed; --tk-bg:#2b2f37; --tk-ink:#e8eaed; --ig:#f06cc0; --ig-bg:#3a1b30; --ig-ink:#f7a0d8;
+  --gone-bg:#ff6b70; --gone-ink:#1a0d0e; --gone-line:#ff6b70; --gone-t:#ff8a8f;
+  --drop-bg:#3a3f49; --drop-ink:#cfd5de;
+  --newsbg:#12312a; --newsink:#5fe0ab; --newsline:#1f6b4c;
+}
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"]  { color-scheme: dark; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 [hidden] { display: none !important; }
 body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
@@ -133,11 +176,11 @@ td.nick { max-width: 220px; overflow-wrap: anywhere; }
 .fbar { display:flex; align-items:center; gap:8px 18px; flex-wrap:wrap; margin:0 0 10px; min-height:30px; }
 /* 안내줄은 필터를 켜는 줄 오른쪽 끝에 — 켜는 곳과 끄는 곳이 같아야 찾는다. */
 /* 초기화 버튼 — 하위탭 줄 오른쪽. 필터가 걸렸을 때만 나타나므로 눈에 띄어도 된다. */
-.subtabs .resetf { margin-left:8px; font-size:12.5px; padding:5px 11px; border-color:var(--accent);
+.subtabs .resetf { font-size:12.5px; padding:5px 11px; border-color:var(--accent);
   color:var(--accent-ink); background:var(--accent-soft); }
 .subtabs .resetf:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
 .subtabs .resetf b { font-weight:800; }
-.rec-tools .resetf { margin-right:2px; }
+
 .fbar-note { margin-left:auto; display:inline-flex; }
 .fbar-note:empty { display:none; }
 .fchip-g { display:inline-flex; align-items:center; gap:6px; }
@@ -156,9 +199,8 @@ td.nick { max-width: 220px; overflow-wrap: anywhere; }
   background:var(--warn-bg); border:1px solid var(--warn-bg); }
 .remind-bar.warn { background:var(--needs-bg); border-color:var(--needs-bg); }
 /* 탈락 예고 — 경고보다 한 단계 위. 테두리를 살려 같은 빨강 안에서도 갈린다. */
-.remind-bar.gone { background:#fce8e6; border-color:var(--needs); }
-.remind-bar.gone .rb-n { color:#8c1d18; }
-.remind-bar.gone .rb-head b { color:#8c1d18; }
+.remind-bar.gone { background:var(--needs-bg); border-color:var(--needs); }
+.remind-bar.gone .rb-n, .remind-bar.gone .rb-head b { color:var(--needs-ink); }
 .remind-bar.ok   { background:var(--ok-bg);   border-color:var(--ok-bg); }
 .remind-bar .rb-head { display:flex; align-items:center; gap:8px; font-size:14px; color:var(--ink); }
 .remind-bar .rb-ic { font-size:15px; }
@@ -400,7 +442,7 @@ th.memo-col, td.memo-col { width:44px; text-align:center; }
 .msub.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
 /* 폰 하위탭도 심각도 색을 따른다 — PC 와 같은 신호여야 헷갈리지 않는다. */
 .msub[data-plat="late"].on { background: var(--needs-bg); border-color: var(--needs); color: var(--needs-ink); }
-.msub[data-plat="dropsoon"].on { background: #1b1b1f; border-color: #1b1b1f; color: #fff; }
+.msub[data-plat="dropsoon"].on { background: var(--gone-bg); border-color: var(--gone-line); color: var(--gone-ink); }
 /* 일자 묶음 — 폰에서 55명을 한 줄로 늘어놓으면 스크롤만 길다. */
 .mday { margin-bottom: 12px; }
 .mday > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 9px;
@@ -506,7 +548,7 @@ body.phone #content { padding: 0; }
 .wn-blk { margin-top:8px; }
 .wn-blk > summary { list-style:none; cursor:pointer; }
 .wn-blk > summary::-webkit-details-marker { display:none; }
-.wn-d { font-size:12px; font-weight:800; color:var(--accent-ink); background:var(--accent-soft);
+.wn-d { font-size:12px; font-weight:800; color:var(--newsink); background:var(--newsbg); border:1px solid var(--newsline);
   display:inline-block; padding:3px 10px; border-radius:20px; }
 .wn-d::before { content:'▸ '; }
 .wn-blk[open] .wn-d::before { content:'▾ '; }
@@ -519,6 +561,17 @@ body.phone #content { padding: 0; }
 #btnSettings.has-news::after { content:''; position:absolute; top:2px; right:2px; width:7px; height:7px;
   border-radius:50%; background:var(--needs); box-shadow:0 0 0 2px var(--card); }
 .set-desc { font-size:13px; color:var(--muted); line-height:1.55; }
+/* 깔끔뷰가 기본이다 — 둘을 같은 크기로 두면 매번 고르라는 뜻으로 읽힌다. 기본을 크게, 나머지는 곁들이로. */
+.seg-lead button[data-raw="0"] { flex:2; font-size:14px; font-weight:800; padding:11px 12px; }
+.seg-lead button[data-raw="1"] { flex:1; font-size:12px; padding:11px 8px; opacity:.85; }
+.seg-lead button[data-raw="1"].on { opacity:1; }
+/* 설명서 — 어느 탭에서 뭘 하는지. 새 사람이 처음 열었을 때 여기부터 본다. */
+.howto { display:flex; flex-direction:column; gap:0; border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+.howto div { display:flex; gap:9px; padding:9px 12px; font-size:12.5px; color:var(--muted); border-bottom:1px solid var(--line2); }
+.howto div:last-child { border-bottom:none; }
+.howto b { color:var(--ink); flex:none; min-width:52px; }
+.howto-flow { font-size:12.5px; color:var(--muted); margin-bottom:9px; line-height:1.7; }
+.howto-flow b { color:var(--ink); }
 .seg { display:inline-flex; background:var(--line2); border-radius:10px; padding:3px; gap:2px; }
 .seg button { font-family:var(--sans); font-size:13.5px; font-weight:700; border:none; background:none; color:var(--muted); padding:8px 14px; border-radius:8px; cursor:pointer; transition:.12s; }
 .seg button.on { background:var(--card); color:var(--accent-ink); box-shadow:0 1px 3px rgba(20,20,35,.12); }
@@ -776,10 +829,12 @@ input.inp[type=date]:disabled { opacity:.45; }
 .subtab.late .dot { background:#c9ced8; }
 .subtab.late.urgent .dot { background:var(--needs-ink); }
 /* 탈락 예정 — 미준수보다 한 단계 더 나간 상태라 색을 더 진하게. */
+/* 탈락 예정도 붉은색 — 지연과 같은 빨강이면 안 갈리므로 더 진하게 + 굵게 간다.
+   예전엔 검정(#111)이었는데, 다크모드에서 배경(#14161a)에 그대로 묻혔다(대비 1.25). */
 .subtab.drop .dot { background:#c9ced8; }
-.subtab.drop.urgent .dot { background:#111; }
-.subtab.drop.urgent { color:#111; }
-.subtab.drop.active { color:#111; border-bottom-color:#111; }
+.subtab.drop.urgent .dot { background:var(--gone-t); }
+.subtab.drop.urgent { color:var(--gone-t); font-weight:800; }
+.subtab.drop.active { color:var(--gone-t); border-bottom-color:var(--gone-t); }
 /* 이력 제목 — 표 위 구분선 */
 .sec-head { display:flex; align-items:baseline; gap:10px; font-size:14px; font-weight:800; margin:26px 0 10px; padding-top:18px; border-top:1px solid var(--line); }
 .sec-head .cmuted { font-size:12.5px; font-weight:600; }
@@ -866,21 +921,18 @@ body.nav-collapsed .side-btn { justify-content:center; }
 .svcnote small { font-size:11px; color:var(--faint); }
 .svcnote .svc-n { color:var(--faint); overflow:hidden; text-overflow:ellipsis; }
 @media (max-width:900px){ .svcnote { display:none; } }
-/* 빈 열 배지를 하위탭 줄 오른쪽 끝에. 표에 관한 정보라 표를 고르는 줄에 있는 게 맞다. */
+/* 빈 열 배지·필터 초기화·선택 스캔은 하위탭 줄 오른쪽 끝에. 표에 관한 것이라 표를 고르는 줄이 맞다.
+   ⚠️ 이것들을 '한 그룹'으로 묶어서 통째로 오른쪽에 붙인다.
+   예전엔 도구마다 margin-left:auto 를 각자 걸었는데, 빈 열 배지가 없는 화면에서는
+   :empty → display:none 이라 그 auto 마진까지 같이 사라졌다. 그러면 필터 초기화가
+   마지막 탭에 딱 붙어버려서, 배지 유무·탭 개수에 따라 버튼이 좌우로 돌아다녔다.
+   미는 힘은 그룹 하나에만 있으면 된다. */
 .subtabs { align-items:center; }
-.sub-hide { margin-left:auto; display:inline-flex; }
+.subtabs .sub-tools,
+.subtabs .rec-tools { margin-left:auto; display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.sub-hide { display:inline-flex; }
 .sub-hide:empty { display:none; }
-.sub-hide .hidebadge { margin:0; }
-/* 하위탭 줄이 도구를 다 안는다 — 배지·선택 스캔이 한 줄에 들어가 표가 위로 붙는다 */
-/* 배지가 비면 .sub-hide 가 없어져 거기 걸린 auto 마진도 사라진다 →
-   버튼이 마지막 탭에 딱 붙었다. 버튼 자신이 오른쪽으로 밀리게 한다. */
-/* .sub-hide 는 배지가 없어도 DOM 에 남는다(비어 있을 뿐) → 인접 선택자가 늘 맞아
-   버튼이 마지막 탭에 붙었다. 배지가 '있을 때만' 간격을 준다. */
-.subtabs .rec-tools { margin-left:auto; display:inline-flex; align-items:center; gap:8px; }
-.subtabs .rec-tools .hidebadge { margin:0; }
-.subtabs #btnPickScan { margin-left:auto; }
-.sub-hide:not(:empty) + #btnPickScan { margin-left:10px; }
-.sub-hide:not(:empty) { margin-left:auto; }
+.sub-hide .hidebadge, .subtabs .rec-tools .hidebadge { margin:0; }
 /* 일정 스트립이 어느 플랫폼 기준인지 색으로 — 숫자만 바뀌면 왜 줄었는지 모른다 */
 .dstrip-card.p-tk .kpi-ic { background:#15171a; color:#fff; }
 .dstrip-card.p-ig .kpi-ic { background:#fdeef5; color:#d62976; }
@@ -898,7 +950,7 @@ body.nav-collapsed .side-btn { justify-content:center; }
 .ust.idle  { background:#fff6e5; color:#9a6b00; }
 .ust.late  { background:var(--needs-bg); color:var(--needs-ink); }
 /* 탈락 예정 — 지연보다 한 단계 더 나간 상태. 검정으로 확실히 가른다. */
-.ust.gone  { background:#1b1b1f; color:#fff; font-weight:800; }
+.ust.gone  { background:var(--gone-bg); color:var(--gone-ink); font-weight:800; }
 .ust.wait  { background:#ffeee2; color:#a34a00; }
 .ust.refix { background:#efeaff; color:#5b3fd6; }
 .ust.drop  { background:#2b2b31; color:#fff; }
@@ -916,7 +968,7 @@ select.mirror.m0 { background:var(--ok-bg); color:var(--ok-ink); border-color:#b
 select.mirror.mx { color:var(--muted); }
 /* 하위탭 플랫폼 로고 — 모집탭 표엔 있는데 하위탭엔 없어 짝이 안 맞았다 */
 .subtab .pmark { width:12px; height:12px; margin:0 5px 0 0; vertical-align:-1px; }
-.subtab.tk .pmark { color:#15171a; }
+.subtab.tk .pmark { color:var(--ink); }
 .subtab.ig .pmark { color:#d62976; }
 /* 우수 선정 — 고른 것만 눈에 걸리게. 미선정은 조용히 둔다. */
 select.best.on { background:#fff8e1; color:#8a6100; border-color:#f0d48a; font-weight:800; }
@@ -1009,11 +1061,34 @@ select.best.on { background:#fff8e1; color:#8a6100; border-color:#f0d48a; font-w
     <div class="set-group" id="whatsnewBox"></div>
     <div class="set-group">
       <span class="set-lab">뷰 모드</span>
-      <div class="seg" id="viewSeg">
+      <div class="seg seg-lead" id="viewSeg">
         <button data-raw="0">🧹 깔끔뷰</button>
         <button data-raw="1">📋 마스터 원본</button>
       </div>
       <span class="set-desc"><b>깔끔뷰</b>(기본): 빈 열·미참여 플랫폼을 자동으로 숨기고 링크는 칩으로 압축해요. <b>마스터 원본</b>: 시트 그대로, 빈 열도 표시.</span>
+    </div>
+    <div class="set-group">
+      <span class="set-lab">화면</span>
+      <div class="seg" id="themeSeg">
+        <button data-theme="light">☀️ 밝게</button>
+        <button data-theme="dark">🌙 어둡게</button>
+        <button data-theme="auto">🖥 기기설정</button>
+      </div>
+      <span class="set-desc"><b>기기설정</b>은 PC·폰의 다크모드를 따라가요. 고른 값은 이 브라우저에 저장돼요.</span>
+    </div>
+    <div class="set-group">
+      <span class="set-lab">설명서</span>
+      <div class="howto-flow"><b>모집</b> → 예정일 잡고 확정메일 → <b>업로드</b> 확인·리마인드 → <b>가드닝</b>(팔로워 보충) → <b>납품</b> → <b>정산</b></div>
+      <div class="howto">
+        <div><b>모집</b><span>사람을 넣고 예정일·확정메일을 관리해요. 마루가 모은 사람도 여기 들어와요.</span></div>
+        <div><b>업로드</b><span>올라왔는지 보고 안 올린 사람에게 메일을 보내요. 하위탭 <b>일정 미준수</b>·<b>탈락 예정</b>이 오늘 할 일이에요.</span></div>
+        <div><b>가드닝</b><span>팔로워 1,000 미만인 계정을 채워요. <b>돈이 나가는 유일한 탭</b>이에요.</span></div>
+        <div><b>납품</b><span>검수 끝난 콘텐츠를 납품시트에 넘겨요.</span></div>
+        <div><b>정산</b><span>지급 대상·금액을 봐요.</span></div>
+        <div><b>매뉴얼</b><span>크리에이터가 자주 묻는 것과 답(일본어 포함).</span></div>
+        <div><b>가이드</b><span>이번 캠페인의 조건 — 단가·지급 시점·팔로워 기준 등.</span></div>
+      </div>
+      <span class="set-desc">스캔·주문 실행은 팀원용 <b>작업 콘솔</b>(대표님 PC의 3737)에서 해요. 이 화면은 보고 고치는 곳이에요.</span>
     </div>
     <div class="set-group">
       <span class="set-lab">캠페인 바로가기 · 마스터시트</span>
@@ -3096,7 +3171,7 @@ function platSubtabs(){
     ${state.view==='upload' ? ((n)=>`<button class="subtab drop ${n?'urgent':''} ${state.plat==='dropsoon'?'active':''}" data-plat="dropsoon" title="기준일이 ${DROP_AFTER_DAYS}일 넘게 지났어요 — 탈락 예고를 보낼 차례"><span class="dot"></span>탈락 예정 <span class="cmuted">${n}명</span></button>`)(dropSoonCount()) : ''}
     ${state.view==='garden' ? `<button class="subtab hist ${state.plat==='hist'?'active':''}" data-plat="hist"><span class="dot"></span>집행 내역 <span class="cmuted">${ORDERS.length}</span></button>` : ''}
     ${state.view==='recruit' ? recruitSubtabs() : ''}
-    ${state.view==='recruit' ? recruitTools() : `${gardenSvcNote()}<span id="hideSlot" class="sub-hide"></span>${resetBtn()}${state.view==='upload'?scanPickBtn():''}`}</div>`;
+    ${state.view==='recruit' ? recruitTools() : `${gardenSvcNote()}<span class="sub-tools"><span id="hideSlot" class="sub-hide"></span>${resetBtn()}${state.view==='upload'?scanPickBtn():''}</span>`}</div>`;
 }
 /* ============ 매뉴얼 · 가이드 ============
    내용은 public/knowledge.js 하나뿐이다(MANUAL/GUIDE). 여기서 복붙하지 않는다 —
@@ -3410,6 +3485,15 @@ window.addEventListener('resize', ()=>{
    한 줄씩 남긴다. 코드 얘기는 안 쓴다 — 쓰는 사람이 알아야 할 것만.
    맨 위가 최신. 새 항목을 추가하면 아직 안 본 사람에게 사이드바에 점이 뜬다. */
 const CHANGELOG = [
+  { v:'0726', d:'7/26', items:[
+    '폰 일자별 목록이 <b>전부 접힌 채로</b> 시작해요. 순서도 날짜 하나로 정리 — 예정일 미정 → 7/23 … 8/4.',
+    '펼쳐 둔 날짜는 <b>그대로 남아요</b>. 20초마다 화면을 다시 그리느라 접어도 도로 펴지던 문제를 고쳤어요.',
+    '<b>탈락 예고</b> 메일 알림이 노랑에서 <b>붉은색</b>으로 바뀌었어요(⛔). 리마인드 노랑 · 경고 빨강 · 탈락예고 진한 빨강 세 단계예요.',
+    '<b>↺ 필터 초기화</b> 버튼이 늘 같은 자리(하위탭 줄 오른쪽 끝)에 있어요. 빈 열 배지가 있고 없고에 따라 좌우로 움직였어요.',
+    '오른쪽 아래 <b>🌙 다크모드</b>가 생겼어요. 설정에서 밝게·어둡게·기기설정 중에 고르세요.',
+    '설정에 <b>설명서</b>를 넣었어요 — 어느 탭에서 뭘 하는지 한눈에.',
+    '업로드 스캔이 45/45 에서 멈춘 채 안 끝나던 문제, 봇 인증 창이 5초 만에 닫히던 문제를 고쳤어요(작업 콘솔).',
+  ]},
   { v:'0725', d:'7/25', items:[
     '폰으로 열면 요약 화면이 먼저 떠요 — 업로드·오늘 예정·미업로드를 한눈에 보고, [상세 보기]로 들어가면 사람별 카드예요.',
     '업로드 탭에 <b>탈락 예정</b> 하위탭이 생겼어요. 예정일에서 2일 지난 사람이 따로 모여요(리마인드와 메일이 달라서요).',
@@ -3421,15 +3505,30 @@ const CHANGELOG = [
 ];
 const SEEN_KEY = 'lun8_seen_ver';
 function lastSeenVer(){ try { return localStorage.getItem(SEEN_KEY) || ''; } catch { return ''; } }
+/* 테마 — 'light' | 'dark' | 'auto'(기기설정). 고른 값은 이 브라우저에만 남는다(사람마다 다르다).
+   html 에 data-theme 을 박고 CSS 가 토큰을 갈아끼운다. auto 면 속성을 지워 미디어쿼리에 맡긴다. */
+const THEME_KEY = 'lun8.theme';
+function curTheme(){ try { return localStorage.getItem(THEME_KEY) || 'auto'; } catch { return 'auto'; } }
+function applyTheme(t){
+  const r = document.documentElement;
+  if(t === 'auto') r.removeAttribute('data-theme'); else r.setAttribute('data-theme', t);
+  document.querySelectorAll('#themeSeg button').forEach(b=> b.classList.toggle('on', b.dataset.theme === t));
+}
+function setTheme(t){ try { localStorage.setItem(THEME_KEY, t); } catch {} applyTheme(t); }
+applyTheme(curTheme());   // 첫 페인트 전에 — 밝은 화면이 번쩍하고 어두워지지 않게
 function markSeen(){ try { localStorage.setItem(SEEN_KEY, CHANGELOG[0].v); } catch {} }
 function hasNews(){ return CHANGELOG.length && lastSeenVer() !== CHANGELOG[0].v; }
 function renderWhatsNew(){
+  applyTheme(curTheme());   // 드로어가 열릴 때 지금 고른 값에 표시가 붙게
   const box = document.getElementById('whatsnewBox'); if(!box) return;
   /* 날짜별로 접는다 — 이력이 쌓이면 드로어가 끝없이 길어진다.
      맨 위(최신)만 펼쳐 둔다: 방금 뭐가 바뀌었는지가 궁금해서 여는 것이니까. */
+  /* 오늘 패치된 것만 펼친다. 지난 날짜는 접는다 — 이력은 쌓이는데 드로어 길이는 안 늘어야 한다.
+     (건수는 뺐다. '6건'을 알아서 할 일이 없고 날짜만 있으면 훑기 더 쉽다) */
+  const td = TODAY();
   box.innerHTML = '<span class="set-lab">무엇이 바뀌었나</span>'
-    + CHANGELOG.map((c,i)=>`<details class="wn-blk"${i?'':' open'}>
-        <summary class="wn-d">${esc(c.d)} <span class="wn-n">${c.items.length}건</span></summary>
+    + CHANGELOG.map(c=>`<details class="wn-blk"${normDay(c.d)===normDay(td)?' open':''}>
+        <summary class="wn-d">${esc(c.d)}${normDay(c.d)===normDay(td)?' <span class="wn-n">오늘</span>':''}</summary>
         <ul class="wn-ul">${c.items.map(t=>`<li>${t}</li>`).join('')}</ul></details>`).join('')
     + '<span class="set-desc">문제가 있으면 사이드바 <b>💬 의견</b>으로 알려주세요.</span>';
 }
@@ -4109,6 +4208,8 @@ document.getElementById('drawerX').addEventListener('click', closeDrawer);
 document.getElementById('drawer').addEventListener('click', e=>{
   if(e.target.id==='drawer'){ closeDrawer(); return; }
   const v=e.target.closest('#viewSeg button'); if(v){ state.raw=v.dataset.raw==='1'; state.day=null; syncViewSeg(); render(); return; }
+  // 테마는 화면을 다시 그릴 필요가 없다 — CSS 변수만 갈아끼우면 끝이다.
+  { const th=e.target.closest('#themeSeg button'); if(th){ setTheme(th.dataset.theme); return; } }
 });
 let _mdOnBg=false;
 // 텍스트를 드래그해 선택하다 마우스를 창 밖에서 떼면 click 이 배경에서 발생해 창이 닫혔다.
