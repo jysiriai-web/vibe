@@ -440,6 +440,9 @@ th.memo-col, td.memo-col { width:44px; text-align:center; }
 .msub { font-family: var(--sans); font-size: 15px; font-weight: 700; padding: 11px 19px; border-radius: 22px;
   border: 1px solid var(--line); background: var(--card); color: var(--muted); cursor: pointer; white-space: nowrap; }
 .msub.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
+/* 누를 수 없는 요약 칸 — 셰브론이 없어야 '눌러도 되는 것'과 구분된다. */
+.msum-grid .ms-flat { cursor: default; }
+.msum-grid .ms-flat::after { display: none !important; }
 /* 폰 하위탭도 심각도 색을 따른다 — PC 와 같은 신호여야 헷갈리지 않는다. */
 .msub[data-plat="late"].on { background: var(--needs-bg); border-color: var(--needs); color: var(--needs-ink); }
 .msub[data-plat="dropsoon"].on { background: var(--gone-bg); border-color: var(--gone-line); color: var(--gone-ink); }
@@ -1686,6 +1689,10 @@ function schedKey(s){
 /* 오늘 — 실제 날짜. config.today는 목업 연출용이었고 실서비스 config엔 없다(있으면 그 날짜로 굳는다). */
 const TODAY = ()=> cfg().today || (()=>{ const t=new Date(); return (t.getMonth()+1)+'/'+t.getDate(); })();
 const dayIdx = s => ALLDAYS().indexOf(normDay(s));
+/* 달성률의 분모는 '계약 목표'다(100건). settleCap(105)은 오버부킹까지 최대로 인정받는 수라
+   그걸로 재면 실제보다 낮게 나온다 — 상단바는 105, 업로드탭은 100 을 쓰고 있어서
+   같은 '검수완료 N건'이 조건 없이 두 값으로 떠 있었다. 한 곳에서 정한다. */
+const goalGeon = ()=> (cfg().targets ? Object.values(cfg().targets).reduce((a,b)=>a+b,0) : 0) || (cfg().settleCap||0);
 /* '오늘'의 위치. dayIdx 는 캠페인 일자 배열에서 찾으므로 8/5 처럼 배열 밖이면 -1 이다.
    ⚠️ 그 -1 을 그대로 쓰면 지연·탈락예정 판정이 전부 false 가 된다 —
    캠페인이 끝난 다음 날 아침, 미납 추적이 제일 급한 그 순간에 화면이 통째로 0을 말한다.
@@ -1742,7 +1749,10 @@ function schedStats(excludeId){
   /* 표(업로드탭)와 같은 대상만 센다. 예전엔 확정메일을 아직 안 보낸 사람도 세서
      스트립은 7건인데 표는 6건이 되는 어긋남이 났다(8/2 はな 건).
      확정 전인 사람은 '그날 올리기로 한 사람'이 아직 아니다 — 모집탭에서 확정부터 해야 한다. */
-  const rows = D.filter(inCampaign).filter(inUpload)
+  /* ⚠️ 표와 같은 파이프라인을 타야 한다. 진행사(coPass)·콘텐츠(contentPass) 필터가 빠져 있어서
+     [MARU] 를 켜면 표는 그 사람들만인데 스트립은 전원을 세고 있었다.
+     이 팀이 이미 두 번 같은 유형을 버그로 잡아 고쳤다 — 나중에 추가한 필터를 배선 안 한 것이다. */
+  const rows = D.filter(inCampaign).filter(inUpload).filter(coPass).filter(contentPass)
     .filter(d=> oursToSchedule(d) || hasDay(d)).filter(d=> d.id!==excludeId);
   const byDay = {}; ALLDAYS().forEach(dy=> byDay[dy] = { day:dy, geon:0, left:0, myeong:0 });
   const unset = {geon:0,left:0,myeong:0}, off = {geon:0,left:0,myeong:0};
@@ -1937,7 +1947,8 @@ function setFilterNote(rows, extra){
   if(state.week) on.push(state.week);
   if(state.day)  on.push(state.day==='__unset'?'예정일 미정':state.day==='__off'?'캠페인 일정 밖':state.day);
   if(state.coOnly) on.push(state.coOnly);
-  if(state.hasContent) on.push('콘텐츠 올라온 사람만');
+  // 모집탭은 이 필터를 적용하지 않는다 — 걸렸다고 적으면 화면이 거짓말을 한다.
+  if(state.hasContent && state.view!=='recruit') on.push('콘텐츠 올라온 사람만');
   (extra||[]).forEach(x=> on.push(x));
   if(!on.length){ _lastDayNote = ''; return; }
   const geon = rows.reduce((a,d)=>a+slots(d),0);
@@ -2457,7 +2468,10 @@ async function runDeliverWrite(btn){
    플랫폼·일정은 하위탭과 일정 칩이 이미 맡고 있어서 여기엔 그 둘만 둔다. */
 function filterBar(){
   const co = coChips();
-  const n = D.filter(inCampaign).filter(inUpload).filter(coPass)
+  // 지금 보고 있는 범위(날짜·주차·하위탭)에서 센다 — 그걸 안 보면 칩의 숫자와
+  // 눌렀을 때 결과가 어긋난다(전체 기준으로 세고 있었다).
+  const n = D.filter(inCampaign).filter(inUpload).filter(dayWeekPass).filter(coPass)
+    .filter(remindScope)
     .filter(d=> platsOn().some(p=> d[p] && d[p].c1)).length;
   const ct = `<span class="fchip-g"><span class="fchip-lab">콘텐츠</span>`
     + `<button class="fchip${state.hasContent?' on':''}" data-contentf="${state.hasContent?0:1}">올라온 사람만 <b>${n}</b></button></span>`;
@@ -3108,7 +3122,11 @@ function remindScope(d){
   return true;
 }
 function remindTargets(missKey){
+  /* ⚠️ 표와 같은 필터를 타야 한다. coPass·contentPass 가 빠져 있어서 [MARU] 를 켜면
+     표는 0행 "연락할 사람이 없어요" 인데 바는 SIRIAI N명을 띄우고 그 주소를 복사했다.
+     주소 자체는 정당한 대상이라 오발송은 아니지만 '보고 있는 것과 복사한 것이 다르다'. */
   return D.filter(inCampaign).filter(inUpload).filter(dayWeekPass)
+    .filter(coPass).filter(contentPass)
     .filter(oursToSchedule)          // 마루는 마루가 LINE 으로 챙긴다
     .filter(d=> !isDropped(d))
     .filter(remindScope)
@@ -3151,6 +3169,7 @@ function remindSummary(){
   const lateOnly = state.plat==='late' || state.plat==='dropsoon';
   const plats = remindPlats();
   const scope = D.filter(inCampaign).filter(inUpload).filter(dayWeekPass)
+    .filter(coPass).filter(contentPass)   // 표와 같은 범위 — 위 remindTargets 와 짝이다
     .filter(oursToSchedule).filter(d=> !isDropped(d)).filter(remindScope)
     .filter(d=> plats.some(p=>d[p]));
   if(!scope.length) return '';
@@ -3206,7 +3225,11 @@ function copyRemind(missKey){
 }
 function platCountLab(p){
   if(state.view!=='recruit' && state.view!=='upload') return '';
-  const n = D.filter(inCampaign).filter(d=> d[p]).length;
+  /* 업로드탭은 확정메일을 보낸 사람만 본다(inUpload) — 그걸 안 태워서
+     하위탭엔 '틱톡 62' 인데 표는 56줄, KPI 분모도 56 이었다.
+     모집탭은 전원을 보는 화면이라 거기선 안 태운다. */
+  const base = state.view==='upload' ? D.filter(inCampaign).filter(inUpload) : D.filter(inCampaign);
+  const n = base.filter(d=> d[p]).length;
   return n ? ` <span class="cmuted">${n}</span>` : '';
 }
 /* 모집탭의 '해야 할 일' 하위탭. 확정메일 미발송·날짜 미확정은 플랫폼과 성격이 다르지만
@@ -3247,11 +3270,17 @@ function platSubtabs(){
 const mark = s => String(s).split('[확인필요]').join('<span class="todo">[확인필요]</span>');
 
 /* 복사는 textContent 기준이라 위 뱃지 마크업이 섞이지 않는다. */
+/* ⚠️ 실패를 성공이라고 말하면 안 된다.
+   예전엔 rejection 핸들러가 성공 문구를 그대로 띄웠다. 그룹별 복사를 연달아 누를 때
+   두 번째가 실패하면 직전 그룹 주소가 클립보드에 남아 A에게 두 번, B에게 0번 발송된다 —
+   '한 사람 한 통'을 보장한다고 적어둔 것이 정확히 깨지는 지점이다.
+   보안 컨텍스트(https/localhost)가 아니면 clipboard API 자체가 없다. 그때도 실패다. */
 function copyText(t, msg){
+  const fail = ()=> toast('복사 실패 — 주소를 직접 선택해 복사해 주세요.');
   try {
-    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(()=>toast(msg),()=>toast(msg));
-    else toast(msg);
-  } catch(e){ toast(msg); }
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(()=>toast(msg), fail);
+    else fail();
+  } catch(e){ fail(); }
 }
 const kMissing = f => '<div class="kempty">knowledge.js 를 못 읽었어요.<br>/knowledge.js 가 서버에서 열리는지 확인해주세요. (' + f + ')</div>';
 
@@ -3369,7 +3398,7 @@ function renderStats(){
   let h = '';
   h += stat('모집', `${secured}<small> 건 / ${(cfg().secure&&cfg().secure.target)||cap}</small>`);
   h += stat('업로드', `${upN}<small> 건</small>`);
-  h += stat('검수완료', `${revN}<small> 건${cap?' / '+cap:''}</small>`);
+  h += stat('검수완료', `${revN}<small> 건${goalGeon()?' / '+goalGeon():''}</small>`);
   h += stat('마지막 스캔', cfg().scan, true);   // 값은 업로드 스캔 시각
   document.getElementById('stats').innerHTML = h;
 }
@@ -3438,8 +3467,8 @@ function mSummary(){
     <div class="msum-grid">
       <button class="ms-c" data-msum="upload"><span class="ms-k">업로드</span><span class="ms-v">${up}<small> / ${goal||pairs.length}건</small></span></button>
       <button class="ms-c" data-msum="today"><span class="ms-k">오늘 예정</span><span class="ms-v">${todayRows.length}<small>명 · ${todayUp}/${todayGeon}건</small></span></button>
-      <button class="ms-c${lateG?' warn':''}" data-msum="late"><span class="ms-k">미업로드</span><span class="ms-v">${lateG}<small>건 · ${lateN}명</small></span></button>
-      <button class="ms-c" data-msum="done"><span class="ms-k">검수완료</span><span class="ms-v">${pairs.filter(x=>done(x.d[x.p])).length}<small>건</small></span></button>
+      <button class="ms-c${lateG?' warn':''}" data-msum="late"><span class="ms-k">미업로드</span><span class="ms-v">${lateG}<small>건 · ${dropSoonCount()?`${lateCount()}명 + 탈락예정 ${dropSoonCount()}명`:`${lateN}명`}</small></span></button>
+      <div class="ms-c ms-flat"><span class="ms-k">검수완료</span><span class="ms-v">${pairs.filter(x=>done(x.d[x.p])).length}<small>건</small></span></div>
     </div>
     <button class="btn primary msum-go" id="mGo">상세 보기 →</button>
   </div>`;
@@ -3500,8 +3529,10 @@ function mByDay(list, card){
 /* 폰 상세 — 사람 한 줄, 실무에 필요한 것만(누가·올렸나·언제·메일).
    PC 표를 그대로 밀어넣으면 열 10개가 가로로 넘쳐 아무것도 못 한다. */
 function mDetail(){
+  /* 요약 카드가 세는 기준과 같아야 한다 — 카드는 드랍을 빼고 세는데 목록은 넣어 보여줬다.
+     폰에서 할 일은 '올라왔나 확인'과 '메일 보내기' 둘뿐이고, 드랍한 사람은 둘 다 해당이 없다. */
   const rows = D.filter(inCampaign).filter(inUpload).filter(dayWeekPass)
-    .filter(coPass).filter(contentPass).filter(d=> platsOn().some(p=>d[p]));
+    .filter(coPass).filter(contentPass).filter(d=> !isDropped(d)).filter(d=> platsOn().some(p=>d[p]));
   const sub = state.plat==='late' ? '일정 미준수' : state.plat==='dropsoon' ? '탈락 예정' : '전체';
   const list = (state.plat==='late' ? rows.filter(d=>!isDropSoon(d)&&lateSlots(d))
     : state.plat==='dropsoon' ? rows.filter(isDropSoon)
@@ -3526,8 +3557,12 @@ function mDetail(){
     <div class="mdet-h"><button class="btn small ghost" id="mBack">← 요약</button>
       <span class="mdet-t">${esc(sub)} <b>${list.length}</b>명</span></div>
     <div class="msubs">
-      ${['all','late','dropsoon'].map(k=>`<button class="msub${state.plat===k?' on':''}" data-plat="${k}">${
-        k==='all'?'전체':k==='late'?'일정 미준수':'탈락 예정'}</button>`).join('')}
+      ${['all','late','dropsoon'].map(k=>{
+        // 숫자를 같이 보여준다 — 어느 탭에 사람이 있는지 눌러보지 않고 알아야 한다(PC 는 이미 보여준다).
+        const n = k==='late' ? lateCount() : k==='dropsoon' ? dropSoonCount() : 0;
+        const lab = k==='all' ? '전체' : k==='late' ? '일정 미준수' : '탈락 예정';
+        return `<button class="msub${state.plat===k?' on':''}" data-plat="${k}">${lab}${k!=='all'?` <b>${n}</b>`:''}</button>`;
+      }).join('')}
     </div>
     ${remindSummary()}
     ${mByDay(list, card)}
@@ -4227,7 +4262,11 @@ document.getElementById('content').addEventListener('click', e=>{
       const k=mc.dataset.msum;
       MOBILE_DETAIL=true; state.view='upload'; state.day=null; state.week=null;
       state.coOnly=''; state.hasContent=false;
-      if(k==='late'){ state.plat='late'; }
+      /* 카드가 센 것과 같은 목록으로 보낸다. '검수완료'는 이동 대상이 아니다 —
+         목적지에 걸 필터가 없어서 전체 68명이 뜨는데 카드엔 다른 숫자가 적혀 있었다. */
+      /* 일이 있는 쪽으로 보낸다. 일정 미준수가 0명인데 탈락 예정에 3명이면
+         'late' 로 보내면 빈 화면이 뜬다 — 정작 손댈 사람은 옆 탭에 있는데. */
+      if(k==='late'){ state.plat = (lateCount()===0 && dropSoonCount()>0) ? 'dropsoon' : 'late'; }
       else if(k==='today'){ state.plat='all'; state.day=TODAY(); }
       else if(k==='upload'){ state.plat='all'; state.hasContent=true; }
       else { state.plat='all'; }
