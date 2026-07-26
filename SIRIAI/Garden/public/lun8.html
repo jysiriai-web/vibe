@@ -2371,7 +2371,11 @@ function likelihood(d,p){
   if(d.noUpload) return {k:'none',t:'확률 낮음',rank:0};
   if(uploaded(d,p)) return {k:'done',t:'업로드 완료',rank:3};
   if(d.oddsLow) return {k:'maybe',t:'가능성 낮음',rank:1};
-  if(d.sched) return {k:'sched',t:'예정 '+esc(d.sched),rank:2};
+  /* ⚠️ 기준일(dueDay)로 본다 — 확정일이 날짜면 그게 진짜 약속이다.
+     여기만 d.sched(원래 희망일)를 읽고 있어서, 확정메일로 날짜를 다시 잡아준 사람이
+     가드닝 탭에서는 옛 날짜로 떠 있었다. 다른 화면은 전부 dueDay 기준이라 서로 어긋났다. */
+  const due = dueDay(d);
+  if(due) return {k:'sched',t:'예정 '+esc(due),rank:2};
   return {k:'maybe',t:'가능성 낮음',rank:1};
 }
 /* 정렬값. rank 만 쓰면 '예정'이 전부 같은 값이라 눌러도 순서가 안 바뀐다 —
@@ -2379,7 +2383,7 @@ function likelihood(d,p){
    등급으로 먼저 묶고, 같은 등급 안에서는 날짜순으로 가른다. */
 function lkSort(d,p){
   const l = likelihood(d,p);
-  return l.rank * 100000 + (l.k==='sched' ? schedKey(d.sched) : 0);
+  return l.rank * 100000 + (l.k==='sched' ? schedKey(dueDay(d)) : 0);
 }
 /* 가드닝 상태 정렬 순서. 글자순(filling<hold<scan<target)으로 두면
    '대상'이 맨 뒤로 가서 급한 것부터 못 본다. 기본 정렬과 같은 순서를 쓴다. */
