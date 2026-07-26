@@ -836,6 +836,8 @@ input.inp[type=date]:disabled { opacity:.45; }
 .btn.pf.ig:not(.on) { color:#d62976; }
 /* 일정 미준수 — 진행상태 칩 */
 .chip.drop { background:var(--drop-bg); color:var(--drop-ink); }
+/* 시트에서 '제외' 로 지정된 계정 — 부족한 건 맞지만 돈은 안 쓴다. 회색으로 물러난다. */
+.chip.gray { background:var(--gray-bg); color:var(--gray-ink); }
 .chip.wait { background:#fff4e0; color:#9a5b00; }
 .subtab.late .dot { background:#c9ced8; }
 .subtab.late.urgent .dot { background:var(--needs-ink); }
@@ -1268,7 +1270,11 @@ function platBlock(src, fb){
     fol: fol,
     inFlight: (numOrNull(src.inFlight) ?? numOrNull(F.inFlight)) || 0,
     views: String(pick(src.views, F.views)),
-    memo: String(src.memo==null?'':src.memo)
+    memo: String(src.memo==null?'':src.memo),
+    /* 시트 '가드닝' 칸 원문. 이걸 안 실어 보내면 화면의 제외 가드(gardenOff)가
+       늘 undefined 를 보고 아무 일도 안 한다 — 서버만 막히고 화면은 여전히
+       '가드닝 대상'으로 체크박스를 켜 둔다. */
+    gardening: String(pick(src.gardening)==null?'':pick(src.gardening))
   };
 }
 
@@ -1479,8 +1485,12 @@ function gStat(d, p){
   if(cur==null) return { st:'scan', order:0 };
   if(refundWait(d,p)) return { st:'refund', order:0 };
   if(inF>0)     return { st:'filling', order:0, projected:cur+inF };
-  // 시트에서 '제외' 라고 못 박은 계정 — 새 주문을 만들지 않는다(진행중 주문은 위에서 이미 보인다).
-  if(gardenOff(x.gardening)) return { st:'off', order:0 };
+  /* 시트에서 '제외' 라고 못 박은 계정 — 주문만 못 한다.
+     ⚠️ 목록에서 지우지는 않는다. '이 계정은 팔로워가 몇 명 부족하다'는 사실은 계속 봐야 한다 —
+     제외는 '돈을 안 쓴다'는 뜻이지 '문제가 없다'는 뜻이 아니다.
+     그래서 order 는 실제 필요량을 그대로 담아 두고(표가 '필요 300' 으로 보여준다),
+     체크박스와 집행 합계에서만 뺀다. */
+  if(gardenOff(x.gardening)) return { st:'off', order: gOrder(cur), projected: cur };
   /* ⚠️ 최종 드랍한 사람에게는 새로 돈을 쓰지 않는다.
      isDropped 는 이 파일 여기저기서 쓰이는데 하필 돈이 나가는 이 함수에만 없었다 —
      팔로워 1,000 미만인 드랍자가 체크박스가 켜진 채 집행 목록에 들어갔고,
@@ -1773,7 +1783,13 @@ function schedStats(excludeId){
   /* ⚠️ 표와 같은 파이프라인을 타야 한다. 진행사(coPass)·콘텐츠(contentPass) 필터가 빠져 있어서
      [MARU] 를 켜면 표는 그 사람들만인데 스트립은 전원을 세고 있었다.
      이 팀이 이미 두 번 같은 유형을 버그로 잡아 고쳤다 — 나중에 추가한 필터를 배선 안 한 것이다. */
-  const rows = D.filter(inCampaign).filter(inUpload).filter(coPass).filter(contentPass)
+  /* ⚠️ contentPass 는 그 필터를 실제로 적용하는 화면에서만 태운다.
+     모집탭은 '올라온 사람만' 을 표에 적용하지 않는데 스트립에만 물리면
+     같은 화면에서 표는 68명인데 스트립은 37명이 된다(근거 없이 깎인다).
+     예정일 힌트(schedHint)도 이 함수를 쓰므로 몰림 판단까지 틀어진다. */
+  const useContent = state.view==='upload';
+  const rows = D.filter(inCampaign).filter(inUpload).filter(coPass)
+    .filter(d=> useContent ? contentPass(d) : true)
     .filter(d=> oursToSchedule(d) || hasDay(d)).filter(d=> d.id!==excludeId);
   const byDay = {}; ALLDAYS().forEach(dy=> byDay[dy] = { day:dy, geon:0, left:0, myeong:0 });
   const unset = {geon:0,left:0,myeong:0}, off = {geon:0,left:0,myeong:0};
@@ -2636,7 +2652,7 @@ function lkSort(d,p){
 }
 /* 가드닝 상태 정렬 순서. 글자순(filling<hold<scan<target)으로 두면
    '대상'이 맨 뒤로 가서 급한 것부터 못 본다. 기본 정렬과 같은 순서를 쓴다. */
-const G_RANK = { target:3, refund:2.5, filling:2, scan:1, hold:0, drop:-1, off:-1 };
+const G_RANK = { target:3, off:2.8, refund:2.5, filling:2, scan:1, hold:0, drop:-1 };
 /* 확정일 정렬 — 이 칸엔 날짜만 있는 게 아니라 진행상태('확정메일 발송'·'최종 드랍')도 들어간다.
    문자열로 비교하면 한글과 날짜가 섞여 뒤죽박죽이 된다. 날짜는 날짜순, 상태는 그 뒤로. */
 function fixedKey(v){
@@ -2652,16 +2668,17 @@ function viewGarden(){
   if(state.plat==='all') return viewGardenAll();
   const p = state.plat;
   // 후보 = 이 플랫폼 참여자 중, 충족(ok)·미참여(na) 아닌 사람만 (필요없는 사람 숨김)
-  let rows = D.filter(d=> d.plats.includes(p) && d[p]!==null).filter(d=>{ const st=gStat(d,p).st; return st!=='ok' && st!=='na' && st!=='drop' && st!=='off'; });
+  let rows = D.filter(d=> d.plats.includes(p) && d[p]!==null).filter(d=>{ const st=gStat(d,p).st; return st!=='ok' && st!=='na' && st!=='drop'; });
   if(!state.gardenHold) rows = rows.filter(d=> gStat(d,p).st!=='hold');
   // 기본 정렬: 대상 먼저 → filling → 보류/스캔, 그 안에서 팔로워 낮은(급한) 순
   rows = rows.slice().sort((a,b)=> (G_RANK[gStat(b,p).st]-G_RANK[gStat(a,p).st]) || ((a[p].fol||0)-(b[p].fol||0)));
 
-  const stChip = st => ({ target:'<span class="chip needs">가드닝 대상</span>', hold:'<span class="chip stale">보류 · 업로드 대기</span>', filling:'<span class="lk sched">채워지는 중</span>', refund:'<span class="chip stale" title="환불이 확정되기 전에 재주문하면, 환불이 안 될 경우 이중지출이 됩니다.">환불 대기 · 재주문 보류</span>', scan:'<span class="cmuted">스캔 대기</span>' }[st] || '');
+  const stChip = st => ({ target:'<span class="chip needs">가드닝 대상</span>', hold:'<span class="chip stale">보류 · 업로드 대기</span>', filling:'<span class="lk sched">채워지는 중</span>', refund:'<span class="chip stale" title="환불이 확정되기 전에 재주문하면, 환불이 안 될 경우 이중지출이 됩니다.">환불 대기 · 재주문 보류</span>', scan:'<span class="cmuted">스캔 대기</span>', off:'<span class="chip gray" title="시트 &#39;가드닝&#39; 칸에 &#39;제외&#39; 라고 적혀 있어요. 부족한 건 맞지만 돈은 쓰지 않습니다.">제외 · 시트 지정</span>' }[st] || '');
   const cols = [
     { key:'pick', label:gPickAllBox(), sortable:false, cell:r=>{ const g=gStat(r,p);
         return g.st==='target'?`<input type="checkbox" data-gpick="${r.id}|${p}"${gPicked(r.id,p)?' checked':''}>`
           : g.st==='hold'?`<span class="cmuted" title="업로드 확인 후 가드닝">보류</span>`
+          : g.st==='off'?`<span class="cmuted" title="시트에서 제외로 지정됨 — 집행 대상이 아닙니다">제외</span>`
           : `<span class="emptydot">·</span>`; } },
     { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
@@ -2672,6 +2689,7 @@ function viewGarden(){
     { key:'order', label:'충전량', cls:'num', thcls:'num', sv:r=>gStat(r,p).order, cell:r=>{ const g=gStat(r,p);
         if(g.st==='target') return `<b>${nf(g.order)}</b>`;
         if(g.st==='hold')   return `<span class="cmuted">${nf(g.order)} <small>업로드 시</small></span>`;
+        if(g.st==='off')    return `<span class="cmuted">${nf(g.order)} <small>필요 · 집행 안 함</small></span>`;
         if(g.st==='filling')return `<span class="cmuted">진행중 ${nf(r[p].inFlight)}</span>`;
         if(g.st==='refund') return `<span class="cmuted">환불 확인 후</span>`;
         return `<span class="emptydot">·</span>`; } },
@@ -2694,14 +2712,14 @@ function viewGardenAll(){
   D.filter(inCampaign).forEach(d=> platsOn().forEach(p=>{
     if(!d[p]) return;
     const st = gStat(d,p).st;
-    if(st==='ok' || st==='na' || st==='drop' || st==='off') return;  // 충족·미참여·최종드랍·시트제외는 숨긴다
+    if(st==='ok' || st==='na' || st==='drop') return;  // 충족·미참여·최종드랍은 숨긴다('제외'는 보여준다)
     if(st==='hold' && !state.gardenHold) return;
     pairs.push({ d, p, id:d.id+'|'+p, g:gStat(d,p) });
   }));
   const rows = pairs.slice().sort((a,b)=> (G_RANK[b.g.st]-G_RANK[a.g.st]) || ((a.d[a.p].fol||0)-(b.d[b.p].fol||0)));
-  const stChip = st => ({ target:'<span class="chip needs">가드닝 대상</span>', hold:'<span class="chip stale">보류 · 업로드 대기</span>', filling:'<span class="lk sched">채워지는 중</span>', refund:'<span class="chip stale" title="환불이 확정되기 전에 재주문하면, 환불이 안 될 경우 이중지출이 됩니다.">환불 대기 · 재주문 보류</span>', scan:'<span class="cmuted">스캔 대기</span>' }[st] || '');
+  const stChip = st => ({ target:'<span class="chip needs">가드닝 대상</span>', hold:'<span class="chip stale">보류 · 업로드 대기</span>', filling:'<span class="lk sched">채워지는 중</span>', refund:'<span class="chip stale" title="환불이 확정되기 전에 재주문하면, 환불이 안 될 경우 이중지출이 됩니다.">환불 대기 · 재주문 보류</span>', scan:'<span class="cmuted">스캔 대기</span>', off:'<span class="chip gray" title="시트 &#39;가드닝&#39; 칸에 &#39;제외&#39; 라고 적혀 있어요. 부족한 건 맞지만 돈은 쓰지 않습니다.">제외 · 시트 지정</span>' }[st] || '');
   const cols = [
-    { key:'pick', label: LOCAL.on?gPickAllBox():'', hide:!LOCAL.on, sortable:false, cell:r=> !LOCAL.on ? '' : r.g.st==='target'?`<input type="checkbox" data-gpick="${r.d.id}|${r.p}"${gPicked(r.d.id,r.p)?' checked':''}>`
+    { key:'pick', label: LOCAL.on?gPickAllBox():'', hide:!LOCAL.on, sortable:false, cell:r=> !LOCAL.on ? '' : r.g.st==='off'?`<span class="cmuted" title="시트에서 제외로 지정됨 — 집행 대상이 아닙니다">제외</span>`: r.g.st==='target'?`<input type="checkbox" data-gpick="${r.d.id}|${r.p}"${gPicked(r.d.id,r.p)?' checked':''}>`
         : r.g.st==='hold'?`<span class="cmuted" title="업로드 확인 후 가드닝">보류</span>` : `<span class="emptydot">·</span>` },
     { key:'co', label:'진행사', sv:r=>r.d.co, cell:r=>coChip(r.d.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.d.nick, cell:r=>nickCell(r.d) },
@@ -2714,6 +2732,7 @@ function viewGardenAll(){
     { key:'order', label:'충전량', cls:'num', thcls:'num', sv:r=>r.g.order, cell:r=>{
         if(r.g.st==='target') return `<b>${nf(r.g.order)}</b>`;
         if(r.g.st==='hold')   return `<span class="cmuted">${nf(r.g.order)} <small>업로드 시</small></span>`;
+        if(r.g.st==='off')    return `<span class="cmuted">${nf(r.g.order)} <small>필요 · 집행 안 함</small></span>`;
         if(r.g.st==='filling')return `<span class="cmuted">진행중 ${nf(r.d[r.p].inFlight)}</span>`;
         if(r.g.st==='refund') return `<span class="cmuted">환불 확인 후</span>`;
         return `<span class="emptydot">·</span>`; } },
@@ -4426,17 +4445,27 @@ document.getElementById('content').addEventListener('input', e=>{
      조용히 안 먹는다(토스트도 안 뜬다). 폰은 펼친 날짜와 스크롤이 되감긴다.
      그래서 '사람이 지금 무언가를 조작하고 있으면' 이번 차례는 건너뛴다. */
   const busyNow = ()=>{
-    if(!document.getElementById('modal').hidden) return true;      // 모달 열림
-    if(document.hidden) return true;                               // 탭이 안 보임 — 그릴 이유가 없다
+    if(!document.getElementById('modal').hidden) return true;               // 모달 열림
+    if(document.querySelector('.drawer-bg:not([hidden])')) return true;     // 설정 드로어 열림
+    if(document.hidden) return true;                                       // 탭이 안 보임 — 그릴 이유가 없다
+    /* ⚠️ 포커스는 '다시 그려질 것' 안에 있을 때만 조작으로 본다.
+       처음엔 select·input 이면 무조건 건너뛰게 했는데, 상단 캠페인 드롭다운(#camp)은
+       render() 가 지우지 않는 요소라 한 번 누르면 포커스가 계속 남아 자동 갱신이
+       영구히 멈췄다. 지금 그려지는 영역(#content) 안일 때만 기다린다. */
     const a = document.activeElement;
-    if(a && a !== document.body && /^(SELECT|INPUT|TEXTAREA)$/.test(a.tagName)) return true;
-    if(document.querySelector('.drawer-bg:not([hidden])')) return true;   // 설정 드로어 열림
-    if(window.getSelection && String(window.getSelection()).length > 4) return true; // 뭔가 선택해 복사 중
+    const box = document.getElementById('content');
+    if(a && box && box.contains(a) && /^(SELECT|INPUT|TEXTAREA)$/.test(a.tagName)) return true;
     return false;
   };
-  setInterval(()=>{ if(busyNow()) return; loadData(); }, 20000);
-  // 탭으로 돌아오면 그때 한 번 당겨온다 — 건너뛴 동안 낡아 있으니까.
-  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && !busyNow()) loadData(); });
+  /* 아무리 조작 중이어도 무한정 미루지는 않는다 — 세 번 건너뛰면(1분) 한 번은 당겨온다.
+     화면이 낡은 채로 남는 것도 사고다. */
+  let _skips = 0;
+  setInterval(()=>{
+    if(busyNow() && _skips < 3){ _skips++; return; }
+    _skips = 0; loadData();
+  }, 20000);
+  // 탭으로 돌아오면 조건 없이 한 번 당겨온다 — 안 보이는 동안 스캔이 끝나 있을 수 있다.
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) loadData(); });
 })();
 </script>
 <script src="/feedback.js"></script>

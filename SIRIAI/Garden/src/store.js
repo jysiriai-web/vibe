@@ -71,12 +71,18 @@ const idsOf = (arr) => new Set(arr.map(okey).filter(Boolean));
 // pending 이면 로컬이 더 최신(변경분 포함) → 로컬 우선. 아니면 시트 우선 + 로컬에만 있는 것 추가.
 export function reconcileOrders(campaign, remote) {
   const local = localOrders(campaign);
+  /* ⚠️ 조회도 반드시 okey 로 한다. 집합만 okey 로 바꾸고 조회를 String(o.id) 로 두면
+     id:null 주문(수기 집행·'패널 확인 필요')이 'null' 로 조회돼 집합에 절대 없고,
+     매번 '상대편에 없는 주문'으로 판정돼 읽을 때마다 한 벌씩 늘어난다.
+     실측: 5건 → 6건, 그 배열이 저장되면 다음 읽기에 7건. 지출 9,000 → 18,000.
+     게다가 낡은 사본이 배열 뒤에 와서 마지막에 시트에 써지므로,
+     방금 누른 '완료 처리'가 조용히 되돌아간다. */
   if (readPending(campaign).orders) {
     const lIds = idsOf(local);
-    return { merged: local.concat(remote.filter((o) => !lIds.has(String(o.id)))), needPush: true };
+    return { merged: local.concat(remote.filter((o) => !lIds.has(okey(o)))), needPush: true };
   }
   const rIds = idsOf(remote);
-  const missing = local.filter((o) => !rIds.has(String(o.id)));
+  const missing = local.filter((o) => !rIds.has(okey(o)));
   return { merged: missing.length ? remote.concat(missing) : remote, needPush: missing.length > 0 };
 }
 async function repairOrders(campaign, r) {

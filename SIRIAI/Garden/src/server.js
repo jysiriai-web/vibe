@@ -93,20 +93,29 @@ function serviceWhy(svc, id, plat) {
   return '';
 }
 /* svc 는 검증을 통과했을 때만 준다. why 가 있으면 그 플랫폼은 집행하지 않는다. */
+/* ⚠️ resolveService 는 화면용이 아니다 — /api/plan 과 /api/execute 가 buildPlan·placeOrders 에
+   넘기는 svc(rate·min·max·service)를 만드는 함수다. 그래서 폴백을 여기 넣으면 안 된다:
+   카탈로그가 없을 때 '집행을 막던' serviceWhy 가드가 사람이 손으로 적은 값으로 통과해 버린다
+   (serviceInfo min:100 / 실제 카탈로그 min:10 처럼 이미 값이 다르다).
+   폴백은 표시용 함수(serviceForShow)에만 두고, 돈 경로는 catalog() 만 본다. */
 function resolveService(c, plat = 'tk') {
   const id = serviceIdOf(c, plat);
-  let svc = id == null ? null : findService(catalog(), id);
-  /* 배포본(Vercel)에는 data/ 가 .vercelignore 로 빠져 있어 카탈로그가 통째로 비어 있다.
-     그러면 화면이 단가를 못 받아 틱톡 단가(4.13)로 인스타까지 계산한다 —
-     인스타 실단가는 1.94 로 2.13배다. 실측 차이: 팀원 화면 22,379원 / 로컬 20,455원.
-     경고도 한 줄 없어서 팀원은 단서조차 못 잡는다.
-     campaigns.json 의 serviceInfo 로 메운다. 돈이 실제로 나가는 판단은 로컬에서만 하므로
-     이 폴백은 '화면에 맞는 금액을 보여주기' 용도다(클라우드엔 API 키가 없다). */
-  if (!svc && id != null) svc = findService(c.serviceInfo || [], id);
+  const svc = id == null ? null : findService(catalog(), id);
   const why = serviceWhy(svc, id, plat);
   return { id, svc: why ? null : svc, why };
 }
 const serviceOf = (c, plat = 'tk') => resolveService(c, plat).svc;
+
+/* 화면에 금액을 보여주기 위한 것 — 여기서만 campaigns.json 의 serviceInfo 로 메운다.
+   배포본(Vercel)에는 data/ 가 .vercelignore 로 빠져 카탈로그가 비어 있고, 그러면 프론트가
+   틱톡 단가(4.13)로 인스타까지 계산한다(실단가 1.94, 2.13배). 실측: 팀원 22,379원 / 로컬 20,455원.
+   ⚠️ 이 함수를 돈 경로(buildPlan·placeOrders)에 쓰면 안 된다. */
+function serviceForShow(c, plat = 'tk') {
+  const r = resolveService(c, plat);
+  if (r.svc) return r.svc;
+  const id = serviceIdOf(c, plat);
+  return id == null ? null : findService(c.serviceInfo || [], id);
+}
 
 function tiktokFollowerServices() {
   return catalog()
@@ -478,8 +487,9 @@ export async function handler(req, res) {
         config: { target: campaign.target, min: campaign.min, krwPerUsd: await effectiveRate(), staleDays: getStaleDays(), hasKey: !!smm, confirmNotice: !!campaign.confirmNotice, execPwRequired: !!EXEC_PW, stateMode: stateMode(), cloud: CLOUD, readOnly: !!campaign.readOnly,
           service: svc ? { id: svc.service, name: svc.name, rate: svc.rate } : { id: campaign.serviceId, name: `#${campaign.serviceId}`, rate: 0 },
           // 플랫폼마다 서비스도 단가도 다르다 — 화면이 틱톡 단가로 인스타까지 계산하면 안 된다.
-          services: ['tk', 'ig'].map((pl) => { const r = resolveService(campaign, pl);
-            return r.svc ? { plat: pl, id: r.svc.service, name: r.svc.name, rate: r.svc.rate } : null; }).filter(Boolean) },
+          // 표시용이므로 폴백을 쓴다 — 집행은 위 resolveService(카탈로그 전용)를 그대로 쓴다.
+          services: ['tk', 'ig'].map((pl) => { const v = serviceForShow(campaign, pl);
+            return v ? { plat: pl, id: v.service, name: v.name, rate: v.rate } : null; }).filter(Boolean) },
         /* 로컬 파일이 없으면(배포본) 시트에 적어둔 시각을 쓴다 — 팀원 화면에서 '아직'만 뜨던 이유다. */
         balance,
         scannedAt: scanLatest(campaign).ranAt || (all.scans && all.scans.follower) || null,
@@ -592,7 +602,10 @@ export async function handler(req, res) {
           /* 중지했거나 못 본 계정이 있으면 '방금 완료' 도장을 찍지 않는다.
              40명 중 3명 돌고 중지해도 배포본 팀원 화면엔 '업로드 스캔: 방금' 이라고 떴다.
              perf(조회수) 스캔은 업로드된 계정만 도는 다른 일이므로 업로드 시계를 건드리지 않는다. */
-          if (!perf && !r.stopped && !r.failed) stampScan(campaign, 'upload');
+          /* '중지'는 스캔이 아니지만 '몇 개 못 봤다'는 정상이다(틱톡·인스타는 늘 몇 개 막힌다).
+             실패 0건만 찍게 두면 시계가 영영 안 갱신돼 팀원 화면이 '7/25' 에 멈춘다 —
+             ②-14 를 고치다 반대쪽으로 넘어갔다. 중지만 걸러낸다. */
+          if (!perf && !r.stopped) stampScan(campaign, 'upload');
           contentScanState = { running: false, mode: perf ? 'perf' : full ? 'full' : 'upload', done: r.total, total: r.total, up: r.up, newUp: r.newUp || 0, written: r.written, writeError: r.writeError || null, failed: r.failed, failedHandles: r.failedHandles, stopped: r.stopped, error: null, ranAt: new Date().toISOString() }; })
         .catch((e) => { contentScanState = { running: false, done: 0, total: 0, up: 0, written: 0, failed: 0, error: e.message, ranAt: null }; })
         .finally(() => { scanConfirmResolve = null; scanResumeResolve = null; });
@@ -746,8 +759,8 @@ export async function handler(req, res) {
           if (r.requested) { await writeOrders(campaign, orders); refill = r; }
         } catch (e) { console.error('[자동리필] 실패(스캔은 정상):', (e && e.message) || e); }
       }
-      // 못 본 계정이 있으면 '방금' 이라고 하지 않는다 — 그 결과는 완전하지 않다.
-      if (!sync.scanFailed) stampScan(campaign, 'follower');   // 기다리지 않는다(실패해도 응답은 성공)
+      // 몇 개 못 긁는 것은 정상이다(늘 있다). 그걸로 시계를 멈추면 영영 안 갱신된다.
+      stampScan(campaign, 'follower');   // 기다리지 않는다(실패해도 응답은 성공)
       return send(res, 200, { ok: true, scannedAt: scanLatest(campaign).ranAt, scannedCount: sync.scannedCount, scanTried: sync.scanTried, scanFailed: sync.scanFailed, scanFailedHandles: sync.scanFailedHandles || [], writeError: sync.writeError || null, nicksWritten: sync.nicksWritten, refill, accounts: await buildAccounts(campaign, orders), orders: markStale(orders) });
     }
 
@@ -806,7 +819,7 @@ export async function handler(req, res) {
            '몇 건 올라왔는지'가 영영 사라졌다. 상태에 두면 다시 열어도 읽어 갈 수 있다. */
         igContentState = { phase: 'done', done: out.scannedCount, total: out.total,
           ranAt: new Date().toISOString(), result: { ...out, detected: undefined } };
-        if (!out.stopped && !out.failed) stampScan(campaign, 'upload');   // 중지·부분실패는 '방금'이 아니다
+        if (!out.stopped) stampScan(campaign, 'upload');   // 중지는 '방금'이 아니다(부분실패는 정상)
         return send(res, 200, { ok: true, ...out, detected: undefined });
       } catch (e) {
         igContentState = { phase: 'error', error: e.message };

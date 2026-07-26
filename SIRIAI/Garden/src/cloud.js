@@ -33,6 +33,8 @@ export const LOCAL_ONLY = new Set([
   '/api/execute',
   '/api/order/close',
   '/api/order/abandon',
+  '/api/order/done',      // 새로 만든 것 — 여기 안 넣으면 배포본 공개 URL 에서 장부를 고칠 수 있다
+
   '/api/order/refill',
   '/api/rate',
   '/api/service',

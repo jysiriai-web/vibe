@@ -553,6 +553,9 @@ function readDropdowns_() {
 }
 function doGet(e) {
   try {
+    // ⚠️ 토큰이 안 심겼으면 '전부 거부'다. 이 가드가 없으면 (''||'') !== '' 가 false 라
+    //    토큰을 아예 안 실은 요청이 그대로 통과한다 — 잠그려던 게 활짝 열린다.
+    if (!TOKEN) return json_({ error: 'bridge token not configured' });
     if ((e.parameter.token || '') !== TOKEN) return json_({ error: 'unauthorized' });
     initCols_(); // 헤더 기반으로 열 매핑 해석 (COL 재설정) — colmap 으로 노출해 검증 가능
     var action = e.parameter.action || 'list';
@@ -746,6 +749,7 @@ function doPost(e) {
   try {
     var body;
     try { body = JSON.parse(e.postData.contents); } catch (err) { return json_({ error: 'bad json' }); }
+    if (!TOKEN) return json_({ error: 'bridge token not configured' });   // 위 doGet 과 같은 이유
     if ((body.token || '') !== TOKEN) return json_({ error: 'unauthorized' });
     initCols_(); // 헤더 기반 열 매핑 — cells 의 필드명 해석·마스터 쓰기에 사용
     if (body.deliver) return json_(deliverReviewed_(body.deliver.sheetId, body.deliver.rows)); // 검수완료 → 납품시트 기입 (자체 헤더 탐색이라 COL 무관)
