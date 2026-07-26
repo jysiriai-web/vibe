@@ -10,7 +10,7 @@
  */
 var LUN8_SOURCES = [
   { id: '1Ov0v2JnLH9aLo0cZ8X1GnsNSOGKNJYfNiL8A3rVG9JU', company: 'SIRIAI' },  // 시리아이 모집시트
-  // { id: '<마루 모집시트 id>', company: 'MARU' },   // ← 마루 시트 받으면 여기 활성화
+  { id: '1slDXWW_S6HUUptAxRJ6VcgmXPPcO2lJJIOGVFwMOFmY', company: 'MARU' },    // 마루 모집시트(7/23~29 폼)
 ];
 var LUN8_TARGET = { tiktok: 50, instagram: 50, overbook: 5 };  // 목표(플랫폼별 검수완료) + 오버부킹 허용.
 var LUN8_REFER_FEE = 3000;   // 친구 1명 소개당 추가 정산(엔). 바뀌면 여기만 고치고 '① 연락열 정리' 재실행.
@@ -125,7 +125,43 @@ function setupLun8() {
     catch (e) { Logger.log('⚠️ 소스 열기 실패 (' + src.company + ', id=' + src.id + '): ' + e.message + ' — 이 소스 건너뜀'); return; }
     var rHead = rvals[0].map(function (v) { return t(v).toLowerCase(); });
     var rc = function (kw) { kw = kw.toLowerCase(); for (var j = 0; j < rHead.length; j++) if (rHead[j].indexOf(kw) >= 0) return j; return -1; };
-    var iName = rc('이름'), iMail = rc('이메일'), iTel = rc('연락처'), iTk = rc('tiktok'), iIg = rc('instagram'), iSched = rc('예정'), iConf = rc('확정');
+    /* 여러 이름 중 먼저 걸리는 것. 마루 폼은 헤더가 일본어라 한국어 키워드로는
+       한 칸도 못 찾았다 — 그대로 돌리면 0명 추가하고 '성공'이라고 답한다(제일 나쁜 결과). */
+    var rcAny = function (list) { for (var i = 0; i < list.length; i++) { var j = rc(list[i]); if (j >= 0) return j; } return -1; };
+    var iName  = rcAny(['이름', 'お名前', '名前', 'name']);
+    var iMail  = rcAny(['이메일', 'メール', 'mail']);
+    var iTel   = rcAny(['연락처', '電話', 'tel']);
+    var iSched = rcAny(['예정', '予定']);
+    var iConf  = rcAny(['확정', '確定']);
+    /* 마루 폼은 틱톡·인스타 열이 따로 없다. '참가 희망 SNS'(TikTok/Instagram)와
+       'SNS 링크' 한 칸으로 되어 있어, 링크 하나를 그 선택값에 따라 갈라 넣어야 한다.
+       아이디 칸(＠전각 포함)은 링크가 lite.tiktok 단축주소일 때의 대비책이다. */
+    var iPlat  = rcAny(['参加を希望するsns', '希望するsns', '플랫폼']);
+    var iLink  = rcAny(['リンク', 'url']);
+    var iSnsId = rcAny(['id（ユーザー名）', 'ユーザー名', 'sns의 id']);
+    var iTk = rc('tiktok'), iIg = rc('instagram');
+    // 위 두 칸을 못 찾았고 '선택+링크' 형태면, 행마다 갈라 넣는다(아래 pickLinks).
+    var splitMode = (iTk < 0 && iIg < 0 && iLink >= 0 && iPlat >= 0);
+    if (splitMode) Logger.log('ℹ️ ' + src.company + ': 플랫폼 선택+링크 한 칸 형식으로 읽습니다.');
+    else if (iTk < 0 && iIg < 0) {
+      Logger.log('⚠️ ' + src.company + ': 틱톡·인스타 열을 못 찾았어요 — 이 소스 건너뜁니다(헤더 확인 필요).');
+      return;
+    }
+    /* 한 행에서 (틱톡링크, 인스타링크)를 뽑는다.
+       링크가 lite.tiktok.com 단축주소면 핸들을 못 뽑으므로 아이디 칸으로 만들어 준다
+       (전각 ＠·앞뒤 공백 제거). 실제로 마루 시트에 3건 있었다. */
+    var pickLinks = function (row) {
+      if (!splitMode) return [iTk >= 0 ? cleanUrl(row[iTk]) : '', iIg >= 0 ? cleanUrl(row[iIg]) : ''];
+      var pv = t(row[iPlat]).toLowerCase();
+      var isIg = pv.indexOf('instagram') >= 0 || pv.indexOf('インスタ') >= 0;
+      var link = cleanUrl(row[iLink]);
+      var id = iSnsId >= 0 ? t(row[iSnsId]).replace(/[＠@]/g, '').replace(/\s+/g, '') : '';
+      // 단축주소·빈 링크는 아이디로 대체
+      var bad = !link || link.indexOf('lite.tiktok.com') >= 0 || !/(tiktok|instagram)\.com/i.test(link);
+      if (bad && id) link = isIg ? 'https://www.instagram.com/' + id : 'https://www.tiktok.com/@' + id;
+      if (!link) return ['', ''];
+      return isIg ? ['', link] : [link, ''];
+    };
 
     // 친구 소개 선반영: '친구N SNS링크/이메일' 칸을 먼저 훑어 (소개받은 사람 → 소개한 사람) 지도를 만든다.
     // 소개받은 쪽이 명단에 먼저 나올 수도 있어서 본 루프 전에 한 번에 모아둔다.
@@ -145,7 +181,8 @@ function setupLun8() {
 
     for (var r2 = 1; r2 < rvals.length; r2++) {
       var row = rvals[r2];
-      var tk = iTk >= 0 ? cleanUrl(row[iTk]) : '', ig = iIg >= 0 ? cleanUrl(row[iIg]) : '', mail = iMail >= 0 ? t(row[iMail]) : '';
+      var _lk = pickLinks(row);
+      var tk = _lk[0], ig = _lk[1], mail = iMail >= 0 ? t(row[iMail]) : '';
       var a = tkH(tk), b = igH(ig), m = mail.toLowerCase();
       if (!a && !b && !m) continue;                     // 식별자 하나도 없으면 스킵
       var ex = (a && seenT[a]) || (b && seenI[b]) || (m && seenM[m]);   // 틱톡·인스타·이메일 중 하나라도 겹치면 동일인

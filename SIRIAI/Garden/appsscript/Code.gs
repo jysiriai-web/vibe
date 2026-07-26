@@ -781,6 +781,8 @@ function doPost(e) {
         case 'addLun8Memo':             out = addLun8Memo(); break;
         case 'fixLun8Summary':          out = fixLun8Summary(); break;
         case 'fixLun8Dropdowns':        out = fixLun8Dropdowns(); break;
+        // 데이터가 저 아래(410행~)로 떨어진 걸 위로 끌어올린다(일회성 정리).
+        case 'compactLun8Rows':         out = compactLun8Rows(); break;
         default: return json_({ error: '허용되지 않은 작업: ' + ran });
       }
       return json_({ ok: true, ran: ran, result: out || '완료', setupRan: true });
