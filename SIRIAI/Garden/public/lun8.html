@@ -2322,13 +2322,18 @@ function viewUploadAll(){
 function secureKpi(geon, mirCut){
   const sec = cfg().secure, cap = cfg().settleCap || 0;
   if(!sec) return kpi('확보 · 건', String(geon), { ic:IC.split });
-  // 미러링을 1건으로 센 결과라는 걸 숨기지 않는다 — 납품 때 2건으로 밀 여지가 있어서다.
+  /* 무엇이 빠져서 이 숫자가 됐는지 말한다.
+     모집(사람×플랫폼 슬롯)과 확보가 다른 값인데 이유를 안 적으면 '왜 120이 114지'를 아무도 못 푼다.
+     미러링은 납품 때 2건으로 밀 여지가 있고, 드랍은 그 사람이 아예 빠진 것이라 성격이 다르다. */
   const mirNote = mirCut ? ` <span class="cmuted">· 미러링 ${mirCut}건 제외</span>` : '';
+  const dropSlots = D.filter(inCampaign).filter(isDropped)
+    .reduce((a,d)=> a + platsOn().filter(p=>d[p]).length, 0);
+  const dropNote = dropSlots ? ` <span class="cmuted">· 최종 드랍 ${dropSlots}건 제외</span>` : '';
   const ok = geon >= sec.target, mid = geon >= cap;
   const accent = ok ? 'var(--ok-ink)' : mid ? 'var(--warn)' : 'var(--needs)';
   const sub = (ok ? `목표 ${sec.target}건 달성 — 미업로드 여유까지 확보`
     : mid ? `인정상한 ${cap}건은 넘었어요 · 목표 ${sec.target}건까지 ${sec.target-geon}건`
-          : `<b class="warn-t">인정상한 ${cap}건에 ${cap-geon}건 모자라요</b> — 정산 물량이 안 채워집니다`) + mirNote;
+          : `<b class="warn-t">인정상한 ${cap}건에 ${cap-geon}건 모자라요</b> — 정산 물량이 안 채워집니다`) + mirNote + dropNote;
   return kpi('확보 · 건', ofTot(geon, sec.target), { ic:IC.split, accent, sub });
 }
 function bufferKpi(){
@@ -3520,7 +3525,11 @@ function renderStats(){
   const cap  = cfg().settleCap || 0;
   const stat=(k,v,small)=> `<div class="stat"><span class="k">${k}</span><span class="v"${small?' style="font-size:14px"':''}>${v}</span></div>`;
   let h = '';
-  h += stat('모집', `${secured}<small> 건 / ${(cfg().secure&&cfg().secure.target)||cap}</small>`);
+  /* ⚠️ '모집' 에 확보 목표(115)를 분모로 달면 안 된다.
+     모집은 사람×플랫폼 슬롯을 그대로 센 값(지금 120)이고, 목표 115 는 '확보' 기준이다.
+     둘을 붙이면 '120/115 → 목표 초과' 로 읽히는데, 실제 확보는 114 로 1건 모자란다.
+     세는 것이 다른데 분모가 같으면 화면이 거짓말을 한다. 목표 대비는 확보 카드가 말한다. */
+  h += stat('모집', `${secured}<small> 건 · ${inC.length}명</small>`);
   h += stat('업로드', `${upN}<small> 건</small>`);
   h += stat('검수완료', `${revN}<small> 건${goalGeon()?' / '+goalGeon():''}</small>`);
   h += stat('마지막 스캔', cfg().scan, true);   // 값은 업로드 스캔 시각
