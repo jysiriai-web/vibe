@@ -136,6 +136,8 @@ body.nav-collapsed .side-toggle { justify-content: center; padding: 9px; }
 .cnt { font-size: 12px; font-weight: 700; background: var(--line2); color: var(--muted); padding: 1px 8px; border-radius: 20px; font-variant-numeric: tabular-nums; }
 .nav .tab.active .cnt { background: #fff; color: var(--accent-ink); }
 .cnt.warn { background: var(--needs-bg); color: var(--needs-ink); }
+/* 배지 안의 단위 — 숫자보다 한 단계 작고 흐리게. 숫자가 먼저 읽혀야 한다. */
+.cnt .cnt-u { font-size: .8em; font-weight: 600; opacity: .62; margin-left: 1px; }
 main { padding: 22px 30px 70px; }
 
 .tscroll { overflow-x: auto; max-width: 100%; border-radius: 14px; box-shadow: var(--shadow); }
@@ -2319,9 +2321,15 @@ function viewUploadAll(){
    모집이 늘면 곧바로 사실과 어긋나는데, 화면이 틀린 말을 하는 게 설명이 없는 것보다 나쁘다.
    대신 색으로 말한다: 목표 넘으면 초록 · 인정상한은 넘었으면 노랑 · 그 아래면 빨강.
    기준이 두 개인 이유 — 인정상한(105)은 계약 물량이고 목표(115)는 미업로드까지 감안한 여유다. */
+/* 분모는 '이번 캠페인에서 우리가 모집한 총량'(사람×플랫폼 슬롯)이다.
+   분자는 거기서 드랍·미러링을 뺀 '지금 살아 있는 건수'.
+   ⚠️ 예전엔 분모가 목표(115)였다. 그러면 '114/115' 가 되는데, 바로 위 상단바는
+   모집 120 을 말해서 두 카드가 다른 말을 했다. 같은 것을 세고 하나를 빼는 관계로 두면
+   '120건 모았는데 6건이 빠져서 지금 114건' 이 한 줄로 읽힌다. 목표는 아래 설명에 적는다. */
 function secureKpi(geon, mirCut){
   const sec = cfg().secure, cap = cfg().settleCap || 0;
-  if(!sec) return kpi('확보 · 건', String(geon), { ic:IC.split });
+  const total = D.filter(inCampaign).reduce((a,d)=> a + platsOn().filter(p=>d[p]).length, 0);
+  if(!sec) return kpi('확보 · 건', ofTot(geon, total), { ic:IC.split });
   /* 무엇이 빠져서 이 숫자가 됐는지 말한다.
      모집(사람×플랫폼 슬롯)과 확보가 다른 값인데 이유를 안 적으면 '왜 120이 114지'를 아무도 못 푼다.
      미러링은 납품 때 2건으로 밀 여지가 있고, 드랍은 그 사람이 아예 빠진 것이라 성격이 다르다. */
@@ -2334,7 +2342,7 @@ function secureKpi(geon, mirCut){
   const sub = (ok ? `목표 ${sec.target}건 달성 — 미업로드 여유까지 확보`
     : mid ? `인정상한 ${cap}건은 넘었어요 · 목표 ${sec.target}건까지 ${sec.target-geon}건`
           : `<b class="warn-t">인정상한 ${cap}건에 ${cap-geon}건 모자라요</b> — 정산 물량이 안 채워집니다`) + mirNote + dropNote;
-  return kpi('확보 · 건', ofTot(geon, sec.target), { ic:IC.split, accent, sub });
+  return kpi('확보 · 건', ofTot(geon, total), { ic:IC.split, accent, sub });
 }
 function bufferKpi(){
   const sec = cfg().secure; if(!sec) return '';
@@ -3512,7 +3520,10 @@ function computeCounts(){
   let need=0; inC.forEach(d=> platsOn().forEach(p=>{ if(gStat(d,p).st==='target') need++; }));
   let deliv=0; inC.forEach(d=> platsOn().forEach(p=>{ if(uploaded(d,p)) deliv++; }));
   const unpaid = inC.filter(d=>!d.settle.paid).length;
-  return { recruit:inC.length, upload:upl, garden:need, deliver:deliv, settle:unpaid };
+  /* 모집 탭 배지는 '건'으로 센다 — 화면 안의 확보 카드와 같은 값이어야 한다.
+     사람 수(73)를 띄우면 옆 카드가 114 를 말하는데 배지만 73 이라 서로 다른 말이 된다. */
+  const geonLive = inC.reduce((a,d)=> a + geonOf(d), 0);
+  return { recruit:geonLive, upload:upl, garden:need, deliver:deliv, settle:unpaid };
 }
 function renderStats(){
   const inC = D.filter(inCampaign);
@@ -3525,11 +3536,11 @@ function renderStats(){
   const cap  = cfg().settleCap || 0;
   const stat=(k,v,small)=> `<div class="stat"><span class="k">${k}</span><span class="v"${small?' style="font-size:14px"':''}>${v}</span></div>`;
   let h = '';
-  /* ⚠️ '모집' 에 확보 목표(115)를 분모로 달면 안 된다.
-     모집은 사람×플랫폼 슬롯을 그대로 센 값(지금 120)이고, 목표 115 는 '확보' 기준이다.
-     둘을 붙이면 '120/115 → 목표 초과' 로 읽히는데, 실제 확보는 114 로 1건 모자란다.
-     세는 것이 다른데 분모가 같으면 화면이 거짓말을 한다. 목표 대비는 확보 카드가 말한다. */
-  h += stat('모집', `${secured}<small> 건 · ${inC.length}명</small>`);
+  /* 상단바는 '지금 손에 쥔 것'을 말한다 — 모집 총량(120)이 아니라 드랍을 뺀 확보(114).
+     예전엔 모집 120 을 띄우고 분모로 목표 115 를 달아 '초과 달성' 처럼 읽혔다.
+     총량과 목표는 아래 확보 카드가 '114 / 120' 과 설명으로 다 말한다. */
+  const geonLive = inC.reduce((a,d)=> a + geonOf(d), 0);
+  h += stat('확보', `${geonLive}<small> 건 · ${inC.length}명</small>`);
   h += stat('업로드', `${upN}<small> 건</small>`);
   h += stat('검수완료', `${revN}<small> 건${goalGeon()?' / '+goalGeon():''}</small>`);
   h += stat('마지막 스캔', cfg().scan, true);   // 값은 업로드 스캔 시각
@@ -3537,9 +3548,15 @@ function renderStats(){
 }
 function renderNav(){
   const c = computeCounts();
-  const set=(id,v,warn)=>{ const e=document.getElementById(id); e.textContent=v; e.className='cnt'+(warn&&v?' warn':''); };
-  set('c-recruit',c.recruit,false); set('c-upload',c.upload,false);
-  set('c-garden',c.garden,true); set('c-deliver',c.deliver,false); set('c-settle',c.settle,true);
+  /* 숫자만 있으면 무엇의 수인지 모른다 — '39' 가 건인지 명인지 화면에 단서가 없었다.
+     단위를 붙인다. 정산만 '명'(사람에게 지급하는 것)이고 나머지는 '건'이다. */
+  const set=(id,v,warn,unit)=>{
+    const e=document.getElementById(id); if(!e) return;
+    e.innerHTML = v ? `${nf(v)}<small class="cnt-u">${unit}</small>` : '0';
+    e.className='cnt'+(warn&&v?' warn':'');
+  };
+  set('c-recruit',c.recruit,false,'건'); set('c-upload',c.upload,false,'건');
+  set('c-garden',c.garden,true,'건'); set('c-deliver',c.deliver,false,'건'); set('c-settle',c.settle,true,'명');
 }
 function renderCampSelect(){
   const sel = document.getElementById('camp');
