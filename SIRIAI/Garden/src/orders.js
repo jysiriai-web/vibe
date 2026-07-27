@@ -27,7 +27,20 @@ export function saveOrders(dataDir, orders) {
 
 // SMM status 로 주문 remains/status/charge 갱신. Completed 만 스킵(취소·환불·부분도 갱신).
 export async function refreshOrders(smm, orders) {
-  const active = orders.filter((o) => o.id && o.status !== 'Completed');
+  /* ⚠️ 'Completed' 를 최종 상태로 보면 안 된다.
+     실제로 2026-07-26 에 서비스 #3693 주문 4건이 완료된 뒤 패널에서 통째로
+     Canceled·charge 0.00 으로 바뀌었는데(전액 환불), 우리는 영영 못 봤다 —
+     화면은 계속 '완료 · 12,608원 지출' 이라고 말했다.
+     완료돼도 환불 창(30일) 안이면 다시 묻는다. 취소·환불은 그 자체로 최종이라 뺀다. */
+  const FINAL = ['Canceled', 'Cancelled', 'Refunded'];
+  const RECHECK_MS = 30 * 86400000;
+  const active = orders.filter((o) => {
+    if (!o.id) return false;
+    if (FINAL.includes(String(o.status || ''))) return false;   // 이미 끝난 것
+    if (o.status !== 'Completed') return true;                  // 진행중은 당연히
+    const t = o.placedAt ? new Date(o.placedAt).getTime() : NaN;
+    return Number.isFinite(t) && Date.now() - t <= RECHECK_MS;  // 완료돼도 30일은 지켜본다
+  });
   if (!active.length) return orders;
   let statuses = {};
   try {
@@ -49,6 +62,13 @@ export async function refreshOrders(smm, orders) {
     const sc = toNum(st.start_count);
     if (Number.isFinite(sc)) o.startCount = sc;
     if (st.charge != null && st.charge !== '') o.charge = st.charge;
+    /* 패널이 취소하면 charge 가 0 으로 온다 = 환불됐다는 뜻이다.
+       cost 를 그대로 두면 화면이 안 나간 돈을 지출로 계속 센다. */
+    const chg = toNum(st.charge);
+    if (FINAL.includes(String(st.status || ''))) {
+      o.canceled = true;
+      if (Number.isFinite(chg)) { o.cost = chg; o.refunded = chg === 0; }
+    }
     const wasDone = o.done;
     o.done = TERMINAL.includes(st.status) || (Number.isFinite(r) && r === 0);
     // 처음 완료로 넘어간 순간을 기록 — 완료까지 걸린 시간(placedAt→doneAt) 계산용.

@@ -2847,10 +2847,13 @@ function gardenHistory(){
   if(!ORDERS.length) return '<div class="note-line">아직 가드닝 집행 내역이 없어요.</div>';
   const rows = ORDERS.slice().sort((a,b)=> String(b.placedAt||'').localeCompare(String(a.placedAt||'')));
   // 수기 집행은 패널마다 통화가 달라 원화로 적는다 — USD 합계만 세면 그 금액이 통째로 빠진다.
-  const spentUsd = rows.reduce((a,o)=> a + (Number(o.cost)||0), 0);
-  const spentKrwExtra = rows.reduce((a,o)=> a + (Number(o.costKrw)||0), 0);
-  const qty = rows.reduce((a,o)=> a + (Number(o.quantity)||0), 0);
-  const live = rows.filter(o=> !o.done).length;
+  /* 취소·환불된 주문은 지출이 아니다. refreshOrders 가 cost 를 0 으로 맞추지만,
+     혹시 못 맞춘 경우에도 여기서 한 번 더 뺀다(돈 숫자는 두 겹으로 막는다). */
+  const paid = o => !o.abandoned && !o.canceled;
+  const spentUsd = rows.filter(paid).reduce((a,o)=> a + (Number(o.cost)||0), 0);
+  const spentKrwExtra = rows.filter(paid).reduce((a,o)=> a + (Number(o.costKrw)||0), 0);
+  const qty = rows.filter(paid).reduce((a,o)=> a + (Number(o.quantity)||0), 0);   // 취소된 건 안 들어왔다
+  const live = rows.filter(o=> !o.done && !o.canceled).length;
   const cols = [
     { key:'when', label:'집행일', sv:o=>String(o.placedAt||''), cell:o=> o.placedAt ? esc(String(o.placedAt).slice(0,10).replace(/-/g,'.').slice(2)) : '<span class="emptydot">·</span>' },
     { key:'h', label:'계정', cls:'handle', sv:o=>o.handle||'', cell:o=> acctLink(o.handle, o.plat==='ig'?'ig':'tk') },
@@ -2868,6 +2871,7 @@ function gardenHistory(){
     { key:'keep', label:'지금 남음', cls:'num', thcls:'num',
       sv:o=>{ const k=keepOf(o); return k ? k.pct : -1; },
       cell:o=>{
+        if(o.canceled) return `<span class="cmuted" title="패널에서 취소된 주문이라 비교할 것이 없어요">—</span>`;
         const k = keepOf(o);
         if(!k) return `<span class="cmuted" title="집행 전 팔로워 값이 없어 비교할 수 없어요(손으로 넣은 주문)">비교 불가</span>`;
         const cls = k.pct >= 70 ? 'ok' : k.pct >= 40 ? 'stale' : 'needs';
@@ -2887,6 +2891,8 @@ function gardenHistory(){
         // 섞으면 나간 돈이 지출에서 사라지고 재주문 차단도 풀린다.
         if(o.manual) return `<span class="chip manual">수기 집행${o.panel?' · '+esc(o.panel):''}</span>${LOCAL.on?` <button class="btn ghost small" data-odone="${esc(o.uid||'')}">완료 처리</button>`:''}`;
         if(o.cancelStuck) return '<span class="chip needs">취소·환불 확인</span>';
+        // 패널이 취소한 주문 — '완료'와 섞이면 안 된다. 돈이 안 나갔다는 뜻이다.
+        if(o.canceled) return `<span class="chip gray" title="패널에서 취소됐어요${o.refunded?' · 전액 환불':''}">취소${o.refunded?' · 환불':''}</span>`;
         if(o.done) return '<span class="chip ok">완료</span>';
         if(o.stale) return '<span class="chip stale">정체 — 확인 필요</span>';
         return `<span class="lk sched">채워지는 중 ${nf(o.remains)} 남음</span>`; } },
