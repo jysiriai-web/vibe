@@ -1187,6 +1187,15 @@ const CAMPAIGNS = {
        확보 115 = 시리아이 94(현재 틱톡48/인스타46) + 마루 21(요청함)
      즉 여유분 10건이 '미업로드 완충'이고, 이게 0이 되면 마루에 추가 요청이 들어가야 한다. */
   lun8:   { name:'LUN8 · SNEAKERS', plats:['tk','ig'], targets:{tk:50, ig:50}, settleCap:105,
+            /* 진행사 — 역할로 가른다. 'MARU' 라는 이름이 로직에 박히면 다음 실행사와 일할 때
+               코드를 다시 손대야 한다. 여기 한 줄 추가하면 끝나게 둔다.
+                 self   = 자체(우리) — 확정메일·예정일 등 승인절차를 우리가 돌린다
+                 agency = 실행사     — 그쪽이 자기 방식으로 돌린다. 우리 승인절차는 건너뛴다
+               fee: 콘텐츠 1건 단가(엔) · feeBoth: 양쪽 업로드(미러링 아님) 묶음가 — 없으면 fee×건수 */
+            companies:[
+              { id:'SIRIAI', role:'self',   label:'시리아이', fee:5000, feeBoth:12000 },
+              { id:'MARU',   role:'agency', label:'마루',     fee:6000 },
+            ],
             secure:{ target:115, SIRIAI:94, MARU:21 }, sub:'댄스챌린지', scan:'—', sheet:'https://docs.google.com/spreadsheets/d/1PjiAHc7Zfonl1jXBPqzE8LmDBjCfAHcK6ycGUsLEcf8/edit',
             // 모집시트 — 진행사마다 하나. 마스터와 같은 자리에 둔다(정적 정보라 서버 왕복할 이유가 없다).
             recruits:[{company:'SIRIAI',url:'https://docs.google.com/spreadsheets/d/1Ov0v2JnLH9aLo0cZ8X1GnsNSOGKNJYfNiL8A3rVG9JU/edit'},{company:'MARU',url:'https://docs.google.com/spreadsheets/d/1slDXWW_S6HUUptAxRJ6VcgmXPPcO2lJJIOGVFwMOFmY/edit'}],
@@ -1293,7 +1302,9 @@ function fromApi(a){
   return {
     id: a.row,                                   // 시트 행번호 = 유일키
     email: String(a.email == null ? '' : a.email).trim(),
-    co: a.company==='MARU' ? 'MARU' : 'SIRIAI',
+    /* ⚠️ 예전엔 'MARU' 가 아니면 전부 'SIRIAI' 로 접었다 — 진행사가 늘거나 이름이 바뀌면
+       그 인원이 통째로 우리 것으로 잡힌다. 설정에 있는 이름이면 그대로 두고, 없으면 자체로 본다. */
+    co: (function(){ const v = String(a.company||'').trim(); return COS().some(c=>c.id===v) ? v : SELF_CO(); })(),
     nick: nick || (tk && tk.h) || ('행 '+a.row),
     plats: plats,
     // 추천·미러링·업로드확률·정산방식은 아직 시트에서 안 올라온다. 가짜로 채우면 화면이 거짓말을 하므로
@@ -1523,7 +1534,8 @@ const revFail = p => !!p && (p.snd==='f' || p.sec==='f' || p.hash==='f');
 // 어느 칸이 미준수인지 — 툴팁으로 알려주면 편집 모달을 안 열어도 무엇을 고쳐 받을지 안다.
 const revFailWhat = p => [[p&&p.snd,'음원'],[p&&p.sec,'음원구간'],[p&&p.hash,'해시태그']]
   .filter(([v])=>v==='f').map(([,n])=>n).join('·');
-const coChip = c => `<span class="co ${c==='MARU'?'co-maru':'co-siriai'}">${c}</span>`;
+// 색은 역할로 — 실행사가 여럿이어도 '우리 것 / 남의 것'이 한눈에 갈린다.
+const coChip = c => `<span class="co ${isAgencyCo(c)?'co-maru':'co-siriai'}" title="${esc(isAgencyCo(c)?'실행사':'자체')}">${esc(c)}</span>`;
 const REV = { p:['rev-pass','준수'], f:['rev-fail','미준수'], n:['rev-none','미확인'] };
 function revSel(k,id,field,plat){ const opts=[['n','미확인'],['p','준수'],['f','미준수']]; const [cl]=REV[k];
   return `<select class="rev-sel ${cl}" data-rev="${id}|${field}|${plat}">${opts.map(([v,l])=>`<option value="${v}"${v===k?' selected':''}>${l}</option>`).join('')}</select>`; }
@@ -1537,12 +1549,21 @@ const inCampaign = d => platsOn().some(p=> d.plats.includes(p) && d[p]!==null);
 const isDropped = d => String(d.fixed||'').trim() === '최종 드랍';
 /* 마루가 모집한 사람은 마루가 LINE 오픈챗으로 직접 챙긴다 — 우리 확정메일·날짜 확정 대상이 아니다.
    여기에 섞으면 '확정메일 미발송 14명' 처럼 우리가 할 일이 아닌 게 할 일로 잡힌다. */
-const oursToContact = d => d.co !== 'MARU';
+/* 진행사 역할. 설정에 없는 이름이 들어오면 '자체'로 본다 —
+   실행사로 잘못 보면 확정메일을 안 보내 사람을 놓친다(안 보내는 쪽이 더 큰 사고다). */
+const COS = ()=> (cfg().companies && cfg().companies.length) ? cfg().companies : [{ id:'SIRIAI', role:'self', label:'시리아이' }];
+const SELF_CO = ()=> (COS().find(c=>c.role==='self') || COS()[0]).id;
+const coInfo = c => COS().find(x=>x.id===c) || { id:c, role:'self', label:c };
+const isAgencyCo = c => coInfo(c).role === 'agency';
+const coLabel = c => coInfo(c).label || c;
+/* 실행사가 모은 사람은 그쪽이 자기 방식으로 돌린다 — 우리 승인절차(확정메일·예정일)를 건너뛴다. */
+const isAgency = d => isAgencyCo(d.co);
+const oursToContact = d => !isAgency(d);
 /* 우리가 일정을 관리하는 사람인가. 마루는 외주라 예정일을 안 받고(폼에 날짜 칸이 없다)
    LINE 오픈챗으로 마루가 직접 챙긴다 — 일정 스트립·지연 판정에서 통째로 뺀다.
    안 빼면 '예정일 미정 14명'이 영원히 남아 그 숫자를 아무도 안 보게 된다.
    업로드 여부는 계속 스캔·집계한다(계약 건수는 마루 것도 우리 실적이다). */
-const oursToSchedule = d => d.co !== 'MARU';
+const oursToSchedule = d => !isAgency(d);
 /* 진행사 필터(마루/시리아이). 여러 진행사가 섞인 캠페인에서만 뜻이 있다. */
 function companiesOn(){
   const s = new Set(); D.filter(inCampaign).forEach(d=>{ if(d.co) s.add(d.co); });
@@ -1902,6 +1923,16 @@ function openMemoPop(btn, id){
   if(r.bottom + h + 12 > window.innerHeight) pop.style.top = (r.top + window.scrollY - h - 6) + 'px';
 }
 function closeMemoPop(){ document.querySelectorAll('.memo-pop').forEach(p=>p.remove()); }
+/* 말풍선 안의 '편집' 은 여기서 받는다.
+   ⚠️ 말풍선은 document.body 에 붙는데(표를 다시 그리지 않으려고 그렇게 뒀다),
+   [data-edit] 위임 핸들러는 #content 에 걸려 있다 — 그래서 버튼이 눌려도 아무 일도 안 났다. */
+document.addEventListener('click', e=>{
+  const ed = e.target.closest('.memo-pop [data-edit]');
+  if(!ed) return;
+  const id = +ed.dataset.edit;
+  closeMemoPop();
+  openRowEdit(id, ed.dataset.editp || '');
+});
 document.addEventListener('click', e=>{
   if(!e.target.closest('.memo-pop') && !e.target.closest('[data-memo]')) closeMemoPop();
 });
@@ -2140,7 +2171,7 @@ function viewRecruit(){
   const totPeople = all.length;
   const tkPeople = all.filter(d=>d.tk && platsOn().includes('tk')).length;
   const igPeople = all.filter(d=>d.ig && platsOn().includes('ig')).length;
-  const maruGeon = all.filter(d=>d.co==='MARU').reduce((a,d)=>a+geonOf(d),0);
+  const maruGeon = all.filter(isAgency).reduce((a,d)=>a+geonOf(d),0);   // 실행사 전체
   const siGeon   = all.filter(d=>d.co==='SIRIAI').reduce((a,d)=>a+geonOf(d),0);
   const tkGeon = tkPeople, igGeon = igPeople, totGeon = maruGeon+siGeon;
   // 미러링으로 뺀 건수. 납품 때 2건으로 밀기로 하면 이만큼 도로 올라간다.
@@ -2176,7 +2207,7 @@ function viewRecruit(){
       <p class="addcard-desc">링크를 넣으면 <b>마스터시트 맨 아래에 한 줄</b> 추가돼요. 이름·팔로워는 비워 두면 스캔할 때 채워집니다.
         <br><span class="cmuted">정산 금액 수식은 자동으로 안 붙어요 — 필요하면 마스터시트에서 위 행 수식을 끌어내려 주세요.</span></p>
       <div class="addgrid">
-        <div class="addfield"><label>진행사</label><select class="inp" id="apCo"><option>MARU</option><option>SIRIAI</option></select></div>
+        <div class="addfield"><label>진행사</label><select class="inp" id="apCo">${COS().map(c=>`<option value="${esc(c.id)}">${esc(c.id)}${c.role==='agency'?' · 실행사':''}</option>`).join('')}</select></div>
         <div class="addfield"><label>틱톡 링크</label><input class="inp wide" id="apTk" placeholder="tiktok.com/@handle"></div>
         ${hasIG()?`<div class="addfield"><label>인스타 링크</label><input class="inp wide" id="apIg" placeholder="instagram.com/username"></div>`:''}
         <button class="btn primary" id="apSave">추가</button>
@@ -2960,7 +2991,11 @@ function viewDeliver(){
    ⚠️ 다만 이건 '자동값'일 뿐이다. 마감에 확보가 모자라면 미러링도 2건으로 납품하고
    그 사람에겐 절반만 인정하거나 1만엔으로 쳐주는 식의 합의가 생긴다.
    그 경우는 개별단가(override)에 금액을 넣으면 자동값을 무시한다 — 사람이 정할 자리다. */
-const MARU_FEE = 6000, SIRIAI_FEE = 5000, SIRIAI_BOTH = 12000;
+/* 단가는 진행사 설정(companies[].fee / feeBoth)에서 읽는다.
+   여기 상수로 두면 진행사가 늘 때마다 코드를 고쳐야 한다. 설정에 없으면 아래 기본값. */
+const FEE_DEFAULT = 5000, FEE_BOTH_DEFAULT = 12000;
+const feeOf = c => { const v = coInfo(c).fee; return Number.isFinite(Number(v)) ? Number(v) : FEE_DEFAULT; };
+const feeBothOf = c => { const v = coInfo(c).feeBoth; return Number.isFinite(Number(v)) ? Number(v) : null; };
 function settleCalc(d){
   const s=d.settle, plats=platsOn();
   let dc=0; plats.forEach(p=>{ if(d[p]&&done(d[p])) dc++; });
@@ -2969,22 +3004,23 @@ function settleCalc(d){
     bd:`개별단가(자동수식 무시): ${nf(s.override)}엔` + (mir?' · 미러링 건':''), dc, mir };
   // 미러링은 같은 영상이라 콘텐츠로는 1건 — 자동값은 1건 기준으로 낸다.
   const payDc = mir ? Math.min(dc,1) : dc;
-  const si = d.co!=='MARU';
-  const bothOk = si && !mir && payDc>=2;   // 시리아이 · 서로 다른 영상 두 편
-  const unit = d.co==='MARU'?MARU_FEE:SIRIAI_FEE;
-  const base = bothOk ? SIRIAI_BOTH : payDc*unit;
+  /* 양쪽 묶음가는 그 진행사에 feeBoth 가 있을 때만 — 실행사는 보통 건당 정산이라 없다. */
+  const both = feeBothOf(d.co);
+  const bothOk = both!=null && !mir && payDc>=2;   // 묶음가가 있는 진행사 · 서로 다른 영상 두 편
+  const unit = feeOf(d.co);
+  const base = bothOk ? both : payDc*unit;
   const best = s.best?10000:0;
   const ref  = (d.refCount||0)*3000;
   const raw = base+best+ref;
   const amt = Math.min(raw,30000);
   const parts=[ bothOk
-    ? `양쪽 업로드(미러링 아님) ${nf(SIRIAI_BOTH)}`
-    : `콘텐츠 ${payDc}건 × ${nf(unit)}(${d.co==='MARU'?'마루':'시리아이'}) ${nf(base)}`];
+    ? `양쪽 업로드(미러링 아님) ${nf(both)}`
+    : `콘텐츠 ${payDc}건 × ${nf(unit)}(${esc(coLabel(d.co))}) ${nf(base)}`];
   if(mir && dc>1) parts.push(`미러링이라 ${dc}건 중 1건만 자동 인정`);
   if(best) parts.push(`최우수 +${nf(best)}`);
   if(ref)  parts.push(`추천 ${d.refCount}×3,000 +${nf(ref)}`);
   let bd = parts.join('  ·  ')+` = ${nf(raw)}`+(raw>30000?' → 3만 cap':'');
-  if(mir && dc>1) bd += `\n※ 2건으로 쳐주기로 했다면 개별단가에 금액을 넣으세요(예: ${nf(SIRIAI_BOTH)} 또는 10,000).`;
+  if(mir && dc>1) bd += `\n※ 2건으로 쳐주기로 했다면 개별단가에 금액을 넣으세요(예: ${nf(both ?? FEE_BOTH_DEFAULT)} 또는 10,000).`;
   return { amt, tag: mir&&dc>1?['mir','미러링 1건'] : raw>30000?['cap','3만 cap']:['auto','자동'], bd, dc, mir };
 }
 
@@ -2992,11 +3028,12 @@ function settleCalc(d){
 /* 기준별 진행사 건수. 확보·검수완료는 실제 데이터를 그대로 센다(비율 추정 아님). */
 function basisGeon(basis){
   const inC = D.filter(inCampaign);
-  const cnt = (co, f) => inC.filter(d=>d.co===co).reduce((a,d)=> a + platsOn().filter(p=> d[p] && f(d,p)).length, 0);
-  if(basis==='done')   return { M: cnt('MARU',(d,p)=>done(d[p])),        S: cnt('SIRIAI',(d,p)=>done(d[p])) };
-  if(basis==='secure') return { M: cnt('MARU',()=>true),                 S: cnt('SIRIAI',()=>true) };
-  // 목표 — 계약 인정상한을 현재 진행사 비율로 나눈다(마루 실물이 아직 안 왔을 수 있어 비율 추정)
-  const sM = cnt('MARU',()=>true), sS = cnt('SIRIAI',()=>true), sT = (sM+sS)||1;
+  // M = 실행사 합계, S = 자체 합계. 실행사가 둘 이상이어도 그대로 더해진다.
+  const cnt = (agency, f) => inC.filter(d=> isAgency(d)===agency).reduce((a,d)=> a + platsOn().filter(p=> d[p] && f(d,p)).length, 0);
+  if(basis==='done')   return { M: cnt(true,(d,p)=>done(d[p])),  S: cnt(false,(d,p)=>done(d[p])) };
+  if(basis==='secure') return { M: cnt(true,()=>true),           S: cnt(false,()=>true) };
+  // 목표 — 계약 인정상한을 현재 진행사 비율로 나눈다(실행사 실물이 아직 안 왔을 수 있어 비율 추정)
+  const sM = cnt(true,()=>true), sS = cnt(false,()=>true), sT = (sM+sS)||1;
   const cap = cfg().settleCap || platsOn().reduce((a,p)=>a+(cfg().targets[p]||0),0) || sT;
   const M = Math.round(cap*sM/sT);
   return { M, S: cap-M };
@@ -3009,7 +3046,11 @@ function simDefaults(basis){
   const refBonus = inC.reduce((a,d)=>a+(d.refCount||0)*3000,0);
   const winBonus = inC.filter(d=>d.settle.best).length*10000;
   const bonus = Math.round((refBonus+winBonus)*scale);   // 보너스도 같은 기준으로 스케일
-  return { basis, maruGeon:g.M, siGeon:g.S, rev:150000, fx:9.3, maruFee:MARU_FEE, siFee:SIRIAI_FEE, bonus, garden:1000000, ops:1000000 };
+  // 단가는 각 역할의 대표 진행사 설정에서 — 실행사가 여럿이면 첫 번째 것을 기본으로 깐다(사람이 고칠 수 있다).
+  const ag = COS().find(c=>c.role==='agency'), me = COS().find(c=>c.role==='self');
+  return { basis, maruGeon:g.M, siGeon:g.S, rev:150000, fx:9.3,
+    maruFee: ag ? feeOf(ag.id) : FEE_DEFAULT, siFee: me ? feeOf(me.id) : FEE_DEFAULT,
+    bonus, garden:1000000, ops:1000000 };
 }
 const BASIS = [['target','목표','계약 인정상한'],['secure','확보','지금 시트에 있는 건수'],['done','검수완료','실제 통과한 건수']];
 /* 기준을 바꾸면 건수·보너스만 다시 깔고, 사람이 손으로 고친 단가·환율·부대비용은 유지한다. */
@@ -3766,7 +3807,7 @@ function openRowEdit(id, rowPlat){
     body = `<div class="mform">
       <div class="row2">
         <div class="row"><label class="h">진행사</label>
-          <select class="inp" id="reCo"><option${d.co==='MARU'?' selected':''}>MARU</option><option${d.co==='SIRIAI'?' selected':''}>SIRIAI</option></select></div>
+          <select class="inp" id="reCo">${COS().map(c=>`<option value="${esc(c.id)}"${d.co===c.id?' selected':''}>${esc(c.id)}${c.role==='agency'?' · 실행사':''}</option>`).join('')}</select></div>
         <div class="row"><label class="h">크리에이터명 <small>시트에서만 수정</small></label><input class="inp" id="reNick" value="${esc(d.nick)}" readonly title="이 이름을 쓰는 열은 아직 대시보드에서 못 고쳐요 — 마스터시트에서 고쳐 주세요."></div>
       </div>
       <div class="row2">
