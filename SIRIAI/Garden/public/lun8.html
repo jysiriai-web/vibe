@@ -2800,14 +2800,18 @@ function gardenSummary(){
     else if(g.st==='ok') ok++;
     else if(g.st==='scan') scan++;
   }));
-  /* 지출 = 실제로 나간 돈. 두 가지를 놓치고 있었다:
+  /* 지출 = 실제로 나간 돈. 세 가지를 놓치고 있었다:
      ① 수기 집행은 패널 통화가 달라 원화(costKrw)로만 적힌다 — USD 만 세면 통째로 빠진다.
-     ② 포기(환불 신청)한 주문은 돌려받을 돈이라 '쓴 돈'이 아니다. 건수·명수에서도 뺀다. */
-  const live = ORDERS.filter(o=> !o.abandoned);
+     ② 포기(환불 신청)한 주문은 돌려받을 돈이라 '쓴 돈'이 아니다. 건수·명수에서도 뺀다.
+     ③ 패널이 취소·환불한 주문도 마찬가지다. 2026-07-26 에 #3693 주문 4건이 통째로
+        Canceled·charge 0.00 이 됐는데 여기만 안 빼서 '5건 · 2,800명 충전' 이라고 떴다 —
+        실제로 들어온 건 0명이고 나간 돈도 0원이다. */
+  const live = ORDERS.filter(o=> !o.abandoned && !o.canceled);
   const spentUsd = live.reduce((a,o)=> a + (Number(o.cost)||0), 0);
   const spentKrw = live.reduce((a,o)=> a + (Number(o.costKrw)||0), 0);
   const spentQty = live.reduce((a,o)=> a + (Number(o.quantity)||0), 0);
-  const dropped  = ORDERS.length - live.length;
+  const dropped  = ORDERS.filter(o=> o.abandoned).length;
+  const canceled = ORDERS.filter(o=> o.canceled).length;   // 패널이 취소·환불한 것
   const bal = BALANCE_USD;
   // 잔액으로 지금 필요한 만큼을 감당할 수 있나. 모자라면 충전해야 하니 미리 알린다.
   const shortUsd = bal!=null ? (needUsd - bal) : null;
@@ -2819,7 +2823,9 @@ function gardenSummary(){
     ${kpi('지금 필요한 금액', wonOf(needUsd), { ic:IC.coin||IC.split,
        sub: shortUsd!=null && shortUsd>0 ? `<b class="warn-t">잔액이 ${wonOf(shortUsd)} 모자라요</b>` : (bal!=null?`잔액 ${wonOf(bal)}`:'잔액 확인 불가') })}
     ${kpi('지금까지 지출', (Math.round(wonNum(spentUsd)+spentKrw)).toLocaleString('ko-KR')+'원', { ic:IC.check,
-       sub: live.length ? `${live.length}건 · ${nf(spentQty)}명 충전${dropped?` <span class="cmuted">· 포기 ${dropped}건 제외</span>`:''}` : '아직 집행 없음' })}
+       sub: (live.length ? `${live.length}건 · ${nf(spentQty)}명 충전` : '실제로 나간 돈 없음')
+         + (dropped ? ` <span class="cmuted">· 포기 ${dropped}건 제외</span>` : '')
+         + (canceled ? ` <span class="cmuted">· 취소·환불 ${canceled}건 제외</span>` : '') })}
     ${kpi('충족 · 계정', ok, { ic:IC.users, sub: `${nf(GMIN)}명 이상 확보됨${scan?` · 스캔 대기 ${scan}건`:''}` })}
   </div>`;
 }
