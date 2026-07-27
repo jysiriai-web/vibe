@@ -138,6 +138,8 @@ body.nav-collapsed .side-toggle { justify-content: center; padding: 9px; }
 .cnt.warn { background: var(--needs-bg); color: var(--needs-ink); }
 /* 배지 안의 단위 — 숫자보다 한 단계 작고 흐리게. 숫자가 먼저 읽혀야 한다. */
 .cnt .cnt-u { font-size: .8em; font-weight: 600; opacity: .62; margin-left: 1px; }
+/* 숫자가 아니라 짧은 문장이 들어가는 KPI — 큰 글씨 그대로 두면 줄이 넘친다. */
+.kpi.kpi-text .big { font-size: 19px; line-height: 1.35; letter-spacing: -.01em; }
 main { padding: 22px 30px 70px; }
 
 .tscroll { overflow-x: auto; max-width: 100%; border-radius: 14px; box-shadow: var(--shadow); }
@@ -850,6 +852,10 @@ input.inp[type=date]:disabled { opacity:.45; }
 .subtab.drop.urgent .dot { background:var(--gone-t); }
 .subtab.drop.urgent { color:var(--gone-t); font-weight:800; }
 .subtab.drop.active { color:var(--gone-t); border-bottom-color:var(--gone-t); }
+/* 최종 드랍 — 끝난 것이라 회색으로 물러난다(탈락 예정의 빨강과 가른다). */
+.subtab.gone .dot { background:var(--drop-ink); opacity:.55; }
+.subtab.gone.active { color:var(--drop-ink); border-bottom-color:var(--drop-ink); }
+.subtab.gone.active .dot { opacity:1; }
 /* 이력 제목 — 표 위 구분선 */
 .sec-head { display:flex; align-items:baseline; gap:10px; font-size:14px; font-weight:800; margin:26px 0 10px; padding-top:18px; border-top:1px solid var(--line); }
 .sec-head .cmuted { font-size:12.5px; font-weight:600; }
@@ -1582,7 +1588,17 @@ function coChips(){
 const isMailSent = d => String(d.fixed||'').trim() === '확정메일 발송';
 // 이 사람이 차지하는 콘텐츠 '건' 수. 최종 드랍한 사람은 0 — 안 올라올 콘텐츠를 확보로 세면
 // '몇 건이 비었나'가 틀리고, 그 숫자로 마루에 요청하므로 부족분이 그대로 사고가 된다.
-const slots = d => isDropped(d) ? 0 : platsOn().filter(p=> d[p]!==null && d[p]!==undefined).length;
+/* 계약 요건을 채운 슬롯만 센다.
+   ⚠️ 요건은 '그 플랫폼 팔로워 1,000 이상'(가이드: 플랫폼별 각 1K)이다.
+   예전엔 계정만 있으면 셌다 — 팔로워가 300명이어도 확보 1건으로 잡혔고,
+   그 숫자로 '마루에 몇 건 더 요청할까'를 판단했다. 못 낼 물량을 손에 쥔 걸로 착각한다.
+   가드닝(팔로워 보충)이 성공하면 저절로 다시 잡히므로, 여기서 빼도 영구히 잃는 게 아니다.
+   팔로워를 아직 못 읽었으면(null) 판정을 미루고 일단 센다 — 스캔 전이라는 이유로
+   있는 사람을 없는 것으로 만들면 더 나쁘다. */
+const meetsReq = (d,p) => { const f = d[p] && d[p].fol; return f==null || f >= GMIN; };
+const slots = d => isDropped(d) ? 0 : platsOn().filter(p=> d[p]!==null && d[p]!==undefined && meetsReq(d,p)).length;
+/* 요건 미달이라 확보에서 빠진 건수 — 화면이 '왜 줄었는지'를 말할 수 있게. */
+const lowReqOf = d => isDropped(d) ? 0 : platsOn().filter(p=> d[p] && !meetsReq(d,p)).length;
 const reviewed = d => anyUploaded(d) && platsOn().filter(p=>uploaded(d,p)).every(p=>done(d[p]));
 /* 미러링이면 업로드는 2건이어도 만든 콘텐츠는 1건이다 — 확보 건수는 후자를 센다.
    mirDup(d) = 미러링 때문에 빠지는 건수(2건짜리면 1). 납품 때 2건으로 밀어붙이기로 하면
@@ -1786,6 +1802,11 @@ const lateSlots = d => platsOn().filter(p=> isLate(d,p)).length;
    한 탭에 섞여 있으면 23일 예정자와 24일 예정자에게 같은 메일이 나가 히스토리가 꼬인다. */
 const DROP_AFTER_DAYS = 2;
 const isDropSoon = d => !isDropped(d) && lateSlots(d) > 0 && daysLate(d) >= DROP_AFTER_DAYS;
+/* 최종 드랍 — 결론이 난 사람. 건수로 센다(사람 수가 아니라).
+   확보가 왜 깎였는지가 '건' 단위라서, 여기도 같은 단위여야 화면끼리 말이 맞는다.
+   ⚠️ inUpload(확정메일 관문)를 안 태운다 — 확정메일을 보내기 전에 드랍된 사람도 있다. */
+const droppedRows = ()=> D.filter(inCampaign).filter(isDropped);
+const droppedGeon = ()=> droppedRows().reduce((a,d)=> a + platsOn().filter(p=> d[p]).length, 0);
 
 /* excludeId: 편집 모달에서 '나를 뺀' 값이 필요할 때. 표시 숫자는 항상 나를 포함해 스트립과 일치시킨다. */
 /* 지금 화면이 보고 있는 플랫폼들. 하위탭이 특정 플랫폼이면 그것만 —
@@ -2337,11 +2358,15 @@ function secureKpi(geon, mirCut){
   const dropSlots = D.filter(inCampaign).filter(isDropped)
     .reduce((a,d)=> a + platsOn().filter(p=>d[p]).length, 0);
   const dropNote = dropSlots ? ` <span class="cmuted">· 최종 드랍 ${dropSlots}건 제외</span>` : '';
+  /* 요건(팔로워 1,000) 미달로 빠진 건수. 가드닝으로 채우면 다시 잡히므로
+     '제외' 가 아니라 '아직'에 가깝다 — 그래서 문구를 다르게 쓴다. */
+  const lowSlots = D.filter(inCampaign).reduce((a,d)=> a + lowReqOf(d), 0);
+  const lowNote = lowSlots ? ` <span class="warn-t">· 팔로워 ${nf(GMIN)} 미달 ${lowSlots}건은 아직 미포함</span>` : '';
   const ok = geon >= sec.target, mid = geon >= cap;
   const accent = ok ? 'var(--ok-ink)' : mid ? 'var(--warn)' : 'var(--needs)';
   const sub = (ok ? `목표 ${sec.target}건 달성 — 미업로드 여유까지 확보`
     : mid ? `인정상한 ${cap}건은 넘었어요 · 목표 ${sec.target}건까지 ${sec.target-geon}건`
-          : `<b class="warn-t">인정상한 ${cap}건에 ${cap-geon}건 모자라요</b> — 정산 물량이 안 채워집니다`) + mirNote + dropNote;
+          : `<b class="warn-t">인정상한 ${cap}건에 ${cap-geon}건 모자라요</b> — 정산 물량이 안 채워집니다`) + mirNote + dropNote + lowNote;
   return kpi('확보 · 건', ofTot(geon, total), { ic:IC.split, accent, sub });
 }
 function bufferKpi(){
@@ -2595,6 +2620,31 @@ function viewUploadLate(){
 /* 탈락 예정 — 기준일이 2일 넘게 지난 사람. 리마인드는 이미 나갔고, 이제 '탈락 예고'를 보낼 차례다.
    기준일은 확정일이 날짜면 그것, 없으면 예정일(dueDay 가 그 판정을 한다).
    여기 있는 사람에게 보내는 메일은 문구가 다르므로 반드시 따로 모아야 한다. */
+/* 최종 드랍만 보는 탭. '누가 왜 빠졌나' 를 한 자리에서 본다 —
+   확보 카드가 '최종 드랍 N건 제외' 라고만 말하고 그 N을 열어볼 곳이 없었다. */
+function viewUploadDropped(){
+  const rows = droppedRows().filter(dayWeekPass).filter(coPass);
+  rows.sort((a,b)=> schedKey(dueDay(a)) - schedKey(dueDay(b)));
+  const cols = uploadAllCols();
+  const geon = rows.reduce((a,d)=> a + platsOn().filter(p=> d[p]).length, 0);
+  const upGeon = rows.reduce((a,d)=> a + platsOn().filter(p=> d[p] && uploaded(d,p)).length, 0);
+  const byCo = {};
+  rows.forEach(d=>{ const k = coLabel(d.co); byCo[k] = (byCo[k]||0) + platsOn().filter(p=> d[p]).length; });
+  const coNote = Object.entries(byCo).map(([k,v])=>`${k} ${v}건`).join(' · ') || '해당 없음';
+  const total = D.filter(inCampaign).reduce((a,d)=> a + platsOn().filter(p=>d[p]).length, 0);
+  const kpis = `<div class="cards">
+    ${kpi('최종 드랍 · 건', geon, { ic:IC.x||IC.clock, accent: geon?'var(--needs)':undefined,
+       sub: `${rows.length}명 · 모집 ${total}건 중 ${total?Math.round(geon/total*100):0}%` })}
+    ${kpi('진행사별 · 건', coNote, { ic:IC.users, sub:'추가 모집을 어디에 요청할지 가른다', cls:'kpi-text' })}
+    ${kpi('그중 업로드된 것 · 건', upGeon, { ic:IC.check,
+       sub: upGeon?'드랍 전에 올라온 콘텐츠 — 정산 여부는 따로 판단':'없음' })}
+  </div>`;
+  setFilterNote(rows);
+  return kpis + platSubtabs() + filterBar() +
+    renderTable(cols, rows, { tableId:'upload-dropped', emptyMsg:'최종 드랍 처리한 사람이 없어요.' }) +
+    `<div class="note-line">확정일 칸이 <b>최종 드랍</b>인 사람이에요. 확보 건수에서 빠지고
+     <b>추가 모집</b> 계산에 들어갑니다. 되돌리려면 <b>편집 → 확정일</b>에 날짜를 다시 넣으세요.</div>`;
+}
 function viewUploadDropSoon(){
   const rows = D.filter(inCampaign).filter(inUpload).filter(dayWeekPass)
     .filter(coPass).filter(contentPass).filter(isDropSoon);
@@ -2624,6 +2674,7 @@ function viewUploadDropSoon(){
 function viewUpload(){
   if(state.plat==='late') return viewUploadLate();
   if(state.plat==='dropsoon') return viewUploadDropSoon();
+  if(state.plat==='dropped')  return viewUploadDropped();
   if(state.plat==='all') return viewUploadAll();
   const p = state.plat;
   let rows = D.filter(inCampaign).filter(inUpload).filter(d=> d.plats.includes(p) && d[p]!==null)
@@ -3254,6 +3305,7 @@ function remindMissing(d){
    안 그러면 '일정 미준수'와 '탈락 예정' 양쪽에서 같은 사람 주소가 복사돼
    리마인드와 탈락예고가 둘 다 나간다(실측: 표는 5명/1명인데 목록은 둘 다 6명이었다). */
 function remindScope(d){
+  if(state.plat==='dropped')  return false;   // 결론이 난 사람 — 더 보낼 메일이 없다
   if(state.plat==='dropsoon') return isDropSoon(d);
   if(state.plat==='late')     return !isDropSoon(d);
   return true;
@@ -3393,6 +3445,7 @@ function platSubtabs(){
     <button class="subtab ig ${state.plat==='ig'?'active':''}" data-plat="ig"><i class="pmark ig">${PLAT_MARK.ig}</i>인스타${platCountLab('ig')}</button>
     ${state.view==='upload' ? ((n,g)=>`<button class="subtab late ${n?'urgent':''} ${state.plat==='late'?'active':''}" data-plat="late" title="기준일이 지난 지 ${DROP_AFTER_DAYS}일 안쪽 — 리마인드 대상 · 미업로드 ${g}건"><span class="dot"></span>일정 미준수 <span class="cmuted">${n}명</span></button>`)(lateCount(), lateGeon()) : ''}
     ${state.view==='upload' ? ((n)=>`<button class="subtab drop ${n?'urgent':''} ${state.plat==='dropsoon'?'active':''}" data-plat="dropsoon" title="기준일이 ${DROP_AFTER_DAYS}일 넘게 지났어요 — 탈락 예고를 보낼 차례"><span class="dot"></span>탈락 예정 <span class="cmuted">${n}명</span></button>`)(dropSoonCount()) : ''}
+    ${state.view==='upload' ? ((g)=>`<button class="subtab gone ${state.plat==='dropped'?'active':''}" data-plat="dropped" title="결론이 난 사람 — 확보 건수에서 빠지고 추가 모집 계산에 들어갑니다"><span class="dot"></span>최종 드랍 <span class="cmuted">${g}건</span></button>`)(droppedGeon()) : ''}
     ${state.view==='garden' ? `<button class="subtab hist ${state.plat==='hist'?'active':''}" data-plat="hist"><span class="dot"></span>집행 내역 <span class="cmuted">${ORDERS.length}</span></button>` : ''}
     ${state.view==='recruit' ? recruitSubtabs() : ''}
     ${state.view==='recruit' ? recruitTools() : `${gardenSvcNote()}<span class="sub-tools"><span id="hideSlot" class="sub-hide"></span>${resetBtn()}${state.view==='upload'?scanPickBtn():''}</span>`}</div>`;
@@ -3681,9 +3734,13 @@ function mByDay(list, card){
 function mDetail(){
   /* 요약 카드가 세는 기준과 같아야 한다 — 카드는 드랍을 빼고 세는데 목록은 넣어 보여줬다.
      폰에서 할 일은 '올라왔나 확인'과 '메일 보내기' 둘뿐이고, 드랍한 사람은 둘 다 해당이 없다. */
-  const rows = D.filter(inCampaign).filter(inUpload).filter(dayWeekPass)
-    .filter(coPass).filter(contentPass).filter(d=> !isDropped(d)).filter(d=> platsOn().some(p=>d[p]));
-  const sub = state.plat==='late' ? '일정 미준수' : state.plat==='dropsoon' ? '탈락 예정' : '전체';
+  /* '최종 드랍' 탭에서만 드랍자를 보여준다 — 다른 탭에서는 할 일이 없는 사람이다. */
+  const onlyDropped = state.plat==='dropped';
+  const rows = (onlyDropped ? D.filter(inCampaign).filter(isDropped)
+                            : D.filter(inCampaign).filter(inUpload).filter(d=> !isDropped(d)))
+    .filter(dayWeekPass).filter(coPass).filter(contentPass).filter(d=> platsOn().some(p=>d[p]));
+  const sub = state.plat==='late' ? '일정 미준수' : state.plat==='dropsoon' ? '탈락 예정'
+    : onlyDropped ? '최종 드랍' : '전체';
   const list = (state.plat==='late' ? rows.filter(d=>!isDropSoon(d)&&lateSlots(d))
     : state.plat==='dropsoon' ? rows.filter(isDropSoon)
     : rows).slice().sort((a,b)=> schedKey(dueDay(a)) - schedKey(dueDay(b)));
@@ -4341,7 +4398,7 @@ document.getElementById('content').addEventListener('click', e=>{
     state.day=null; state.week=null; state.platOnly=''; state.noticeOnly=false; state.unfixedOnly=false;
     state.coOnly=''; state.hasContent=false;
     scanPick.clear();        // '처음 상태'라면 골라둔 것도 없어야 한다
-    /* 하위탭도 되돌린다 — '처음 상태'라면 틱톡·일정 미준수·탈락 예정도 풀려야 한다.
+    /* 하위탭도 되돌린다 — '처음 상태'라면 틱톡·일정 미준수·탈락 예정·최종 드랍도 풀려야 한다.
        가드닝의 '집행 내역'(hist)만 남긴다: 그건 필터가 아니라 다른 화면이다. */
     if(state.plat!=='hist') state.plat='all';
     state.sort = {};        // 정렬도 처음대로
