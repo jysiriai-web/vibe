@@ -155,6 +155,21 @@ body.nav-collapsed .side-toggle { justify-content: center; padding: 9px; }
 @media (max-width:900px){ .srch input { width:96px; } }
 /* 현황 브리핑 — 읽고 복사해 가는 자리. 표처럼 꾸미지 않는다(그대로 붙여넣을 글이라서). */
 /* 주차 탭 — 하위탭(무엇을 보나) 아래 '언제 것을 보나'. 한 단계 아래라 더 작고 조용하게. */
+/* 결론 한 줄 — 카드 아래. 이 화면을 여는 이유가 이 문장이다. */
+.verdict { margin:-4px 0 18px; padding:12px 16px; border-radius:11px; font-size:14px; font-weight:700;
+  border:1px solid var(--line); background:var(--card); color:var(--ink); }
+.verdict.ok   { background:var(--ok-bg);    border-color:var(--ok);    color:var(--ok-ink); }
+.verdict.warn { background:var(--warn-bg);  border-color:var(--warn);  color:var(--warn-ink); }
+.verdict.bad  { background:var(--needs-bg); border-color:var(--needs); color:var(--needs-ink); }
+.verdict b { font-weight:800; }
+/* 확신도 — 색이 곧 '얼마나 믿을 수 있나' 다. */
+.grade { display:inline-block; font-size:11.5px; font-weight:800; padding:2px 8px; border-radius:20px; }
+.g-fixed  { background:var(--ok-bg);   color:var(--ok-ink); }
+.g-moving { background:var(--fill-bg); color:var(--fill-ink); }
+.g-loose  { background:var(--gray-bg); color:var(--gray-ink); }
+.gq { font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; }
+.subtab.todo .dot { background:var(--accent); }
+.subtab.todo.active { color:var(--accent-ink); border-bottom-color:var(--accent); }
 .wtabs { display:flex; gap:7px; flex-wrap:wrap; margin:-6px 0 16px; }
 .wtab { display:inline-flex; align-items:baseline; gap:6px; padding:7px 13px; border-radius:9px;
   border:1px solid var(--line); background:var(--card); color:var(--muted);
@@ -1854,6 +1869,33 @@ const isDropSoon = d => !isDropped(d) && lateSlots(d) > 0 && daysLate(d) >= DROP
 /* 최종 드랍 — 결론이 난 사람. 건수로 센다(사람 수가 아니라).
    확보가 왜 깎였는지가 '건' 단위라서, 여기도 같은 단위여야 화면끼리 말이 맞는다.
    ⚠️ inUpload(확정메일 관문)를 안 태운다 — 확정메일을 보내기 전에 드랍된 사람도 있다. */
+/* 앞으로 올라올 것 = 아직 안 올렸고, 드랍 아니고, 요건 채웠고, 아직 기한이 안 지난 슬롯.
+   기한이 지난 것은 '일정 미준수'·'탈락 예정' 탭이 따로 맡는다 — 여기서 또 세면 이중이다. */
+const pendingSlot = (d,p) => !!d[p] && !uploaded(d,p) && meetsReq(d,p) && !isDropped(d) && !isLate(d,p);
+const pendingGeon = d => platsOn().filter(p=> pendingSlot(d,p)).length;
+/* 확신도 3단계 — 이 등급이 곧 '얼마나 믿고 셀 수 있나' 다.
+     fixed  확정일(날짜)을 받았다        → 약속을 받은 것. 제일 믿을 만하다
+     moving 둘 중 하나라도 이미 올렸다   → 움직이고 있는 사람. 나머지도 올라올 가능성이 높다
+     loose  확정일 없이 예정일만 있다     → 아직 약속을 못 받았다
+   보수 추정 = fixed + moving, 널널한 추정 = 거기에 loose 까지. */
+function pendGrade(d){
+  const fx = String(d.fixed||'').trim();
+  if(fx && !isFixedState(fx) && normDay(fx)) return 'fixed';
+  if(anyUploaded(d)) return 'moving';
+  return 'loose';
+}
+const GRADE_LAB = { fixed:'확정일 받음', moving:'하나 올림', loose:'확정일 없음' };
+/* 남은 예정을 확신도별로 — 화면과 브리핑이 같은 함수를 쓴다. */
+function pendStats(){
+  const rows = D.filter(inCampaign).filter(inUpload).filter(coPass).filter(qPass)
+    .filter(dayWeekPass).filter(d=> pendingGeon(d) > 0);
+  const g = { fixed:0, moving:0, loose:0 };
+  const n = { fixed:0, moving:0, loose:0 };
+  rows.forEach(d=>{ const k = pendGrade(d); g[k] += pendingGeon(d); n[k]++; });
+  const low = g.fixed + g.moving;          // 보수 — 약속을 받았거나 이미 움직인 것
+  const high = low + g.loose;              // 널널 — 확정일 없는 것까지 다 온다고 볼 때
+  return { rows, g, n, low, high };
+}
 const droppedRows = ()=> D.filter(inCampaign).filter(isDropped);
 const droppedGeon = ()=> droppedRows().reduce((a,d)=> a + platsOn().filter(p=> d[p]).length, 0);
 
@@ -2562,7 +2604,14 @@ function briefLines(){
   L.push(`· 자체 ${self.length}명 / ${geonAll(self)}건 · 실행사 ${agency.length}명 / ${geonAll(agency)}건`);
   /* 예정대로 다 올라오면 몇 건인가 — 주차 마감 때 제일 먼저 묻는 것이다.
      '남은 예정' 은 요건을 채운 슬롯만 세므로 그대로 더하면 된다. */
-  L.push(`· 예정대로 다 올라오면 ${up + todo}건`);
+  { const ps = pendStats();
+    const eLow = up + ps.low, eHigh = up + ps.high;
+    L.push(`· 남은 예정 ${ps.low===ps.high?ps.low:ps.low+'~'+ps.high}건 (확정일 ${ps.g.fixed} + 하나올림 ${ps.g.moving}${ps.g.loose?' + 확정일없음 '+ps.g.loose:''})`);
+    L.push(`· 다 올라오면 ${eLow===eHigh?eLow:eLow+'~'+eHigh}건 (목표 ${goal}건)`);
+    const sLow = Math.max(0, goal-eHigh), sHigh = Math.max(0, goal-eLow);
+    L.push(sHigh===0 ? '· 부족분 없음 — 보수적으로 봐도 목표 충족'
+      : sLow===0 ? `· 부족분 0~${sHigh}건 — 확정일을 더 받아내면 채워집니다`
+      : `· 부족분 ${sLow}~${sHigh}건 — 추가 모집이 필요합니다`); }
   return L;
 }
 /* 주차 탭 — 전체 / 1주차 / 2주차.
@@ -2815,10 +2864,64 @@ function viewUploadDropSoon(){
      결론이 나면 확정일을 <b>최종 드랍</b>으로 바꿔 주세요.</div>`;
 }
 
+/* 업로드 예정 — 캠페인 중간 점검·마감 판단을 위한 화면.
+   묻는 것이 늘 같다: "이대로 가면 몇 건이고, 몇 건이 모자라고, 추가 모집을 해야 하나."
+   그래서 답을 범위로 준다 — 확정일 기준(보수) ~ 예정일 기준(널널).
+   한 숫자로 주면 그 숫자가 틀렸을 때 판단이 통째로 틀어진다. 범위여야 결정을 할 수 있다. */
+function viewUploadTodo(){
+  const st = pendStats();
+  const inC = D.filter(inCampaign);
+  const upNow = inC.reduce((a,d)=> a + platsOn().filter(p=> d[p] && uploaded(d,p) && meetsReq(d,p)).length, 0);
+  const goal = goalGeon(), cap = cfg().settleCap || 0;
+  const endLow = upNow + st.low, endHigh = upNow + st.high;
+  const shortLow = Math.max(0, goal - endHigh);   // 널널하게 봐도 모자란 수 = 최소 부족분
+  const shortHigh = Math.max(0, goal - endLow);   // 보수적으로 보면 모자란 수 = 최대 부족분
+  const lateG = lateGeon(), soon = dropSoonCount();
+
+  const rangeTxt = st.low === st.high ? `${st.low}건` : `${st.low}~${st.high}건`;
+  const endTxt   = endLow === endHigh ? `${endLow}건` : `${endLow}~${endHigh}건`;
+
+  /* 결론 한 줄 — 이 화면을 여는 이유가 이것이다. */
+  let verdict, vcls;
+  if(shortHigh === 0){ verdict = `보수적으로 봐도 목표 ${goal}건을 넘어요 — 추가 모집 불필요`; vcls='ok'; }
+  else if(shortLow === 0){ verdict = `널널하게 보면 채우지만, 확정일 기준으로는 <b>${shortHigh}건</b> 모자라요 — 확정일을 더 받아내는 게 먼저`; vcls='warn'; }
+  else { verdict = `널널하게 봐도 <b>${shortLow}건</b> 모자라요 — 지금 추가 모집을 걸어야 합니다`; vcls='bad'; }
+
+  const kpis = `<div class="cards">
+    ${kpi('남은 예정 · 건', rangeTxt, { ic:IC.clock, accent:'var(--accent)',
+       sub:`확정일 ${st.g.fixed} + 하나 올림 ${st.g.moving}${st.g.loose?` <span class="cmuted">(+ 확정일 없음 ${st.g.loose})</span>`:''}` })}
+    ${kpi('다 올라오면 · 건', endTxt, { ic:IC.check,
+       sub:`지금 ${upNow}건 + 남은 예정 · 목표 ${goal}건 · 상한 ${cap}건` })}
+    ${kpi('부족분 · 건', shortHigh===0 ? '없음' : (shortLow===shortHigh?`${shortHigh}`:`${shortLow}~${shortHigh}`),
+       { ic:IC.x||IC.split, accent: shortLow>0?'var(--needs)':shortHigh>0?'var(--warn)':undefined,
+         sub: shortHigh===0?'목표 충족':'널널~보수 기준' })}
+    ${kpi('여기서 빠진 것 · 건', lateG + droppedGeon(), { ic:IC.clock,
+       sub:`일정 미준수 ${lateG}건${soon?`(탈락 예정 ${soon}명)`:''} · 최종 드랍 ${droppedGeon()}건 — 각 탭에서 따로 봐요` })}
+  </div>
+  <div class="verdict ${vcls}">${verdict}</div>`;
+
+  // 확신도 높은 것부터 — 위에서부터 읽으면 '믿을 수 있는 것'이 먼저다.
+  const ord = { fixed:0, moving:1, loose:2 };
+  const rows = st.rows.slice().sort((a,b)=>
+    (ord[pendGrade(a)] - ord[pendGrade(b)]) || (schedKey(dueDay(a)) - schedKey(dueDay(b))));
+  const cols = uploadAllCols().slice();
+  // 확신도 열을 맨 앞에 — 이 표를 보는 이유가 '얼마나 믿을 수 있나' 라서.
+  cols.unshift({ key:'grade', label:'확신도', sv:r=> ord[pendGrade(r)], cell:r=>{
+    const k = pendGrade(r);
+    return `<span class="grade g-${k}">${GRADE_LAB[k]}</span> <b class="gq">${pendingGeon(r)}건</b>`;
+  }});
+  setFilterNote(rows);
+  return kpis + platSubtabs() + weekTabs() + briefPanel() + filterBar() +
+    renderTable(cols, rows, { tableId:'upload-todo', emptyMsg:'앞으로 올라올 예정인 건이 없어요.' }) +
+    `<div class="note-line"><b>보수</b>는 확정일을 받았거나 이미 하나 올린 사람만 셉니다.
+     <b>널널</b>은 확정일 없이 예정일만 있는 사람까지 넣은 값이에요.
+     기한이 지난 건은 여기서 빠지고 <b>일정 미준수</b>·<b>탈락 예정</b> 탭에서 봅니다.</div>`;
+}
 function viewUpload(){
   if(state.plat==='late') return viewUploadLate();
   if(state.plat==='dropsoon') return viewUploadDropSoon();
   if(state.plat==='dropped')  return viewUploadDropped();
+  if(state.plat==='todo')     return viewUploadTodo();
   if(state.plat==='all') return viewUploadAll();
   const p = state.plat;
   let rows = D.filter(inCampaign).filter(inUpload).filter(d=> d.plats.includes(p) && d[p]!==null)
@@ -3584,6 +3687,7 @@ function platSubtabs(){
   // '건 단위'는 통합탭이 사람 단위로 바뀌면서 틀린 말이 됐다.
   const allLab = '전체';
   return `<div class="subtabs" id="platSub">
+    ${state.view==='upload' ? ((st)=>`<button class="subtab todo ${state.plat==='todo'?'active':''}" data-plat="todo" title="앞으로 올라올 건 — 확정일 기준(보수) ~ 예정일 기준(널널)"><span class="dot"></span>업로드 예정 <span class="cmuted">${st.low===st.high?st.low:st.low+'~'+st.high}건</span></button>`)(pendStats()) : ''}
     <button class="subtab all ${state.plat==='all'?'active':''}" data-plat="all"><span class="dot"></span>${allLab}</button>
     <button class="subtab tk ${state.plat==='tk'?'active':''}" data-plat="tk"><i class="pmark tk">${PLAT_MARK.tk}</i>틱톡${platCountLab('tk')}</button>
     <button class="subtab ig ${state.plat==='ig'?'active':''}" data-plat="ig"><i class="pmark ig">${PLAT_MARK.ig}</i>인스타${platCountLab('ig')}</button>
@@ -4507,6 +4611,8 @@ document.getElementById('nav').addEventListener('click', e=>{
      (납품탭에만 정규화 가드가 있었고 그 주석이 이 누수를 인정하고 있었다) */
   if(!['all','tk','ig'].includes(state.plat)) state.plat='all';
   if(!hasIG()) state.plat='tk';
+  // 업로드 탭의 첫 화면은 '업로드 예정' — 여기서 하는 일이 그것이다.
+  if(state.view==='upload' && state.plat==='all') state.plat='todo';
   /* 선택도 비운다. 키가 두 종류(row:id / plat:handle)라 통합탭에서 5명 고르고 [틱톡] 으로 가면
      화면엔 아무것도 안 켜졌는데 버튼은 '선택 5명 스캔' 이었다. 그대로 누르면 지금 화면에
      없는 사람의 틱톡·인스타를 둘 다 스캔한다(로봇인증 대기까지 포함). */
