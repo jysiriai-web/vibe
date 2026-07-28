@@ -150,6 +150,10 @@ body.nav-collapsed .side-toggle { justify-content: center; padding: 9px; }
 .verdict.warn { background:var(--warn-bg);  border-color:var(--warn);  color:var(--warn-ink); }
 .verdict.bad  { background:var(--needs-bg); border-color:var(--needs); color:var(--needs-ink); }
 .verdict b { font-weight:800; }
+/* 증감 — 늘었으면 초록, 빠졌으면 빨강. 숫자보다 작게(주인공은 시작값이다). */
+small.up   { color:var(--ok-ink);    font-weight:700; }
+small.down { color:var(--needs-ink); font-weight:700; }
+small.flat { color:var(--faint); }
 /* 업로드 예정 — 켜면 연한 하늘색 바탕. 다른 탭은 글자색만 바뀌는데 여기만 바탕을 주는 이유는
    '지금 이 목록만 보고 있다' 를 한눈에 알리려는 것이다(전체와 헷갈리기 쉬운 탭이라서).
    ⚠️ .subtab 기본 좌우 여백이 2px 이라 바탕만 깔면 글자에 딱 붙는다 — 여백·모서리를 같이 준다. */
@@ -1248,6 +1252,9 @@ const CAMPAIGNS = {
                  self   = 자체(우리) — 확정메일·예정일 등 승인절차를 우리가 돌린다
                  agency = 실행사     — 그쪽이 자기 방식으로 돌린다. 우리 승인절차는 건너뛴다
                fee: 콘텐츠 1건 단가(엔) · feeBoth: 양쪽 업로드(미러링 아님) 묶음가 — 없으면 fee×건수 */
+            /* 실행사 계약 수량 — 이만큼만 정산한다. 초과분은 예상 건수에 넣으면 안 된다
+               (마루가 틱톡을 7건 더 채워 총량만 맞춘 적이 있다). */
+            agencyQuota:{ tk:10, ig:11 },
             companies:[
               { id:'SIRIAI', role:'self',   label:'시리아이', fee:5000, feeBoth:12000 },
               { id:'MARU',   role:'agency', label:'마루',     fee:6000 },
@@ -1464,6 +1471,7 @@ async function loadData(){
     CAMPAIGNS.lun8.scan = clockText(_lastScanIso) || '아직';
     ORDERS = Array.isArray(j.orders) ? j.orders : [];
     if(j.krwPerUsd) KRW_PER_USD = j.krwPerUsd;
+    if(j.startFol) START_FOL = j.startFol;
     if(j.service){ SERVICE = j.service; if(j.service.rate) GARDEN_RATE = Number(j.service.rate) || GARDEN_RATE; }
     // 서버는 config 안에 담아 보낸다 — 최상위(j.services)엔 없다.
     SERVICES = {}; ((j.config&&j.config.services)||j.services||[]).forEach(x=>{ SERVICES[x.plat] = x; });
@@ -2109,7 +2117,14 @@ function renderLocalBadge(){
 }
 let ORDERS = [];
 let SERVICE = null;   // 지금 쓰는 SMM 서비스 {id,name,rate} — 화면에 무엇으로 사는지 밝힌다
-let GARDEN_RATE = 4.13;   // 서비스 1,000명당 USD(틱톡 기본). 서버가 주면 그 값으로 바꾼다.
+/* 최초 팔로워 — { 'tk|handle': {n, at, src} }. 서버가 스캔할 때마다 '없는 것만' 채운다.
+   가드닝이 실제로 얼마나 올렸는지, 산 팔로워가 남았는지를 계정 단위로 보는 근거다. */
+let START_FOL = {};
+const startFolOf = (d,p) => {
+  const h = String((d[p] && d[p].h) || '').replace(/^@/,'').trim().toLowerCase();
+  return h ? (START_FOL[p + '|' + h] || null) : null;
+};
+let GARDEN_RATE = 4.13;   // 서비스 1,000당 USD(틱톡 기본). 서버가 주면 그 값으로 바꾼다.
 /* 플랫폼별 단가. 예전엔 GARDEN_RATE 하나로 인스타까지 계산해서
    '지금 필요한 금액'이 실제 집행액과 달랐다(실측: 화면 11,491원 vs 서버 계획 9,566원).
    서버가 주는 플랫폼별 서비스로 각각 곱한다. */
@@ -2557,57 +2572,73 @@ function filterCount(){
  * ⚠️ 숫자는 반드시 화면이 쓰는 함수(slots·geonOf·uploaded·isDropped…)를 그대로 쓴다.
  * 여기서 따로 세면 카드와 브리핑이 다른 말을 하게 되고, 그건 둘 다 못 믿게 만든다.
  * (LLM 을 붙이지 않은 것도 같은 이유다 — 계산은 틀리면 안 되고, 이 질문들은 계산으로 다 된다) */
+/* 현황 브리핑 — 오늘 실제로 물어본 것들을 그대로 답한다.
+   (마루 추가 요청을 정하려고 진행사×플랫폼×확신도를 손으로 세느라 한참 걸렸다)
+   ⚠️ 숫자는 전부 화면이 쓰는 함수를 그대로 쓴다. 따로 세면 카드와 다른 말을 하고,
+   그러면 둘 다 못 믿게 된다. */
 function briefLines(){
-  const inC = D.filter(inCampaign);
-  const plats = platsOn();
-  const geonAll = (arr,f)=> arr.reduce((a,d)=> a + plats.filter(p=> d[p] && (!f||f(d,p))).length, 0);
-
-  const total   = geonAll(inC);                                  // 모집 총 슬롯
-  const secured = inC.reduce((a,d)=> a + geonOf(d), 0);          // 요건·드랍·미러링 반영
-  const dropped = inC.filter(isDropped);
-  const dropGeon= geonAll(dropped);
-  const lowGeon = inC.reduce((a,d)=> a + lowReqOf(d), 0);
-  const up      = geonAll(inC, (d,p)=> uploaded(d,p));
-  const rev     = geonAll(inC, (d,p)=> done(d[p]));
-  const fixed   = inC.filter(d=> { const v=String(d.fixed||'').trim(); return v && !isFixedState(v) && normDay(v); });
-  const noticed = inC.filter(d=> oursToContact(d) && d.notice);
-  const live    = inC.filter(d=> !isDropped(d));
-  const todo    = geonAll(live, (d,p)=> !uploaded(d,p));         // 남은 업로드
-  const byPlat  = p => ({
-    확보: live.reduce((a,d)=> a + (d[p] && meetsReq(d,p) ? 1 : 0), 0),
-    업로드: live.reduce((a,d)=> a + (d[p] && uploaded(d,p) ? 1 : 0), 0),
+  const inC = D.filter(inCampaign), P = platsOn();
+  const up = D.filter(inCampaign).filter(inUpload);
+  const co = d => isAgency(d) ? 'M' : 'S';
+  const mk = ()=>({tk:0,ig:0});
+  const g = { S:{ up:mk(), fixed:mk(), moving:mk(), loose:mk(), late:mk(), drop:mk() },
+              M:{ up:mk(), fixed:mk(), moving:mk(), loose:mk(), late:mk(), drop:mk() } };
+  up.forEach(d=>{ const c=co(d);
+    P.forEach(p=>{
+      if(!d[p]) return;
+      if(isDropped(d)) { g[c].drop[p]++; return; }
+      if(uploaded(d,p)) { g[c].up[p]++; return; }
+      if(isLate(d,p)) { g[c].late[p]++; return; }
+      g[c][pendGrade(d)][p]++;
+    });
   });
-  const tk = byPlat('tk'), ig = plats.includes('ig') ? byPlat('ig') : null;
-  const agency = live.filter(isAgency), self = live.filter(d=>!isAgency(d));
-  const cap = cfg().settleCap || 0, goal = goalGeon();
-  const lateG = lateGeon(), soon = dropSoonCount();
+  const S=g.S, M=g.M;
+  const t = o => o.tk + o.ig;
+  const pair = o => o.tk + '/' + o.ig;
+
+  /* 실행사는 계약 수량이 상한이다 — 초과분은 정산이 안 되므로 예상에 넣으면 안 된다.
+     (실제로 마루가 틱톡을 7건 더 채워 총량만 맞춘 적이 있다) */
+  const quota = (cfg().agencyQuota) || null;
+  const mCapTk = quota ? Math.max(0, quota.tk - M.up.tk) : t(M.fixed)+t(M.moving)+M.loose.tk;
+  const mCapIg = quota ? Math.max(0, quota.ig - M.up.ig) : M.loose.ig;
+  const mPendTk = quota ? Math.min(M.fixed.tk+M.moving.tk+M.loose.tk, mCapTk) : M.fixed.tk+M.moving.tk+M.loose.tk;
+  const mPendIg = quota ? Math.min(M.fixed.ig+M.moving.ig+M.loose.ig, mCapIg) : M.fixed.ig+M.moving.ig+M.loose.ig;
+
+  const sSure = { tk: S.fixed.tk + S.moving.tk, ig: S.fixed.ig + S.moving.ig };
+  const sLoose = S.loose;
+  const upTk = S.up.tk + M.up.tk, upIg = S.up.ig + M.up.ig;
+  const pTk = sSure.tk + mPendTk, pIg = sSure.ig + mPendIg;
+  const goal = goalGeon(), cap = cfg().settleCap || 0;
+  const endTk = upTk + pTk, endIg = upIg + pIg;
+  const end = endTk + endIg;
+  const tgt = cfg().targets || {};
 
   const L = [];
   L.push(`[${esc(cfg().name)}] ${TODAY()} 현황`);
   L.push('');
-  L.push(`· 모집 ${inC.length}명 / ${total}건 — 지금 확보 ${secured}건`);
-  if(dropGeon) L.push(`· 최종 드랍 ${dropped.length}명 / ${dropGeon}건`);
-  if(lowGeon)  L.push(`· 팔로워 ${nf(GMIN)} 미달 ${lowGeon}건 — 가드닝으로 채우면 확보로 돌아옴`);
-  L.push(`· 확정일 받은 사람 ${fixed.length}명 · 확정메일 보낸 사람 ${noticed.length}명`);
+  L.push(`■ 지금 올라온 것  ${upTk+upIg}건  (틱톡 ${upTk} · 인스타 ${upIg})`);
+  L.push(`   시리아이 ${t(S.up)} (틱${S.up.tk}/인${S.up.ig}) · 실행사 ${t(M.up)} (틱${M.up.tk}/인${M.up.ig})`);
   L.push('');
-  L.push(`· 업로드 ${up}건 / 남은 예정 ${todo}건`);
-  L.push(`· 검수완료 ${rev}건 (목표 ${goal}건 · 정산상한 ${cap}건)`);
-  if(lateG) L.push(`· 예정일 지났는데 미업로드 ${lateG}건${soon?` (그중 탈락 예정 ${soon}명)`:''}`);
+  L.push(`■ 업로드 예정  ${pTk+pIg}건  (틱톡 ${pTk} · 인스타 ${pIg})`);
+  L.push(`   시리아이 확정일 ${t(S.fixed)} (틱${S.fixed.tk}/인${S.fixed.ig}) · 하나올림 ${t(S.moving)} (틱${S.moving.tk}/인${S.moving.ig})`);
+  if(quota) L.push(`   실행사 계약잔여 ${mPendTk+mPendIg} (틱${mPendTk}/인${mPendIg}) — 계약 틱${quota.tk}·인${quota.ig} 중 올라온 것 뺀 값`);
+  else L.push(`   실행사 ${mPendTk+mPendIg} (틱${mPendTk}/인${mPendIg})`);
+  L.push(`   ※ 확정일 없이 예정일만 있는 시리아이 ${t(sLoose)}건(틱${sLoose.tk}/인${sLoose.ig})은 위에 안 넣었어요`);
   L.push('');
-  L.push(`· 틱톡  확보 ${tk.확보}건 · 업로드 ${tk.업로드}건`);
-  if(ig) L.push(`· 인스타 확보 ${ig.확보}건 · 업로드 ${ig.업로드}건`);
+  L.push(`■ 다 올라오면  ${end}건  (틱톡 ${endTk} · 인스타 ${endIg})`);
+  if(tgt.tk || tgt.ig){
+    const dTk = (tgt.tk||0) - endTk, dIg = (tgt.ig||0) - endIg;
+    L.push(`   목표 틱톡 ${tgt.tk||0} → ${dTk>0?dTk+'건 부족':'충족'} · 인스타 ${tgt.ig||0} → ${dIg>0?dIg+'건 부족':'충족'}`);
+  }
+  L.push(`   계약 목표 ${goal}건 → ${end>=goal?'충족 (여유 '+(end-goal)+'건)':(goal-end)+'건 부족'} · 정산상한 ${cap}건`);
+  L.push(`   예정일만 ${t(sLoose)}건이 다 살아나면 ${end+t(sLoose)}건`);
   L.push('');
-  L.push(`· 자체 ${self.length}명 / ${geonAll(self)}건 · 실행사 ${agency.length}명 / ${geonAll(agency)}건`);
-  /* 예정대로 다 올라오면 몇 건인가 — 주차 마감 때 제일 먼저 묻는 것이다.
-     '남은 예정' 은 요건을 채운 슬롯만 세므로 그대로 더하면 된다. */
-  { const ps = pendStats();
-    const eLow = up + ps.low, eHigh = up + ps.high;
-    L.push(`· 남은 예정 ${ps.low===ps.high?ps.low:ps.low+'~'+ps.high}건 (확정일 ${ps.g.fixed} + 하나올림 ${ps.g.moving}${ps.g.loose?' + 확정일없음 '+ps.g.loose:''})`);
-    L.push(`· 다 올라오면 ${eLow===eHigh?eLow:eLow+'~'+eHigh}건 (목표 ${goal}건)`);
-    const sLow = Math.max(0, goal-eHigh), sHigh = Math.max(0, goal-eLow);
-    L.push(sHigh===0 ? '· 부족분 없음 — 보수적으로 봐도 목표 충족'
-      : sLow===0 ? `· 부족분 0~${sHigh}건 — 확정일을 더 받아내면 채워집니다`
-      : `· 부족분 ${sLow}~${sHigh}건 — 추가 모집이 필요합니다`); }
+  const lateT = t(S.late)+t(M.late), dropT = t(S.drop)+t(M.drop);
+  L.push(`■ 손봐야 할 것`);
+  L.push(`   기한 지남 ${lateT}건 (틱${S.late.tk+M.late.tk}/인${S.late.ig+M.late.ig}) · 그중 탈락 예정 ${dropSoonCount()}명`);
+  L.push(`   최종 드랍 ${dropT}건 · 확정일 없는 사람 ${t(sLoose)}건`);
+  const lowN = inC.reduce((a,d)=>a+lowReqOf(d),0);
+  if(lowN) L.push(`   팔로워 ${nf(GMIN)} 미달 ${lowN}건 — 가드닝으로 채우면 확보로 돌아와요`);
   return L;
 }
 function briefPanel(){
@@ -2999,6 +3030,17 @@ function viewGarden(){
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
     { key:'h', label:pName(p)+' 닉네임', cls:'handle', grp:p, sv:r=>r[p].h, cell:r=>`${acctLink(r[p].h, p)}` },
     { key:'lk', label:'업로드 가능성', sv:r=>lkSort(r,p), cell:r=>{ const l=likelihood(r,p); return `<span class="lk ${l.k}">${l.t}</span>`; } },
+    /* 시작 팔로워 — '가드닝이 실제로 올렸나'를 이 열 하나로 본다.
+       src='order' 면 집행 직전 실측(제일 정확), 'scan' 이면 기록을 시작한 시점 값이다.
+       캠페인 도중에 기록을 시작했으면 그렇게 말해 준다 — '최초'라고 우기면 안 된다. */
+    { key:'fol0', label:'시작 팔로워', cls:'num', thcls:'num',
+      sv:r=>{ const b=startFolOf(r,p); return b?b.n:-1; },
+      cell:r=>{ const b=startFolOf(r,p); if(!b) return '<span class="emptydot">·</span>';
+        const cur = r[p].fol;
+        const d0 = (cur==null) ? null : cur - b.n;
+        const tip = (b.src==='order' ? '집행 직전 실측' : '기록 시작 시점') + ' · ' + String(b.at||'').slice(0,10);
+        return `<span title="${esc(tip)}">${nf(b.n)}</span>`
+          + (d0==null ? '' : ` <small class="${d0>0?'up':d0<0?'down':'flat'}">${d0>0?'+':''}${nf(d0)}</small>`); } },
     { key:'fol', label:'현재 팔로워', cls:'num', thcls:'num', sv:r=> r[p].fol==null?-1:r[p].fol, cell:r=> r[p].fol==null?`<span class="cmuted">스캔 대기</span>`:nf(r[p].fol) },
     { key:'st', label:'상태', sv:r=>G_RANK[gStat(r,p).st] ?? -1, cell:r=> stChip(gStat(r,p).st) },
     { key:'order', label:'충전량', cls:'num', thcls:'num', sv:r=>gStat(r,p).order, cell:r=>{ const g=gStat(r,p);
@@ -3041,6 +3083,14 @@ function viewGardenAll(){
     { key:'plat', label:'플랫폼', sv:r=>r.p, cell:r=>`<span class="plat-pill ${r.p}">${pName(r.p)}</span>` },
     { key:'h', label:'닉네임', cls:'handle', sv:r=>r.d[r.p].h, cell:r=>acctLink(r.d[r.p].h, r.p) },
     { key:'lk', label:'업로드 가능성', sv:r=>lkSort(r.d,r.p), cell:r=>{ const l=likelihood(r.d,r.p); return `<span class="lk ${l.k}">${l.t}</span>`; } },
+    { key:'fol0', label:'시작 팔로워', cls:'num', thcls:'num',
+      sv:r=>{ const b=startFolOf(r.d,r.p); return b?b.n:-1; },
+      cell:r=>{ const b=startFolOf(r.d,r.p); if(!b) return '<span class="emptydot">·</span>';
+        const cur = r.d[r.p].fol;
+        const d0 = (cur==null) ? null : cur - b.n;
+        const tip = (b.src==='order' ? '집행 직전 실측' : '기록 시작 시점') + ' · ' + String(b.at||'').slice(0,10);
+        return `<span title="${esc(tip)}">${nf(b.n)}</span>`
+          + (d0==null ? '' : ` <small class="${d0>0?'up':d0<0?'down':'flat'}">${d0>0?'+':''}${nf(d0)}</small>`); } },
     { key:'fol', label:'현재 팔로워', cls:'num', thcls:'num', sv:r=> r.d[r.p].fol==null?-1:r.d[r.p].fol,
       cell:r=> r.d[r.p].fol==null?`<span class="cmuted">스캔 대기</span>`:nf(r.d[r.p].fol) },
     { key:'st', label:'상태', sv:r=>G_RANK[r.g.st] ?? -1, cell:r=>stChip(r.g.st) },

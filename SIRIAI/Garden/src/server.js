@@ -19,6 +19,52 @@ import { runSync } from './sync-core.js';
 /* 스캔 시각을 시트에 남긴다 — 로컬 파일(data/)은 배포에 안 올라가서
    팀원 화면에서는 '마지막 스캔'이 영영 '아직'이었다. 시트는 양쪽이 다 읽는다.
    실패해도 스캔 자체는 성공이므로 조용히 넘긴다(로그만). */
+/* 최초 팔로워(baseline) — '이 계정이 캠페인 시작 때 몇 명이었나'.
+ *
+ * 왜 만들었나: 어디에도 저장돼 있지 않았다. 시트의 팔로워 열은 스캔이 그때그때 덮어쓰고,
+ * scan-latest.json 도 '마지막' 하나뿐이라 과거 값이 없다. 그래서 '가드닝으로 얼마나 올랐나',
+ * '산 팔로워가 남았나' 를 계정 단위로 볼 방법이 없었다.
+ *
+ * 규칙
+ *  · 한 번 적으면 절대 안 덮는다. 덮으면 그 순간부터 '최초'가 아니게 된다.
+ *  · 주문에 startCount 가 있으면 그걸 우선한다 — 집행 직전 실측이라 더 이르고 정확하다.
+ *  · 없으면 지금 스캔값으로 적고, 언제 적었는지(at)를 같이 남긴다.
+ *    캠페인 도중에 시작했으면 '그때부터'라는 뜻이므로 화면이 그렇게 말할 수 있어야 한다.
+ */
+async function ensureBaseline(campaign, accounts, orders) {
+  try {
+    const { readStateFromSheet, writeStateToSheet } = await import('./sheet.js');
+    if (!writeStateToSheet) return;
+    const cur = (await readStateFromSheet(campaign.sheet).catch(() => ({}))) || {};
+    const base = { ...(cur.startFol || {}) };
+    const now = new Date().toISOString();
+    const key = (plat, h) => plat + '|' + String(h || '').replace(/^@/, '').trim().toLowerCase();
+
+    // ① 주문의 startCount 가 제일 이른 실측이다 — 있으면 그것으로 (이미 적힌 것도 더 이르면 교체)
+    for (const o of orders || []) {
+      const n = Number(o.startCount);
+      if (!Number.isFinite(n) || !o.handle) continue;
+      const k = key(o.plat || 'tk', o.handle);
+      const at = o.placedAt || now;
+      if (!base[k] || (base[k].at && at < base[k].at)) base[k] = { n, at, src: 'order' };
+    }
+    // ② 아직 없는 계정은 지금 값으로 연다
+    for (const a of accounts || []) {
+      const pairs = [['tk', a.handle, a.tk && a.tk.followers], ['ig', a.igHandle, a.ig && a.ig.followers]];
+      for (const [plat, h, v] of pairs) {
+        if (!h) continue;
+        const n = Number(String(v == null ? '' : v).replace(/[,\s]/g, ''));
+        if (!Number.isFinite(n) || !n) continue;      // 못 읽은 값으로 기준을 만들지 않는다
+        const k = key(plat, h);
+        if (!base[k]) base[k] = { n, at: now, src: 'scan' };
+      }
+    }
+    if (JSON.stringify(base) !== JSON.stringify(cur.startFol || {})) {
+      await writeStateToSheet(campaign.sheet, { startFol: base });
+    }
+  } catch (e) { console.warn('[최초팔로워] 기록 실패(무해):', (e && e.message) || e); }
+}
+
 async function stampScan(campaign, kind) {
   try {
     const { readStateFromSheet, writeStateToSheet } = await import('./sheet.js');
@@ -492,6 +538,7 @@ export async function handler(req, res) {
             return v ? { plat: pl, id: v.service, name: v.name, rate: v.rate } : null; }).filter(Boolean) },
         /* 로컬 파일이 없으면(배포본) 시트에 적어둔 시각을 쓴다 — 팀원 화면에서 '아직'만 뜨던 이유다. */
         balance,
+        startFol: all.startFol || {},     // 최초 팔로워 — 화면이 증감을 보여준다
         scannedAt: scanLatest(campaign).ranAt || (all.scans && all.scans.follower) || null,
         uploadScannedAt: detectedRanAt(campaign) || (all.scans && all.scans.upload) || null,
         // 화면이 가드닝 예상 금액을 계산하려면 단가와 환율이 필요하다.
@@ -761,6 +808,8 @@ export async function handler(req, res) {
       }
       // 몇 개 못 긁는 것은 정상이다(늘 있다). 그걸로 시계를 멈추면 영영 안 갱신된다.
       stampScan(campaign, 'follower');   // 기다리지 않는다(실패해도 응답은 성공)
+      // 최초 팔로워는 스캔할 때마다 '없는 것만' 채운다 — 따로 눌러야 하면 아무도 안 누른다.
+      try { ensureBaseline(campaign, await getAccountsFromSheet(campaign.sheet), orders); } catch {}
       return send(res, 200, { ok: true, scannedAt: scanLatest(campaign).ranAt, scannedCount: sync.scannedCount, scanTried: sync.scanTried, scanFailed: sync.scanFailed, scanFailedHandles: sync.scanFailedHandles || [], writeError: sync.writeError || null, nicksWritten: sync.nicksWritten, refill, accounts: await buildAccounts(campaign, orders), orders: markStale(orders) });
     }
 

@@ -73,7 +73,9 @@ export async function getBundle(sheet) {
     throw new Error('마스터 헤더행(계정링크 + 닉네임/진행사)을 못 찾았어요 — 열 위치를 몰라 값을 읽지 않았습니다. 시트 헤더 이름을 확인해 주세요.');
   }
   // scans = 마지막 스캔 시각. 여기서 안 넘기면 배포본(로컬 파일 없음)이 영영 '아직' 이다.
-  return { accounts: d.accounts || [], orders: d.orders || [], overrides: d.overrides || {}, best: d.best || [], scans: d.scans || {} };
+  // startFol = 계정별 최초 팔로워. ⚠️ 여기 안 적으면 시트에 있어도 화면까지 못 온다
+  //    — 이 함수는 '아는 키만' 통과시킨다(브릿지·readAll 도 같은 구조라 네 군데 다 열어야 했다).
+  return { accounts: d.accounts || [], orders: d.orders || [], overrides: d.overrides || {}, best: d.best || [], scans: d.scans || {}, startFol: d.startFol || {} };
 }
 
 // ── 로컬 파일 폴백 (2단계 전환·백업 이중쓰기용) ─────────────
