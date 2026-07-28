@@ -138,6 +138,43 @@ body.nav-collapsed .side-toggle { justify-content: center; padding: 9px; }
 .cnt.warn { background: var(--needs-bg); color: var(--needs-ink); }
 /* 배지 안의 단위 — 숫자보다 한 단계 작고 흐리게. 숫자가 먼저 읽혀야 한다. */
 .cnt .cnt-u { font-size: .8em; font-weight: 600; opacity: .62; margin-left: 1px; }
+/* 검색칸 — 하위탭 줄에 얹는다. 평소엔 조용하고 글자가 들어가면 테두리가 살아난다. */
+.srch { display:inline-flex; align-items:center; gap:6px; padding:4px 9px; border:1px solid var(--line);
+  border-radius:20px; background:var(--card); transition:border-color .12s ease, background .12s ease; }
+.srch .si { width:14px; height:14px; color:var(--faint); flex:none; }
+.srch input { border:none; outline:none; background:none; font-family:var(--sans); font-size:12.5px;
+  color:var(--ink); width:132px; padding:1px 0; }
+.srch input::placeholder { color:var(--faint); }
+.srch input::-webkit-search-cancel-button { display:none; }
+.srch:focus-within { border-color:var(--accent); }
+.srch.on { border-color:var(--accent); background:var(--accent-soft); }
+.srch.on .si { color:var(--accent-ink); }
+.qx { border:none; background:none; cursor:pointer; color:var(--muted); font-size:15px; line-height:1;
+  padding:0 1px; }
+.qx:hover { color:var(--ink); }
+@media (max-width:900px){ .srch input { width:96px; } }
+/* 현황 브리핑 — 읽고 복사해 가는 자리. 표처럼 꾸미지 않는다(그대로 붙여넣을 글이라서). */
+/* 주차 탭 — 하위탭(무엇을 보나) 아래 '언제 것을 보나'. 한 단계 아래라 더 작고 조용하게. */
+.wtabs { display:flex; gap:7px; flex-wrap:wrap; margin:-6px 0 16px; }
+.wtab { display:inline-flex; align-items:baseline; gap:6px; padding:7px 13px; border-radius:9px;
+  border:1px solid var(--line); background:var(--card); color:var(--muted);
+  font-family:var(--sans); font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap; }
+.wtab b { font-size:14px; font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums; }
+.wtab span { font-size:11.5px; font-weight:600; color:var(--faint); }
+.wtab:hover { border-color:var(--accent); }
+.wtab.on { background:var(--accent-soft); border-color:var(--accent); color:var(--accent-ink); }
+.wtab.on b { color:var(--accent-ink); }
+.wtab.on span { color:var(--accent-ink); opacity:.75; }
+.brief { border:1px solid var(--line); border-radius:12px; background:var(--card);
+  box-shadow:var(--shadow); margin:0 0 16px; overflow:hidden; }
+.brief-h { display:flex; align-items:center; gap:10px; padding:11px 14px;
+  border-bottom:1px solid var(--line); font-size:13px; }
+.brief-h b { font-size:13.5px; }
+.brief-h .cmuted { font-size:12px; }
+.brief-h .btn { margin-left:0; }
+.brief-h .btn:first-of-type { margin-left:auto; }
+.brief-b { margin:0; padding:14px 16px; font-family:var(--sans); font-size:13.5px; line-height:1.85;
+  color:var(--ink); white-space:pre-wrap; word-break:break-word; }
 /* 숫자가 아니라 짧은 문장이 들어가는 KPI — 큰 글씨 그대로 두면 줄이 넘친다. */
 .kpi.kpi-text .big { font-size: 19px; line-height: 1.35; letter-spacing: -.01em; }
 main { padding: 22px 30px 70px; }
@@ -1527,7 +1564,7 @@ function gStat(d, p){
 }
 
 /* ============ 상태 ============ */
-const state = { view:'recruit', plat:'all', platOnly:'', qaLang:'ja', raw:false, campaign:'lun8', worker:'online', addForm:false, gardenHold:true, simOpen:false, sim:null, simCampaign:null, sort:{}, day:null, week:null, stripOpen:true, coOnly:'', hasContent:false, upFilter:'all', noticeOnly:false, unfixedOnly:false };
+const state = { view:'recruit', plat:'all', platOnly:'', qaLang:'ja', raw:false, campaign:'lun8', worker:'online', addForm:false, gardenHold:true, simOpen:false, sim:null, simCampaign:null, sort:{}, day:null, week:null, stripOpen:true, coOnly:'', hasContent:false, upFilter:'all', noticeOnly:false, unfixedOnly:false, q:'', briefOpen:false };
 const cfg = ()=> CAMPAIGNS[state.campaign];
 const platsOn = ()=> cfg().plats;
 const hasIG = ()=> platsOn().includes('ig');
@@ -1578,6 +1615,18 @@ function companiesOn(){
   return [...s].sort();
 }
 const coPass = d => !state.coOnly || d.co === state.coOnly;
+/* 검색 — 이름·계정·이메일 어디든 걸리면 남긴다.
+   68명이 넘어가면서 '그 사람 어디 있지'가 스크롤로는 안 됐다.
+   @·공백·대소문자는 무시한다 — 시트에서 복사해 붙이면 @ 가 딸려온다. */
+const normQ = v => String(v==null?'':v).replace(/[@\s]/g,'').toLowerCase();
+function qPass(d){
+  const q = normQ(state.q);
+  if(!q) return true;
+  const hay = [d.nick, d.creator, d.email, d.memo,
+    d.tk && d.tk.h, d.ig && d.ig.h, d.tk && d.tk.nick, d.ig && d.ig.nick]
+    .map(normQ).join('|');
+  return hay.includes(q);
+}
 function coChips(){
   const cs = companiesOn(); if(cs.length < 2) return '';   // 하나뿐이면 필터가 아니다
   const n = c => D.filter(inCampaign).filter(d=> d.co===c).length;
@@ -1832,7 +1881,7 @@ function schedStats(excludeId){
      같은 화면에서 표는 68명인데 스트립은 37명이 된다(근거 없이 깎인다).
      예정일 힌트(schedHint)도 이 함수를 쓰므로 몰림 판단까지 틀어진다. */
   const useContent = state.view==='upload';
-  const rows = D.filter(inCampaign).filter(inUpload).filter(coPass)
+  const rows = D.filter(inCampaign).filter(inUpload).filter(coPass).filter(qPass)
     .filter(d=> useContent ? contentPass(d) : true)
     .filter(d=> oursToSchedule(d) || hasDay(d)).filter(d=> d.id!==excludeId);
   const byDay = {}; ALLDAYS().forEach(dy=> byDay[dy] = { day:dy, geon:0, left:0, myeong:0 });
@@ -2153,7 +2202,7 @@ function viewRecruit(){
   if(state.plat==='tk' || state.plat==='ig') rows = rows.filter(d=> d[state.plat]);
   else if(state.plat==='unsent')  rows = rows.filter(oursToContact).filter(d=> !d.notice);
   else if(state.plat==='unfixed') rows = rows.filter(oursToContact).filter(d=> !d.sched);
-  rows = rows.filter(coPass);
+  rows = rows.filter(coPass).filter(qPass);
   const cols = [
     { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
@@ -2306,7 +2355,7 @@ function uploadAllCols(){
 
 function viewUploadAll(){
   const rows = D.filter(inCampaign).filter(inUpload).filter(dayWeekPass)
-    .filter(coPass).filter(contentPass).filter(d=> platsOn().some(p=>d[p]));
+    .filter(coPass).filter(qPass).filter(contentPass).filter(d=> platsOn().some(p=>d[p]));
   const cols = uploadAllCols();
   const pairs = [];
   rows.forEach(d=> platsOn().forEach(p=>{ if(d[p]) pairs.push({ d, p }); }));
@@ -2330,7 +2379,7 @@ function viewUploadAll(){
     ${schedStrip()}
   </div>`;
   setFilterNote(rows);
-  return kpis + platSubtabs() + filterBar() + remindSummary() +
+  return kpis + platSubtabs() + weekTabs() + briefPanel() + filterBar() + remindSummary() +
     renderTable(cols, rows, {tableId:'upload-all', emptyMsg:'조건에 맞는 사람이 없어요.'}) +
     `<div class="note-line">한 사람 한 줄이에요. <b>미러링</b>은 두 영상을 나란히 보고 판단하는 것이라 여기에만 있어요 —
      플랫폼 탭에서는 같은 사람을 두 번 찾아야 해서 판단이 안 됩니다.</div>`;
@@ -2443,6 +2492,7 @@ function syncScanBtn(){
    눌러도 되는지 망설이지 않는다(0이면 버튼 자체가 안 뜬다). */
 function filterCount(){
   let n = 0;
+  if(state.q) n++;
   if(state.day) n++;
   if(state.week) n++;
   if(state.coOnly) n++;
@@ -2457,6 +2507,100 @@ function filterCount(){
 /* 초기화 버튼 — 하위탭 줄 오른쪽 끝(선택 스캔 옆).
    예전엔 일정 스트립 카드 안 오른쪽에 있어, 필터를 켠 자리와 멀어 찾지 못했다.
    탭을 고르는 줄에 두면 '이 화면을 처음 상태로'가 바로 읽힌다. */
+/* 검색칸 — 하위탭 줄에 둔다. 어느 탭에서나 같은 자리에 있어야 손이 기억한다.
+   ⚠️ render() 가 innerHTML 을 갈아끼우므로 매 글자마다 포커스가 날아간다.
+   그래서 입력 이벤트에서 값만 state 에 넣고, 다시 그린 뒤 포커스와 커서 위치를 되돌린다. */
+/* 현황 브리핑 — '지금 어떤 상태인가' 를 문장으로 적는다.
+ *
+ * 왜 만들었나: 주차 마감·브랜드 문의처럼 물어보는 것이 매번 달라진다.
+ * KPI 카드를 그때마다 늘리면 화면만 무거워지고, 정작 필요한 조합은 늘 빠져 있다.
+ * 그래서 '자주 묻는 것'을 한 번에 적어 두고 복사해 갈 수 있게 한다.
+ *
+ * ⚠️ 숫자는 반드시 화면이 쓰는 함수(slots·geonOf·uploaded·isDropped…)를 그대로 쓴다.
+ * 여기서 따로 세면 카드와 브리핑이 다른 말을 하게 되고, 그건 둘 다 못 믿게 만든다.
+ * (LLM 을 붙이지 않은 것도 같은 이유다 — 계산은 틀리면 안 되고, 이 질문들은 계산으로 다 된다) */
+function briefLines(){
+  const inC = D.filter(inCampaign);
+  const plats = platsOn();
+  const geonAll = (arr,f)=> arr.reduce((a,d)=> a + plats.filter(p=> d[p] && (!f||f(d,p))).length, 0);
+
+  const total   = geonAll(inC);                                  // 모집 총 슬롯
+  const secured = inC.reduce((a,d)=> a + geonOf(d), 0);          // 요건·드랍·미러링 반영
+  const dropped = inC.filter(isDropped);
+  const dropGeon= geonAll(dropped);
+  const lowGeon = inC.reduce((a,d)=> a + lowReqOf(d), 0);
+  const up      = geonAll(inC, (d,p)=> uploaded(d,p));
+  const rev     = geonAll(inC, (d,p)=> done(d[p]));
+  const fixed   = inC.filter(d=> { const v=String(d.fixed||'').trim(); return v && !isFixedState(v) && normDay(v); });
+  const noticed = inC.filter(d=> oursToContact(d) && d.notice);
+  const live    = inC.filter(d=> !isDropped(d));
+  const todo    = geonAll(live, (d,p)=> !uploaded(d,p));         // 남은 업로드
+  const byPlat  = p => ({
+    확보: live.reduce((a,d)=> a + (d[p] && meetsReq(d,p) ? 1 : 0), 0),
+    업로드: live.reduce((a,d)=> a + (d[p] && uploaded(d,p) ? 1 : 0), 0),
+  });
+  const tk = byPlat('tk'), ig = plats.includes('ig') ? byPlat('ig') : null;
+  const agency = live.filter(isAgency), self = live.filter(d=>!isAgency(d));
+  const cap = cfg().settleCap || 0, goal = goalGeon();
+  const lateG = lateGeon(), soon = dropSoonCount();
+
+  const L = [];
+  L.push(`[${esc(cfg().name)}] ${TODAY()} 현황`);
+  L.push('');
+  L.push(`· 모집 ${inC.length}명 / ${total}건 — 지금 확보 ${secured}건`);
+  if(dropGeon) L.push(`· 최종 드랍 ${dropped.length}명 / ${dropGeon}건`);
+  if(lowGeon)  L.push(`· 팔로워 ${nf(GMIN)} 미달 ${lowGeon}건 — 가드닝으로 채우면 확보로 돌아옴`);
+  L.push(`· 확정일 받은 사람 ${fixed.length}명 · 확정메일 보낸 사람 ${noticed.length}명`);
+  L.push('');
+  L.push(`· 업로드 ${up}건 / 남은 예정 ${todo}건`);
+  L.push(`· 검수완료 ${rev}건 (목표 ${goal}건 · 정산상한 ${cap}건)`);
+  if(lateG) L.push(`· 예정일 지났는데 미업로드 ${lateG}건${soon?` (그중 탈락 예정 ${soon}명)`:''}`);
+  L.push('');
+  L.push(`· 틱톡  확보 ${tk.확보}건 · 업로드 ${tk.업로드}건`);
+  if(ig) L.push(`· 인스타 확보 ${ig.확보}건 · 업로드 ${ig.업로드}건`);
+  L.push('');
+  L.push(`· 자체 ${self.length}명 / ${geonAll(self)}건 · 실행사 ${agency.length}명 / ${geonAll(agency)}건`);
+  /* 예정대로 다 올라오면 몇 건인가 — 주차 마감 때 제일 먼저 묻는 것이다.
+     '남은 예정' 은 요건을 채운 슬롯만 세므로 그대로 더하면 된다. */
+  L.push(`· 예정대로 다 올라오면 ${up + todo}건`);
+  return L;
+}
+/* 주차 탭 — 전체 / 1주차 / 2주차.
+   일정 스트립의 주차 칩이 같은 일을 하지만 스트립을 접어 두면 안 보이고,
+   '이번 주만 보기' 는 주차 마감마다 쓰는 동작이라 늘 같은 자리에 있어야 한다.
+   state.week 을 그대로 쓴다 — 새 상태를 만들면 스트립과 어긋난다. */
+function weekTabs(){
+  const ws = WEEKS();
+  if(ws.length < 2) return '';
+  const rows = D.filter(inCampaign).filter(inUpload).filter(coPass).filter(qPass).filter(d=>!isDropped(d));
+  const geon = arr => arr.reduce((a,d)=> a + platsOn().filter(p=> d[p] && meetsReq(d,p)).length, 0);
+  const one = (label, on, n, sub) =>
+    `<button class="wtab${on?' on':''}" data-week="${esc(label)}">${esc(label)}<b>${n}</b>${sub?`<span>${esc(sub)}</span>`:''}</button>`;
+  return `<div class="wtabs">
+    ${one('전체', !state.week, geon(rows), '')}
+    ${ws.map(w=> one(w.label, state.week===w.label, geon(rows.filter(d=> inWeek(d, w.label))),
+        (w.days&&w.days.length)? w.days[0]+'–'+w.days[w.days.length-1] : '')).join('')}
+  </div>`;
+}
+function briefPanel(){
+  if(!state.briefOpen) return '';
+  const txt = briefLines().join('\n');
+  return `<div class="brief">
+    <div class="brief-h"><b>현황 브리핑</b>
+      <span class="cmuted">화면과 같은 기준으로 센 값이에요</span>
+      <button class="btn small" id="briefCopy">전체 복사</button>
+      <button class="btn ghost small" id="briefClose">닫기</button></div>
+    <pre class="brief-b">${esc(txt)}</pre>
+  </div>`;
+}
+function searchBox(){
+  const v = state.q || '';
+  return `<span class="srch${v?' on':''}">
+    <svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    <input id="qBox" type="search" placeholder="이름·계정·이메일" value="${esc(v)}" autocomplete="off">
+    ${v?`<button class="qx" id="qClear" title="검색 지우기">×</button>`:''}
+  </span>`;
+}
 function resetBtn(){
   const n = filterCount();
   if(!n) return '';
@@ -2576,7 +2720,7 @@ function filterBar(){
   const co = coChips();
   // 지금 보고 있는 범위(날짜·주차·하위탭)에서 센다 — 그걸 안 보면 칩의 숫자와
   // 눌렀을 때 결과가 어긋난다(전체 기준으로 세고 있었다).
-  const n = D.filter(inCampaign).filter(inUpload).filter(dayWeekPass).filter(coPass)
+  const n = D.filter(inCampaign).filter(inUpload).filter(dayWeekPass).filter(coPass).filter(qPass)
     .filter(remindScope)
     .filter(d=> platsOn().some(p=> d[p] && d[p].c1)).length;
   const ct = `<span class="fchip-g"><span class="fchip-lab">콘텐츠</span>`
@@ -2597,7 +2741,7 @@ function viewUploadLate(){
   /* 여기는 '이제 막 늦은 사람'만 — 2일 넘게 지난 사람은 [탈락 예정] 탭으로 뺀다.
      둘을 섞으면 기한을 이미 준 사람과 오늘 처음 연락할 사람에게 같은 메일이 나간다. */
   const rows = D.filter(inCampaign).filter(inUpload).filter(dayWeekPass)
-    .filter(coPass).filter(contentPass)
+    .filter(coPass).filter(qPass).filter(contentPass)
     .filter(d=> !isDropped(d) && lateSlots(d) && !isDropSoon(d));
   // 오래 지난 사람부터. 늦을수록 급하다.
   rows.sort((a,b)=> schedKey(dueDay(a)) - schedKey(dueDay(b)));
@@ -2623,7 +2767,7 @@ function viewUploadLate(){
 /* 최종 드랍만 보는 탭. '누가 왜 빠졌나' 를 한 자리에서 본다 —
    확보 카드가 '최종 드랍 N건 제외' 라고만 말하고 그 N을 열어볼 곳이 없었다. */
 function viewUploadDropped(){
-  const rows = droppedRows().filter(dayWeekPass).filter(coPass);
+  const rows = droppedRows().filter(dayWeekPass).filter(coPass).filter(qPass);
   rows.sort((a,b)=> schedKey(dueDay(a)) - schedKey(dueDay(b)));
   const cols = uploadAllCols();
   const geon = rows.reduce((a,d)=> a + platsOn().filter(p=> d[p]).length, 0);
@@ -2647,7 +2791,7 @@ function viewUploadDropped(){
 }
 function viewUploadDropSoon(){
   const rows = D.filter(inCampaign).filter(inUpload).filter(dayWeekPass)
-    .filter(coPass).filter(contentPass).filter(isDropSoon);
+    .filter(coPass).filter(qPass).filter(contentPass).filter(isDropSoon);
   // 오래 지난 사람부터 — 제일 먼저 결론 내야 할 사람이 위로.
   rows.sort((a,b)=> daysLate(b) - daysLate(a));
   const cols = uploadAllCols();
@@ -2678,7 +2822,7 @@ function viewUpload(){
   if(state.plat==='all') return viewUploadAll();
   const p = state.plat;
   let rows = D.filter(inCampaign).filter(inUpload).filter(d=> d.plats.includes(p) && d[p]!==null)
-    .filter(dayWeekPass).filter(coPass).filter(contentPass);
+    .filter(dayWeekPass).filter(coPass).filter(qPass).filter(contentPass);
   const allRows = rows;
   const f = upFilter(); if(f.test) rows = rows.filter(d=> f.test(d,p));
   const cols = [
@@ -2720,7 +2864,7 @@ function viewUpload(){
   const scanBar = filterBar();
   setFilterNote(rows);
   const exNote = excluded ? `<div class="note-line">🎯 ${pName(p)} 미참여 <b>${excluded}명</b>은 이 탭에서 자동 숨김.</div>` : '';
-  return kpis + platSubtabs() + scanBar + exNote + remindSummary() + renderTable(cols, rows, {tableId:'upload-'+p, noHide: state.upFilter!=='all', emptyMsg: upFilter().empty}) +
+  return kpis + platSubtabs() + weekTabs() + scanBar + exNote + remindSummary() + renderTable(cols, rows, {tableId:'upload-'+p, noHide: state.upFilter!=='all', emptyMsg: upFilter().empty}) +
     `<div class="note-line">틱톡·인스타 모두 <b>집 IP·실제 크롬으로 자동 스캔</b>. 검수 3칸은 드롭다운으로 바로 고치고(수동=자동보다 우선), 행 전체는 <b>편집</b>으로.</div>`;
 }
 
@@ -3282,7 +3426,7 @@ function gardenSvcNote(){
 // 하위탭에 그 플랫폼 인원수. 모집탭에서만 — 업로드탭은 건수를 카드에서 이미 보여준다.
 // 모집탭 도구 — 하위탭 줄 오른쪽 끝. 빈 열 배지(hideSlot)도 같이 담아 한 그룹으로 오른쪽에 붙인다.
 function recruitTools(){
-  return `<span class="rec-tools"><span id="hideSlot"></span>${resetBtn()}`
+  return `<span class="rec-tools">${searchBox()}<button class="btn small${state.briefOpen?' primary':''}" id="btnBrief" title="지금 상태를 문장으로 — 보고·문의 답변에 그대로 쓰세요">📋 현황</button><span id="hideSlot"></span>${resetBtn()}`
     + `<button class="btn small" id="btnRecScan" title="지원 응답시트에서 새로 지원한 사람을 마스터시트로 가져와요">⬇ 모집 가져오기</button>`
     + `<button class="btn small" id="btnAddPerson">${IC.userplus} 인원 추가</button>`
     + `<button class="btn small" id="btnReload">↻ 새로고침</button></span>`;
@@ -3315,7 +3459,7 @@ function remindTargets(missKey){
      표는 0행 "연락할 사람이 없어요" 인데 바는 SIRIAI N명을 띄우고 그 주소를 복사했다.
      주소 자체는 정당한 대상이라 오발송은 아니지만 '보고 있는 것과 복사한 것이 다르다'. */
   return D.filter(inCampaign).filter(inUpload).filter(dayWeekPass)
-    .filter(coPass).filter(contentPass)
+    .filter(coPass).filter(qPass).filter(contentPass)
     .filter(oursToSchedule)          // 마루는 마루가 LINE 으로 챙긴다
     .filter(d=> !isDropped(d))
     .filter(remindScope)
@@ -3358,7 +3502,7 @@ function remindSummary(){
   const lateOnly = state.plat==='late' || state.plat==='dropsoon';
   const plats = remindPlats();
   const scope = D.filter(inCampaign).filter(inUpload).filter(dayWeekPass)
-    .filter(coPass).filter(contentPass)   // 표와 같은 범위 — 위 remindTargets 와 짝이다
+    .filter(coPass).filter(qPass).filter(contentPass)   // 표와 같은 범위 — 위 remindTargets 와 짝이다
     .filter(oursToSchedule).filter(d=> !isDropped(d)).filter(remindScope)
     .filter(d=> plats.some(p=>d[p]));
   if(!scope.length) return '';
@@ -3448,7 +3592,7 @@ function platSubtabs(){
     ${state.view==='upload' ? ((g)=>`<button class="subtab gone ${state.plat==='dropped'?'active':''}" data-plat="dropped" title="결론이 난 사람 — 확보 건수에서 빠지고 추가 모집 계산에 들어갑니다"><span class="dot"></span>최종 드랍 <span class="cmuted">${g}건</span></button>`)(droppedGeon()) : ''}
     ${state.view==='garden' ? `<button class="subtab hist ${state.plat==='hist'?'active':''}" data-plat="hist"><span class="dot"></span>집행 내역 <span class="cmuted">${ORDERS.length}</span></button>` : ''}
     ${state.view==='recruit' ? recruitSubtabs() : ''}
-    ${state.view==='recruit' ? recruitTools() : `${gardenSvcNote()}<span class="sub-tools"><span id="hideSlot" class="sub-hide"></span>${resetBtn()}${state.view==='upload'?scanPickBtn():''}</span>`}</div>`;
+    ${state.view==='recruit' ? recruitTools() : `${gardenSvcNote()}<span class="sub-tools">${searchBox()}<button class="btn small${state.briefOpen?' primary':''}" id="btnBrief" title="지금 상태를 문장으로 — 보고·문의 답변에 그대로 쓰세요">📋 현황</button><span id="hideSlot" class="sub-hide"></span>${resetBtn()}${state.view==='upload'?scanPickBtn():''}</span>`}</div>`;
 }
 /* ============ 매뉴얼 · 가이드 ============
    내용은 public/knowledge.js 하나뿐이다(MANUAL/GUIDE). 여기서 복붙하지 않는다 —
@@ -3738,7 +3882,7 @@ function mDetail(){
   const onlyDropped = state.plat==='dropped';
   const rows = (onlyDropped ? D.filter(inCampaign).filter(isDropped)
                             : D.filter(inCampaign).filter(inUpload).filter(d=> !isDropped(d)))
-    .filter(dayWeekPass).filter(coPass).filter(contentPass).filter(d=> platsOn().some(p=>d[p]));
+    .filter(dayWeekPass).filter(coPass).filter(qPass).filter(contentPass).filter(d=> platsOn().some(p=>d[p]));
   const sub = state.plat==='late' ? '일정 미준수' : state.plat==='dropsoon' ? '탈락 예정'
     : onlyDropped ? '최종 드랍' : '전체';
   const list = (state.plat==='late' ? rows.filter(d=>!isDropSoon(d)&&lateSlots(d))
@@ -4370,6 +4514,37 @@ document.getElementById('nav').addEventListener('click', e=>{
   render();
 });
 
+/* 검색 입력 — 다시 그린 뒤 포커스와 커서를 되돌린다. 안 그러면 한 글자 치고 칸에서 튕긴다. */
+let _qT = null;
+document.addEventListener('input', e=>{
+  const b = e.target.closest('#qBox'); if(!b) return;
+  const v = b.value, pos = b.selectionStart;
+  state.q = v;
+  clearTimeout(_qT);
+  _qT = setTimeout(()=>{
+    render();
+    const n = document.getElementById('qBox');
+    if(n){ n.focus(); try { n.setSelectionRange(pos, pos); } catch(err){} }
+  }, 180);
+});
+document.addEventListener('click', e=>{
+  if(e.target.closest('#btnBrief')){ state.briefOpen = !state.briefOpen; render(); return; }
+  if(e.target.closest('#briefClose')){ state.briefOpen = false; render(); return; }
+  if(e.target.closest('#briefCopy')){ copyText(briefLines().join('\n'), '현황을 복사했어요 — 붙여넣으세요'); return; }
+});
+document.addEventListener('click', e=>{
+  if(!e.target.closest('#qClear')) return;
+  state.q=''; render();
+  const n = document.getElementById('qBox'); if(n) n.focus();
+});
+// Esc 로 검색 지우기 — 손이 마우스로 안 가게.
+document.addEventListener('keydown', e=>{
+  if(e.key!=='Escape') return;
+  const b = e.target.closest('#qBox'); if(!b) return;
+  if(!state.q) return;
+  state.q=''; render();
+  const n = document.getElementById('qBox'); if(n) n.focus();
+});
 document.getElementById('content').addEventListener('click', e=>{
   if(roBlockClick(e)) return;   // 조회 전용: 편집·집행·스캔은 여기서 끝낸다(아래 목업 핸들러까지 안 간다)
   const so=e.target.closest('[data-stripopen]'); if(so){ state.stripOpen = so.dataset.stripopen==='1'; render(); return; }
@@ -4388,7 +4563,12 @@ document.getElementById('content').addEventListener('click', e=>{
     render(); return;
   }
   const ufx=e.target.closest('[data-unfixed]'); if(ufx){ state.unfixedOnly = ufx.dataset.unfixed==='1'; render(); return; }
-  const wk=e.target.closest('[data-week]'); if(wk){ state.week = (state.week===wk.dataset.week) ? null : wk.dataset.week; state.day=null; render(); return; }
+  /* 주차 — 스트립 칩(.wchip)과 주차 탭(.wtab)이 같은 data-week 를 쓴다.
+     '전체' 는 주차 탭에만 있는 값이라 그것만 따로 푼다(그 이름의 주차는 없다). */
+  const wk=e.target.closest('[data-week]');
+  if(wk){ const v = wk.dataset.week;
+    state.week = (v==='전체' || state.week===v) ? null : v;
+    state.day=null; render(); return; }
   const uf=e.target.closest('[data-upf]'); if(uf){ state.upFilter = uf.dataset.upf; render(); return; }
   const dy=e.target.closest('[data-day]'); if(dy){ state.day = (state.day===dy.dataset.day) ? null : dy.dataset.day; state.week=null; render(); return; }
   if(e.target.closest('#dayClear')){
@@ -4396,7 +4576,7 @@ document.getElementById('content').addEventListener('click', e=>{
        ⚠️ 새 필터를 만들면 여기에도 반드시 추가할 것. 안내줄엔 '진행사'라고 떠 있는데
        초기화를 눌러도 안 풀리면, 사람은 화면이 고장난 줄 알고 새로고침한다. */
     state.day=null; state.week=null; state.platOnly=''; state.noticeOnly=false; state.unfixedOnly=false;
-    state.coOnly=''; state.hasContent=false;
+    state.coOnly=''; state.hasContent=false; state.q='';
     scanPick.clear();        // '처음 상태'라면 골라둔 것도 없어야 한다
     /* 하위탭도 되돌린다 — '처음 상태'라면 틱톡·일정 미준수·탈락 예정·최종 드랍도 풀려야 한다.
        가드닝의 '집행 내역'(hist)만 남긴다: 그건 필터가 아니라 다른 화면이다. */

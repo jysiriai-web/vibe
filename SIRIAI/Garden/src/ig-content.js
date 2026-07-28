@@ -44,7 +44,20 @@ function inWindow(post, since) {
 
 // delayMs 2000: 인스타는 프로필을 여는 속도로는 잘 안 막힌다(실측). 3초는 과했다.
 // only: 특정 계정만 — '내일 올리는 8명만' 같은 부분 스캔에 쓴다. 전체를 30분 돌 이유가 없다.
-export async function runIgContentScan(campaign, { onProgress, onWarmup, waitForGo, since = '', delayMs = 2000, limit = 0, shouldStop, only, concurrency = 5 } = {}) {
+/* deep(정밀) 모드 — 시간을 더 쓰고 대신 덜 놓친다.
+ *
+ * 왜 필요한가: 기본은 동시 5개·간격 2초로 돈다. 인스타는 이 속도에서 200 을 주면서
+ * 게시물 목록만 비워 보내거나 로그인 월을 띄운다. 그러면 올린 사람이 '미업로드' 로 남고
+ * 리마인드가 잘못 나간다 — 실제로 30개 계정이 그 상태였다.
+ *
+ * 정밀 모드가 바꾸는 것
+ *   · 동시 5 → 2, 간격 2초 → 4.5초 (사람이 보는 속도에 가깝게)
+ *   · 프로필에서 훑는 게시물 12 → 24개
+ *   · 못 본 계정은 끝나고 한 번 더 — 그 사이 차단이 풀리는 경우가 많다
+ * 45명 기준 10분 → 20분쯤. 놓치는 것보다 낫다. */
+export async function runIgContentScan(campaign, { onProgress, onWarmup, waitForGo, since = '', delayMs = 2000, limit = 0, shouldStop, only, concurrency = 5, deep = false } = {}) {
+  if (deep) { concurrency = 2; delayMs = Math.max(delayMs, 4500); }
+  const pageMax = deep ? 24 : 12;
   // 캠페인 시작일이 있으면 그 전 게시물은 볼 이유가 없다 — 프로필을 직접 여는 경로에서
   // '어디까지 거슬러 올라갈지'를 정해 준다. 없으면 21일 전까지만(캠페인 콘텐츠는 늘 최근이다).
   if (!since) {
@@ -141,7 +154,7 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
           //    느리지만 막혔을 때 스캔 전체가 멈추는 것보다 낫다.
           if (!p) {
             // 캠페인 해시태그가 붙은 게시물 2개(콘텐츠①②)를 찾으면 거기서 멈춘다 — 계정당 1분이 십몇 초로 준다.
-            try { p = await fetchIgPostsViaPage(b.ctx, a.igHandle, { isMatch: (post) => matchPost(post, hashtags).hit, since }); via = 'page'; }
+            try { p = await fetchIgPostsViaPage(b.ctx, a.igHandle, { isMatch: (post) => matchPost(post, hashtags).hit, since, max: pageMax }); via = 'page'; }
             catch (e) {
               failedHandles.add(a.igHandle);
               detected[a.igHandle] = { uploaded: false, scanFailed: true, error: e.message };
@@ -185,7 +198,7 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
             if (first.post.likes != null) cells.push({ row: a.row, field: 'ig.likes', value: first.post.likes });
             if (first.post.comments != null) cells.push({ row: a.row, field: 'ig.comments', value: first.post.comments });
           } else {
-            detected[a.igHandle] = { uploaded: false, checkedAt: new Date().toISOString(), postsSeen: (p.posts || []).length };
+            detected[a.igHandle] = { uploaded: false, checkedAt: new Date().toISOString(), postsSeen: (p.posts || []).length, via };
           }
           if (onProgress) onProgress({ done: ++done, total: targets.length, handle: a.igHandle, uploaded: hits.length > 0 });
           await sleep(delayMs);
@@ -196,6 +209,43 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
         const page = await openIgFetcher(b.ctx);
         try { await runOne(page); } finally { try { await page.close(); } catch {} }
       }));
+      /* 정밀 모드: 못 본 계정을 한 번 더 본다. 인스타 차단은 몇 분이면 풀리는 경우가 많아
+         끝나고 다시 걸면 상당수가 살아난다. 여기서 성공하면 실패 목록에서 뺀다. */
+      if (deep && !stopped && failedHandles.size) {
+        const again = targets.filter((t) => failedHandles.has(t.igHandle));
+        let rd = 0;
+        if (onProgress) onProgress({ note: '못 본 ' + again.length + '개를 다시 확인합니다', retryTotal: again.length, retryDone: 0 });
+        for (const a of again) {
+          if (shouldStop && shouldStop()) break;
+          await sleep(delayMs * 2);
+          try {
+            const p2 = await fetchIgPostsViaPage(b.ctx, a.igHandle, { isMatch: (post) => matchPost(post, hashtags).hit, since, max: pageMax });
+            const seen2 = (p2.posts || []).length;
+            const hits2 = (p2.posts || []).filter((x) => inWindow(x, since))
+              .map((x) => ({ post: x, m: matchPost(x, hashtags) })).filter((x) => x.m.hit);
+            hits2.sort((x, y) => new Date(x.post.takenAt || 0) - new Date(y.post.takenAt || 0));
+            if (hits2.length) {
+              const f = hits2[0];
+              detected[a.igHandle] = { uploaded: true, link: f.post.link, link2: hits2[1] ? hits2[1].post.link : '',
+                hashtagOk: f.m.all, matched: f.m.matched, via: 'page(재시도)',
+                likes: f.post.likes, comments: f.post.comments, takenAt: f.post.takenAt };
+              failedHandles.delete(a.igHandle);
+              if (!(prev[a.igHandle] && prev[a.igHandle].uploaded)) newUploaded++;
+              wroteHandles.add(a.igHandle);
+              if (!locked(a.row, 'contentA')) cells.push({ row: a.row, field: 'ig.contentA', value: f.post.link });
+              if (hits2[1] && !locked(a.row, 'contentB')) cells.push({ row: a.row, field: 'ig.contentB', value: hits2[1].post.link });
+              if (!locked(a.row, 'hashtagOk')) cells.push({ row: a.row, field: 'ig.hashtagOk', value: f.m.all ? '준수' : '미준수' });
+              if (f.post.likes != null) cells.push({ row: a.row, field: 'ig.likes', value: f.post.likes });
+              if (f.post.comments != null) cells.push({ row: a.row, field: 'ig.comments', value: f.post.comments });
+            } else if (seen2) {
+              // 봤는데 없는 것 — 실패가 아니다. 근거를 남기고 실패 목록에서 뺀다.
+              detected[a.igHandle] = { uploaded: false, checkedAt: new Date().toISOString(), postsSeen: seen2, via: 'page(재시도)' };
+              failedHandles.delete(a.igHandle);
+            }
+          } catch (e) { /* 두 번째도 실패면 그대로 실패로 남긴다 */ }
+          if (onProgress) onProgress({ retryTotal: again.length, retryDone: ++rd });
+        }
+      }
     } finally { try { await b.browser.close(); } catch {} }
   }
 

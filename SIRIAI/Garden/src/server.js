@@ -811,9 +811,13 @@ export async function handler(req, res) {
           since: url.searchParams.get('since') || '',
           // ?only=a,b 또는 본문 only:[...] — 내일 올리는 사람만 골라 도는 부분 스캔.
           only: (body && Array.isArray(body.only) && body.only) || (url.searchParams.get('only') || '').split(',').filter(Boolean),
+          // 정밀 모드 — 느리게 깊게 본다(45명 기준 10분 → 20분쯤). 놓치는 것보다 낫다.
+          deep: url.searchParams.get('deep') === '1' || !!(body && body.deep),
           shouldStop: () => scanAbort.has('ig-content-scan'),
           onWarmup: () => { igContentState.phase = 'login'; },
-          onProgress: (p) => { igContentState = { phase: 'scan', done: p.done, total: p.total, handle: p.handle, uploaded: p.uploaded }; },
+          onProgress: (p) => { igContentState = { phase: 'scan', done: p.done != null ? p.done : igContentState.done,
+            total: p.total != null ? p.total : igContentState.total, handle: p.handle, uploaded: p.uploaded,
+            note: p.note || '', retryDone: p.retryDone, retryTotal: p.retryTotal }; },
         });
         /* 결과를 상태에도 남긴다 — 예전엔 POST 응답에만 담아서, 작업 콘솔을 새로고침하면
            '몇 건 올라왔는지'가 영영 사라졌다. 상태에 두면 다시 열어도 읽어 갈 수 있다. */
