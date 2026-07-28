@@ -75,7 +75,7 @@ export async function getBundle(sheet) {
   // scans = 마지막 스캔 시각. 여기서 안 넘기면 배포본(로컬 파일 없음)이 영영 '아직' 이다.
   // startFol = 계정별 최초 팔로워. ⚠️ 여기 안 적으면 시트에 있어도 화면까지 못 온다
   //    — 이 함수는 '아는 키만' 통과시킨다(브릿지·readAll 도 같은 구조라 네 군데 다 열어야 했다).
-  return { accounts: d.accounts || [], orders: d.orders || [], overrides: d.overrides || {}, best: d.best || [], scans: d.scans || {}, startFol: d.startFol || {} };
+  return { accounts: d.accounts || [], orders: d.orders || [], overrides: d.overrides || {}, best: d.best || [], scans: d.scans || {}, startFol: d.startFol || {}, svcPick: d.svcPick || null };
 }
 
 // ── 로컬 파일 폴백 (2단계 전환·백업 이중쓰기용) ─────────────

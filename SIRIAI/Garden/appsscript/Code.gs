@@ -471,10 +471,17 @@ function stateSheet_() {
   return sh;
 }
 
+/* _state 에 저장하는 키 목록. ⚠️ 여기 없는 키는 writeState_ 가 조용히 건너뛰고
+   {written:0} 을 200 으로 돌려준다 — 서버는 성공했다고 믿고 값은 사라진다.
+   startFol 121건이 이렇게 증발했다. 새 키는 반드시 여기에 먼저 적는다.
+     overrides = 사람이 잠근 셀 · best = 최우수 · scans = 마지막 스캔 시각
+     startFol  = 계정별 최초 팔로워 · svcPick = 가드닝 서비스 선택 */
+var STATE_KEYS = ['overrides', 'best', 'scans', 'startFol', 'svcPick'];
+
 function readState_() {
   var sh = stateSheet_();
   var lastRow = sh.getLastRow();
-  var out = { overrides: {}, best: [], scans: {}, startFol: {} };
+  var out = { overrides: {}, best: [], scans: {}, startFol: {}, svcPick: null };
   if (lastRow < 2) return out;
   var v = sh.getRange(2, 1, lastRow - 1, 2).getValues();
   for (var i = 0; i < v.length; i++) {
@@ -488,6 +495,8 @@ function readState_() {
       else if (k === 'scans') out.scans = JSON.parse(raw);
       // startFol = 계정별 최초 팔로워. 한 번 적으면 안 덮는다(덮으면 '최초'가 아니게 된다).
       else if (k === 'startFol') out.startFol = JSON.parse(raw);
+      // svcPick = 플랫폼별 가드닝 서비스 + 그때의 단가·리필 스냅샷(배포본엔 카탈로그가 없다).
+      else if (k === 'svcPick') out.svcPick = JSON.parse(raw);
     } catch (err) { throw new Error('_state ' + k + ' JSON 파손: ' + err); }
   }
   return out;
@@ -507,7 +516,7 @@ function writeState_(state) {
     }
     var n = 0;
     // scans = 마지막 스캔 시각. 배포본엔 로컬 파일이 없어 시트가 유일한 공유 경로다.
-    var keys = ['overrides', 'best', 'scans', 'startFol'];
+    var keys = STATE_KEYS;
     for (var j = 0; j < keys.length; j++) {
       var k = keys[j];
       if (state[k] === undefined) continue;
@@ -569,7 +578,7 @@ function doGet(e) {
     if (action === 'bundle') {
       var s = readState_();
       // scans(마지막 스캔 시각)도 함께 — 배포본엔 로컬 파일이 없어 시트가 유일한 공유 경로다.
-      return json_({ accounts: readAccounts_(), orders: readOrders_(), overrides: s.overrides, best: s.best, scans: s.scans || {}, startFol: s.startFol || {}, colmap: COL, colinfo: _colInfo });
+      return json_({ accounts: readAccounts_(), orders: readOrders_(), overrides: s.overrides, best: s.best, scans: s.scans || {}, startFol: s.startFol || {}, svcPick: s.svcPick || null, colmap: COL, colinfo: _colInfo });
     }
     return json_({ error: 'unknown action' });
   } catch (err) {

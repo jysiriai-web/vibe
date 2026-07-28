@@ -38,5 +38,8 @@ export const LOCAL_ONLY = new Set([
   '/api/order/refill',
   '/api/rate',
   '/api/service',
+  // 서비스 선택·카탈로그 갱신 — 돈이 직접 나가진 않지만 '다음에 무엇을 살지' 를 정한다.
+  // 브릿지 인증은 토큰 하나뿐이라, 여기 안 적으면 공개 URL 을 아는 누구나 바꿀 수 있다.
+  '/api/services/refresh',
 ]);
 export const isLocalOnly = (path) => CLOUD && LOCAL_ONLY.has(path);

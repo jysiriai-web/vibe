@@ -137,9 +137,20 @@ export async function readStateFromSheet(sheet) {
   ensure(sheet);
   return bridgeCall(`${sheet.url}?action=state&token=${encodeURIComponent(sheet.token)}`, {});
 }
+/* ⚠️ 브릿지 writeState_ 는 '아는 키'만 저장하고, 모르는 키는 조용히 건너뛴 뒤 {written:N} 을
+   200 으로 돌려준다. 그래서 화이트리스트에 안 적힌 키는 예외도 로그도 없이 사라진다 —
+   startFol 121건이 정확히 이렇게 증발했다(서버는 성공했다고 믿었다).
+   보낸 키 수보다 적게 써졌으면 여기서 터뜨린다. 조용한 실패보다 시끄러운 실패가 낫다. */
 export async function writeStateToSheet(sheet, state) {
   ensure(sheet);
-  return bridgePost(sheet, { state });
+  const keys = Object.keys(state || {});
+  const r = await bridgePost(sheet, { state });
+  const written = Number(r && r.written);
+  if (keys.length && Number.isFinite(written) && written < keys.length) {
+    throw new Error(`_state 쓰기가 일부만 됐어요 — 보낸 키 ${keys.join(', ')} 중 ${written}개만 저장. `
+      + '브릿지(appsscript/lun8/code.gs.js)의 STATE_KEYS 에 새 키를 넣고 clasp push + 새 버전 배포를 하셔야 해요.');
+  }
+  return r;
 }
 
 export async function readFeedbackFromSheet(sheet) {

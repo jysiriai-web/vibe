@@ -36,6 +36,12 @@ export function planRefills(orders, followersByPlat, refillIds, now) {
   const due = [];
   for (const o of orders || []) {
     if (o.abandoned) continue;
+    /* 취소·환불된 주문은 리필 대상이 아니다.
+       ⚠️ 아래 delivered = qty - remains 인데 취소된 주문은 remains:0 이라 '전량 배송됨' 으로
+       계산된다 → endCount 가 부풀고 dropped 가 커져 리필을 조른다. 실제로 2026-07-28 01:23 에
+       전액 환불(charge 0.00)된 #3693 주문 4건에 리필 요청이 나갔고 12시간마다 30일간 반복될
+       예정이었다. 화면은 '리필 요청 4건 (성공 0)' 이라고만 말해 진짜 실패와 구분이 안 됐다. */
+    if (o.canceled || o.refunded) continue;
     if (!refillIds.has(String(o.service))) continue; // 리필 안 되는 서비스
     const placed = o.placedAt ? new Date(o.placedAt).getTime() : NaN;
     if (!Number.isFinite(placed)) continue;

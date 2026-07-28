@@ -994,6 +994,24 @@ body.nav-collapsed .side-btn { justify-content:center; }
 .svcnote small { font-size:11px; color:var(--faint); }
 .svcnote .svc-n { color:var(--faint); overflow:hidden; text-overflow:ellipsis; }
 @media (max-width:900px){ .svcnote { display:none; } }
+/* 가드닝 서비스 선택 — .svcnote 와 달리 좁은 화면에서도 남는다.
+   무엇을 사는지·리필이 되는지는 접어도 되는 정보가 아니다. */
+.svcbox { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:13px 15px 11px; margin:0 0 14px; }
+.svc-head { display:flex; align-items:center; gap:9px; font-size:12.5px; margin-bottom:9px; }
+.svc-head .spacer { flex:1; }
+.svc-row { display:flex; align-items:center; gap:9px; flex-wrap:wrap; padding:5px 0; font-size:12.5px; }
+.svc-row + .svc-row { border-top:1px dashed var(--line2); }
+.svc-p { min-width:44px; font-weight:800; color:var(--ink); }
+.svc-sel { max-width:min(430px, 52vw); font:inherit; font-size:12px; padding:5px 8px; border:1px solid var(--line);
+  border-radius:9px; background:var(--card); color:var(--ink); }
+.svc-sel:focus { border-color:var(--accent); outline:none; }
+.svc-meta { color:var(--muted); display:inline-flex; align-items:baseline; gap:6px; flex-wrap:wrap; }
+.svc-n { color:var(--faint); overflow:hidden; text-overflow:ellipsis; }
+.svc-lock { margin-left:auto; }
+.svc-f { font-weight:800; }
+.svc-f.yes { color:var(--ok-ink); }
+.svc-f.no  { color:var(--needs-ink); }
+@media (max-width:640px){ .svc-sel { max-width:100%; } }
 /* 빈 열 배지·필터 초기화·선택 스캔은 하위탭 줄 오른쪽 끝에. 표에 관한 것이라 표를 고르는 줄이 맞다.
    ⚠️ 이것들을 '한 그룹'으로 묶어서 통째로 오른쪽에 붙인다.
    예전엔 도구마다 margin-left:auto 를 각자 걸었는데, 빈 열 배지가 없는 화면에서는
@@ -1253,13 +1271,17 @@ const CAMPAIGNS = {
                  agency = 실행사     — 그쪽이 자기 방식으로 돌린다. 우리 승인절차는 건너뛴다
                fee: 콘텐츠 1건 단가(엔) · feeBoth: 양쪽 업로드(미러링 아님) 묶음가 — 없으면 fee×건수 */
             /* 실행사 계약 수량 — 이만큼만 정산한다. 초과분은 예상 건수에 넣으면 안 된다
-               (마루가 틱톡을 7건 더 채워 총량만 맞춘 적이 있다). */
-            agencyQuota:{ tk:10, ig:11 },
+               (마루가 틱톡을 7건 더 채워 총량만 맞춘 적이 있다).
+               7/28 재협상: 당초 틱10·인11 로 요청했는데 마루가 확보한 건 틱17·인3 이라 믹스가
+               뒤집혔다. 인스타 10건을 추가 요청해 '대강 틱10·인20' 으로 합의. */
+            agencyQuota:{ tk:10, ig:20 },
             companies:[
               { id:'SIRIAI', role:'self',   label:'시리아이', fee:5000, feeBoth:12000 },
               { id:'MARU',   role:'agency', label:'마루',     fee:6000 },
             ],
-            secure:{ target:115, SIRIAI:94, MARU:21 }, sub:'댄스챌린지', scan:'—', sheet:'https://docs.google.com/spreadsheets/d/1PjiAHc7Zfonl1jXBPqzE8LmDBjCfAHcK6ycGUsLEcf8/edit',
+            /* 확보 목표 = 시리아이 94 + 실행사 계약 수량. 실행사 몫이 21(틱10+인11) → 30(틱10+인20)
+               으로 늘어 124 가 된다. 이걸 115 로 두면 확보 카드가 9건 일찍 '달성' 으로 켜진다. */
+            secure:{ target:124, SIRIAI:94, MARU:30 }, sub:'댄스챌린지', scan:'—', sheet:'https://docs.google.com/spreadsheets/d/1PjiAHc7Zfonl1jXBPqzE8LmDBjCfAHcK6ycGUsLEcf8/edit',
             // 모집시트 — 진행사마다 하나. 마스터와 같은 자리에 둔다(정적 정보라 서버 왕복할 이유가 없다).
             recruits:[{company:'SIRIAI',url:'https://docs.google.com/spreadsheets/d/1Ov0v2JnLH9aLo0cZ8X1GnsNSOGKNJYfNiL8A3rVG9JU/edit'},{company:'MARU',url:'https://docs.google.com/spreadsheets/d/1slDXWW_S6HUUptAxRJ6VcgmXPPcO2lJJIOGVFwMOFmY/edit'}],
             weeks:[ { label:'1주차', share:0.60, days:['7/23','7/24','7/25','7/26','7/27','7/28'] },
@@ -1473,6 +1495,8 @@ async function loadData(){
     if(j.krwPerUsd) KRW_PER_USD = j.krwPerUsd;
     if(j.startFol) START_FOL = j.startFol;
     if(j.service){ SERVICE = j.service; if(j.service.rate) GARDEN_RATE = Number(j.service.rate) || GARDEN_RATE; }
+    SVC_PICK = (j.config && j.config.svcPick) || null;
+    CATALOG_N = (j.config && j.config.catalogSize) || 0;
     // 서버는 config 안에 담아 보낸다 — 최상위(j.services)엔 없다.
     SERVICES = {}; ((j.config&&j.config.services)||j.services||[]).forEach(x=>{ SERVICES[x.plat] = x; });
     BALANCE_USD = (j.balance==null || j.balance==='') ? null : Number(j.balance);
@@ -2044,6 +2068,32 @@ function closeMemoPop(){ document.querySelectorAll('.memo-pop').forEach(p=>p.rem
 /* 말풍선 안의 '편집' 은 여기서 받는다.
    ⚠️ 말풍선은 document.body 에 붙는데(표를 다시 그리지 않으려고 그렇게 뒀다),
    [data-edit] 위임 핸들러는 #content 에 걸려 있다 — 그래서 버튼이 눌려도 아무 일도 안 났다. */
+/* 서비스 변경 — 확인 한 번 받고 서버에 저장한다(시트에 남아 배포본도 같은 값을 본다).
+   돈이 바로 나가진 않지만 '다음에 무엇을 살지' 를 정하므로 되돌릴 수 있게 알려 준다. */
+document.addEventListener('change', async e=>{
+  const sel = e.target.closest('[data-svcpick]');
+  if(!sel) return;
+  const plat = sel.dataset.svcpick, id = Number(sel.value);
+  const opt = (SVC_OPTS && SVC_OPTS[plat] || []).find(x=>Number(x.id)===id);
+  const cur = SERVICES[plat];
+  // 확인 문구는 줄 배열로 만든다 — 문자열 안에 이스케이프를 섞으면 도구를 거치며 깨진다.
+  const L = [ pName(plat) + ' 가드닝 서비스를 #' + id + ' 로 바꿀까요?' ];
+  if(opt){ L.push(String(opt.name)); L.push(wonOf(Number(opt.rate)||0) + ' / 1,000명'); }
+  if(opt && !opt.refill) L.push('', '⚠️ 이 서비스는 리필이 안 돼요 — 팔로워가 빠져도 회수할 방법이 없습니다.');
+  L.push('', '다음 집행부터 적용돼요. 이미 진행 중인 주문은 그대로 원래 서비스로 채워집니다.');
+  const ok = confirm(L.join(String.fromCharCode(10)));
+  if(!ok){ sel.value = cur ? String(cur.id) : sel.value; return; }
+  sel.disabled = true;
+  try{
+    const res = await fetch(localApi('/api/service?campaign=' + state.campaign), { method:'POST',
+      headers:{'Content-Type':'application/json'}, body: JSON.stringify({ plat, id }) });
+    const r = await res.json();
+    if(r && r.error){ toast(r.error, 'bad'); sel.value = cur ? String(cur.id) : sel.value; }
+    else { toast(`${pName(plat)} 서비스를 #${id} 로 바꿨어요` + (r.note ? ' · ' + r.note : ''), r.note?'warn':'ok'); await loadData(); }
+  } catch(err){ toast('바꾸지 못했어요: ' + (err && err.message || err), 'bad'); sel.value = cur ? String(cur.id) : sel.value; }
+  finally { sel.disabled = false; }
+});
+
 document.addEventListener('click', e=>{
   const ed = e.target.closest('.memo-pop [data-edit]');
   if(!ed) return;
@@ -2120,16 +2170,26 @@ let SERVICE = null;   // 지금 쓰는 SMM 서비스 {id,name,rate} — 화면�
 /* 최초 팔로워 — { 'tk|handle': {n, at, src} }. 서버가 스캔할 때마다 '없는 것만' 채운다.
    가드닝이 실제로 얼마나 올렸는지, 산 팔로워가 남았는지를 계정 단위로 보는 근거다. */
 let START_FOL = {};
+/* 최초 팔로워의 출처. order = 집행 직전 패널 실측(제일 이르고 정확),
+   prior = 직전 캠페인 때 남은 실측(같은 사람이 계속 참여한다), scan = 오늘부터 기록 시작. */
+const SRC_LABEL = { order:'집행 직전 실측', prior:'직전 캠페인 실측', scan:'기록 시작 시점' };
 const startFolOf = (d,p) => {
   const h = String((d[p] && d[p].h) || '').replace(/^@/,'').trim().toLowerCase();
   return h ? (START_FOL[p + '|' + h] || null) : null;
 };
-let GARDEN_RATE = 4.13;   // 서비스 1,000당 USD(틱톡 기본). 서버가 주면 그 값으로 바꾼다.
+/* ⚠️ 예전엔 GARDEN_RATE = 4.13 이 박혀 있었다. 옛 서비스 #3693 단가라 지금은 어느 서비스와도
+   무관한 숫자인데, 서버가 단가를 못 주는 상황(배포본에서 그 플랫폼이 응답에서 떨어질 때)에서
+   그 값으로 금액을 자신 있게 계산했다. 모르면 모른다고 해야 한다 — null 이면 화면이 '—' 를 띄운다. */
+let GARDEN_RATE = null;
+let SVC_PICK = null;        // { tk:{id,name,rate,min,max,refill,cancel,at}, ig:{...} } — 시트에 저장된 선택
+let CATALOG_N = 0;          // 카탈로그 크기. 0 이면 후보를 못 고른다(배포본은 늘 0)
+let SVC_OPTS = null;        // /api/services 결과 캐시 { tk:[...], ig:[...] }
 /* 플랫폼별 단가. 예전엔 GARDEN_RATE 하나로 인스타까지 계산해서
    '지금 필요한 금액'이 실제 집행액과 달랐다(실측: 화면 11,491원 vs 서버 계획 9,566원).
    서버가 주는 플랫폼별 서비스로 각각 곱한다. */
 let SERVICES = {};        // { tk:{id,rate}, ig:{id,rate} }
-const rateOf = p => { const s = SERVICES[p]; return s && s.rate!=null ? Number(s.rate) : GARDEN_RATE; };
+const rateOf = p => { const s = SERVICES[p]; const v = s && s.rate!=null ? Number(s.rate) : GARDEN_RATE;
+  return Number.isFinite(v) ? v : null; };
 let BALANCE_USD = null;   // SMM 잔액. 클라우드엔 키가 없어 null 로 온다 — '확인 불가'로 표시한다.   // 가드닝 집행 기록. 돈이 나간 내역이라 화면에서 확인 가능해야 한다.
 let _lastDayNote = '';   // 일자·주차 필터 안내 — 업로드 일정 카드 안에 나중에 꽂는다
 /* '지금 무엇으로 걸러져 있나 + 전체로 돌아가기'. 모집탭에만 있었는데 업로드탭에서도
@@ -2303,9 +2363,6 @@ function viewRecruit(){
   const mirCut = all.reduce((a,d)=>a+mirDup(d),0);
   // 확보는 정산 상한(105)이 아니라 확보 목표(115)를 향해 간다 — 미업로드 완충 10건을 미리 깔고 가므로.
   const sec = cfg().secure;
-  const coSub = sec
-    ? `확보 목표 <b>${sec.target}건</b> = 시리아이 ${sec.SIRIAI} + 마루 ${sec.MARU}(요청함) · 현재 <b>${totGeon}건</b>${mirCut?` · 미러링 ${mirCut}건 뺀 수(밀면 ${totGeon+mirCut})`:''}`
-    : `콘텐츠 총 ${totGeon}건 (1명이 여러 건)`;
   const kpis = `<div class="cards">
     ${kpi('모집 인원 · 명', `${totPeople}<span class="of"> 명</span>`, { ic:IC.users, sub:`${hasIG()?`틱톡 ${tkPeople}명 · 인스타 ${igPeople}명`:`틱톡 ${tkPeople}명`} · 확보 ${totGeon}건` })}
     ${secureKpi(totGeon, mirCut)}
@@ -2622,6 +2679,18 @@ function briefLines(){
   L.push(`■ 업로드 예정  ${pTk+pIg}건  (틱톡 ${pTk} · 인스타 ${pIg})`);
   L.push(`   시리아이 확정일 ${t(S.fixed)} (틱${S.fixed.tk}/인${S.fixed.ig}) · 하나올림 ${t(S.moving)} (틱${S.moving.tk}/인${S.moving.ig})`);
   if(quota) L.push(`   실행사 계약잔여 ${mPendTk+mPendIg} (틱${mPendTk}/인${mPendIg}) — 계약 틱${quota.tk}·인${quota.ig} 중 올라온 것 뺀 값`);
+  /* ⚠️ 계약 수량을 올려도 '업로드 예정' 은 안 움직인다. 저 숫자는 min(마루 실제 예정, 계약잔여)라
+     잘라내는 쪽으로만 작동하기 때문이다 — 늘리려면 코드가 아니라 마스터시트에 사람이 들어와야 한다.
+     그래서 '계약 대비 슬롯이 몇 개 모자란가' 를 따로 말한다. 마루에 추가 요청을 넣을지가
+     여기서 갈린다(7/28 에 손으로 세느라 한참 걸린 게 정확히 이 숫자다). */
+  if(quota){
+    const mSlot = {}; platsOn().forEach(p=>{ mSlot[p] = 0; });
+    inC.filter(isAgency).forEach(d=> platsOn().forEach(p=>{ if(d[p] && !isDropped(d)) mSlot[p]++; }));
+    const shortP = platsOn().map(p=>({ p, need: Math.max(0, (quota[p]||0) - mSlot[p]) })).filter(x=>x.need);
+    L.push(`   실행사 확보 슬롯 ${platsOn().map(p=>pName(p)+' '+mSlot[p]).join(' · ')}`
+      + (shortP.length ? ` → 계약을 채우려면 ${shortP.map(x=>pName(x.p)+' '+x.need+'명').join(' · ')} 더 받아야 해요`
+                       : ' → 계약 수량은 확보됐어요'));
+  }
   else L.push(`   실행사 ${mPendTk+mPendIg} (틱${mPendTk}/인${mPendIg})`);
   L.push(`   ※ 확정일 없이 예정일만 있는 시리아이 ${t(sLoose)}건(틱${sLoose.tk}/인${sLoose.ig})은 위에 안 넣었어요`);
   L.push('');
@@ -3010,7 +3079,7 @@ function fixedKey(v){
 
 /* ============ 뷰: 가드닝 (garden.js 방식 · 대상만 노출 · 보류 개념) ============ */
 function viewGarden(){
-  if(state.plat==='hist') return platSubtabs() + gardenSummary() + gardenHistory();
+  if(state.plat==='hist') return platSubtabs() + gardenSummary() + gardenSvcPanel() + gardenHistory();
   if(state.plat==='all') return viewGardenAll();
   const p = state.plat;
   // 후보 = 이 플랫폼 참여자 중, 충족(ok)·미참여(na) 아닌 사람만 (필요없는 사람 숨김)
@@ -3038,7 +3107,9 @@ function viewGarden(){
       cell:r=>{ const b=startFolOf(r,p); if(!b) return '<span class="emptydot">·</span>';
         const cur = r[p].fol;
         const d0 = (cur==null) ? null : cur - b.n;
-        const tip = (b.src==='order' ? '집행 직전 실측' : '기록 시작 시점') + ' · ' + String(b.at||'').slice(0,10);
+        // 출처를 뭉뚱그리면 '410(7/8, 직전 캠페인 실측)' 과 '631(오늘부터 기록 시작)' 이
+        // 같은 말로 보인다. 앞은 가드닝 효과의 기준선이고 뒤는 아직 기준선이 아니다.
+        const tip = (SRC_LABEL[b.src] || '기록 시작 시점') + ' · ' + String(b.at||'').slice(0,10);
         return `<span title="${esc(tip)}">${nf(b.n)}</span>`
           + (d0==null ? '' : ` <small class="${d0>0?'up':d0<0?'down':'flat'}">${d0>0?'+':''}${nf(d0)}</small>`); } },
     { key:'fol', label:'현재 팔로워', cls:'num', thcls:'num', sv:r=> r[p].fol==null?-1:r[p].fol, cell:r=> r[p].fol==null?`<span class="cmuted">스캔 대기</span>`:nf(r[p].fol) },
@@ -3059,7 +3130,7 @@ function viewGarden(){
   const needSum = targets.reduce((a,d)=> a+gStat(d,p).order, 0);
   const holdToggle = holds.length ? `<label class="toggle ${state.gardenHold?'on':''}" id="gardenHoldToggle"><span class="switch"></span><span>보류 ${holds.length}건 표시</span></label>` : '';
   const execBar = `<div class="bar"><div class="summary">${pName(p)} 가드닝 대상 <b>${targets.length}</b><span id="gsumOf"></span>건 <span class="cmuted" id="gsumPlat"></span> · 충전 합계 <b>${nf(needSum)}</b>명 ${filling.length?`<span class="cmuted">진행중 ${filling.length}건</span>`:''}</div><div class="spacer"></div>${holdToggle}${LOCAL.on?`<button class="btn danger" id="btnExec"${targets.length?'':' disabled'}>선택 집행</button>`:''}</div>`;
-  return platSubtabs() + gardenSummary() + execBar + renderTable(cols, rows, { tableId:'garden-'+p, rowClass:r=> gStat(r,p).st==='hold'?'held':'' }) +
+  return platSubtabs() + gardenSummary() + gardenSvcPanel() + execBar + renderTable(cols, rows, { tableId:'garden-'+p, rowClass:r=> gStat(r,p).st==='hold'?'held':'' }) +
     `<div class="finenote">충전량 = 목표 <b>${nf(GTARGET)}</b>까지 100단위 반올림(베이온 가드닝과 동일). <b>최소 ${nf(GMIN)} 미만</b>만 대상, 진행중 주문(remains)은 자동 차감. 마감임박·저확률 미업로드자는 <b>보류</b> → 업로드 확인 후 가드닝(자동 제외 X). 집행은 워커가 로컬 SMM 키로.</div>`;
 }
 
@@ -3088,7 +3159,9 @@ function viewGardenAll(){
       cell:r=>{ const b=startFolOf(r.d,r.p); if(!b) return '<span class="emptydot">·</span>';
         const cur = r.d[r.p].fol;
         const d0 = (cur==null) ? null : cur - b.n;
-        const tip = (b.src==='order' ? '집행 직전 실측' : '기록 시작 시점') + ' · ' + String(b.at||'').slice(0,10);
+        // 출처를 뭉뚱그리면 '410(7/8, 직전 캠페인 실측)' 과 '631(오늘부터 기록 시작)' 이
+        // 같은 말로 보인다. 앞은 가드닝 효과의 기준선이고 뒤는 아직 기준선이 아니다.
+        const tip = (SRC_LABEL[b.src] || '기록 시작 시점') + ' · ' + String(b.at||'').slice(0,10);
         return `<span title="${esc(tip)}">${nf(b.n)}</span>`
           + (d0==null ? '' : ` <small class="${d0>0?'up':d0<0?'down':'flat'}">${d0>0?'+':''}${nf(d0)}</small>`); } },
     { key:'fol', label:'현재 팔로워', cls:'num', thcls:'num', sv:r=> r.d[r.p].fol==null?-1:r.d[r.p].fol,
@@ -3110,7 +3183,7 @@ function viewGardenAll(){
   const holdToggle = holdN ? `<label class="toggle ${state.gardenHold?'on':''}" id="gardenHoldToggle"><span class="switch"></span><span>보류 ${holdN}건 표시</span></label>` : '';
   const byPlat = platsOn().map(p=>{ const n = targets.filter(r=>r.p===p).length; return n?pName(p)+' '+n:''; }).filter(Boolean).join(' · ');
   const execBar = `<div class="bar"><div class="summary">가드닝 대상 <b>${targets.length}</b><span id="gsumOf"></span>건 <span class="cmuted" id="gsumPlat">${byPlat?'('+byPlat+')':''}</span> · 충전 합계 <b>${nf(needSum)}</b>명 ${filling.length?'<span class="cmuted">진행중 '+filling.length+'건</span>':''}</div><span class="bar-right">${holdToggle}${LOCAL.on?`<button class="btn danger" id="btnExec"${targets.length?'':' disabled'}>선택 집행</button>`:''}</span></div>`;
-  return platSubtabs() + gardenSummary() + execBar + renderTable(cols, rows, { tableId:'garden-all', rowClass:r=> r.g.st==='hold'?'held':'' }) +
+  return platSubtabs() + gardenSummary() + gardenSvcPanel() + execBar + renderTable(cols, rows, { tableId:'garden-all', rowClass:r=> r.g.st==='hold'?'held':'' }) +
     `<div class="finenote">한 행 = <b>1건</b>(사람×플랫폼). 충전량 = 목표 <b>${nf(GTARGET)}</b>까지 100단위 반올림. <b>최소 ${nf(GMIN)} 미만</b>만 대상, 진행중 주문(remains)은 자동 차감. 마감임박·저확률 미업로드자는 <b>보류</b> → 업로드 확인 후 가드닝. 집행은 작업 콘솔에서.</div>`;
 }
 
@@ -3122,13 +3195,84 @@ function viewGardenAll(){
 /* 가드닝 요약. 표만 있으면 '그래서 얼마가 더 드나'를 사람이 암산해야 한다.
    지금 필요한 돈 · 지금까지 쓴 돈 · 잔액으로 남은 여력을 한 줄에 세운다.
    플랫폼 하위탭을 타지 않는다 — 돈은 캠페인 단위로 본다. */
+/* 가드닝 서비스 선택.
+ *
+ * 왜 .svcnote 자리가 아닌가: 그 배지는 @media(max-width:900px) 에서 display:none 이라
+ * 태블릿·가로 폰에서 통째로 사라진다. 무엇을 사는지·리필이 되는지는 숨기면 안 되는 정보다.
+ *
+ * 왜 리필/취소를 크게 쓰는가: 서비스 이름에는 '[30 Days Refill] ♻️' 라고 적혀 있는데
+ * 패널이 플래그만 몰래 끄는 일이 실제로 있었다(#3693 은 7/8→7/27 사이에 리필이 꺼졌다).
+ * 이름이 아니라 플래그가 진실이고, 리필이 없으면 팔로워가 빠져도 회수 수단이 0 이다.
+ *
+ * 배포본(팀 URL)에서는 카탈로그가 없어 고를 수 없다 — 잠그되 이유를 적는다.
+ * 돈이 나가는 일은 어차피 대표님 PC 에서만 일어나므로 이 제약은 자연스럽다. */
+function svcRow(p){
+  const cur = SERVICES[p] || (SVC_PICK && SVC_PICK[p]) || null;
+  const opts = SVC_OPTS && SVC_OPTS[p];
+  const flag = (v,on,off)=> `<span class="svc-f ${v?'yes':'no'}">${v?on:off}</span>`;
+  const inFl = D.filter(inCampaign).reduce((a,d)=> a + ((d[p] && d[p].inFlight) ? 1 : 0), 0);
+  const label = `<span class="svc-p">${pName(p)}</span>`;
+  if(!cur && !opts) return `<div class="svc-row">${label}<span class="cmuted">설정 안 됨</span></div>`;
+  const meta = cur ? `<span class="svc-meta">${esc(wonOf(Number(cur.rate)||0))}<small> / 1,000명</small>`
+      + ` · ${flag(cur.refill,'리필 됨','리필 없음')} · ${flag(cur.cancel,'취소 됨','취소 불가')}`
+      + (cur.min ? ` · <small>최소 ${nf(cur.min)}명</small>` : '')
+      + (inFl ? ` · <small class="warn-t">진행중 ${inFl}건</small>` : '') + `</span>` : '';
+  if(!LOCAL.on || !CATALOG_N){
+    return `<div class="svc-row">${label}<b>#${esc(String(cur?cur.id:'—'))}</b>
+      <span class="svc-n">${esc(String((cur&&cur.name)||'').replace(/[^ -~가-힣·\[\]]/g,'').trim().slice(0,40))}</span>
+      ${meta}<span class="cmuted svc-lock">변경은 대표님 PC 에서</span></div>`;
+  }
+  const list = opts || [];
+  const sel = list.length
+    ? `<select class="svc-sel" data-svcpick="${p}">`
+      + (cur && !list.some(x=>Number(x.id)===Number(cur.id)) ? `<option value="${esc(String(cur.id))}" selected>#${esc(String(cur.id))} (카탈로그에 없음)</option>` : '')
+      + list.map(x=> `<option value="${x.id}"${cur&&Number(x.id)===Number(cur.id)?' selected':''}>`
+          + `#${x.id} · ${esc(wonOf(Number(x.rate)||0))}/1k · ${x.refill?'리필O':'리필X'} · `
+          + esc(String(x.name).replace(/[^ -~가-힣·\[\]]/g,'').trim().slice(0,38)) + `</option>`).join('')
+      + `</select>`
+    : `<span class="cmuted">후보를 못 받았어요 — 새로고침을 눌러주세요</span>`;
+  return `<div class="svc-row">${label}${sel}${meta}</div>`;
+}
+/* 후보 목록은 로컬에서만 받는다(카탈로그가 대표님 PC 에만 있다).
+   한 번 받으면 캐시한다 — 탭을 옮길 때마다 3,000개를 다시 받을 이유가 없다. */
+async function loadSvcOpts(){
+  if(SVC_OPTS || !LOCAL.on) return SVC_OPTS;
+  try{
+    const res = await fetch(localApi('/api/services?campaign=' + state.campaign));
+    const j = await res.json();
+    SVC_OPTS = (j && j.byPlat) || null;
+  } catch { SVC_OPTS = null; }
+  return SVC_OPTS;
+}
+function gardenSvcPanel(){
+  // 처음 그릴 때 후보가 없으면 받아 온 뒤 다시 그린다(한 번만).
+  if(LOCAL.on && CATALOG_N && !SVC_OPTS && !gardenSvcPanel._busy){
+    gardenSvcPanel._busy = true;
+    loadSvcOpts().then(()=>{ gardenSvcPanel._busy = false; if(state.view==='garden') render(); });
+  }
+  if(state.view!=='garden') return '';
+  const stamp = SVC_PICK && (SVC_PICK.tk||SVC_PICK.ig) ? ((SVC_PICK.tk&&SVC_PICK.tk.at)||(SVC_PICK.ig&&SVC_PICK.ig.at)||'') : '';
+  return `<div class="svcbox">
+    <div class="svc-head"><b>가드닝 서비스</b>
+      <span class="cmuted">${stamp?'마지막 변경 '+esc(String(stamp).slice(0,10)):'campaigns.json 기본값'}</span>
+      <span class="spacer"></span>
+      ${LOCAL.on?`<button class="btn ghost small" id="btnSvcRefresh" title="패널에서 서비스 목록을 새로 받아옵니다 — 단가·리필 조건이 바뀌어도 화면은 모르고 있어요">↻ 패널에서 새로고침</button>`:''}</div>
+    ${platsOn().map(svcRow).join('')}
+    <div class="finenote">여기서 고른 서비스로 다음 집행이 나갑니다. <b>리필 없음</b> 인 서비스는 팔로워가 빠져도 되돌릴 방법이 없어요.
+      단가·리필 조건은 패널이 예고 없이 바꿉니다 — 집행 전에 <b>새로고침</b> 을 한 번 눌러주세요.</div>
+  </div>`;
+}
+
 function gardenSummary(){
   // 대상: 지금 채워야 하는 것. 진행중: 이미 주문이 돌고 있는 것. 둘을 섞으면 이중지출로 보인다.
   let need = 0, needQty = 0, needUsd = 0, filling = 0, fillQty = 0, ok = 0, scan = 0, refund = 0;
   D.filter(inCampaign).forEach(d=> platsOn().forEach(p=>{
     if(!d[p]) return;
     const g = gStat(d,p);
-    if(g.st==='target'){ need++; needQty += g.order; needUsd += (g.order/1000) * rateOf(p); }
+    if(g.st==='target'){ need++; needQty += g.order;
+      // 단가를 모르는 플랫폼이 하나라도 있으면 합계를 '모름' 으로 둔다.
+      // 아는 것만 더해서 보여주면 실제보다 싸 보이고, 그걸 보고 잔액을 판단하게 된다.
+      const r = rateOf(p); if(r==null) needUsd = null; else if(needUsd!=null) needUsd += (g.order/1000) * r; }
     else if(g.st==='filling'){ filling++; fillQty += (d[p].inFlight||0); }
     else if(g.st==='refund') refund++;
     else if(g.st==='ok') ok++;
@@ -3148,13 +3292,13 @@ function gardenSummary(){
   const canceled = ORDERS.filter(o=> o.canceled).length;   // 패널이 취소·환불한 것
   const bal = BALANCE_USD;
   // 잔액으로 지금 필요한 만큼을 감당할 수 있나. 모자라면 충전해야 하니 미리 알린다.
-  const shortUsd = bal!=null ? (needUsd - bal) : null;
+  const shortUsd = (bal!=null && needUsd!=null) ? (needUsd - bal) : null;
   return `<div class="cards">
     ${kpi('가드닝 대상 · 건', need, { ic:IC.split, accent: need?'var(--needs)':undefined,
        sub: (need ? `${nf(needQty)}명 충전 필요` : '지금 채울 계정이 없어요')
           + (filling?` · 진행중 ${filling}건(${nf(fillQty)}명)`:'')
           + (refund?` · <b class="warn-t">환불 대기 ${refund}건</b>`:'') })}
-    ${kpi('지금 필요한 금액', wonOf(needUsd), { ic:IC.coin||IC.split,
+    ${kpi('지금 필요한 금액', needUsd==null ? '—' : wonOf(needUsd), { ic:IC.coin||IC.split,
        sub: shortUsd!=null && shortUsd>0 ? `<b class="warn-t">잔액이 ${wonOf(shortUsd)} 모자라요</b>` : (bal!=null?`잔액 ${wonOf(bal)}`:'잔액 확인 불가') })}
     ${kpi('지금까지 지출', (Math.round(wonNum(spentUsd)+spentKrw)).toLocaleString('ko-KR')+'원', { ic:IC.check,
        sub: (live.length ? `${live.length}건 · ${nf(spentQty)}명 충전` : '실제로 나간 돈 없음')
@@ -4512,7 +4656,10 @@ async function execModal(){
   const won = n => Math.round(n * (plan.krwPerUsd||1400)).toLocaleString('ko-KR') + '원';
   // 어느 플랫폼 주문인지 줄마다 찍는다 — 핸들이 양쪽 같은 사람은 '@zn09_k2' 두 줄이
   // 어느 쪽인지 구분할 방법이 화면에 아예 없었다.
-  const svcs = (plan.services||[]).map(s=>`${pName(s.plat)} #${esc(String(s.id))}`).join(' · ');
+  // 번호만 적으면 '리필 되는 서비스인가' 를 여기서 알 수 없다. 돈 나가기 직전이 마지막 기회다.
+  const svcs = (plan.services||[]).map(s=>{ const k = SERVICES[s.plat];
+    const rf = k && k.refill===false ? ' <b class="warn-t">리필 없음</b>' : '';
+    return `${pName(s.plat)} #${esc(String(s.id))}${rf}`; }).join(' · ');
   const body = list.map(o=>
       `<div class="plan-row"><span><span class="plat-pill ${o.plat||'tk'}">${pName(o.plat||'tk')}</span> @${esc(o.handle)} <span class="cmuted">(현재 ${nf(o.current)})</span></span><span>${nf(o.qty)}명 · ${won(o.cost)}</span></div>`).join('')
     + `<div class="plan-total"><span>총 ${list.length}개 · ${nf(plan.totalQty)}명</span><span>${won(plan.totalCost)}</span></div>`
@@ -4532,7 +4679,10 @@ async function execModal(){
     try {
       const r = await fetch(localApi('/api/execute?campaign=' + state.campaign), { method:'POST',
         headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ confirm:true, handles, password:(document.getElementById('execPw')||{}).value||'' }) });
+        /* svcSig = 이 확인창이 보여준 서비스 조합. 서버가 지금 설정과 대조해 다르면 409 로 멈춘다.
+           확인창이 열려 있는 사이에 서비스를 바꾸면, 화면은 #3776($11.50) 금액을 보여준 채
+           #3697($3.137, 리필 없음)로 주문될 수 있었다 — 반대 방향이면 3.7배 과금이다. */
+        body: JSON.stringify({ confirm:true, handles, svcSig: plan.svcSig || null, password:(document.getElementById('execPw')||{}).value||'' }) });
       const j = await r.json();
       if(j.error) throw new Error(j.error);
       closeModal();
@@ -4734,6 +4884,25 @@ document.getElementById('content').addEventListener('click', e=>{
   { const nf = e.target.closest('[data-contentf]');
     if(nf){ state.hasContent = nf.dataset.contentf==='1'; render(); return; } }
   { const b = e.target.closest('#btnRecScan'); if(b){ syncRecruit(b); return; } }
+  { const b = e.target.closest('#btnSvcRefresh');
+    if(b){ (async ()=>{
+      b.disabled = true; const t0 = b.textContent; b.textContent = '받는 중…';
+      try{
+        const res = await fetch(localApi('/api/services/refresh?campaign=' + state.campaign), { method:'POST',
+          headers:{'Content-Type':'application/json'}, body: '{}' });
+        const r = await res.json();
+        if(r && r.error) toast(r.error, 'bad');
+        else {
+          // 우리가 쓰는 서비스가 바뀌었으면 그것부터 말한다 — 목록에 묻히면 아무도 못 본다.
+          const mine = (r.mineChanged||[]);
+          toast(mine.length
+            ? '⚠️ 지금 쓰는 서비스가 바뀌었어요 — ' + mine.map(x=>'#'+x.id+' '+x.what).join(' · ')
+            : '카탈로그 갱신 — ' + r.count + '개 · 바뀐 것 ' + r.changed + '건', mine.length?'warn':'ok');
+          SVC_OPTS = null; await loadSvcOpts(); await loadData();
+        }
+      } catch(err){ toast('못 받았어요: ' + (err && err.message || err), 'bad'); }
+      finally { b.disabled = false; b.textContent = t0; }
+    })(); return; } }
   if(e.target.closest('#gardenHoldToggle')){ state.gardenHold=!state.gardenHold; render(); return; }
   { const ga = e.target.closest('#gPickAll');
     if(ga){

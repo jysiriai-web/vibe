@@ -2,7 +2,7 @@
 import { createServer } from 'node:http';
 import { exec } from 'node:child_process';
 import { timingSafeEqual } from 'node:crypto';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'node:fs';
 import { join, dirname, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadEnv } from './env.js';
@@ -48,7 +48,40 @@ async function ensureBaseline(campaign, accounts, orders) {
       const at = o.placedAt || now;
       if (!base[k] || (base[k].at && at < base[k].at)) base[k] = { n, at, src: 'order' };
     }
-    // ② 아직 없는 계정은 지금 값으로 연다
+    /* ② 직전 캠페인 기록 — 같은 크리에이터가 계속 참여한다. LUN8 틱톡 69명 중 41명이
+       베이온에도 있었고, 그 팔로워는 7/8~7/13 에 이미 실측·기록돼 있었다(캠페인 시작 7/20 보다 이르다).
+       data/c/<캠페인>/ 아래 주문의 startCount 와 스캔 결과를 전부 훑어 제일 이른 것을 고른다.
+       ⚠️ 캠페인 폴더를 가리지 않는 게 핵심이다 — 사람은 캠페인을 옮겨 다니지만 계정은 그대로다. */
+    try {
+      const croot = join(root, 'data', 'c');
+      for (const dir of (existsSync(croot) ? readdirSync(croot) : [])) {
+        if (dir === campaign.id) continue;                       // 자기 것은 위에서 이미 봤다
+        const take = (n, h, plat, at) => {
+          const v = Number(n); if (!Number.isFinite(v) || !v || !h) return;
+          const k = key(plat, h);
+          if (!base[k] || (base[k].at && at && at < base[k].at)) base[k] = { n: v, at, src: 'prior' };
+        };
+        try {
+          const op2 = join(croot, dir, 'orders.json');
+          if (existsSync(op2)) for (const o of JSON.parse(readFileSync(op2, 'utf8')) || []) {
+            take(o.startCount, o.handle, o.plat || 'tk', o.placedAt);
+          }
+        } catch {}
+        for (const [f, plat] of [['scan-latest.json', 'tk'], ['ig-scan-latest.json', 'ig']]) {
+          try {
+            const sp = join(croot, dir, f);
+            if (!existsSync(sp)) continue;
+            const d = JSON.parse(readFileSync(sp, 'utf8'));
+            const at = d.ranAt || null;
+            for (const a of d.rows || d.accounts || d.results || []) {
+              take(a.current != null ? a.current : a.followers, a.handle, plat, at);
+            }
+          } catch {}
+        }
+      }
+    } catch (e) { console.warn('[최초팔로워] 지난 캠페인 기록을 못 읽었어요(무해):', (e && e.message) || e); }
+
+    // ③ 그래도 없는 계정은 지금 값으로 연다 — '이 시점부터 기록 시작' 이라는 뜻이다
     for (const a of accounts || []) {
       const pairs = [['tk', a.handle, a.tk && a.tk.followers], ['ig', a.igHandle, a.ig && a.ig.followers]];
       for (const [plat, h, v] of pairs) {
@@ -111,6 +144,30 @@ let scanResumeResolve = null; // 막혔을 때 '재개/중지'를 기다리는 r
 
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml' };
 
+/* 가드닝 서비스 선택 — 시트 _state.svcPick 에 산다.
+ *
+ * 왜 campaigns.json 이 아닌가: 그 파일은 로컬에만 있고, 배포본은 CAMPAIGNS_JSON 환경변수 사본을
+ * 본다. 로컬에서 서비스를 바꾸면 팀 URL 은 '스크립트 실행 → 복사 → Vercel 붙여넣기 → 재배포'
+ * 를 사람이 하기 전까지 옛 번호·옛 단가를 아무 경고 없이 계속 보여준다.
+ * 시트에 두면 로컬·배포본이 같은 값을 본다.
+ *
+ * 스냅샷(name/rate/min/max/refill/cancel)을 같이 적는 이유: 배포본에는 카탈로그(data/)가
+ * 없어서 번호만으로는 아무것도 표시할 수 없다.
+ *
+ * ⚠️ 이 값은 '표시'와 '번호 선택'에만 쓴다. 실제 주문에 넘기는 svc 객체는 언제나
+ *    카탈로그(catalog())에서 다시 찾는다 — 스냅샷 단가로 돈을 계산하면 안 된다. */
+const SVC_PICK = new Map();          // campaignId -> { tk:{...}, ig:{...} }
+const pickOf = (c) => SVC_PICK.get(c && c.id) || null;
+async function loadSvcPick(campaign) {
+  try {
+    const { readStateFromSheet } = await import('./sheet.js');
+    const st = await readStateFromSheet(campaign.sheet);
+    if (st && st.svcPick) SVC_PICK.set(campaign.id, st.svcPick);
+    else SVC_PICK.delete(campaign.id);
+  } catch (e) { console.warn('[서비스선택] 못 읽었어요(설정값으로 진행):', (e && e.message) || e); }
+  return pickOf(campaign);
+}
+
 function catalog() {
   const p = join(root, 'data', 'smm-services.json');
   return existsSync(p) ? JSON.parse(readFileSync(p, 'utf8')) : [];
@@ -118,6 +175,9 @@ function catalog() {
 /* 플랫폼별 서비스 번호. serviceIds:{tk,ig} 가 있으면 그걸 쓰고,
    없으면 옛 serviceId 를 틱톡용으로 본다(지금 구성 그대로 동작). */
 const serviceIdOf = (c, plat = 'tk') => {
+  // 대시보드에서 고른 값이 있으면 그것이 우선이다. 없으면 campaigns.json 그대로.
+  const p = pickOf(c);
+  if (p && p[plat] && p[plat].id != null) return Number(p[plat].id);
   const m = c.serviceIds || {};
   if (m[plat] != null) return Number(m[plat]);
   return plat === 'tk' ? Number(c.serviceId) : null;
@@ -160,16 +220,30 @@ function serviceForShow(c, plat = 'tk') {
   const r = resolveService(c, plat);
   if (r.svc) return r.svc;
   const id = serviceIdOf(c, plat);
-  return id == null ? null : findService(c.serviceInfo || [], id);
+  if (id == null) return null;
+  /* 선택 스냅샷이 campaigns.json 의 serviceInfo 보다 낫다 — 사람이 고를 때 카탈로그에서
+     그대로 떠 온 값이라 최신이고, 새로 고른 서비스는 serviceInfo 에 아예 없다.
+     여기서 안 메우면 filter(Boolean) 이 그 플랫폼을 통째로 떨어뜨리고, 화면은 하드코딩
+     폴백 단가로 금액을 계산한다(옛 #3693 의 4.13). */
+  const p = pickOf(c);
+  const snap = p && p[plat];
+  if (snap && Number(snap.id) === Number(id)) {
+    return { service: Number(snap.id), name: snap.name, rate: snap.rate, min: snap.min, max: snap.max, refill: snap.refill, cancel: snap.cancel };
+  }
+  return findService(c.serviceInfo || [], id);
 }
 
-function tiktokFollowerServices() {
+/* 선택 후보. ⚠️ refill·cancel 을 반드시 같이 실어야 한다 — 예전엔 {id,name,rate,min,max} 만
+   보내서 '이 서비스는 리필이 안 됩니다' 를 화면이 말할 방법이 없었다. 후보 중 절반 가까이가
+   refill:false 이고, 이름에는 여전히 '[30 Days Refill] ♻️' 라고 적혀 있다(패널이 플래그만 끈다). */
+function followerServices(plat = 'tk') {
+  const words = PLAT_WORDS[plat] || [];
   return catalog()
     .filter((s) => {
       const t = `${s.name} ${s.category || ''}`.toLowerCase();
-      return t.includes('tiktok') && t.includes('follow');
+      return words.some((w) => t.includes(w)) && /follow|팔로/.test(t);
     })
-    .map((s) => ({ id: s.service, name: s.name, rate: s.rate, min: s.min, max: s.max }))
+    .map((s) => ({ id: s.service, name: s.name, rate: s.rate, min: s.min, max: s.max, refill: !!s.refill, cancel: !!s.cancel }))
     .sort((a, b) => Number(a.rate) - Number(b.rate));
 }
 
@@ -458,8 +532,14 @@ export async function handler(req, res) {
     if (path === '/api/campaigns' && req.method === 'GET') {
       return send(res, 200, { campaigns: listCampaigns().map((c) => ({ id: c.id, name: c.name, group: c.group })), krwPerUsd: await effectiveRate() });
     }
+    /* 선택 후보. plat=tk|ig, 없으면 둘 다.
+       배포본은 카탈로그가 비어 있어 빈 목록이 나온다 — 오류가 아니라 '여기선 못 고른다' 는 뜻이라
+       catalogSize 를 같이 보내 화면이 이유를 말할 수 있게 한다(예전엔 그냥 빈 배열이었다). */
     if (path === '/api/services' && req.method === 'GET') {
-      return send(res, 200, { services: tiktokFollowerServices() });
+      const plat = url.searchParams.get('plat');
+      const out = {};
+      for (const pl of (plat ? [plat] : ['tk', 'ig'])) out[pl] = followerServices(pl);
+      return send(res, 200, { byPlat: out, services: out.tk || [], catalogSize: catalog().length, local: !CLOUD });
     }
 
     const campaign = campId ? getCampaign(campId) : listCampaigns()[0];
@@ -502,6 +582,9 @@ export async function handler(req, res) {
     if (path === '/api/data' && req.method === 'GET') {
       // 시트 모드면 계정+주문+검수잠금+베스트를 한 번에 (왕복 1회)
       const all = await readAll(campaign);
+      // 서비스 선택을 캐시에 올린 뒤에 아래 serviceOf/serviceForShow 를 부른다 —
+      // 순서가 뒤집히면 방금 바꾼 서비스가 한 박자 늦게 반영된다.
+      if (all.svcPick) SVC_PICK.set(campaign.id, all.svcPick); else SVC_PICK.delete(campaign.id);
       let orders = all.orders;
       // 상태 폴링이 실제로 값을 바꿨을 때만 저장 — 30초 스로틀로 매 로드마다 SMM·시트를 치지 않도록.
       const now = Date.now();
@@ -531,11 +614,19 @@ export async function handler(req, res) {
       return send(res, 200, {
         campaign: { id: campaign.id, name: campaign.name, group: campaign.group },
         config: { target: campaign.target, min: campaign.min, krwPerUsd: await effectiveRate(), staleDays: getStaleDays(), hasKey: !!smm, confirmNotice: !!campaign.confirmNotice, execPwRequired: !!EXEC_PW, stateMode: stateMode(), cloud: CLOUD, readOnly: !!campaign.readOnly,
-          service: svc ? { id: svc.service, name: svc.name, rate: svc.rate } : { id: campaign.serviceId, name: `#${campaign.serviceId}`, rate: 0 },
+          /* ⚠️ 폴백이 campaign.serviceId(옛 단일 필드) + rate:0 이었다. serviceIds.tk 만 바꾼
+             상태에서 옛 번호를 보여주고, 금액을 쓰는 쪽이 생기면 0원이 된다. 표시 폴백을 쓴다. */
+          service: (() => { const v = svc || serviceForShow(campaign, 'tk');
+            return v ? { id: v.service, name: v.name, rate: v.rate } : null; })(),
           // 플랫폼마다 서비스도 단가도 다르다 — 화면이 틱톡 단가로 인스타까지 계산하면 안 된다.
           // 표시용이므로 폴백을 쓴다 — 집행은 위 resolveService(카탈로그 전용)를 그대로 쓴다.
+          // min/max/refill/cancel 까지 실어야 화면이 '리필 안 되는 서비스' 를 말할 수 있다.
           services: ['tk', 'ig'].map((pl) => { const v = serviceForShow(campaign, pl);
-            return v ? { plat: pl, id: v.service, name: v.name, rate: v.rate } : null; }).filter(Boolean) },
+            return v ? { plat: pl, id: v.service, name: v.name, rate: v.rate, min: v.min, max: v.max, refill: !!v.refill, cancel: !!v.cancel } : null; }).filter(Boolean),
+          // 선택 UI 가 '지금 무엇이 골라져 있나'와 '언제 누가 바꿨나'를 보여준다.
+          svcPick: all.svcPick || null,
+          // 카탈로그가 있어야 후보를 고를 수 있다 — 배포본은 비어 있어 드롭다운을 잠근다.
+          catalogSize: catalog().length },
         /* 로컬 파일이 없으면(배포본) 시트에 적어둔 시각을 쓴다 — 팀원 화면에서 '아직'만 뜨던 이유다. */
         balance,
         startFol: all.startFol || {},     // 최초 팔로워 — 화면이 증감을 보여준다
@@ -547,6 +638,37 @@ export async function handler(req, res) {
         krwPerUsd: await effectiveRate(), accounts, orders: markStale(orders), best: all.best,
         scanFailures: scanFailures(campaign), // 지난 업로드 스캔에서 못 본 계정 — 업로드 탭 하이라이트용
       });
+    }
+
+    /* 카탈로그 갱신 — 패널에서 서비스 목록을 새로 받아 catalog() 가 읽는 파일에 덮어쓴다.
+       ⚠️ 이게 없어서 카탈로그가 20일 낡아 있었다. scripts/verify-smm.js 는 파일명이 달라
+       (smm-services-<주소>.json) 서버가 읽는 smm-services.json 은 영영 안 바뀌었다.
+       그 사이 팔로워 서비스 11개의 단가·리필이 바뀌었고(#3693 은 리필 true→false), 화면은
+       낡은 단가로 금액을 계산하고 안 되는 리필을 계속 졸랐다. */
+    if (path === '/api/services/refresh' && req.method === 'POST') {
+      if (!smm) return send(res, 400, { error: 'SMM 키가 .env 에 없어요 — 카탈로그는 대표님 PC 에서만 받을 수 있어요.' });
+      let list;
+      try { list = await smm.services(); } catch (e) { return send(res, 502, { error: '패널에서 서비스 목록을 못 받았어요: ' + ((e && e.message) || e) }); }
+      const arr = Array.isArray(list) ? list : (list && list.services) || [];
+      if (!arr.length) return send(res, 502, { error: '패널이 빈 목록을 줬어요 — 덮어쓰지 않았습니다.' });
+      const before = catalog();
+      const wasById = new Map(before.map((x) => [String(x.service), x]));
+      const changed = [];
+      for (const n of arr) {
+        const o = wasById.get(String(n.service));
+        if (!o) { changed.push({ id: n.service, what: '신설', name: n.name }); continue; }
+        const d = [];
+        if (String(o.rate) !== String(n.rate)) d.push(`단가 ${o.rate}→${n.rate}`);
+        if (!!o.refill !== !!n.refill) d.push(`리필 ${!!o.refill}→${!!n.refill}`);
+        if (!!o.cancel !== !!n.cancel) d.push(`취소 ${!!o.cancel}→${!!n.cancel}`);
+        if (d.length) changed.push({ id: n.service, what: d.join(' · '), name: n.name });
+      }
+      try { writeFileSync(join(root, 'data', 'smm-services.json'), JSON.stringify(arr, null, 1)); }
+      catch (e) { return send(res, 500, { error: '카탈로그를 저장 못 했어요: ' + ((e && e.message) || e) }); }
+      // 우리가 지금 쓰는 서비스가 바뀌었는지는 따로 짚어 준다 — 목록에 묻히면 못 본다.
+      const mine = ['tk', 'ig'].map((pl) => serviceIdOf(campaign, pl)).filter((x) => x != null).map(String);
+      const mineChanged = changed.filter((c) => mine.includes(String(c.id)));
+      return send(res, 200, { ok: true, count: arr.length, before: before.length, changed: changed.length, mineChanged });
     }
 
     // 수기 팔로워 입력 → 시트에 되쓰기 (스크래핑 안 되는 계정용, 예: @kotanissy)
@@ -831,6 +953,10 @@ export async function handler(req, res) {
         });
         igScanState = { phase: 'done', done: out.scannedCount, total: out.total };
         stampScan(campaign, 'follower');
+        /* 인스타도 최초 팔로워를 연다. 예전엔 틱톡 스캔에서만 불러서, 인스타 계정은
+           다음 틱톡 스캔 때까지 baseline 이 안 열렸다 — 그 사이 인스타 충전이 나가면
+           '최초' 로 남는 값이 이미 충전된 뒤의 숫자가 된다. */
+        try { ensureBaseline(campaign, await getAccountsFromSheet(campaign.sheet), await readOrders(campaign)); } catch {}
         return send(res, 200, { ok: true, ...out, accounts: undefined });
       } catch (e) {
         igScanState = { phase: 'error', error: e.message };
@@ -905,6 +1031,8 @@ export async function handler(req, res) {
          인스타 서비스(serviceIds.ig)가 설정 안 돼 있으면 인스타는 그냥 빠진다(지금까지와 동일). */
       const notes = [];
       const plans = [];
+      // 돈 경로는 캐시를 믿지 않는다 — 시트에서 다시 읽는다(다른 창에서 방금 바꿨을 수 있다).
+      await loadSvcPick(campaign);
       const tk = resolveService(campaign, 'tk');
       const ig = resolveService(campaign, 'ig');
       /* 서비스를 하나도 못 풀면 예전엔 200 + 빈 계획이라 화면이 '다 채워져 있어요' 라고 말했다.
@@ -947,7 +1075,11 @@ export async function handler(req, res) {
       if (smm) { try { balance = Number((await smm.balance()).balance); } catch {} }
       return send(res, 200, { ...plan, balance, krwPerUsd: await effectiveRate(), igNote,
         service: tk.svc ? { id: tk.svc.service, name: tk.svc.name, rate: tk.svc.rate } : null,
-        services: plans.map((p) => ({ plat: p.plat, id: p.svc.service, name: p.svc.name, rate: p.svc.rate })) });
+        services: plans.map((p) => ({ plat: p.plat, id: p.svc.service, name: p.svc.name, rate: p.svc.rate })),
+        /* 사람이 이 번호들을 보고 승인한다. 집행 때 되돌려 받아 대조한다 —
+           확인창이 열려 있는 동안 서비스가 바뀌면 화면은 #3776($11.50) 기준 금액을 보여준 채
+           #3697($3.137, 리필 없음)로 주문될 수 있었다. 반대 방향이면 3.7배 과금이다. */
+        svcSig: plans.map((p) => p.plat + ':' + p.svc.service).sort().join('|') });
     }
 
     if (path === '/api/execute' && req.method === 'POST') {
@@ -965,8 +1097,17 @@ export async function handler(req, res) {
       }
       execInProgress.add(campaign.id);
       try {
+      await loadSvcPick(campaign);
       const xTk = resolveService(campaign, 'tk');
       const xIg = resolveService(campaign, 'ig');
+      /* 화면이 승인한 서비스와 지금 서버가 풀어낸 서비스가 같은지 본다.
+         body.svcSig 가 없으면(옛 화면) 대조를 건너뛴다 — 있으면 다르면 멈춘다. */
+      if (body.svcSig) {
+        const nowSig = [['tk', xTk], ['ig', xIg]].filter(([, r]) => r.svc)
+          .map(([pl, r]) => pl + ':' + r.svc.service).sort().join('|');
+        if (nowSig !== body.svcSig) return send(res, 409, {
+          error: `승인하신 서비스와 지금 설정이 달라요 (승인 ${body.svcSig || '없음'} / 지금 ${nowSig || '없음'}). 화면을 새로고침하고 금액을 다시 확인해 주세요.` });
+      }
       // 계획 때와 같은 검증. 여기서 통과시키면 잘못된 서비스로 진짜 돈이 나간다.
       if (!xTk.svc && !xIg.svc) return send(res, 400, { error: [xTk.why, xIg.why].filter(Boolean).join(' · ') || '집행할 서비스가 설정돼 있지 않아요' });
       // 시트 왕복이 건당 3초쯤이라 순서대로 부르면 그만큼 쌓인다 —
@@ -1085,16 +1226,47 @@ export async function handler(req, res) {
       return send(res, 200, { krwPerUsd: await effectiveRate() });
     }
 
-    /* 캠페인 서비스 변경.
-       setService 는 옛 c.serviceId 만 쓰는데, serviceIds:{tk,ig} 를 쓰는 캠페인은
-       집행이 그쪽만 본다 — 바꿨다고 답하고 주문은 예전 번호로 나가는 돈 설정 경로였다.
-       고쳐 쓸 화면이 아직 없으니 그런 캠페인에서는 아예 거절한다(거짓 성공 금지). */
+    /* 가드닝 서비스 변경 — 플랫폼별로 고른다.
+     *
+     * 예전엔 setService 가 옛 c.serviceId 에만 썼는데 집행은 serviceIds:{tk,ig} 만 봤다.
+     * '바꿨다' 고 답하고 주문은 옛 번호로 나가는 경로라서, 그런 캠페인은 아예 400 으로 막아 뒀다.
+     * 이제 시트 _state.svcPick 에 적고 serviceIdOf 가 그걸 먼저 본다 — 로컬·배포본이 같은 값을 본다.
+     *
+     * 저장하는 것은 번호 + 그 시점 스냅샷이다. 스냅샷은 '표시' 전용이고, 실제 주문은 언제나
+     * 카탈로그에서 다시 찾는다(집행 경로에 사람이 적은 값이 새면 검증이 무력해진다). */
     if (path === '/api/service' && req.method === 'POST') {
       const body = await readBody(req);
-      if (campaign.serviceIds) return send(res, 400, {
-        error: `이 캠페인은 플랫폼별 서비스(serviceIds)를 씁니다 — campaigns.json 에서 직접 고쳐주세요. 여기서 바꾸면 화면만 바뀌고 주문은 예전 번호로 나갑니다.` });
-      const ok = setService(campaign.id, body.serviceId);
-      return send(res, 200, { ok });
+      const plat = body.plat === 'ig' ? 'ig' : body.plat === 'tk' ? 'tk' : null;
+      const id = Number(body.id != null ? body.id : body.serviceId);
+      if (!plat) return send(res, 400, { error: "plat 이 'tk' 또는 'ig' 여야 해요" });
+      if (!Number.isFinite(id)) return send(res, 400, { error: '서비스 번호가 필요해요' });
+
+      const cat = catalog();
+      if (!cat.length) return send(res, 400, { error: '카탈로그가 비어 있어요 — 먼저 「패널에서 새로고침」 을 눌러주세요.' });
+      const svc = findService(cat, id);
+      // 같은 검증을 집행 때와 똑같이 건다. 목록에서 골랐다고 통과시키면 검증이 사라진다.
+      const why = serviceWhy(svc, id, plat);
+      if (why) return send(res, 400, { error: why });
+
+      // 진행 중 주문이 있으면 원장이 두 서비스로 갈린다 — 막지는 않되 몇 건인지 말해 준다.
+      let inFlight = 0;
+      try {
+        const cur = await readOrders(campaign);
+        inFlight = (cur || []).filter((o) => (o.plat || 'tk') === plat && !o.abandoned && !o.canceled && Number(o.remains) > 0).length;
+      } catch {}
+
+      const prev = (await loadSvcPick(campaign)) || {};
+      const next = { ...prev, [plat]: {
+        id: Number(svc.service), name: svc.name, rate: svc.rate, min: svc.min, max: svc.max,
+        refill: !!svc.refill, cancel: !!svc.cancel, at: new Date().toISOString(),
+      } };
+      try {
+        const { writeStateToSheet } = await import('./sheet.js');
+        await writeStateToSheet(campaign.sheet, { svcPick: next });   // 못 쓰면 여기서 throw 한다
+      } catch (e) { return send(res, 502, { error: '서비스를 저장 못 했어요: ' + ((e && e.message) || e) }); }
+      SVC_PICK.set(campaign.id, next);
+      return send(res, 200, { ok: true, plat, service: next[plat], inFlight,
+        note: !svc.refill ? '이 서비스는 리필이 안 돼요 — 팔로워가 빠져도 회수 수단이 없습니다.' : null });
     }
 
     // 정체 주문 종료 처리 (취소 시도 + 완료처리 → 재가드닝 가능)

@@ -256,7 +256,7 @@ export async function readAll(campaign) {
     // accounts 를 못 읽으면 undefined 로 넘겨 buildAccounts 의 기존 폴백(scan-latest)이 작동하게 한다.
     let accounts;
     try { accounts = await getAccountsFromSheet(campaign.sheet); } catch { accounts = undefined; }
-    return { accounts, orders: localOrders(campaign), overrides: localOverrides(campaign), best: localBest(campaign), startFol: {} };
+    return { accounts, orders: localOrders(campaign), overrides: localOverrides(campaign), best: localBest(campaign), startFol: {}, svcPick: null };
   }
   const b = await getBundle(campaign.sheet); // 원칙 ③: 실패하면 throw
   const orders = await repairOrders(campaign, reconcileOrders(campaign, b.orders || []));
@@ -268,5 +268,5 @@ export async function readAll(campaign) {
   const overrides = pend ? unionOverrides(local, sheetOv) : unionOverrides(sheetOv, local);
   // 원본과 비교 → 정규화만 일어나도 한 번 밀어 넣어 시트를 필드 키로 마이그레이션한다.
   if (!eq(overrides, sheetRaw)) { try { await putOverrides(campaign.sheet, overrides); clearPending(campaign, 'overrides'); } catch {} }
-  return { accounts: b.accounts, orders, overrides, best: b.best || [], scans: b.scans || {}, startFol: b.startFol || {} };
+  return { accounts: b.accounts, orders, overrides, best: b.best || [], scans: b.scans || {}, startFol: b.startFol || {}, svcPick: b.svcPick || null };
 }
