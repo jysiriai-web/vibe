@@ -154,32 +154,6 @@ body.nav-collapsed .side-toggle { justify-content: center; padding: 9px; }
 .qx:hover { color:var(--ink); }
 @media (max-width:900px){ .srch input { width:96px; } }
 /* 현황 브리핑 — 읽고 복사해 가는 자리. 표처럼 꾸미지 않는다(그대로 붙여넣을 글이라서). */
-/* 주차 탭 — 하위탭(무엇을 보나) 아래 '언제 것을 보나'. 한 단계 아래라 더 작고 조용하게. */
-/* 결론 한 줄 — 카드 아래. 이 화면을 여는 이유가 이 문장이다. */
-.verdict { margin:-4px 0 18px; padding:12px 16px; border-radius:11px; font-size:14px; font-weight:700;
-  border:1px solid var(--line); background:var(--card); color:var(--ink); }
-.verdict.ok   { background:var(--ok-bg);    border-color:var(--ok);    color:var(--ok-ink); }
-.verdict.warn { background:var(--warn-bg);  border-color:var(--warn);  color:var(--warn-ink); }
-.verdict.bad  { background:var(--needs-bg); border-color:var(--needs); color:var(--needs-ink); }
-.verdict b { font-weight:800; }
-/* 확신도 — 색이 곧 '얼마나 믿을 수 있나' 다. */
-.grade { display:inline-block; font-size:11.5px; font-weight:800; padding:2px 8px; border-radius:20px; }
-.g-fixed  { background:var(--ok-bg);   color:var(--ok-ink); }
-.g-moving { background:var(--fill-bg); color:var(--fill-ink); }
-.g-loose  { background:var(--gray-bg); color:var(--gray-ink); }
-.gq { font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; }
-.subtab.todo .dot { background:var(--accent); }
-.subtab.todo.active { color:var(--accent-ink); border-bottom-color:var(--accent); }
-.wtabs { display:flex; gap:7px; flex-wrap:wrap; margin:-6px 0 16px; }
-.wtab { display:inline-flex; align-items:baseline; gap:6px; padding:7px 13px; border-radius:9px;
-  border:1px solid var(--line); background:var(--card); color:var(--muted);
-  font-family:var(--sans); font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap; }
-.wtab b { font-size:14px; font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums; }
-.wtab span { font-size:11.5px; font-weight:600; color:var(--faint); }
-.wtab:hover { border-color:var(--accent); }
-.wtab.on { background:var(--accent-soft); border-color:var(--accent); color:var(--accent-ink); }
-.wtab.on b { color:var(--accent-ink); }
-.wtab.on span { color:var(--accent-ink); opacity:.75; }
 .brief { border:1px solid var(--line); border-radius:12px; background:var(--card);
   box-shadow:var(--shadow); margin:0 0 16px; overflow:hidden; }
 .brief-h { display:flex; align-items:center; gap:10px; padding:11px 14px;
@@ -2421,7 +2395,7 @@ function viewUploadAll(){
     ${schedStrip()}
   </div>`;
   setFilterNote(rows);
-  return kpis + platSubtabs() + weekTabs() + briefPanel() + filterBar() + remindSummary() +
+  return kpis + platSubtabs() + briefPanel() + filterBar() + remindSummary() +
     renderTable(cols, rows, {tableId:'upload-all', emptyMsg:'조건에 맞는 사람이 없어요.'}) +
     `<div class="note-line">한 사람 한 줄이에요. <b>미러링</b>은 두 영상을 나란히 보고 판단하는 것이라 여기에만 있어요 —
      플랫폼 탭에서는 같은 사람을 두 번 찾아야 해서 판단이 안 됩니다.</div>`;
@@ -2613,23 +2587,6 @@ function briefLines(){
       : sLow===0 ? `· 부족분 0~${sHigh}건 — 확정일을 더 받아내면 채워집니다`
       : `· 부족분 ${sLow}~${sHigh}건 — 추가 모집이 필요합니다`); }
   return L;
-}
-/* 주차 탭 — 전체 / 1주차 / 2주차.
-   일정 스트립의 주차 칩이 같은 일을 하지만 스트립을 접어 두면 안 보이고,
-   '이번 주만 보기' 는 주차 마감마다 쓰는 동작이라 늘 같은 자리에 있어야 한다.
-   state.week 을 그대로 쓴다 — 새 상태를 만들면 스트립과 어긋난다. */
-function weekTabs(){
-  const ws = WEEKS();
-  if(ws.length < 2) return '';
-  const rows = D.filter(inCampaign).filter(inUpload).filter(coPass).filter(qPass).filter(d=>!isDropped(d));
-  const geon = arr => arr.reduce((a,d)=> a + platsOn().filter(p=> d[p] && meetsReq(d,p)).length, 0);
-  const one = (label, on, n, sub) =>
-    `<button class="wtab${on?' on':''}" data-week="${esc(label)}">${esc(label)}<b>${n}</b>${sub?`<span>${esc(sub)}</span>`:''}</button>`;
-  return `<div class="wtabs">
-    ${one('전체', !state.week, geon(rows), '')}
-    ${ws.map(w=> one(w.label, state.week===w.label, geon(rows.filter(d=> inWeek(d, w.label))),
-        (w.days&&w.days.length)? w.days[0]+'–'+w.days[w.days.length-1] : '')).join('')}
-  </div>`;
 }
 function briefPanel(){
   if(!state.briefOpen) return '';
@@ -2911,7 +2868,7 @@ function viewUploadTodo(){
     return `<span class="grade g-${k}">${GRADE_LAB[k]}</span> <b class="gq">${pendingGeon(r)}건</b>`;
   }});
   setFilterNote(rows);
-  return kpis + platSubtabs() + weekTabs() + briefPanel() + filterBar() +
+  return kpis + platSubtabs() + briefPanel() + filterBar() +
     renderTable(cols, rows, { tableId:'upload-todo', emptyMsg:'앞으로 올라올 예정인 건이 없어요.' }) +
     `<div class="note-line"><b>보수</b>는 확정일을 받았거나 이미 하나 올린 사람만 셉니다.
      <b>널널</b>은 확정일 없이 예정일만 있는 사람까지 넣은 값이에요.
@@ -2967,7 +2924,7 @@ function viewUpload(){
   const scanBar = filterBar();
   setFilterNote(rows);
   const exNote = excluded ? `<div class="note-line">🎯 ${pName(p)} 미참여 <b>${excluded}명</b>은 이 탭에서 자동 숨김.</div>` : '';
-  return kpis + platSubtabs() + weekTabs() + scanBar + exNote + remindSummary() + renderTable(cols, rows, {tableId:'upload-'+p, noHide: state.upFilter!=='all', emptyMsg: upFilter().empty}) +
+  return kpis + platSubtabs() + scanBar + exNote + remindSummary() + renderTable(cols, rows, {tableId:'upload-'+p, noHide: state.upFilter!=='all', emptyMsg: upFilter().empty}) +
     `<div class="note-line">틱톡·인스타 모두 <b>집 IP·실제 크롬으로 자동 스캔</b>. 검수 3칸은 드롭다운으로 바로 고치고(수동=자동보다 우선), 행 전체는 <b>편집</b>으로.</div>`;
 }
 
@@ -4669,8 +4626,7 @@ document.getElementById('content').addEventListener('click', e=>{
     render(); return;
   }
   const ufx=e.target.closest('[data-unfixed]'); if(ufx){ state.unfixedOnly = ufx.dataset.unfixed==='1'; render(); return; }
-  /* 주차 — 스트립 칩(.wchip)과 주차 탭(.wtab)이 같은 data-week 를 쓴다.
-     '전체' 는 주차 탭에만 있는 값이라 그것만 따로 푼다(그 이름의 주차는 없다). */
+  /* 주차 — 일정 스트립의 주차 칩. 같은 칩을 다시 누르면 풀린다. */
   const wk=e.target.closest('[data-week]');
   if(wk){ const v = wk.dataset.week;
     state.week = (v==='전체' || state.week===v) ? null : v;
