@@ -26,6 +26,7 @@
   --gone-bg:#1b1b1f; --gone-ink:#ffffff; --gone-line:#1b1b1f; --gone-t:#8c1d18;
   --drop-bg:#e7e8ec; --drop-ink:#4b5160;   /* 드랍 = 끝난 것. 회색으로 물러난다 */
   --newsbg:#e7f7ee; --newsink:#0f6b44; --newsline:#a9e0c4;   /* 무엇이 바뀌었나 */
+  --sky-bg:#e6f1ff; --sky-ink:#1d5fbf; --sky-line:#b8d6fb;   /* 업로드 예정 — 연한 하늘 */
 }
 /* 다크모드 — 토큰만 다시 정의한다. 컴포넌트 CSS 는 손대지 않는다(둘로 갈리면 한쪽이 반드시 썩는다).
    :root[data-theme] 가 미디어쿼리를 이긴다 — 사람이 고른 값이 OS 설정보다 우선이어야 하므로. */
@@ -46,6 +47,7 @@
     --gone-bg:#ff6b70; --gone-ink:#1a0d0e; --gone-line:#ff6b70; --gone-t:#ff8a8f;
     --drop-bg:#3a3f49; --drop-ink:#cfd5de;
     --newsbg:#12312a; --newsink:#5fe0ab; --newsline:#1f6b4c;
+    --sky-bg:#132a45; --sky-ink:#7cb6f5; --sky-line:#245186;
   }
 }
 :root[data-theme="dark"] {
@@ -63,6 +65,7 @@
   --gone-bg:#ff6b70; --gone-ink:#1a0d0e; --gone-line:#ff6b70; --gone-t:#ff8a8f;
   --drop-bg:#3a3f49; --drop-ink:#cfd5de;
   --newsbg:#12312a; --newsink:#5fe0ab; --newsline:#1f6b4c;
+  --sky-bg:#132a45; --sky-ink:#7cb6f5; --sky-line:#245186;
 }
 :root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"]  { color-scheme: dark; }
@@ -147,8 +150,14 @@ body.nav-collapsed .side-toggle { justify-content: center; padding: 9px; }
 .verdict.warn { background:var(--warn-bg);  border-color:var(--warn);  color:var(--warn-ink); }
 .verdict.bad  { background:var(--needs-bg); border-color:var(--needs); color:var(--needs-ink); }
 .verdict b { font-weight:800; }
-.subtab.todo .dot { background:var(--accent); }
-.subtab.todo.active { color:var(--accent-ink); border-bottom-color:var(--accent); }
+/* 업로드 예정 — 켜면 연한 하늘색 바탕. 다른 탭은 글자색만 바뀌는데 여기만 바탕을 주는 이유는
+   '지금 이 목록만 보고 있다' 를 한눈에 알리려는 것이다(전체와 헷갈리기 쉬운 탭이라서).
+   ⚠️ .subtab 기본 좌우 여백이 2px 이라 바탕만 깔면 글자에 딱 붙는다 — 여백·모서리를 같이 준다. */
+.subtab.pend .dot { background:var(--sky-ink); }
+.subtab.pend.active { color:var(--sky-ink); border-bottom-color:var(--sky-ink);
+  background:var(--sky-bg); padding-left:12px; padding-right:12px; border-radius:9px 9px 0 0; }
+.subtab.pend.active .dot { background:var(--sky-ink); }
+.subtab.pend.active .cmuted { color:var(--sky-ink); opacity:.8; }
 /* 검색칸 — 하위탭 줄에 얹는다. 평소엔 조용하고 글자가 들어가면 테두리가 살아난다. */
 .srch { display:inline-flex; align-items:center; gap:6px; padding:4px 9px; border:1px solid var(--line);
   border-radius:20px; background:var(--card); transition:border-color .12s ease, background .12s ease; }
@@ -750,6 +759,8 @@ body.phone #content { padding: 0; }
 .gsec li { font-size: 14px; line-height: 1.65; color: var(--muted); padding-left: 14px; position: relative; }
 .gsec li::before { content: ''; position: absolute; left: 0; top: .62em; width: 5px; height: 5px; border-radius: 50%; background: var(--line); }
 .gsec li b { color: var(--ink); font-weight: 700; }
+/* ⚠️ 가이드의 [확인필요] 배지. 이름이 흔해서 하위탭에 .todo 를 쓰자마자 이 배경이 딸려왔다
+   (업로드 예정 탭이 분홍색이 됐다). 하위탭 쪽은 .pend 로 갈랐다. 여기에 새 클래스를 붙일 때 주의. */
 .todo { display: inline-block; font-size: .92em; font-weight: 700; padding: 0 6px; border-radius: 5px; background: var(--needs-bg); color: var(--needs-ink); }
 
 /* ── 의견 남기기 ─────────────────────────────────────────────────────────── */
@@ -3652,7 +3663,7 @@ function platSubtabs(){
     <button class="subtab all ${state.plat==='all'?'active':''}" data-plat="all"><span class="dot"></span>${allLab}</button>
     <button class="subtab tk ${state.plat==='tk'?'active':''}" data-plat="tk"><i class="pmark tk">${PLAT_MARK.tk}</i>틱톡${platCountLab('tk')}</button>
     <button class="subtab ig ${state.plat==='ig'?'active':''}" data-plat="ig"><i class="pmark ig">${PLAT_MARK.ig}</i>인스타${platCountLab('ig')}</button>
-    ${state.view==='upload' ? ((st)=>`<button class="subtab todo ${state.plat==='todo'?'active':''}" data-plat="todo" title="앞으로 올라올 건 — 확정일 기준(보수) ~ 예정일 기준(널널)"><span class="dot"></span>업로드 예정 <span class="cmuted">${st.low===st.high?st.low:st.low+'~'+st.high}건</span></button>`)(pendStats()) : ''}
+    ${state.view==='upload' ? ((st)=>`<button class="subtab pend ${state.plat==='todo'?'active':''}" data-plat="todo" title="앞으로 올라올 건 — 확정일 기준(보수) ~ 예정일 기준(널널)"><span class="dot"></span>업로드 예정 <span class="cmuted">${st.low===st.high?st.low:st.low+'~'+st.high}건</span></button>`)(pendStats()) : ''}
     ${state.view==='upload' ? ((n,g)=>`<button class="subtab late ${n?'urgent':''} ${state.plat==='late'?'active':''}" data-plat="late" title="기준일이 지난 지 ${DROP_AFTER_DAYS}일 안쪽 — 리마인드 대상 · 미업로드 ${g}건"><span class="dot"></span>일정 미준수 <span class="cmuted">${n}명</span></button>`)(lateCount(), lateGeon()) : ''}
     ${state.view==='upload' ? ((n)=>`<button class="subtab drop ${n?'urgent':''} ${state.plat==='dropsoon'?'active':''}" data-plat="dropsoon" title="기준일이 ${DROP_AFTER_DAYS}일 넘게 지났어요 — 탈락 예고를 보낼 차례"><span class="dot"></span>탈락 예정 <span class="cmuted">${n}명</span></button>`)(dropSoonCount()) : ''}
     ${state.view==='upload' ? ((g)=>`<button class="subtab gone ${state.plat==='dropped'?'active':''}" data-plat="dropped" title="결론이 난 사람 — 확보 건수에서 빠지고 추가 모집 계산에 들어갑니다"><span class="dot"></span>최종 드랍 <span class="cmuted">${g}건</span></button>`)(droppedGeon()) : ''}
