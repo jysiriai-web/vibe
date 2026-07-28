@@ -22,16 +22,26 @@ export async function scanAccounts(accounts, { delayMs = 500, onProgress, onWait
   }
   let idx = 0;
   let done = 0;
+  // 계정 하나당 상한. 팔로워를 못 읽으면 그 계정만 빠지고 나머지는 그대로 나간다.
+  const ACCOUNT_TIMEOUT_MS = Number(process.env.EXEC_ACCOUNT_TIMEOUT_MS || 45000);
   const worker = async () => {
     while (idx < accounts.length) {
       const i = idx++;
       const a = accounts[i];
       let current = null;
       let nickname = '';
+      /* 계정 하나에 상한을 건다. 여기서 못 읽으면 current=null 이 되고,
+         buildPlan 이 '팔로워 모름' 으로 그 계정을 주문에서 뺀다 — 안전한 쪽으로 실패한다.
+         ⚠️ 상한이 없어서 집행이 통째로 멈춘 적이 있다(캡차 대기가 계정마다 2분 30초씩 걸렸다).
+         한 계정이 느리다고 나머지 주문까지 서면 안 된다. */
       try {
-        const r = await fetchProfile(ctx, a.handle);
+        const r = await Promise.race([
+          fetchProfile(ctx, a.handle),
+          new Promise((res) => { const t = setTimeout(() => res({ followers: null, nickname: '', timedOut: true }), ACCOUNT_TIMEOUT_MS); if (t.unref) t.unref(); }),
+        ]);
         current = r.followers;
         nickname = r.nickname || '';
+        if (r.timedOut) console.warn(`[집행] @${a.handle} 팔로워 확인 시간 초과 — 이 계정은 주문에서 뺍니다`);
       } catch {
         /* 실패 → current=null */
       }

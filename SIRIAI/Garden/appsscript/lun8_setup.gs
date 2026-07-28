@@ -655,11 +655,33 @@ function fixLun8Gardening() {
   var col = function (n) { for (var i = 0; i < hv.length; i++) if (t(hv[i]) === n) return i + 1; return 0; };
 
   var out = [];
+  /* 빈 칸은 팔로워 수로 채운다.
+     ⚠️ 예전엔 `if (!x) continue` 로 빈 칸을 건너뛰어 드롭다운만 깔고 값은 안 넣었다.
+     그래서 나중에 추가된 행(모집 가져오기·인원 추가)은 영영 빈 칸으로 남았다 —
+     실제로 인스타 52행 중 5행이 팔로워는 있는데 가드닝 칸만 비어 있었다.
+     기준은 화면과 같다: 팔로워 1,000 미만이면 '대상', 이상이면 '불필요'.
+     팔로워를 아직 못 읽었으면(빈 칸) 그대로 둔다 — 모르는 것을 '불필요'로 적으면 안 된다.
+     사람이 손으로 '제외' 라고 적어둔 칸은 건드리지 않는다(집행 차단 스위치라서). */
+  var PLAT_FOL = { '틱톡 가드닝': '틱톡 팔로워', '인스타 가드닝': '인스타 팔로워' };
+  var MIN_FOL = 1000;
+  var num = function (v) { var s2 = String(v == null ? '' : v).replace(/[,\s]/g, ''); 
+    if (!s2) return null; var n2 = Number(s2); return isFinite(n2) ? n2 : null; };
+  var out = [];
   ['틱톡 가드닝', '인스타 가드닝'].forEach(function (name) {
     var c = col(name); if (!c) return;
+    var fc = col(PLAT_FOL[name] || '');
+    var fv = fc ? sh.getRange(DS, fc, LAST - DS + 1, 1).getValues() : null;
     var rg = sh.getRange(DS, c, LAST - DS + 1, 1), v = rg.getValues(), n = 0;
     for (var i = 0; i < v.length; i++) {
-      var x = t(v[i][0]); if (!x) continue;
+      var x = t(v[i][0]);
+      if (!x) {
+        if (!fv) continue;
+        var f = num(fv[i][0]);
+        if (f == null) continue;               // 팔로워를 모르면 판단하지 않는다
+        v[i][0] = f < MIN_FOL ? '대상' : '불필요';
+        n++; continue;
+      }
+      if (/제외|안\s*함|하지\s*않|금지/.test(x)) continue;   // 사람이 못 박은 것 — 그대로 둔다
       var w = /불필요/.test(x) ? '불필요' : /대상/.test(x) ? '대상' : x;
       if (w !== x) { v[i][0] = w; n++; }
     }

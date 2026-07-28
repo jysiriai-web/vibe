@@ -82,6 +82,8 @@
     .wk-prog > i { display: block; height: 100%; background: var(--accent); border-radius: 4px; transition: width .25s; }
     .wk-sub { display: flex; align-items: center; gap: 9px; margin: 0 15px 13px; flex-wrap: wrap; }
     .wk-note { font-size: 12.5px; color: var(--faint); }
+    /* 로고 — 크기를 여기서 못 박는다. 원본이 크면 머리글이 통째로 밀린다. */
+    .wk-logo { width: 22px; height: 22px; object-fit: contain; vertical-align: -4px; margin-right: 2px; }
     /* 스캔 옵션 — 버튼 아래 한 줄. 평소엔 안 건드리고, 놓친 게 있을 때만 켠다. */
     .wk-opt { display: flex; align-items: center; gap: 7px; margin: 9px 0 2px; font-size: 12.5px; cursor: pointer; }
     .wk-opt input { margin: 0; }
@@ -89,7 +91,7 @@
 
     /* ── 작업 기록 ───────────────────────────────────────────────────────── */
     .wk-logbox { background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden;
-      display: flex; flex-direction: column; height: calc(100vh - 150px); min-height: 420px; }
+      display: flex; flex-direction: column; height: calc(100vh - 96px); min-height: 560px; }
     .wk-loghead { display: flex; align-items: center; justify-content: space-between; padding: 11px 16px; border-bottom: 1px solid var(--line);
       font-size: 12.5px; font-weight: 800; color: var(--muted); letter-spacing: .02em; }
     .wk-loghead .btn { padding: 3px 10px; font-size: 11.5px; }
@@ -138,8 +140,7 @@
 </head>
 <body>
   <div class="wk">
-    <div class="wk-warn">이 화면은 대표님 PC 전용입니다 — 팀 공유 URL에서는 안 열려요.</div>
-    <div class="wk-h"><span class="leaf">🌱</span> 댄스챌린지 작업 콘솔<span class="wk-camp">LUN8 · SNEAKERS</span></div>
+    <div class="wk-h"><img class="wk-logo" src="/siriai-mark.png" alt="SIRIAI"> 댄스챌린지 작업 콘솔<span class="wk-camp">LUN8 · SNEAKERS</span></div>
     <div class="wk-main">
     <div class="wk-left">
     <div class="wk-sum" id="status">상태 불러오는 중…</div>
@@ -186,6 +187,16 @@
       <button class="btn wk-btn" id="btnExec">시작</button>
       <details class="wk-more"><summary>이게 뭐죠?</summary>
         <p class="wk-desc">팔로워가 목표에 모자란 계정에 <b>주문을 넣어요</b>. 먼저 금액이 적힌 확인 창이 뜨고, 확정해야만 나갑니다.<br>틱톡 브라우저를 다시 쓰기 때문에 <b>스캔이 도는 중엔 못 눌러요</b>.</p>
+      </details>
+    </div>
+
+    <div class="wk-card" id="cardRecruit">
+      <div class="wk-cardtop"><span class="wk-name">모집 가져오기</span><span class="wk-eta">10~30초</span><span class="wk-state">대기</span></div>
+      <button class="btn wk-btn" id="btnRecruit">시작</button>
+      <details class="wk-more"><summary>이게 뭐죠?</summary>
+        <p class="wk-desc">지원 응답시트(시리아이·마루)에서 <b>새로 지원한 사람</b>을 마스터시트로 가져와요.
+        이미 있는 사람은 건너뛰고, 새 사람만 맨 아래에 붙습니다. <b>돈은 안 나가요.</b><br>
+        가져온 뒤에는 대시보드에서 <b>↻ 새로고침</b> 을 눌러야 화면에 보여요.</p>
       </details>
     </div>
 
@@ -310,6 +321,7 @@
       btnScan:    { card: 'cardScan',    locks: ['tk', 'ig'] },
       btnContent: { card: 'cardContent', locks: ['tk', 'ig'] },
       btnExec:    { card: 'cardExec',    locks: ['tk'] },     // 틱톡 브라우저 재사용
+      btnRecruit: { card: 'cardRecruit', locks: [] },   // 시트만 만진다 — 브라우저를 안 쓴다
       btnIp:      { card: 'cardIp',      locks: [] },
     };
     var RUNNING = null;
@@ -413,14 +425,25 @@
 
         // 틱톡과 인스타를 갈라 센다. 예전엔 틱톡만 세고 '가드닝 필요 N건'이라 적어
         // 전체인 것처럼 보였다(틱톡 6·인스타 1인데 6으로 표시).
-        var tk = 0, ig = 0, qty = 0;
+        var tk = 0, ig = 0, qty = 0, igQty = 0;
         acc.forEach(function (a) {
           if (a.status === 'needs') { tk++; qty += (a.order || roundTo100(GTARGET - (a.current || 0))); }
           var igf = a.ig && a.ig.followers ? Number(String(a.ig.followers).replace(/,/g, '')) : null;
-          if (igf != null && igf < GMIN) ig++;   // 인스타는 서비스가 없어 금액엔 안 넣는다
+          if (igf != null && igf < GMIN) { ig++; igQty += roundTo100(GTARGET - igf); }
         });
-        var rate = d.service && d.service.rate ? Number(d.service.rate) : 0;
-        var needUsd = rate ? (qty / 1000) * rate : null;
+        /* 플랫폼마다 단가가 다르다(틱톡 #3776 $11.50 · 인스타 #7130 $1.94).
+           ⚠️ 예전엔 '인스타는 서비스가 없다'를 전제로 틱톡 단가 하나로만 계산하고
+           인스타는 '(서비스 미연결)' 이라고 적었다 — 지금은 둘 다 연결돼 있어 틀린 말이다.
+           대시보드는 플랫폼별로 세는데 여기만 틱톡만 세서 금액이 서로 달랐다. */
+        var svcOf = function (p) {
+          var list = (d.config && d.config.services) || [];
+          for (var i = 0; i < list.length; i++) if (list[i].plat === p) return list[i];
+          return p === 'tk' && d.service ? d.service : null;
+        };
+        var rateOf = function (p) { var v = svcOf(p); return v && v.rate ? Number(v.rate) : 0; };
+        var tkUsd = rateOf('tk') ? (qty / 1000) * rateOf('tk') : null;
+        var igUsd = rateOf('ig') ? (igQty / 1000) * rateOf('ig') : null;
+        var needUsd = (tkUsd == null && igUsd == null) ? null : (tkUsd || 0) + (igUsd || 0);
         var short = (needUsd != null && d.balance != null) ? (needUsd - Number(d.balance)) : null;
 
         var spent = (d.orders || []).reduce(function (a, o) { return a + (Number(o.cost) || 0); }, 0);
@@ -431,17 +454,26 @@
             + (n ? '<span class="n">' + n + '</span>' : '') + '</div>';
         };
         $('#status').innerHTML =
-          box('가드닝 대상', tk + ig + '<small> 건</small>', '틱톡 ' + tk + ' · 인스타 ' + ig + (ig ? ' <b>(서비스 미연결)</b>' : ''), tk + ig > 0)
-          + box('필요 금액', needUsd != null ? won(needUsd) : '—', short != null && short > 0
-              ? '<b>잔액이 ' + won(short) + ' 모자라요</b>' : '틱톡 ' + fmt(qty) + '명 충전분', short != null && short > 0)
+          /* 플랫폼을 갈라 적는다 — 틱톡·인스타는 단가도 서비스도 달라 따로 집행한다.
+             합계만 보여주면 '이 금액이 어디서 나왔지'를 매번 다시 세게 된다. */
+          box('가드닝 대상', tk + ig + '<small> 건</small>',
+              '틱톡 <b>' + tk + '</b>건 ' + fmt(qty) + '명 · 인스타 <b>' + ig + '</b>건 ' + fmt(igQty) + '명', tk + ig > 0)
+          + box('필요 금액', needUsd != null ? won(needUsd) : '—',
+              (short != null && short > 0) ? '<b>잔액이 ' + won(short) + ' 모자라요</b>'
+                : ('틱톡 ' + (tkUsd != null ? won(tkUsd) : '—') + ' · 인스타 ' + (igUsd != null ? won(igUsd) : '—')),
+              short != null && short > 0)
           + box('잔액', won(d.balance), live ? '진행중 주문 ' + live + '건' : '집행 ' + (d.orders || []).length + '건 · 지출 ' + won(spent))
           + box('마지막 스캔', timeAgo(d.uploadScannedAt || d.scannedAt), '업로드 스캔 기준');
 
         // 어떤 서비스로 얼마에 사는지 — 이게 없어서 패널을 따로 열어봐야 했다.
         var svc = $('#svcNote');
         if (svc) {
-          svc.innerHTML = d.service
-            ? '가드닝 서비스 <b>#' + d.service.id + '</b> · <b>' + won((Number(d.service.rate) || 0) / 1000 * 1000) + ' / 1,000명</b> · ' + esc(String(d.service.name || '').slice(0, 52))
+          var lines = (d.config && d.config.services || []).map(function (v) {
+            return (v.plat === 'ig' ? '인스타' : '틱톡') + ' <b>#' + v.id + '</b> · <b>'
+              + won(Number(v.rate) || 0) + ' / 1,000명</b> · ' + esc(String(v.name || '').slice(0, 46));
+          });
+          svc.innerHTML = lines.length
+            ? '가드닝 서비스 — ' + lines.join('<br>가드닝 서비스 — ')
               + '<br>목표 <b>' + fmt(GTARGET) + '명</b>까지 100단위로 채워요. <b>' + fmt(GMIN) + '명 미만</b>만 대상이고, 진행중 주문은 자동으로 빼요.'
             : '가드닝 서비스가 설정돼 있지 않아요.';
         }
@@ -765,6 +797,21 @@
     // ④ 나가는 IP ───────────────────────────────────────────────────────────
     // campaign 파라미터를 붙이지 않는다 — 출구 IP는 캠페인과 무관하고,
     // 캠페인을 붙이면 조회전용(readOnly) 게이트에 걸려 확인조차 못 하게 된다.
+    /* 모집 가져오기 — 지원 응답시트 → 마스터시트.
+       브라우저를 안 쓰므로 스캔이 도는 중에도 누를 수 있다(잠금 없음). */
+    function syncRecruit() {
+      if (!take('btnRecruit')) return;
+      say('모집 가져오기 — 응답시트를 확인하는 중이에요…');
+      api('/api/sync-recruit?campaign=' + CAMP, { method: 'POST' }).catch(netErr).then(function (r) {
+        if (!r || r.error) { release('btnRecruit', 'err'); fail(r, '모집 가져오기'); return; }
+        release('btnRecruit', 'ok');
+        // added 가 없으면 브릿지가 setup 함수를 돌린 것 — 몇 명인지 안 알려준다. 솔직히 그렇게 적는다.
+        if (r.added === undefined) say('모집 가져오기 완료 — 대시보드에서 <b>↻ 새로고침</b> 하면 반영돼요.', 'ok');
+        else if (r.added) say('모집 가져오기 완료 — 새로 <b>' + r.added + '명</b> 추가' + acctLinks(r.handles, 'tk'), 'ok');
+        else say('모집 가져오기 완료 — 새로 지원한 사람이 없어요.', 'ok');
+        showDone();
+      });
+    }
     function checkIp() {
       if (!take('btnIp')) return;
       say('나가는 IP 확인 중… (크롬 창이 잠깐 떠요)');
@@ -798,6 +845,7 @@
     });
     $('#btnContent').addEventListener('click', contentScan);
     $('#btnExec').addEventListener('click', openExec);
+    $('#btnRecruit').addEventListener('click', syncRecruit);
     $('#btnIp').addEventListener('click', checkIp);
     $('#modalCancel').addEventListener('click', closeModal);
     $('#modalConfirm').addEventListener('click', doExec);

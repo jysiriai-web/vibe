@@ -82,6 +82,12 @@ async function pageKind(page) {
    창은 앞으로 끌어와 준다 — 탭이 둘 도는데 어느 창인지 찾느라 시간을 쓰면 안 된다. */
 const CAPTCHA_WAIT_MS = Number(process.env.TIKTOK_CAPTCHA_WAIT_MS || 150000);
 async function waitForHuman(page, handle, onCaptcha) {
+  /* ⚠️ 사람이 보고 있을 때만 기다린다.
+     onCaptcha 콜백은 '화면에 진행상황을 띄우는 누군가가 있다'는 뜻이다(스캔 버튼).
+     집행(/api/execute)은 팔로워를 다시 확인하려고 이 함수를 부르는데 그 경로엔 콜백이 없다 —
+     거기서 2분 30초씩 기다리면 계정 수만큼 곱해져 주문이 영영 안 나간다.
+     실제로 집행이 무한대기에 빠졌다. 볼 사람이 없으면 기다리지 않고 실패로 넘긴다. */
+  if (!onCaptcha) return false;
   let kind = await pageKind(page);
   if (kind !== 'captcha') return kind === 'ok';
   try { await page.bringToFront(); } catch {}
