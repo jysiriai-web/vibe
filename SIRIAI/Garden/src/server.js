@@ -158,6 +158,7 @@ const scanAbort = new Set();
 let igContentState = null;   // 인스타 업로드 스캔 진행상황
 let igScanState = null;   // 인스타 스캔 진행상황 — 워커 화면이 폴링한다
 let scanConfirmResolve = null; // '스캔 시작' 확인을 기다리는 promise 의 resolver (로봇 인증 게이트)
+let scanGoAt = null;           // 사람이 '스캔 시작' 을 누른 시각. 워밍업이 읽어 가면 지운다.
 let scanResumeResolve = null; // 막혔을 때 '재개/중지'를 기다리는 resolver (VPN 바꾸기 게이트)
 
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml' };
@@ -797,9 +798,16 @@ export async function handler(req, res) {
       contentScanState = { running: true, phase: 'starting', mode: perf ? 'perf' : full ? 'full' : 'upload', done: 0, total: 0, up: 0, written: 0, failed: 0, pauseRequested: false, error: null, writeError: null, ranAt: null };
       // 확인 게이트: onWarmup 이 오면 phase=confirm, 사람이 /confirm 누르면 goPromise resolve → 스캔 착수
       const goPromise = new Promise((resolve) => { scanConfirmResolve = resolve; });
+      /* '스캔 시작' 을 여러 번 누를 수 있어야 한다 — 한 번 눌렀는데 인증이 아직이면
+         착수하지 않고 다시 기다리기 때문이다(예전엔 한 번 누르면 무조건 시작해서 전부 실패했다). */
+      scanGoAt = null;
       runContentScan(campaign, {
         full, perf, only: _only,
-        onWarmup: () => { contentScanState.phase = 'confirm'; },
+        onWarmup: () => { contentScanState.phase = 'confirm'; contentScanState.warmNote = ''; },
+        // 사람이 '스캔 시작' 을 눌렀는지 소비한다(한 번 읽으면 지운다).
+        takeGo: () => { const v = scanGoAt; scanGoAt = null; return !!v; },
+        // 인증이 아직이라거나, 화면이 안 열렸다거나 — 사람에게 그대로 보여준다.
+        onNote: (m) => { contentScanState.warmNote = String(m || ''); },
         waitForGo: () => goPromise,
         onProgress: (p) => {
           if (contentScanState.phase !== 'blocked') contentScanState.phase = 'scan';
@@ -841,10 +849,14 @@ export async function handler(req, res) {
     }
     // 로봇 인증 끝났다는 사람 확인 → 스캔 착수
     if (path === '/api/content-scan/confirm' && req.method === 'POST') {
-      if (!scanConfirmResolve) return send(res, 200, { ok: false, error: '대기 중인 스캔이 없어요' });
-      scanConfirmResolve();
-      scanConfirmResolve = null;
-      contentScanState.phase = 'scan';
+      /* ⚠️ 예전엔 여기서 phase 를 'scan' 으로 바꾸고 resolver 를 비웠다 — 누르는 순간
+         '시작됨' 이 되어 버려서, 인증이 아직인데도 화면은 진행 중이라고 말했다.
+         이제는 '눌렀다'만 기록하고, 실제 착수 여부는 워밍업이 화면을 다시 보고 정한다. */
+      if (!contentScanState.running || contentScanState.phase !== 'confirm') {
+        return send(res, 200, { ok: false, error: '인증 대기 중인 스캔이 없어요' });
+      }
+      scanGoAt = Date.now();
+      contentScanState.warmNote = '확인 중…';
       return send(res, 200, { ok: true });
     }
     // 수동 중지 요청 — 다음 계정 사이에서 멈춘다(phase=blocked 로 넘어감).
@@ -913,8 +925,23 @@ export async function handler(req, res) {
       // 그쪽은 헤더 이름으로 열을 찾고 틱톡·인스타·이메일·추천인까지 처리한다 —
       // 사람이 시트 메뉴에서 손으로 돌리던 바로 그 로직이라 결과가 어긋나지 않는다.
       if (campaign.recruitSetupFn) {
+        /* 시트의 셋업 함수는 '몇 명 들어왔는지' 를 안 돌려준다 — 그래서 화면이 늘 '완료' 만 말하고
+           새 지원자가 있었는지는 사람이 시트를 열어 봐야 알았다.
+           함수를 고치는 대신 여기서 전후를 센다. 누가 새로 들어왔는지까지 이름으로 말해 준다. */
+        const key = (a) => String(a.handle || a.igHandle || a.nick || a.row).toLowerCase();
+        let before = new Map();
+        try { (await getAccountsFromSheet(campaign.sheet)).forEach((a) => before.set(key(a), a)); } catch {}
         const r = await runSheetSetup(campaign.sheet, campaign.recruitSetupFn);
-        return send(res, 200, { ok: true, ran: campaign.recruitSetupFn, result: r && r.result });
+        let added = [], total = null;
+        try {
+          const after = await getAccountsFromSheet(campaign.sheet);
+          total = after.length;
+          added = after.filter((a) => !before.has(key(a)))
+            .map((a) => ({ nick: a.creator || a.nick || a.handle || a.igHandle || ('행 ' + a.row),
+                           tk: a.handle || '', ig: a.igHandle || '' }));
+        } catch {}
+        return send(res, 200, { ok: true, ran: campaign.recruitSetupFn, result: r && r.result,
+          added: added.length, people: added, total, before: before.size });
       }
       const sheets = campaign.recruitSheets || [];
       if (!sheets.length) return send(res, 400, { error: '이 캠페인엔 모집시트 설정이 없어요 (campaigns.json recruitSheets)' });
@@ -955,7 +982,9 @@ export async function handler(req, res) {
       const okRow = (b) => b && has(b.contentA) && revState(b.soundOk) === 'pass' && revState(b.soundSection) === 'pass' && revState(b.hashtagOk) === 'pass';
       // 지원타입 = 이 사람이 실제로 참여한 플랫폼(콘텐츠 유무가 아니라 배정 기준).
       const applyTypeOf = (a) => plats.filter((p) => a[p]).map((p) => PN[p]).join('+') || '';
-      const batch = String(body.batch || '1차').trim();
+      /* 차수를 여기서 정하지 않는다 — 시트에 이미 적힌 'N차' 중 최대 + 1 이 답이고, 그건 브릿지가 안다.
+         body.batch 를 주면 그걸 쓴다(다시 넣기·수정용). */
+      const batch = body.batch ? String(body.batch).trim() : '';
       const out = [];
       for (const p of plats) {
         const rows = accounts.filter((a) => okRow(a[p])).map((a) => {
@@ -985,7 +1014,7 @@ export async function handler(req, res) {
         out.push({ plat: p, ...r, total: rows.length });
       }
       const sum = (k) => out.reduce((a, x) => a + (Number(x[k]) || 0), 0);
-      return send(res, 200, { ok: true, batch, byPlat: out, added: sum('added'), updated: sum('updated'), reviewedTotal: sum('total') });
+      return send(res, 200, { ok: true, batch: batch || (out.find((x) => x.batch) || {}).batch || '', byPlat: out, added: sum('added'), updated: sum('updated'), reviewedTotal: sum('total') });
     }
 
     if (path === '/api/scan' && req.method === 'POST') {

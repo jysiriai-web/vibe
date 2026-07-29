@@ -741,14 +741,19 @@ function deliverReviewed_(sheetId, rows, plat) {
     var lr = sheets[s].getLastRow(), lc = sheets[s].getLastColumn();
     if (lr < 1) continue;
     var top = sheets[s].getRange(1, 1, Math.min(lr, 20), lc).getValues();
-    var flat = top.map(function (row) { return row.join(' '); }).join(' ').toLowerCase()
-      + ' ' + String(sheets[s].getName()).toLowerCase();
     var hit = null;
     for (var r = 0; r < top.length && !hit; r++) {
       var hv = top[r].map(norm);
       if (hv.indexOf('채널명') >= 0 && hv.indexOf('업로드링크') >= 0) hit = { hv: hv, row: r + 1 };
     }
     if (!hit) continue;
+    /* 플랫폼 판정은 '탭 이름 + 헤더 위 머리말' 만 본다.
+       ⚠️ 예전엔 상단 20행을 통째로 봤는데 거기엔 데이터 행이 섞인다. 인스타 계정 중에
+       'koko.tiktok' 이 있어서 인스타 탭이 '틱톡 얘기도 하는 탭' 으로 판정돼 통째로 거부됐다
+       (납품이 '인스타 탭을 못 찾음' 으로 멈췄다). 사람이 쓰는 데이터엔 어떤 단어든 들어갈 수 있다. */
+    var head = top.slice(0, Math.max(0, hit.row - 1));
+    var flat = head.map(function (row) { return row.join(' '); }).join(' ').toLowerCase()
+      + ' ' + String(sheets[s].getName()).toLowerCase();
     if (!fallback) fallback = { sh: sheets[s], hv: hit.hv, row: hit.row };
     if (!want) { sh = sheets[s]; header = hit.hv; hRow = hit.row; break; }
     var mine = (WORDS[want] || []).some(function (w) { return flat.indexOf(w) >= 0; });
@@ -775,6 +780,19 @@ function deliverReviewed_(sheetId, rows, plat) {
     if (cNo) { var n = Number(body[i][cNo - 1]); if (!isNaN(n) && n > maxNo) maxNo = n; }
     if (!String(body[i][cName - 1] || '').trim()) emptyRows.push(abs); // 채널명 빈 = 채울 후보
   }
+  /* 차수는 시트가 정한다. 이미 적힌 'N차' 중 가장 큰 것 + 1 이 이번 차수다.
+     ⚠️ 서버가 '1차' 를 박아 보내면 2차 납품 때도 1차라고 적힌다. 사람이 매번 숫자를 고르게
+     하는 것도 답이 아니다 — 시트를 보면 답이 이미 거기 있다.
+     행이 하나도 없으면 1차. 사람이 손으로 '2차' 라고 적어 두면 다음은 3차가 된다. */
+  var maxBatch = 0;
+  if (cOld) {
+    for (var bi = 0; bi < body.length; bi++) {
+      var bt = String(body[bi][cOld - 1] || '').match(/(\d+)\s*차/);
+      if (bt) { var bn = Number(bt[1]); if (bn > maxBatch) maxBatch = bn; }
+    }
+  }
+  var nextBatch = (maxBatch + 1) + '차';
+
   var added = [], updated = 0;
   for (var j = 0; j < rows.length; j++) {
     var row = rows[j];
@@ -792,7 +810,7 @@ function deliverReviewed_(sheetId, rows, plat) {
       // 차수는 비어 있을 때만 적는다 — 이미 1차로 나간 건을 나중에 2차로 덮으면 이력이 사라진다.
       // 깨진 글자(U+FFFD)가 박힌 칸도 '비어 있는 것' 으로 본다 — 인코딩 사고로 들어간 값을 되돌린다.
       var oldTxt = String(ex.old || '');
-      if (cOld && row.batch && (!oldTxt.trim() || oldTxt.indexOf('�') >= 0)) { sh.getRange(ex.row, cOld).setValue(row.batch); updated++; }
+      if (cOld && (!oldTxt.trim() || oldTxt.indexOf('�') >= 0)) { sh.getRange(ex.row, cOld).setValue(row.batch || nextBatch); updated++; }
       /* 선정기준 칸도 '비어 있을 때만' 채운다. 앞선 시도가 중간에 끊겨 반쯤 만들어진 행이
          영영 빈 채로 남는 걸 막는다. 사람이 적어 둔 값은 건드리지 않는다. */
       var blanks = [[cType, row.applyType], [cFol, row.followers], [cJp, row.japan]];
@@ -816,11 +834,11 @@ function deliverReviewed_(sheetId, rows, plat) {
     if (cFol && row.followers != null && row.followers !== '') setDeliverCell_(sh, target, cFol, row.followers);
     if (cJp && row.japan) setDeliverCell_(sh, target, cJp, row.japan);
     // 특이사항 = 납품 차수. 사람이 적어 둔 메모는 안 덮는다(빈 칸일 때만 쓴다).
-    if (cOld && row.batch) sh.getRange(target, cOld).setValue(row.batch);
+    if (cOld) sh.getRange(target, cOld).setValue(row.batch || nextBatch);
     byHandle[h] = { row: target, memo: row.viewNote || '', old: '' };
     added.push(h);
   }
-  return { added: added.length, updated: updated, handles: added };
+  return { added: added.length, updated: updated, handles: added, batch: nextBatch };
 }
 
 // 새 크리에이터 한 줄 추가 — 대시보드 '인원 추가'. 맨 아래에 붙이고 링크를 그대로 넣는다.

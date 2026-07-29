@@ -110,29 +110,57 @@ async function waitForHuman(page, handle, onCaptcha) {
 // 예전엔 자동 감지(프로필 렌더 폴링)로 판단했는데, 시간 압박·오탐이 있었다.
 // 이제는 '사람 확인'이 기본 신호다: waitForGo 가 resolve 되면 신뢰하고 진행.
 // (프로필이 저절로 렌더되면 인증이 필요 없던 것이므로 확인 없이도 자동 진행 — 쿠키 살아있을 때 편의)
-async function warmUp(ctx, { onWarmup, waitForGo, timeout = 15 * 60 * 1000 } = {}) {
+async function warmUp(ctx, { onWarmup, waitForGo, takeGo, onNote, timeout = 15 * 60 * 1000 } = {}) {
   const page = await ctx.newPage();
   const start = Date.now();
   let ok = false;
   let confirmed = false;
+  const note = (m) => { if (onNote) { try { onNote(m); } catch {} } };
   if (waitForGo) { try { Promise.resolve(waitForGo()).then(() => { confirmed = true; }).catch(() => {}); } catch {} }
   try {
     await page.goto(WARMUP_URL, { waitUntil: 'domcontentloaded', timeout: 45000 }).catch(() => {});
-    if (onWarmup) { try { onWarmup(); } catch {} } // 창 떴고 인증 대기 — 대시보드에 '스캔 시작' 버튼 띄우라는 신호
+    try { await page.bringToFront(); } catch {}
+    if (onWarmup) { try { onWarmup(); } catch {} } // 창 떴고 인증 대기 — 화면에 '스캔 시작' 버튼 띄우라는 신호
     let lastReload = Date.now();
     while (Date.now() - start < timeout) {
       if (await profileRendered(page)) { ok = true; break; }   // 인증 필요 없었음(쿠키 살아있음) → 자동 진행
-      if (confirmed) { ok = true; break; }                     // 사람이 '스캔 시작' 누름 → 신뢰하고 진행
+
+      const kind = await pageKind(page);
+
+      /* 사람이 '스캔 시작' 을 눌렀다 — 눌렀다고 곧바로 믿지 않는다.
+         ⚠️ 예전엔 누르면 무조건 착수했다. 인증이 아직 안 풀린 상태로 시작하면 계정마다
+         전부 실패하고, 사람은 '눌렀는데 왜 다 실패하지' 만 보게 된다. 화면을 다시 확인하고,
+         아직이면 착수하지 않고 그렇게 말한 뒤 계속 기다린다(다시 누를 수 있다). */
+      if (confirmed || (takeGo && takeGo())) {
+        confirmed = false;
+        if (await profileRendered(page)) { ok = true; break; }
+        note(kind === 'captcha'
+          ? '아직 로봇 인증이 안 끝났어요 — 크롬 창에서 인증을 마친 뒤 다시 눌러주세요.'
+          : '화면이 아직 안 열렸어요 — 크롬 창을 확인한 뒤 다시 눌러주세요.');
+        try { await page.bringToFront(); } catch {}
+      }
+
       await page.waitForTimeout(1500);
-      if (Date.now() - lastReload > 30000) { lastReload = Date.now(); await page.goto(WARMUP_URL, { waitUntil: 'domcontentloaded', timeout: 45000 }).catch(() => {}); }
+
+      /* ⚠️ 새로고침이 문제였다. 예전엔 30초마다 무조건 page.goto 를 했다 —
+         슬라이더를 맞추는 도중에 페이지가 갈아엎어져서 인증이 매번 초기화됐다.
+         ('로봇인증 하려고 하면 창 닫고 새 창 열고' 가 이것이다)
+         이제 인증 화면이 떠 있는 동안에는 절대 건드리지 않는다. 화면이 멎었을 때(unknown)만,
+         그것도 2분에 한 번만 다시 연다. */
+      if (kind !== 'captcha' && Date.now() - lastReload > 120000) {
+        lastReload = Date.now();
+        note('화면이 안 열려서 한 번 다시 엽니다.');
+        await page.goto(WARMUP_URL, { waitUntil: 'domcontentloaded', timeout: 45000 }).catch(() => {});
+      }
     }
+    if (!ok) note('로봇 인증을 못 끝냈어요 — 스캔을 시작하지 않았습니다.');
   } catch {}
   try { await page.close(); } catch {}
   return ok;
 }
 
 // warmup=false 는 테스트용. 평소엔 항상 인증 관문을 거친다 (호출부가 빠뜨릴 수 없게 여기에 둠).
-export async function launchBrowser({ warmup = true, onWarmup, waitForGo } = {}) {
+export async function launchBrowser({ warmup = true, onWarmup, waitForGo, takeGo, onNote } = {}) {
   const { chromium } = await import('playwright'); // 미설치면 여기서 throw
   const proxy = proxyFromEnv(); // TIKTOK_PROXY 설정 시 스캐너를 그 프록시(다른 나라)로 내보냄
   const browser = await chromium.launch({ headless: false, ...(proxy ? { proxy } : {}) });
@@ -144,7 +172,7 @@ export async function launchBrowser({ warmup = true, onWarmup, waitForGo } = {})
     ctx = await browser.newContext(base); // 저장된 세션이 깨졌으면 그냥 새로 시작
   }
   if (warmup) {
-    const ok = await warmUp(ctx, { onWarmup, waitForGo });
+    const ok = await warmUp(ctx, { onWarmup, waitForGo, takeGo, onNote });
     if (!ok) {
       try { await browser.close(); } catch {}
       throw new Error('로봇 인증 대기가 끝났어요(시간 초과). 크롬 창에서 인증을 끝내고 스캔을 다시 눌러주세요.');

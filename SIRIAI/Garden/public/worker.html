@@ -634,6 +634,32 @@
        화면이 '시작하는 중'에 멈췄다(서버는 정상적으로 끝나 있었다).
        폴링 안에서 예외가 나면 setInterval 콜백만 죽고 아무 데도 안 알려준다 — 그래서
        아래 폴링은 try/catch 로 감싸 두었다. */
+    /* 로봇 인증처럼 '사람이 지금 손을 봐야 하는' 순간을 알린다.
+       스캔은 5~15분이라 그동안 다른 창을 보고 있게 마련이고, 인증 창은 조용히 떠 있다가
+       시간만 흘려보낸다. 브라우저 알림 + 탭 제목 깜빡임으로 부른다.
+       권한을 안 줬거나 막혀 있어도 조용히 넘어간다 — 알림이 없다고 스캔이 막히면 안 된다. */
+    var NOTI_LAST = '';
+    function notify(title, body) {
+      var key = title + '|' + body;
+      if (key === NOTI_LAST) return;      // 2초 폴링마다 같은 알림을 다시 띄우지 않는다
+      NOTI_LAST = key;
+      blinkTitle(title);
+      try {
+        if (!('Notification' in window)) return;
+        if (Notification.permission === 'granted') { new Notification(title, { body: body, tag: 'wk' }); return; }
+        if (Notification.permission !== 'denied') Notification.requestPermission();
+      } catch (e) {}
+    }
+    var BLINK = null, TITLE0 = document.title;
+    function blinkTitle(msg) {
+      if (BLINK) clearInterval(BLINK);
+      var on = false;
+      BLINK = setInterval(function () { on = !on; document.title = on ? ('🔔 ' + msg) : TITLE0; }, 900);
+    }
+    function blinkStop() { if (BLINK) { clearInterval(BLINK); BLINK = null; document.title = TITLE0; } NOTI_LAST = ''; }
+    // 창을 다시 보면 깜빡임은 멈춘다 — 이미 봤으니까.
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) blinkStop(); });
+
     function panel(mode, info, sel) {
       var el = $(sel || '#scanPanel');
       if (!el) return;
@@ -648,8 +674,14 @@
       if (el.dataset.mode === mode) return;
       el.dataset.mode = mode;
       if (mode === 'confirm') {
-        el.innerHTML = '<button class="btn primary" id="scanGo">스캔 시작</button><span class="wk-note">크롬 창에서 로봇 인증을 통과한 뒤 누르세요</span>';
-        bind('scanGo', '/api/content-scan/confirm', '시작하는 중…');
+        el.innerHTML = '<button class="btn primary" id="scanGo">스캔 시작</button>'
+          + '<span class="wk-note" id="warmNote">크롬 창에서 로봇 인증을 통과한 뒤 누르세요</span>';
+        /* ⚠️ 누른다고 곧바로 시작되지 않는다 — 서버가 화면을 다시 보고 인증이 끝났을 때만 착수한다.
+           그래서 버튼을 죽이지 않는다(아직이면 다시 눌러야 한다). */
+        var g = $('#scanGo');
+        if (g) g.addEventListener('click', function () {
+          api('/api/content-scan/confirm', { method: 'POST' }).catch(function () {});
+        });
       } else if (mode === 'scan') {
         el.innerHTML = '<button class="btn" id="scanPause">■ 중지</button><span class="wk-note">진행 <b id="scanCount">' + (info.done || 0) + '/' + (info.total || '?') + '</b> · 크롬에 콘텐츠가 안 보이면 중지 → VPN 교체</span>';
         bind('scanPause', '/api/content-scan/pause', '멈추는 중…');
@@ -697,6 +729,13 @@
                  로봇 인증 '스캔 시작' 버튼이 아예 안 떴고, dataset.mode 비교도 매번 어긋나
                  2초마다 버튼을 새로 그려서 누르는 순간 사라졌다. */
               panel(s.phase === 'confirm' ? 'confirm' : s.phase === 'blocked' ? 'blocked' : 'scan', s, psel);
+              if (s.phase === 'confirm') {
+                var wn = document.getElementById('warmNote');
+                if (wn && s.warmNote) wn.innerHTML = '<b class="wk-obad">' + esc(s.warmNote) + '</b>';
+                notify('로봇 인증이 필요해요', s.warmNote || '크롬 창에서 인증을 마치고 [스캔 시작]을 눌러주세요');
+              } else if (s.captcha) {
+                notify('로봇 인증 @' + s.captcha, '크롬 창에서 인증을 풀어주세요 — 창은 안 닫혀요');
+              } else blinkStop();
               // 어느 창을 풀어야 하는지 대야 사람이 찾는다. 계정명이 곧 창 제목이다.
               if (s.captcha) leg(btnId, 'tk', '🤖 인증 풀어주세요 @' + s.captcha);
               else if (s.phase === 'confirm') leg(btnId, 'tk', '로봇 인증 대기');
@@ -707,6 +746,8 @@
               return;
             }
             clearInterval(poll); panel(null, null, psel);
+            blinkStop();
+            notify(label + ' 끝났어요', (s.failed ? s.failed + '개 못 봄 · ' : '') + '시트 ' + (s.written || 0) + '칸');
             leg(btnId, 'tk', (s.failed || s.writeError) ? '완료(일부 실패)' : '완료', 0, 0, (s.failed || s.writeError) ? 'err' : 'ok');
             done(btnId === 'btnPerf' ? reportPerf(s) : reportTk(s));
            } catch(err) { clearInterval(poll); leg(btnId,'tk','실패',0,0,'err'); say(label + ' 화면 오류: '+esc(err.message), 'err'); done(false); }
@@ -870,10 +911,19 @@
       api('/api/sync-recruit?campaign=' + CAMP, { method: 'POST' }).catch(netErr).then(function (r) {
         if (!r || r.error) { release('btnRecruit', 'err'); fail(r, '모집 가져오기'); return; }
         release('btnRecruit', 'ok');
-        // added 가 없으면 브릿지가 setup 함수를 돌린 것 — 몇 명인지 안 알려준다. 솔직히 그렇게 적는다.
-        if (r.added === undefined) say('모집 가져오기 완료 — 대시보드에서 <b>↻ 새로고침</b> 하면 반영돼요.', 'ok');
-        else if (r.added) say('모집 가져오기 완료 — 새로 <b>' + r.added + '명</b> 추가' + acctLinks(r.handles, 'tk'), 'ok');
-        else say('모집 가져오기 완료 — 새로 지원한 사람이 없어요.', 'ok');
+        /* 서버가 전후를 세어 알려준다 — 예전엔 셋업 함수가 숫자를 안 줘서 '완료' 만 말했고,
+           새 지원자가 있었는지는 사람이 시트를 열어 봐야 알았다. */
+        if (r.added) {
+          var who = (r.people || []).map(function (p) { return esc(p.nick); }).slice(0, 12).join(', ');
+          var more = (r.people || []).length > 12 ? (' 외 ' + ((r.people || []).length - 12) + '명') : '';
+          say('모집 가져오기 — 새로 <b>' + r.added + '명</b>' + (who ? ' (' + who + more + ')' : '')
+            + (r.total ? ' · 총 ' + r.total + '명' : '') + '. 대시보드에서 <b>↻ 새로고침</b> 하면 보여요.', 'ok');
+          notify('새 지원자 ' + r.added + '명', who || '모집시트에서 가져왔어요');
+        } else if (r.added === 0) {
+          say('모집 가져오기 — <b>새로 지원한 사람이 없어요</b>' + (r.total ? ' (총 ' + r.total + '명 그대로)' : '') + '.', 'ok');
+        } else {
+          say('모집 가져오기 완료 — 대시보드에서 <b>↻ 새로고침</b> 하면 반영돼요.', 'ok');
+        }
         showDone();
       });
     }

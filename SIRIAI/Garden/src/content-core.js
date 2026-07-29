@@ -111,7 +111,7 @@ const jitter = () => 900 + Math.floor(Math.random() * 1700); // 계정 간 0.9~2
 // onBlocked({reason,done,total,failed}) → 'resume'|'stop' : 막혔을 때 멈추고 사용자를 기다림(VPN 바꾸고 재개).
 // shouldPause() → boolean : 사용자가 '중지'를 눌렀는지(수동). 계정 사이에서 멈춘다.
 // only: 특정 계정만 — '오늘 올리는 몇 명'만 확인할 때. 전체를 길게 돌 이유가 없다.
-export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo, onBlocked, onCaptcha, shouldPause, shouldStop, full = false, perf = false, concurrency = 2, only } = {}) {
+export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo, takeGo, onNote, onBlocked, onCaptcha, shouldPause, shouldStop, full = false, perf = false, concurrency = 2, only } = {}) {
   // since: 캠페인 시작 전 영상은 이번 콘텐츠가 아니다(인스타는 원래 이렇게 하고 있었다).
   const cfg = { hashtags: campaign.campaignHashtags || [], soundId: campaign.campaignSoundId || '', since: campaign.campaignStart || '' };
   const all = await getAccountsFromSheet(campaign.sheet);
@@ -137,7 +137,7 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
   }
 
   // 인증 창 하나 먼저 띄우고 '스캔 시작'을 기다린다(대기 초과면 여기서 throw).
-  const { browser, ctx } = await launchBrowser({ onWarmup, waitForGo }); // Playwright 미설치면 throw
+  const { browser, ctx } = await launchBrowser({ onWarmup, waitForGo, takeGo, onNote }); // Playwright 미설치면 throw
   const detected = { ...prev }; // 이미 업로드된 건 이전 결과 유지
   let done = 0;
   let newUp = 0;
