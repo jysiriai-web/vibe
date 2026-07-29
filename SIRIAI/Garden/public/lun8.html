@@ -1009,7 +1009,6 @@ body.nav-collapsed .side-btn { justify-content:center; }
 .svc-sel:focus { border-color:var(--accent); outline:none; }
 .svc-meta { color:var(--muted); display:inline-flex; align-items:baseline; gap:6px; flex-wrap:wrap; }
 .svc-n { color:var(--faint); overflow:hidden; text-overflow:ellipsis; }
-.svc-lock { margin-left:auto; }
 .svc-f { font-weight:800; }
 .svc-f.yes { color:var(--ok-ink); }
 .svc-f.no  { color:var(--needs-ink); }
@@ -3145,7 +3144,7 @@ function svcRow(p){
   if(!LOCAL.on || !CATALOG_N){
     return `<div class="svc-row">${label}<b>#${esc(String(cur?cur.id:'—'))}</b>
       <span class="svc-n">${esc(String((cur&&cur.name)||'').replace(/[^ -~가-힣·\[\]]/g,'').trim().slice(0,40))}</span>
-      ${meta}<span class="cmuted svc-lock">변경은 대표님 PC 에서</span></div>`;
+      ${meta}</div>`;
   }
   const list = opts || [];
   const sel = list.length
