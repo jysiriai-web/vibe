@@ -1094,8 +1094,20 @@
       api('/api/exit-ip', { method: 'POST' }).catch(netErr).then(function (r) {
         release('btnIp', (r && r.ok) ? 'ok' : 'err');
         if (!r || !r.ok) return fail(r, 'IP 확인');
-        var where = [r.country, r.region, r.city].filter(Boolean).join(' · ') || '알 수 없음';
-        say('🌐 지금 [' + esc(where) + '] 로 나가요 (IP ' + esc(r.ip || '?') + ')' + (r.proxied ? ' · 프록시 적용됨' : ''), 'ok');
+        /* 틱톡·인스타를 같이 보여준다. VPN 을 바꾼 뒤 한쪽만 바뀌어 있으면 그 스캔만 계속 막힌다.
+           둘이 다르면 그 사실 자체를 크게 말한다 — 같은 줄에 나란히 있어야 눈에 띈다. */
+        var one = function (x) {
+          if (!x) return '?';
+          if (x.error) return '못 봤어요 (' + esc(String(x.error).slice(0, 40)) + ')';
+          var w = [x.country, x.city].filter(Boolean).join(' ') || '알 수 없음';
+          return '<b>' + esc(w) + '</b> · ' + esc(x.ip || '?') + (x.proxied ? ' · 프록시' : '');
+        };
+        var tk = r.tk || r, ig = r.ig;
+        /* 경고는 '나라가 다를 때' 만. 같은 VPN 도 세션마다 다른 IP 를 주므로 IP 차이는 정상이다 —
+           IP 만 보고 경고하면 늘 빨간 줄이 떠서 진짜 문제일 때 안 보인다. */
+        var diff = ig && tk && !tk.error && !ig.error && tk.country && ig.country && tk.country !== ig.country;
+        say('🌐 틱톡 → ' + one(tk) + (ig ? '<br>🌐 인스타 → ' + one(ig) : '')
+          + (diff ? '<br><b class="wk-obad">나라가 서로 달라요</b> — 막히는 쪽 프록시를 확인하세요.' : ''), 'ok');
       });
     }
 

@@ -886,7 +886,16 @@ export async function handler(req, res) {
     }
     // 스캐너 출구 국가 확인 — VPN/프록시가 적용됐는지 눈으로. 창 하나 잠깐 뜸.
     if (path === '/api/exit-ip' && req.method === 'POST') {
-      try { return send(res, 200, { ok: true, ...(await checkExitLocation()) }); }
+      /* 틱톡·인스타를 같이 본다. 프록시를 따로 줄 수 있고(IG_PROXY), VPN 을 바꾼 뒤
+         '양쪽 다 바뀌었나' 를 한 번에 확인해야 스캔을 다시 돌릴지 정할 수 있다. */
+      try {
+        const { checkIgExitLocation } = await import('./instagram.js');
+        const [tk, ig] = await Promise.all([
+          checkExitLocation().catch((e) => ({ error: (e && e.message) || String(e) })),
+          checkIgExitLocation().catch((e) => ({ error: (e && e.message) || String(e) })),
+        ]);
+        return send(res, 200, { ok: true, ...tk, tk, ig });
+      }
       catch (e) { return send(res, 200, { ok: false, error: (e && e.message) || String(e) }); }
     }
     // 수기 대체 — 링크 한 장만 열어 판정(스캔이 막힐 때). 창 하나 잠깐 뜸.

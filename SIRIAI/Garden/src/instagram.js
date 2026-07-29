@@ -387,6 +387,22 @@ export async function fetchIgPostsViaPage(ctx, handleRaw, { max = 12, timeout = 
 }
 
 // 재시도 래퍼 — 막힘(BLOCKED)은 기다렸다 다시, 계정 없음은 즉시 포기(다시 해도 없다)
+/* 인스타 스캐너가 어느 나라로 나가는지. 틱톡과 따로 봐야 한다 —
+   IG_PROXY 를 따로 줄 수 있고, 실제로 막히는 건 대개 인스타 쪽이다. */
+export async function checkIgExitLocation() {
+  const B = await launchIgBrowser({ warmup: false });
+  const ctx = B.ctx || B.context || B;
+  const page = await ctx.newPage();
+  let info = {};
+  try {
+    await page.goto('https://ipinfo.io/json', { waitUntil: 'domcontentloaded', timeout: 20000 });
+    info = JSON.parse(await page.evaluate(() => document.body.innerText));
+  } catch (e) { info = { error: String((e && e.message) || e) }; }
+  try { await (B.close ? B.close() : ctx.close()); } catch {}
+  return { ip: info.ip || null, country: info.country || null, city: info.city || null,
+           proxied: !!igProxyFromEnv(), error: info.error || null };
+}
+
 export async function fetchIgProfileRetry(page, handle, { retries = 2, delayMs = 4000 } = {}) {
   let last;
   for (let i = 0; i <= retries; i++) {
