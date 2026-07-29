@@ -28,8 +28,24 @@ const smm = createSmm(key);
 
 const catPath = join(root, 'data', 'smm-services.json');
 if (!existsSync(catPath)) { console.error(`\n❌ 서비스 카탈로그 없음 — 'node scripts/verify-smm.js' 먼저\n`); process.exit(1); }
-const svc = findService(JSON.parse(readFileSync(catPath, 'utf8')), campaign.serviceId);
-if (!svc) { console.error(`\n❌ 서비스 #${campaign.serviceId} 정보 없음\n`); process.exit(1); }
+/* 어떤 서비스로 살지는 대시보드에서 고른 값(_state.svcPick)이 먼저다.
+   ⚠️ 예전엔 campaigns.json 의 옛 serviceId 만 봤다. 대시보드에서 #3697($3.352)로 바꿔도
+   이 스크립트는 #3776($11.50)으로 주문했다 — 3.4배다. 서버의 svcSig 409 가드는
+   /api/execute 전용이라 이 경로를 전혀 막지 못한다.
+   시트를 못 읽으면 '설정값으로 진행' 하지 않는다. 과금 직전이고, 조용한 폴백이 바로 그 사고다. */
+let serviceId = campaign.serviceId;
+try {
+  const { readStateFromSheet } = await import('../src/sheet.js');
+  const st = await readStateFromSheet(campaign.sheet);
+  const pick = st && st.svcPick && st.svcPick.tk;
+  if (pick && pick.id != null) serviceId = Number(pick.id);
+  else if (campaign.serviceIds && campaign.serviceIds.tk != null) serviceId = Number(campaign.serviceIds.tk);
+} catch (e) {
+  console.error(`\n❌ 서비스 선택을 시트에서 못 읽었어요 — 옛 번호로 주문하지 않습니다.\n   ${(e && e.message) || e}\n`);
+  process.exit(1);
+}
+const svc = findService(JSON.parse(readFileSync(catPath, 'utf8')), serviceId);
+if (!svc) { console.error(`\n❌ 서비스 #${serviceId} 정보 없음\n`); process.exit(1); }
 
 const only = process.argv.slice(2).map(toHandle).filter(Boolean);
 function ask(q) {
@@ -71,7 +87,7 @@ const balance = Number((await smm.balance()).balance);
 const { toOrder, filling, errored, totalQty, totalCost } = buildPlan(scanned, orders, { target: campaign.target, min: campaign.min, service: svc });
 
 console.log('\n════════ 집행 계획 ════════');
-console.log(`서비스: #${campaign.serviceId}  ${svc.name}`);
+console.log(`서비스: #${serviceId}  ${svc.name}`);
 console.log(`단가: $${svc.rate}/1k   |   잔액: $${balance}\n`);
 if (filling.length) {
   console.log('⏳ 채워지는 중 (재주문 안 함):');

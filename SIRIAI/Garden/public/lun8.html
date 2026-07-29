@@ -3246,9 +3246,12 @@ async function loadSvcOpts(){
 }
 function gardenSvcPanel(){
   // 처음 그릴 때 후보가 없으면 받아 온 뒤 다시 그린다(한 번만).
-  if(LOCAL.on && CATALOG_N && !SVC_OPTS && !gardenSvcPanel._busy){
-    gardenSvcPanel._busy = true;
-    loadSvcOpts().then(()=>{ gardenSvcPanel._busy = false; if(state.view==='garden') render(); });
+  /* ⚠️ 실패하면 SVC_OPTS 가 null 로 남는데 _busy 를 render() 앞에서 풀면,
+     재렌더 → 다시 fetch → 또 실패 → 재렌더 로 가드닝 탭에 있는 내내 돈다.
+     한 번 시도했으면 다시 안 한다(새로고침 버튼으로만 다시 받는다). */
+  if(LOCAL.on && CATALOG_N && !SVC_OPTS && !gardenSvcPanel._tried){
+    gardenSvcPanel._tried = true;
+    loadSvcOpts().then(()=>{ if(state.view==='garden') render(); });
   }
   if(state.view!=='garden') return '';
   const stamp = SVC_PICK && (SVC_PICK.tk||SVC_PICK.ig) ? ((SVC_PICK.tk&&SVC_PICK.tk.at)||(SVC_PICK.ig&&SVC_PICK.ig.at)||'') : '';
@@ -4898,7 +4901,7 @@ document.getElementById('content').addEventListener('click', e=>{
           toast(mine.length
             ? '⚠️ 지금 쓰는 서비스가 바뀌었어요 — ' + mine.map(x=>'#'+x.id+' '+x.what).join(' · ')
             : '카탈로그 갱신 — ' + r.count + '개 · 바뀐 것 ' + r.changed + '건', mine.length?'warn':'ok');
-          SVC_OPTS = null; await loadSvcOpts(); await loadData();
+          SVC_OPTS = null; gardenSvcPanel._tried = false; await loadSvcOpts(); await loadData();
         }
       } catch(err){ toast('못 받았어요: ' + (err && err.message || err), 'bad'); }
       finally { b.disabled = false; b.textContent = t0; }

@@ -146,7 +146,9 @@ export async function writeStateToSheet(sheet, state) {
   const keys = Object.keys(state || {});
   const r = await bridgePost(sheet, { state });
   const written = Number(r && r.written);
-  if (keys.length && Number.isFinite(written) && written < keys.length) {
+  // ⚠️ Number.isFinite(written) 조건을 달면 'written 이 아예 없는 응답'은 그냥 통과한다 —
+  //    옛 브릿지·오류 응답이 정확히 그 모양이고, 막으려던 게 그 경우다. '충분히 썼다'만 통과시킨다.
+  if (keys.length && !(written >= keys.length)) {
     throw new Error(`_state 쓰기가 일부만 됐어요 — 보낸 키 ${keys.join(', ')} 중 ${written}개만 저장. `
       + '브릿지(appsscript/lun8/code.gs.js)의 STATE_KEYS 에 새 키를 넣고 clasp push + 새 버전 배포를 하셔야 해요.');
   }

@@ -92,10 +92,28 @@ async function ensureBaseline(campaign, accounts, orders) {
         if (!base[k]) base[k] = { n, at: now, src: 'scan' };
       }
     }
-    if (JSON.stringify(base) !== JSON.stringify(cur.startFol || {})) {
-      await writeStateToSheet(campaign.sheet, { startFol: base });
+    /* ⚠️ 다른 캠페인까지 훑었으므로 base 에는 우리 로스터에 없는 계정이 섞여 있다.
+       그대로 쓰면 캠페인이 늘수록 각 시트의 startFol 이 전 캠페인 합집합이 되고,
+       셀 한도(45,000자)에 걸리는 순간 writeState_ 가 throw 해 최초 팔로워 기록이 영구 정지한다. */
+    const live = new Set();
+    for (const a of accounts || []) {
+      if (a.handle) live.add(key('tk', a.handle));
+      if (a.igHandle) live.add(key('ig', a.igHandle));
     }
-  } catch (e) { console.warn('[최초팔로워] 기록 실패(무해):', (e && e.message) || e); }
+    const mine = {};
+    for (const [k, v] of Object.entries(base)) if (live.has(k)) mine[k] = v;
+    if (JSON.stringify(mine) !== JSON.stringify(cur.startFol || {})) {
+      await writeStateToSheet(campaign.sheet, { startFol: mine });
+    }
+  } catch (e) {
+    /* '무해' 가 아니다. 이 함수가 조용히 실패하면 최초 팔로워가 영영 안 쌓이고,
+       그 사실을 아무도 모른다 — 화이트리스트 누락으로 121건이 증발했던 게 정확히 이 모양이다.
+       스캔 응답에 실어 보내 화면이 말하게 한다. */
+    const msg = (e && e.message) || String(e);
+    console.error('[최초팔로워] 기록 실패:', msg);
+    return msg;
+  }
+  return null;
 }
 
 async function stampScan(campaign, kind) {
@@ -158,13 +176,20 @@ const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css
  *    카탈로그(catalog())에서 다시 찾는다 — 스냅샷 단가로 돈을 계산하면 안 된다. */
 const SVC_PICK = new Map();          // campaignId -> { tk:{...}, ig:{...} }
 const pickOf = (c) => SVC_PICK.get(c && c.id) || null;
-async function loadSvcPick(campaign) {
+/* strict=true 는 돈 경로용이다. 시트를 못 읽었는데 조용히 campaigns.json 으로 되돌아가면
+   사람이 고른 서비스가 아니라 옛 번호로 주문이 나간다(인스타 #3785 $1.069 대신 #7130 $1.97 = 1.84배).
+   계획과 집행이 같은 폴백을 쓰므로 svcSig 대조도 '일치' 라고 답한다 — 아무 경고 없이 갈린다.
+   같은 핸들러 스무 줄 위에서 '시트를 못 읽으면 주문하지 않는다'(503)고 이미 정해 뒀다. */
+async function loadSvcPick(campaign, { strict = false } = {}) {
   try {
     const { readStateFromSheet } = await import('./sheet.js');
     const st = await readStateFromSheet(campaign.sheet);
     if (st && st.svcPick) SVC_PICK.set(campaign.id, st.svcPick);
     else SVC_PICK.delete(campaign.id);
-  } catch (e) { console.warn('[서비스선택] 못 읽었어요(설정값으로 진행):', (e && e.message) || e); }
+  } catch (e) {
+    if (strict) throw new Error('서비스 선택을 시트에서 못 읽었어요 — 옛 설정으로 주문하지 않았습니다: ' + ((e && e.message) || e));
+    console.warn('[서비스선택] 못 읽었어요(표시는 설정값으로):', (e && e.message) || e);
+  }
   return pickOf(campaign);
 }
 
@@ -429,11 +454,16 @@ function markStale(orders) {
   const num = (v) => (v == null || String(v).trim() === '' ? NaN : Number(v));
   return orders.map((o) => {
     const rem = num(o.remains);
-    const delivered = Number.isFinite(rem) ? (Number(o.quantity) || 0) - rem : null;
-    const undelivered = Number.isFinite(rem) ? rem : null; // 미전달분 = 환불 청구 대상
+    /* ⚠️ 취소·환불된 주문은 remains 가 0 이라 quantity - remains 가 '전량 배송' 으로 나온다.
+       실제로 들어온 건 0명이고 나간 돈도 0원인데 화면은 '다 들어옴' 이라고 말했다.
+       리필 쪽(src/refill.js)에서 같은 계산이 환불된 주문에 리필을 조르게 만들었던 것과 같은 오류다. */
+    const voided = !!(o.canceled || o.refunded);
+    const delivered = voided ? 0 : (Number.isFinite(rem) ? (Number(o.quantity) || 0) - rem : null);
+    const undelivered = voided ? 0 : (Number.isFinite(rem) ? rem : null); // 미전달분 = 환불 청구 대상
     const withinWindow = o.placedAt ? now - new Date(o.placedAt).getTime() <= REFILL_WINDOW_DAYS * 86400000 : false;
     // 리필 버튼 노출 조건: 리필 되는 서비스 · 30일 안 · 포기 안 함. (패널이 안 되면 눌렀을 때 사유가 뜬다)
-    const refillable = refillIds.has(String(o.service)) && withinWindow && !o.abandoned;
+    // 취소·환불된 주문은 리필할 것이 없다 — 자동 리필과 같은 규칙을 표시에도 건다.
+    const refillable = refillIds.has(String(o.service)) && withinWindow && !o.abandoned && !voided;
     return {
       ...o,
       stale: !o.done && !o.closed && o.placedAt ? now - new Date(o.placedAt).getTime() > cutoff : false,
@@ -651,9 +681,18 @@ export async function handler(req, res) {
       try { list = await smm.services(); } catch (e) { return send(res, 502, { error: '패널에서 서비스 목록을 못 받았어요: ' + ((e && e.message) || e) }); }
       const arr = Array.isArray(list) ? list : (list && list.services) || [];
       if (!arr.length) return send(res, 502, { error: '패널이 빈 목록을 줬어요 — 덮어쓰지 않았습니다.' });
+      // 무엇이 '우리 서비스' 인지는 시트가 정한다 — 캐시가 비어 있으면 옛 번호와 비교하게 된다.
+      try { await loadSvcPick(campaign); } catch {}
       const before = catalog();
       const wasById = new Map(before.map((x) => [String(x.service), x]));
+      const nowIds = new Set(arr.map((x) => String(x.service)));
       const changed = [];
+      /* 새 목록만 순회하면 '패널에서 사라진 서비스' 가 안 잡힌다 — 그런데 파일은 통째로 덮어써진다.
+         우리가 쓰는 번호가 사라지면 다음 집행이 400 으로 멈추므로 미리 말해야 한다. */
+      for (const o of before) {
+        if (!/follow|팔로/i.test(String(o.name || ''))) continue;
+        if (!nowIds.has(String(o.service))) changed.push({ id: o.service, what: '패널에서 사라짐', name: o.name });
+      }
       for (const n of arr) {
         const o = wasById.get(String(n.service));
         if (!o) { changed.push({ id: n.service, what: '신설', name: n.name }); continue; }
@@ -668,6 +707,26 @@ export async function handler(req, res) {
       // 우리가 지금 쓰는 서비스가 바뀌었는지는 따로 짚어 준다 — 목록에 묻히면 못 본다.
       const mine = ['tk', 'ig'].map((pl) => serviceIdOf(campaign, pl)).filter((x) => x != null).map(String);
       const mineChanged = changed.filter((c) => mine.includes(String(c.id)));
+      /* 시트의 선택 스냅샷도 새 값으로 고친다. 안 하면 카탈로그가 없는 배포본(팀 URL)이
+         영영 옛 단가·옛 리필 플래그로 금액을 보여준다 — campaigns.json 을 버린 이유가
+         '옛 값을 아무 경고 없이 보여준다' 였는데 스냅샷에도 똑같이 성립한다. */
+      const pick = pickOf(campaign);
+      if (pick) {
+        const next = { ...pick }; let touched = false;
+        for (const pl of ['tk', 'ig']) {
+          const cur = pick[pl]; if (!cur) continue;
+          const fresh = findService(arr, Number(cur.id)); if (!fresh) continue;
+          const upd = { ...cur, name: fresh.name, rate: fresh.rate, min: fresh.min, max: fresh.max, refill: !!fresh.refill, cancel: !!fresh.cancel };
+          if (JSON.stringify(upd) !== JSON.stringify(cur)) { next[pl] = upd; touched = true; }
+        }
+        if (touched) {
+          try {
+            const { writeStateToSheet } = await import('./sheet.js');
+            await writeStateToSheet(campaign.sheet, { svcPick: next });
+            SVC_PICK.set(campaign.id, next);
+          } catch (e) { console.error('[카탈로그갱신] 선택 스냅샷을 못 고쳤어요 — 배포본은 옛 단가를 계속 보여줍니다:', (e && e.message) || e); }
+        }
+      }
       return send(res, 200, { ok: true, count: arr.length, before: before.length, changed: changed.length, mineChanged });
     }
 
@@ -931,8 +990,10 @@ export async function handler(req, res) {
       // 몇 개 못 긁는 것은 정상이다(늘 있다). 그걸로 시계를 멈추면 영영 안 갱신된다.
       stampScan(campaign, 'follower');   // 기다리지 않는다(실패해도 응답은 성공)
       // 최초 팔로워는 스캔할 때마다 '없는 것만' 채운다 — 따로 눌러야 하면 아무도 안 누른다.
-      try { ensureBaseline(campaign, await getAccountsFromSheet(campaign.sheet), orders); } catch {}
-      return send(res, 200, { ok: true, scannedAt: scanLatest(campaign).ranAt, scannedCount: sync.scannedCount, scanTried: sync.scanTried, scanFailed: sync.scanFailed, scanFailedHandles: sync.scanFailedHandles || [], writeError: sync.writeError || null, nicksWritten: sync.nicksWritten, refill, accounts: await buildAccounts(campaign, orders), orders: markStale(orders) });
+      let baselineError = null;
+      try { baselineError = await ensureBaseline(campaign, await getAccountsFromSheet(campaign.sheet), orders); }
+      catch (e) { baselineError = (e && e.message) || String(e); }
+      return send(res, 200, { ok: true, baselineError, scannedAt: scanLatest(campaign).ranAt, scannedCount: sync.scannedCount, scanTried: sync.scanTried, scanFailed: sync.scanFailed, scanFailedHandles: sync.scanFailedHandles || [], writeError: sync.writeError || null, nicksWritten: sync.nicksWritten, refill, accounts: await buildAccounts(campaign, orders), orders: markStale(orders) });
     }
 
     // 인스타 모집 스캔 — 팔로워·닉네임을 인스타 열에 채운다. 틱톡 스캔(/api/scan)과 별개다:
@@ -1032,7 +1093,8 @@ export async function handler(req, res) {
       const notes = [];
       const plans = [];
       // 돈 경로는 캐시를 믿지 않는다 — 시트에서 다시 읽는다(다른 창에서 방금 바꿨을 수 있다).
-      await loadSvcPick(campaign);
+      try { await loadSvcPick(campaign, { strict: true }); }
+      catch (e) { return send(res, 503, { error: (e && e.message) || String(e) }); }
       const tk = resolveService(campaign, 'tk');
       const ig = resolveService(campaign, 'ig');
       /* 서비스를 하나도 못 풀면 예전엔 200 + 빈 계획이라 화면이 '다 채워져 있어요' 라고 말했다.
@@ -1079,7 +1141,10 @@ export async function handler(req, res) {
         /* 사람이 이 번호들을 보고 승인한다. 집행 때 되돌려 받아 대조한다 —
            확인창이 열려 있는 동안 서비스가 바뀌면 화면은 #3776($11.50) 기준 금액을 보여준 채
            #3697($3.137, 리필 없음)로 주문될 수 있었다. 반대 방향이면 3.7배 과금이다. */
-        svcSig: plans.map((p) => p.plat + ':' + p.svc.service).sort().join('|') });
+        /* 번호만 담으면 '같은 #3776 인데 단가가 11.50 → 23.00 으로 바뀐' 경우를 못 잡는다.
+           같은 커밋이 넣은 「패널에서 새로고침」이 확인창 열린 사이에 카탈로그를 덮어쓸 수 있고,
+           집행은 새 단가로 금액을 다시 계산한다 — 승인한 금액과 실제 청구가 갈린다. */
+        svcSig: plans.map((p) => p.plat + ':' + p.svc.service + '@' + p.svc.rate).sort().join('|') });
     }
 
     if (path === '/api/execute' && req.method === 'POST') {
@@ -1097,14 +1162,15 @@ export async function handler(req, res) {
       }
       execInProgress.add(campaign.id);
       try {
-      await loadSvcPick(campaign);
+      try { await loadSvcPick(campaign, { strict: true }); }
+      catch (e) { return send(res, 503, { error: (e && e.message) || String(e) }); }
       const xTk = resolveService(campaign, 'tk');
       const xIg = resolveService(campaign, 'ig');
       /* 화면이 승인한 서비스와 지금 서버가 풀어낸 서비스가 같은지 본다.
          body.svcSig 가 없으면(옛 화면) 대조를 건너뛴다 — 있으면 다르면 멈춘다. */
       if (body.svcSig) {
         const nowSig = [['tk', xTk], ['ig', xIg]].filter(([, r]) => r.svc)
-          .map(([pl, r]) => pl + ':' + r.svc.service).sort().join('|');
+          .map(([pl, r]) => pl + ':' + r.svc.service + '@' + r.svc.rate).sort().join('|');
         if (nowSig !== body.svcSig) return send(res, 409, {
           error: `승인하신 서비스와 지금 설정이 달라요 (승인 ${body.svcSig || '없음'} / 지금 ${nowSig || '없음'}). 화면을 새로고침하고 금액을 다시 확인해 주세요.` });
       }
@@ -1255,7 +1321,11 @@ export async function handler(req, res) {
         inFlight = (cur || []).filter((o) => (o.plat || 'tk') === plat && !o.abandoned && !o.canceled && Number(o.remains) > 0).length;
       } catch {}
 
-      const prev = (await loadSvcPick(campaign)) || {};
+      /* prev 를 못 읽으면 {} 로 시작해 반대 플랫폼 선택이 통째로 지워진다
+         (틱톡을 바꿨는데 인스타 선택이 사라지는 식). 못 읽으면 아예 바꾸지 않는다. */
+      let prev;
+      try { prev = (await loadSvcPick(campaign, { strict: true })) || {}; }
+      catch (e) { return send(res, 503, { error: '기존 선택을 못 읽어서 바꾸지 않았어요: ' + ((e && e.message) || e) }); }
       const next = { ...prev, [plat]: {
         id: Number(svc.service), name: svc.name, rate: svc.rate, min: svc.min, max: svc.max,
         refill: !!svc.refill, cancel: !!svc.cancel, at: new Date().toISOString(),
