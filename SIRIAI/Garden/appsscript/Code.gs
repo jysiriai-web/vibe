@@ -574,6 +574,32 @@ function doGet(e) {
     if (action === 'orders') return json_({ orders: readOrders_() });
     if (action === 'dropdowns') return json_({ dropdowns: readDropdowns_() });
     if (action === 'feedback') return json_({ feedback: readFeedback_() });
+    /* 진단용 — 지금 배포된 코드가 어느 판인지, 특정 칸의 데이터 확인 규칙이 무엇인지 그대로 본다.
+       배포가 반영됐는지를 밖에서 확인할 방법이 없어 같은 실패를 세 번 반복했다. */
+    if (action === 'dvprobe') {
+      var out = { ver: 'dv4' };
+      try {
+        var ss = SpreadsheetApp.openById(e.parameter.sheetId);
+        var shs = ss.getSheets();
+        out.tabs = [];
+        for (var i = 0; i < shs.length; i++) {
+          var rr = shs[i].getRange(Number(e.parameter.row || 9), Number(e.parameter.col || 5));
+          var info = { name: shs[i].getName(), a1: rr.getA1Notation(), value: String(rr.getValue() || '') };
+          try {
+            var dv = rr.getDataValidation();
+            if (!dv) info.dv = null;
+            else {
+              info.dv = String(dv.getCriteriaType());
+              var args = dv.getCriteriaValues();
+              info.argN = args ? args.length : 0;
+              info.arg0 = args && args[0] ? (args[0].getValues ? 'RANGE ' + args[0].getA1Notation() : JSON.stringify(args[0])) : null;
+            }
+          } catch (e2) { info.dvErr = String(e2); }
+          out.tabs.push(info);
+        }
+      } catch (e3) { out.error = String(e3); }
+      return json_(out);
+    }
     if (action === 'state') return json_(readState_());
     if (action === 'bundle') {
       var s = readState_();
@@ -627,13 +653,83 @@ function syncRecruit_(sheetId, company, linkCol) {
 // 검수완료 콘텐츠 → 납품시트(다른 스프레드시트)에 기입. rows = [{nick, link, contentLink, viewNote}].
 // 헤더명(채널명·계정링크·업로드 링크·특이사항)으로 열을 자동매칭 → 열 위치가 바뀌어도 안전.
 // 계정 핸들 기준 중복 제외. 채널명이 빈 템플릿 행부터 위→아래로 채우고, 모자라면 맨 아래에 append.
+/* 드롭다운(데이터 확인)이 걸린 칸에 안전하게 쓴다.
+ * 납품시트의 '지원타입' 열에는 '댄스 챌린지' 하나만 허용하는 목록이 걸려 있어서, 우리가 계산한
+ * 값('틱톡+인스타')을 넣는 순간 setValue 가 통째로 예외를 던지고 그 행부터 기입이 멈췄다.
+ * 값을 우리가 우기지 않고 시트가 정하게 한다:
+ *   · 허용 목록에 우리 값이 있으면 그대로 쓴다
+ *   · 목록에 하나뿐이면 그 값을 쓴다(시트가 이미 답을 정해 둔 칸이다)
+ *   · 둘 이상인데 우리 값이 없으면 안 쓴다 — 아무거나 골라 넣으면 조용한 오기입이 된다
+ */
+/* ⚠️ 이름을 setCell_ 로 지었다가 통째로 죽었다 — 이 파일 아래쪽에 같은 이름의 함수가
+   이미 있었고(시그니처가 다르다), Apps Script 는 나중 선언이 이긴다.
+   그래서 아래 검증 로직이 한 번도 안 돌고, 드롭다운 칸에 그대로 써서 예외가 났다. */
+function setDeliverCell_(sh, row, col, value) {
+  var cell = sh.getRange(row, col);
+  var allowed = null;
+  try {
+    var dv = cell.getDataValidation();
+    if (dv) {
+      var kind = String(dv.getCriteriaType());
+      var args = dv.getCriteriaValues();
+      /* 드롭다운은 두 형태다.
+         · VALUE_IN_LIST  = 값을 직접 적어 둔 목록
+         · VALUE_IN_RANGE = 다른 칸 범위를 가리키는 목록  ← 이걸 안 봐서 규칙을 '없음' 으로 읽고
+           우리 값을 그냥 썼다가 setValue 가 통째로 예외를 던졌다(지원타입 열이 이 형태다). */
+      if (kind === 'VALUE_IN_LIST' && args && args[0] && args[0].length) {
+        allowed = args[0].map(function (v) { return String(v).trim(); });
+      } else if (kind === 'VALUE_IN_RANGE' && args && args[0]) {
+        var vals = args[0].getValues();
+        allowed = [];
+        for (var a = 0; a < vals.length; a++) for (var b = 0; b < vals[a].length; b++) {
+          var t = String(vals[a][b] || '').trim();
+          if (t) allowed.push(t);
+        }
+        if (!allowed.length) allowed = null;
+      }
+    }
+  } catch (e) { allowed = null; }          // 확인 규칙을 못 읽으면 예전처럼 그냥 쓴다
+  /* ⚠️ setValue 는 지연 실행이라 예외가 이 자리에서 안 나고 나중에 터질 수 있다.
+     flush() 로 여기서 확정시켜야 try/catch 가 실제로 잡는다 — 안 그러면 칸 하나 때문에
+     남은 행이 통째로 안 들어간다(실제로 38행 기입이 2행에서 멈췄다). */
+  var put = function (v) {
+    try { cell.setValue(v); SpreadsheetApp.flush(); return true; }
+    catch (e) { return false; }
+  };
+  if (!allowed) return put(value);
+  var v = String(value).trim();
+  if (allowed.indexOf(v) >= 0) return put(value);
+  if (allowed.length === 1) return put(allowed[0]);
+  return false;                            // 못 고르겠으면 비워 둔다(사람이 채운다)
+}
+
 function deliverReviewed_(sheetId, rows, plat) {
   if (!sheetId) return { error: '납품시트 ID 없음(campaigns.json deliverySheetId)' };
   if (!rows || !rows.length) return { added: 0, handles: [] };
   var dst;
   try { dst = SpreadsheetApp.openById(sheetId); } catch (err) { return { error: '납품시트 열기 실패(권한/ID 확인): ' + err }; }
   var norm = function (v) { return String(v || '').replace(/\s+/g, ''); };
-  var handleOf = function (str) { var m = String(str || '').match(/@([A-Za-z0-9._]+)/); return m ? m[1].toLowerCase() : ''; };
+  /* 계정 핸들 뽑기. ⚠️ 예전엔 @ 가 있어야만 잡았다 — 틱톡 주소(.../@handle)만 보고 만든 규칙이라
+     인스타(instagram.com/handle)는 하나도 안 잡혔고, 인스타 납품이 '대상 27건 · 추가 0행' 으로
+     조용히 끝났다(오류도 안 났다). @ 가 없으면 주소의 마지막 경로 조각을 쓴다. */
+  var handleOf = function (str) {
+    var s = String(str || '').trim();
+    var m = s.match(/@([A-Za-z0-9._]+)/);
+    if (m) return m[1].toLowerCase();
+    /* ⚠️ 마지막 조각을 쓰면 안 된다 — 인스타 계정 링크가 '.../maru_changho/reels/' 처럼
+       끝나는 경우가 있어 둘 다 'reels' 로 뭉개졌다(두 계정이 한 사람으로 합쳐져 1건이 누락).
+       호스트 다음 첫 조각이 계정이다. reel/p/tv 같은 경로 단어는 건너뛴다. */
+    var u = s.split('?')[0].split('#')[0].replace(/^https?:\/\//, '');
+    var parts = u.split('/').filter(Boolean);
+    if (parts.length && parts[0].indexOf('.') >= 0) parts.shift();   // 호스트 제거
+    var SKIP = { reel: 1, reels: 1, p: 1, tv: 1, stories: 1, explore: 1, video: 1 };
+    for (var i = 0; i < parts.length; i++) {
+      var seg = parts[i];
+      if (SKIP[seg.toLowerCase()]) continue;
+      if (/^[A-Za-z0-9._]+$/.test(seg)) return seg.toLowerCase();
+    }
+    return '';
+  };
   /* 헤더행(채널명 + 업로드 링크)이 있는 탭을 찾되, 플랫폼이 주어지면 그 플랫폼 탭을 고른다.
      ⚠️ 예전엔 '헤더가 있는 첫 탭' 이라 틱톡·인스타 둘 다 틱톡 탭에 들어갔다.
      탭 이름은 사람이 바꿀 수 있으므로 상단 20행 텍스트에서 tiktok/instagram 을 찾는다
@@ -694,7 +790,18 @@ function deliverReviewed_(sheetId, rows, plat) {
       }
       if (cOld && /조회수/.test(ex.old)) { sh.getRange(ex.row, cOld).setValue(''); updated++; ex.old = ''; } // 예전에 특이사항에 넣던 자동노트 제거(비고로 이관)
       // 차수는 비어 있을 때만 적는다 — 이미 1차로 나간 건을 나중에 2차로 덮으면 이력이 사라진다.
-      if (cOld && row.batch && !String(ex.old || '').trim()) { sh.getRange(ex.row, cOld).setValue(row.batch); updated++; }
+      // 깨진 글자(U+FFFD)가 박힌 칸도 '비어 있는 것' 으로 본다 — 인코딩 사고로 들어간 값을 되돌린다.
+      var oldTxt = String(ex.old || '');
+      if (cOld && row.batch && (!oldTxt.trim() || oldTxt.indexOf('�') >= 0)) { sh.getRange(ex.row, cOld).setValue(row.batch); updated++; }
+      /* 선정기준 칸도 '비어 있을 때만' 채운다. 앞선 시도가 중간에 끊겨 반쯤 만들어진 행이
+         영영 빈 채로 남는 걸 막는다. 사람이 적어 둔 값은 건드리지 않는다. */
+      var blanks = [[cType, row.applyType], [cFol, row.followers], [cJp, row.japan]];
+      for (var q = 0; q < blanks.length; q++) {
+        var cc = blanks[q][0], vv = blanks[q][1];
+        if (!cc || vv == null || vv === '') continue;
+        if (String(sh.getRange(ex.row, cc).getValue() || '').trim()) continue;
+        if (setDeliverCell_(sh, ex.row, cc, vv)) updated++;
+      }
       continue;
     }
     var target = emptyRows.shift();
@@ -705,9 +812,9 @@ function deliverReviewed_(sheetId, rows, plat) {
     sh.getRange(target, cLink).setValue(row.link || ('https://www.tiktok.com/@' + h));
     sh.getRange(target, cUp).setValue(row.contentLink);
     if (cMemo && row.viewNote) sh.getRange(target, cMemo).setValue(row.viewNote);
-    if (cType && row.applyType) sh.getRange(target, cType).setValue(row.applyType);
-    if (cFol && row.followers != null && row.followers !== '') sh.getRange(target, cFol).setValue(row.followers);
-    if (cJp && row.japan) sh.getRange(target, cJp).setValue(row.japan);
+    if (cType && row.applyType) setDeliverCell_(sh, target, cType, row.applyType);
+    if (cFol && row.followers != null && row.followers !== '') setDeliverCell_(sh, target, cFol, row.followers);
+    if (cJp && row.japan) setDeliverCell_(sh, target, cJp, row.japan);
     // 특이사항 = 납품 차수. 사람이 적어 둔 메모는 안 덮는다(빈 칸일 때만 쓴다).
     if (cOld && row.batch) sh.getRange(target, cOld).setValue(row.batch);
     byHandle[h] = { row: target, memo: row.viewNote || '', old: '' };

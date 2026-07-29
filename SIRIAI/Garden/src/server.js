@@ -966,12 +966,16 @@ export async function handler(req, res) {
             link: b.link || (p === 'ig' ? 'https://www.instagram.com/' : 'https://www.tiktok.com/@') + b.handle,
             contentLink: b.contentA,
             viewNote: (v != null && v >= 10000) ? (Math.floor(v / 1000) * 1000) + '조회수' : '', // 1만+만 표기. 12,428 → "12000조회수"
+            /* 납품시트의 '선정기준 충족여부' 세 열은 값이 아니라 판정이다(드롭다운).
+               지원타입 = 캠페인 종류('댄스 챌린지' 하나), 팔로워·일본 = '승인' 또는 '이슈'.
+               ⚠️ 처음엔 팔로워 열에 팔로워 수를, 일본 열에 'O' 를 넣으려 했는데 둘 다 드롭다운이라
+               시트가 거절했다. 값을 우리가 정하지 않고 시트가 정한 어휘로 적는다. */
             applyType: applyTypeOf(a),
-            followers: b.followers != null ? b.followers : '',
+            followers: (Number(b.followers) >= Number(campaign.min || 1000)) ? '승인' : '이슈',
             /* 일본 — 마스터에 언어·국가 열이 없다(헤더 별칭이 못 찾아 엉뚱한 열에 물려 있다).
-               이 캠페인 자체가 일본(댄스)이고 납품시트 제목도 '일본' 이라 전부 O 로 적는다.
+               이 캠페인 자체가 일본(댄스)이고 납품시트 제목도 '일본' 이라 전부 승인으로 적는다.
                사람별 판정이 아니라 캠페인 상수라는 뜻이다 — 나중에 언어 열이 생기면 여기서 읽는다. */
-            japan: 'O',
+            japan: '승인',
             batch,
           };
         });

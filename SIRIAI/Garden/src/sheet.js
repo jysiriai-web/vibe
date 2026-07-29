@@ -42,7 +42,9 @@ async function bridgeCall(url, opts, tries = 3) {
 // (쓰기 자체는 리다이렉트 전에 끝나 있어서 '써졌는데 실패라고 보고'하는 상태가 된다)
 const bridgePost = (sheet, payload) =>
   bridgeCall(`${sheet.url}?token=${encodeURIComponent(sheet.token)}`,
-    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: sheet.token, ...payload }) });
+    /* charset 을 반드시 적는다. 빠지면 Apps Script 가 본문을 UTF-8 이 아닌 것으로 읽어
+       한글이 깨진 채 시트에 박힌다 — 납품 '특이사항' 에 '1차' 가 '1' + 깨진 문자로 들어갔다. */
+    { method: 'POST', headers: { 'Content-Type': 'application/json; charset=utf-8' }, body: JSON.stringify({ token: sheet.token, ...payload }) });
 
 export async function getAccountsFromSheet(sheet) {
   ensure(sheet);
