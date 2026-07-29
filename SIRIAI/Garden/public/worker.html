@@ -836,9 +836,38 @@
             if (st.phase === 'login') {
               leg('btnContent', 'ig', '로그인 대기'); el.hidden = false;
               el.innerHTML = '<span class="wk-note">크롬 창에서 <b>인스타에 로그인</b>해 주세요.</span>';
+              notify('인스타 로그인이 필요해요', '크롬 창에서 로그인해 주세요');
+              return;
+            }
+            /* 막혔다 — 여기서 VPN 을 바꾸고 재개한다.
+               ⚠️ 예전엔 이 상태가 아예 없어서, 막혀도 끝까지 달린 뒤에 '27개 못 봤어요' 만 떴다.
+               재개하면 브라우저를 새로 띄운다(같은 브라우저로는 바꾼 IP 를 안 탄다). */
+            if (st.phase === 'blocked') {
+              leg('btnContent', 'ig', '막힘 — VPN 교체 대기', 0, 0, 'err'); el.hidden = false;
+              if (el.dataset.mode !== 'blocked') {
+                el.dataset.mode = 'blocked';
+                el.innerHTML = '<button class="btn primary" id="igcResume">▶ 재개</button>'
+                  + '<button class="btn ghost" id="igcStopAll">■ 완전 중지</button>'
+                  + '<span class="wk-note">인스타가 막았어요(' + (st.failed || 0) + '건 못 봄).'
+                  + ' <b>VPN 을 다른 서버로 바꾸고</b> [나가는 IP 확인] 으로 바뀐 걸 본 뒤 재개하세요.'
+                  + ' 재개하면 크롬을 새로 띄워 <b>못 본 것만</b> 다시 봐요.</span>';
+                var rb = document.getElementById('igcResume');
+                if (rb) rb.addEventListener('click', function () {
+                  rb.disabled = true; rb.textContent = '재개 중…';
+                  api('/api/ig-content-scan/resume', { method: 'POST' }).catch(function () {});
+                });
+                var sb = document.getElementById('igcStopAll');
+                if (sb) sb.addEventListener('click', function () {
+                  if (!confirm('인스타 스캔을 완전히 접을까요?')) return;
+                  sb.disabled = true;
+                  api('/api/ig-content-scan/stop', { method: 'POST' }).catch(function () {});
+                });
+              }
+              notify('인스타가 막혔어요', 'VPN 을 바꾸고 [재개] 를 눌러주세요');
               return;
             }
             if (st.phase === 'scan') {
+              if (el.dataset.mode === 'blocked') { el.dataset.mode = ''; blinkStop(); }
               // 재시도 구간은 진행률이 멈춘 것처럼 보인다 — 따로 말해 준다.
               if (st.retryTotal) leg('btnContent', 'ig', '못 본 것 다시', st.retryDone || 0, st.retryTotal);
               else leg('btnContent', 'ig', '진행', st.done || 0, st.total || 0);

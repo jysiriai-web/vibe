@@ -156,6 +156,7 @@ const execInProgress = new Set();
 // 중간에 끊으면 브라우저가 열린 채 남고, 이미 쓴 시트값과 기록이 어긋난다.
 const scanAbort = new Set();
 let igContentState = null;   // 인스타 업로드 스캔 진행상황
+let igResumeResolve = null;  // 막혀서 '재개/중지' 를 기다리는 resolver (VPN 교체 게이트)
 let igScanState = null;   // 인스타 스캔 진행상황 — 워커 화면이 폴링한다
 let scanConfirmResolve = null; // '스캔 시작' 확인을 기다리는 promise 의 resolver (로봇 인증 게이트)
 let scanGoAt = null;           // 사람이 '스캔 시작' 을 누른 시각. 워밍업이 읽어 가면 지운다.
@@ -1091,6 +1092,17 @@ export async function handler(req, res) {
     // 배포 화면이 '여기가 대표님 PC 인가'를 확인하는 데 쓴다. 로컬에서만 뜨는 서버이므로
     // 응답이 오면 곧 '이 브라우저가 있는 PC 에 서버가 있다'는 뜻이다. 팀원 PC 에선 응답이 없다.
     if (path === '/api/ping') return send(res, 200, { ok: true, local: !CLOUD, campaign: campaign.id, hasKey: !!smm });
+    /* 인스타 스캔 재개 — VPN 을 바꾼 뒤. 다음 라운드는 브라우저를 새로 띄운다(ig-content.js). */
+    if (path === '/api/ig-content-scan/resume' && req.method === 'POST') {
+      if (!igResumeResolve) return send(res, 200, { ok: false, error: '멈춰 있는 인스타 스캔이 없어요' });
+      igResumeResolve('resume');
+      return send(res, 200, { ok: true });
+    }
+    if (path === '/api/ig-content-scan/stop' && req.method === 'POST') {
+      scanAbort.add('ig-content-scan');
+      if (igResumeResolve) igResumeResolve('stop');   // 멈춰 있으면 그 자리에서
+      return send(res, 200, { ok: true, stopped: true });
+    }
     if (path === '/api/ig-scan-status') return send(res, 200, igScanState || { phase: 'idle' });
     if (path === '/api/ig-scan/stop' && req.method === 'POST') { scanAbort.add('ig-scan'); return send(res, 200, { ok: true }); }
 
@@ -1117,6 +1129,16 @@ export async function handler(req, res) {
           deep: url.searchParams.get('deep') === '1' || !!(body && body.deep),
           shouldStop: () => scanAbort.has('ig-content-scan'),
           onWarmup: () => { igContentState.phase = 'login'; },
+          /* 연속 실패 = 막힘. 여기서 멈춰야 사람이 VPN 을 바꿀 기회가 생긴다 —
+             예전엔 끝까지 달린 뒤에야 '27개 못 봤어요' 를 보여줬다. */
+          onBlocked: async (info) => {
+            igContentState = { ...igContentState, phase: 'blocked', blockRound: info.round,
+              done: info.done, total: info.total, failed: info.failed };
+            const act = await new Promise((resolve) => { igResumeResolve = resolve; });
+            igResumeResolve = null;
+            igContentState = { ...igContentState, phase: 'scan' };
+            return act;
+          },
           onProgress: (p) => { igContentState = { phase: 'scan', done: p.done != null ? p.done : igContentState.done,
             total: p.total != null ? p.total : igContentState.total, handle: p.handle, uploaded: p.uploaded,
             note: p.note || '', retryDone: p.retryDone, retryTotal: p.retryTotal }; },
@@ -1133,7 +1155,6 @@ export async function handler(req, res) {
       }
     }
     if (path === '/api/ig-content-status') return send(res, 200, igContentState || { phase: 'idle' });
-    if (path === '/api/ig-content-scan/stop' && req.method === 'POST') { scanAbort.add('ig-content-scan'); return send(res, 200, { ok: true }); }
 
     if (path === '/api/plan' && req.method === 'POST') {
       let orders = await readOrders(campaign);

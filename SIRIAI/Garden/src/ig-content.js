@@ -55,7 +55,7 @@ function inWindow(post, since) {
  *   · 프로필에서 훑는 게시물 12 → 24개
  *   · 못 본 계정은 끝나고 한 번 더 — 그 사이 차단이 풀리는 경우가 많다
  * 45명 기준 10분 → 20분쯤. 놓치는 것보다 낫다. */
-export async function runIgContentScan(campaign, { onProgress, onWarmup, waitForGo, since = '', delayMs = 2000, limit = 0, shouldStop, only, concurrency = 5, deep = false, perf = false } = {}) {
+export async function runIgContentScan(campaign, { onProgress, onWarmup, waitForGo, onBlocked, since = '', delayMs = 2000, limit = 0, shouldStop, only, concurrency = 5, deep = false, perf = false } = {}) {
   if (deep) { concurrency = 2; delayMs = Math.max(delayMs, 4500); }
   const pageMax = deep ? 24 : 12;
   // 캠페인 시작일이 있으면 그 전 게시물은 볼 이유가 없다 — 프로필을 직접 여는 경로에서
@@ -101,27 +101,60 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
   const wroteHandles = new Set();   // 이번 판에 시트 쓰기를 시도한 핸들 — 쓰기가 깨지면 이들만 되돌린다
   const failedHandles = new Set();  // 이번 판에 '못 본' 계정. 지난 판 기록과 섞이면 실패 건수가 거짓이 된다
   let apiDead = false, stopped = '', emptyStreak = 0;
+  /* 연속 실패 = 막힌 것이다. 인스타는 틱톡과 달리 이 판단을 아예 안 하고 있었다 —
+     58계정 중 27건이 '게시물을 못 열었어요' 로 끝났는데(계정당 4건씩 일정) 스캔은 끝까지
+     달린 뒤에야 실패 목록을 보여줬다. 그때는 이미 VPN 을 바꿀 시점이 지난 뒤다.
+     이제 연속 IG_BLOCK_STREAK 건이면 멈추고 사람을 부른다. */
+  const IG_BLOCK_STREAK = Number(process.env.IG_BLOCK_STREAK || 4);
+  let consecFail = 0, blocked = false;
+  /* 이번 실행에서 '결론이 난' 계정. detected 는 지난 기록(prev)을 깔고 시작하므로
+     그걸로 재개 큐를 만들면, 이번에 아직 안 본 계정이 '이미 봤다' 로 빠진다. */
+  const settled = new Set();
+  // 진행 수는 라운드를 넘겨 이어진다 — 재개했다고 0 부터 세면 화면이 뒤로 간다.
+  let done = 0;
   let newUploaded = 0;   // 이번 판에 '새로' 찾은 업로드. 누적(uploadedN)과 섞으면 안 된다.
 
   if (targets.length) {
-    const b = await launchIgBrowser({ onWarmup, waitForGo });
+    /* 라운드 하나 = 브라우저 한 벌.
+       ⚠️ 막힌 뒤 VPN 을 바꿔도 같은 브라우저를 계속 쓰면 소용이 없다 — 열려 있던 연결과
+       세션이 옛 경로를 그대로 탄다. 재개할 때는 반드시 새로 띄운다. */
+    let queue = targets.slice();
+    let round = 0;
+    while (queue.length && !stopped) {
+      round++;
+      blocked = false; consecFail = 0;
+      const b = await launchIgBrowser(round === 1 ? { onWarmup, waitForGo } : {});
+      // 이번 라운드가 어디로 나가는지 남긴다 — VPN 을 바꿨는데 안 바뀌었으면 여기서 드러난다.
+      if (onProgress) {
+        try {
+          const pg = await b.ctx.newPage();
+          await pg.goto('https://ipinfo.io/json', { waitUntil: 'domcontentloaded', timeout: 15000 });
+          const w = JSON.parse(await pg.evaluate(() => document.body.innerText));
+          onProgress({ note: round + '회차 — ' + [w.country, w.city].filter(Boolean).join(' ') + ' (' + w.ip + ') 로 나가요' });
+          await pg.close();
+        } catch {}
+      }
     try {
       /* 인스타는 틱톡처럼 탭 몇 개 열었다고 막지 않는다(대표님이 수기로 확인한 사실).
          순차로 돌면 계정당 10여 초 × 48명이라 10분 가까이 걸려서 여러 개를 동시에 연다.
          ⚠️ 작업자마다 자기 페이지를 하나씩 갖는다 — 한 페이지를 나눠 쓰면 evaluate 가 서로 섞인다. */
-      let qi = 0, done = 0;
+      let qi = 0;
       const runOne = async (page) => {
-        while (qi < targets.length) {
+        while (qi < queue.length) {
           const i = qi++;
           // 계정 하나가 끝날 때마다 확인. 중간에 끊으면 브라우저가 열린 채 남는다.
           if (shouldStop && shouldStop()) { stopped = '중단했어요 — 여기까지는 시트에 저장됐습니다.'; break; }
-          const a = targets[i];
+          // 막혔으면 이 라운드는 접는다. 계속 긁어봐야 실패만 쌓이고 차단만 굳는다.
+          if (blocked) break;
+          if (consecFail >= IG_BLOCK_STREAK) { blocked = true; break; }
+          const a = queue[i];
           let p = null, via = 'api';
           // ① API — 게시물 목록이 한 번에 온다. 막혔으면(apiDead) 건너뛰고 바로 페이지로.
           if (!apiDead) {
             try { p = await fetchIgProfileRetry(page, a.igHandle); }
             catch (e) {
               if (e.code === 'LOGGEDOUT' || e.code === 'BLOCKED') {
+                consecFail++;
                 apiDead = true;
                 if (onProgress) onProgress({ note: 'API 가 막혀 프로필을 직접 열어 확인합니다 (느려요)' });
               } else if (e.code === 'NOTFOUND') {
@@ -137,7 +170,8 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
           // 게다가 이 계정 자신도 페이지에서 게시물이 안 보여 '미업로드'로 확정된다 — 안 올린 사람과 섞이면 안 된다.
           if (p && p.isPrivate && (!p.posts || !p.posts.length)) {
             const msg = '비공개 계정 — 사람이 직접 확인해주세요';
-            failedHandles.add(a.igHandle);
+            failedHandles.add(a.igHandle);   // 막힘 카운트에는 안 넣는다 — 비공개는 정상적인 '못 봄' 이다
+            settled.add(a.igHandle);         // 다시 봐도 결과가 같다
             detected[a.igHandle] = { uploaded: false, scanFailed: true, isPrivate: true, error: msg, checkedAt: new Date().toISOString() };
             if (onProgress) onProgress({ done: ++done, total: targets.length, handle: a.igHandle, failed: true, error: msg });
             await sleep(delayMs); continue;
@@ -163,7 +197,7 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
             // 캠페인 해시태그가 붙은 게시물 2개(콘텐츠①②)를 찾으면 거기서 멈춘다 — 계정당 1분이 십몇 초로 준다.
             try { p = await fetchIgPostsViaPage(b.ctx, a.igHandle, { isMatch: (post) => matchPost(post, hashtags).hit, since, max: pageMax }); via = 'page'; }
             catch (e) {
-              failedHandles.add(a.igHandle);
+              failedHandles.add(a.igHandle); consecFail++;
               detected[a.igHandle] = { uploaded: false, scanFailed: true, error: e.message };
               if (onProgress) onProgress({ done: ++done, total: targets.length, handle: a.igHandle, failed: true, error: e.message });
               await sleep(delayMs); continue;
@@ -173,7 +207,7 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
           // (로그인 월·차단·화면 변경이면 링크가 0개로 '정상' 반환된다) '미업로드'로 확정하지 않는다.
           if (via === 'page' && !(p.posts || []).length) {
             const msg = '게시물 목록을 못 읽음(페이지 폴백) — 사람이 직접 확인해주세요';
-            failedHandles.add(a.igHandle);
+            failedHandles.add(a.igHandle); consecFail++;
             detected[a.igHandle] = { uploaded: false, scanFailed: true, error: msg, checkedAt: new Date().toISOString() };
             if (onProgress) onProgress({ done: ++done, total: targets.length, handle: a.igHandle, failed: true, error: msg });
             await sleep(delayMs); continue;
@@ -207,11 +241,13 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
           } else {
             detected[a.igHandle] = { uploaded: false, checkedAt: new Date().toISOString(), postsSeen: (p.posts || []).length, via };
           }
+          consecFail = 0;   // 봤다 = 안 막혔다
+          settled.add(a.igHandle);
           if (onProgress) onProgress({ done: ++done, total: targets.length, handle: a.igHandle, uploaded: hits.length > 0 });
           await sleep(delayMs);
         }
       };
-      const workers = Math.max(1, Math.min(concurrency, targets.length));
+      const workers = Math.max(1, Math.min(concurrency, queue.length));
       await Promise.all(Array.from({ length: workers }, async () => {
         const page = await openIgFetcher(b.ctx);
         try { await runOne(page); } finally { try { await page.close(); } catch {} }
@@ -254,6 +290,18 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
         }
       }
     } finally { try { await b.browser.close(); } catch {} }
+
+      if (!blocked || stopped) break;
+      /* 막혔다. 여기까지 본 것은 이미 detected 에 있다 — 사람이 VPN 을 바꾸고 재개하면
+         못 본 것만 새 브라우저로 다시 본다. 볼 사람이 없으면(CLI) 그냥 접는다. */
+      const act = onBlocked
+        ? await onBlocked({ reason: 'blocked', done, total: targets.length, failed: failedHandles.size, round })
+        : 'stop';
+      if (act === 'stop') { stopped = '중지했어요 — 여기까지는 시트에 저장됐습니다.'; break; }
+      queue = targets.filter((t) => !settled.has(t.igHandle));
+      queue.forEach((t) => failedHandles.delete(t.igHandle));   // 다시 볼 것이니 실패 목록에서 뺀다
+      if (!queue.length) break;
+    }
   }
 
   let written = 0, writeError = '';
