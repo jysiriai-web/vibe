@@ -1070,6 +1070,8 @@ export async function handler(req, res) {
       try {
         scanAbort.delete('ig-content-scan');
         const out = await runIgContentScan(campaign, {
+          // perf=1 → 이미 올린 계정만 다시 열어 좋아요·댓글을 갱신한다(업로드를 새로 찾지 않는다).
+          perf: url.searchParams.get('perf') === '1',
           since: url.searchParams.get('since') || '',
           // ?only=a,b 또는 본문 only:[...] — 내일 올리는 사람만 골라 도는 부분 스캔.
           only: (body && Array.isArray(body.only) && body.only) || (url.searchParams.get('only') || '').split(',').filter(Boolean),

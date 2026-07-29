@@ -991,6 +991,8 @@ body.nav-collapsed .side-btn { justify-content:center; }
 .svcnote { margin-left:auto; display:inline-flex; align-items:baseline; gap:7px; font-size:12px; color:var(--muted);
   white-space:nowrap; overflow:hidden; }
 .svcnote b { color:var(--ink); font-weight:800; }
+.pickcount { font-size:12px; color:var(--muted); padding:0 4px; white-space:nowrap; }
+.pickcount b { color:var(--accent-ink); font-weight:800; }
 .svcnote small { font-size:11px; color:var(--faint); }
 .svcnote .svc-n { color:var(--faint); overflow:hidden; text-overflow:ellipsis; }
 @media (max-width:900px){ .svcnote { display:none; } }
@@ -2418,11 +2420,11 @@ function viewRecruit(){
    같은 사람을 두 화면에서 다르게 읽게 된다. */
 function uploadAllCols(){
   return [
-    ...(LOCAL.on ? [{ key:'spick', label:sPickAllBox(), sortable:false,
+    ...([{ key:'spick', label:sPickAllBox(), sortable:false,
       // 사람 단위로 고른다. 어느 플랫폼을 긁을지는 화면이 판단한다(아래 scanTargetsOf).
       cell:r=> scanTargetsOf(r).length
         ? `<input type="checkbox" data-spick="row:${r.id}"${scanPick.has('row:'+r.id)?' checked':''}>`
-        : '<span class="emptydot">·</span>' }] : []),
+        : '<span class="emptydot">·</span>' }]),
     { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
     // 연락은 여기서 시작한다 — 모집탭으로 갔다 오지 않게 이메일을 같이 둔다.
@@ -2593,10 +2595,10 @@ function syncScanAll(){
   box.indeterminate = on > 0 && on < all.length;
 }
 function syncScanBtn(){
-  const b = document.getElementById('btnPickScan');
-  if(!b) return;
-  b.textContent = scanPick.size ? `선택 ${scanPick.size}명 스캔` : '선택 스캔';
-  b.classList.toggle('primary', !!scanPick.size);
+  // 버튼이 아니라 '선택 N명' 표시를 갱신한다. 표를 다시 그리지 않고 숫자만 바꾼다.
+  const el = document.querySelector('.pickcount b');
+  if(el) el.textContent = scanPick.size;
+  else if(scanPick.size) render();   // 표시가 아직 없으면 한 번 그려 준다
 }
 /* 지금 걸려 있는 필터 수. '초기화'가 무엇을 되돌리는지 숫자로 보여주면
    눌러도 되는지 망설이지 않는다(0이면 버튼 자체가 안 뜬다). */
@@ -2734,82 +2736,17 @@ function resetBtn(){
   if(!n) return '';
   return `<button class="btn small resetf" id="dayClear" title="이 탭을 처음 상태로 — 하위탭·날짜·진행사·콘텐츠 필터를 모두 풉니다">↺ 필터 초기화 <b>${n}</b></button>`;
 }
+/* 체크박스는 남기고 '선택 스캔' 버튼만 뺐다.
+   스캔은 대표님 PC 에서만 도는데, 체크박스 자체는 '몇 명인지 세어 보는' 용도라 팀원에게도 쓸모가 있다.
+   고르는 것은 모두에게 열고, 실행은 작업 콘솔 한 곳으로 모은다. */
 function scanPickBtn(){
-  if(!LOCAL.on) return '';
   const n = scanPick.size;
-  return `<button class="btn small${n?' primary':''}" id="btnPickScan">${n?`선택 ${n}명 스캔`:'선택 스캔'}</button>`;
-}
-async function runPickScan(btn){
-  if(!scanPick.size) return toast('표에서 스캔할 사람을 먼저 골라주세요.');
-  // 플랫폼마다 스캐너가 다르다(틱톡=영상목록, 인스타=게시물). 갈라서 각각 보낸다.
-  const by = { tk:[], ig:[] };
-  scanPick.forEach(v=>{
-    const i = v.indexOf(':'), pre = v.slice(0, i), rest = v.slice(i + 1);
-    if(pre === 'row'){
-      // 사람으로 고른 것 — 아직 안 올라온 플랫폼만 편다.
-      const d = D.find(x=> String(x.id) === rest);
-      if(d) scanTargetsOf(d).forEach(p=> by[p] && by[p].push(d[p].h));
-    } else if(by[pre]) by[pre].push(rest);
-  });
-  if(!by.tk.length && !by.ig.length) return toast('고른 사람은 이미 다 올라왔어요 — 스캔할 게 없습니다.');
-  btn.disabled = true; btn.textContent = '스캔 중…';
-  const done = [];
-  try {
-    const warn = [];
-    if(by.ig.length){
-      const r = await fetch(localApi('/api/ig-content-scan?campaign=' + state.campaign), {
-        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ only: by.ig }) });
-      const j = await r.json();
-      if(j.error) throw new Error('인스타: ' + j.error);
-      // 실패 신호를 삼키지 않는다 — 서버는 실패해도 200 을 준다.
-      if(j.pendingWrite) warn.push(`인스타 ${j.pendingWrite}건 시트 기입 실패`);
-      if(j.writeError)   warn.push('인스타 시트 쓰기: ' + j.writeError);
-      if(j.failed)       warn.push(`인스타 ${j.failed}명 못 봄(비공개·차단)`);
-      done.push(`인스타 ${by.ig.length}명`);
-    }
-    if(by.tk.length){
-      const r = await fetch(localApi('/api/content-scan?campaign=' + state.campaign), {
-        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ only: by.tk }) });
-      const j = await r.json();
-      if(j.error) throw new Error('틱톡: ' + j.error);
-      // /api/content-scan 은 백그라운드다 — {started} 나 {running} 만 온다. '완료'라고 하면 거짓말.
-      if(j.running) warn.push('틱톡: 이미 다른 스캔이 돌고 있어요');
-      done.push(`틱톡 ${by.tk.length}명 시작(작업 콘솔에서 로봇인증 확인)`);
-    }
-    warn.forEach(w=> toast('⚠️ ' + esc(w)));
-    toast((by.ig.length && !by.tk.length ? '인스타 선택 스캔 완료 — ' : '선택 스캔 — ') + done.join(' · '));
-    scanPick.clear();
-    loadData();
-  } catch(e){ toast('스캔 실패: ' + esc(e.message)); }
-  finally { btn.disabled = false; render(); }
+  return n ? `<span class="pickcount">선택 <b>${n}</b>명</span>` : '';
 }
 /* '패널 확인 필요' 주문 풀기 — 응답을 못 받아 과금 여부가 불명이라 재주문을 막아둔 것.
    대표님이 smmkings 패널에서 실제 주문 여부를 확인한 뒤에만 누른다(그래서 로컬 전용).
    포기(abandon) 처리하면 inFlightFor 에서 빠져 그 계정 재주문이 다시 열린다. */
 /* 수기 집행 완료 — 나간 돈은 지출에 남긴다(포기와 다르다). */
-async function doneOrder(key){
-  if(!confirm('이 수기 집행을 완료로 닫을까요?\n지출에는 그대로 남고, 이 계정의 재주문이 다시 열립니다.')) return;
-  try {
-    const r = await fetch(localApi('/api/order/done?campaign=' + state.campaign), {
-      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ orderId: key })
-    }).then(x=>x.json());
-    if(r && r.error) return toast('완료 처리 실패 — ' + r.error);
-    toast('완료로 닫았어요.');
-    await load();
-  } catch(e){ toast('완료 처리 실패 — ' + (e.message||e)); }
-}
-async function abandonOrder(key){
-  if(!key) return;
-  if(!confirm('smmkings 패널에서 이 계정의 실제 주문 여부를 확인하셨나요?\n\n확인함 = 재주문을 다시 엽니다. 패널에 주문이 이미 있으면 다음 집행에서 이중지출될 수 있어요.')) return;
-  try {
-    const r = await fetch(localApi('/api/order/abandon?campaign=' + state.campaign), {
-      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ orderId: key }) });
-    const j = await r.json();
-    if(j.error) throw new Error(j.error);
-    toast('확인 처리했어요 — 이 계정 재주문이 열렸어요.');
-    loadData();
-  } catch(e){ toast('처리 실패: ' + esc(e.message)); }
-}
 /* 납품시트 기입 — 예전엔 fetch 없이 '자동 기입' 문구만 띄웠다.
    실제로 부르고 서버가 센 건수를 그대로 말한다(납품시트 설정이 없는 캠페인이면 그 이유가 뜬다). */
 async function runDeliverWrite(btn){
@@ -2990,8 +2927,8 @@ function viewUpload(){
   const allRows = rows;
   const f = upFilter(); if(f.test) rows = rows.filter(d=> f.test(d,p));
   const cols = [
-    ...(LOCAL.on ? [{ key:'spick', label:sPickAllBox(), sortable:false,
-      cell:r=> `<input type="checkbox" data-spick="${p}:${esc(r[p].h)}"${scanPick.has(p+':'+r[p].h)?' checked':''}>` }] : []),
+    ...([{ key:'spick', label:sPickAllBox(), sortable:false,
+      cell:r=> `<input type="checkbox" data-spick="${p}:${esc(r[p].h)}"${scanPick.has(p+':'+r[p].h)?' checked':''}>` }]),
     { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
     { key:'h', label:pName(p)+' 닉네임', cls:'handle', grp:p, sv:r=>r[p].h, cell:r=>`${acctLink(r[p].h, p)}` },
@@ -3359,12 +3296,13 @@ function gardenHistory(){
       cell:o=> o.costKrw!=null ? esc(Number(o.costKrw).toLocaleString('ko-KR')+'원') : esc(wonOf(o.cost)) },
     { key:'st', label:'상태', sv:o=>o.needsPanelCheck?-1:(o.done?1:0), cell:o=>{
         // 응답을 못 받아 과금 여부가 불명인 주문 — 재주문을 막아둔 상태. 사람이 패널을 봐야 한다.
-        if(o.needsPanelCheck) return `<span class="chip needs">⚠️ 패널 확인 필요</span>${LOCAL.on?` <button class="btn ghost small" data-abandon="${esc(o.uid||o.id||'')}">확인함 · 재주문 열기</button>`:''}`;
+        // 조작 버튼은 작업 콘솔 [주문 관리] 로 옮겼다 — 대시보드는 상태만 읽는다.
+        if(o.needsPanelCheck) return `<span class="chip needs">⚠️ 패널 확인 필요</span>`;
         // 대시보드 밖에서 직접 넣은 주문 — 우리가 상태를 물어볼 수 없다(그 패널에 연결이 없다).
         // 사람이 채워진 걸 확인하고 눌러서 닫는다. 그때까지는 진행중으로 세어 재주문을 막는다.
         // '완료 처리'는 done 이다. abandon(포기)은 아래 '패널 확인 필요' 전용 —
         // 섞으면 나간 돈이 지출에서 사라지고 재주문 차단도 풀린다.
-        if(o.manual) return `<span class="chip manual">수기 집행${o.panel?' · '+esc(o.panel):''}</span>${LOCAL.on?` <button class="btn ghost small" data-odone="${esc(o.uid||'')}">완료 처리</button>`:''}`;
+        if(o.manual) return `<span class="chip manual">수기 집행${o.panel?' · '+esc(o.panel):''}</span>`;
         if(o.cancelStuck) return '<span class="chip needs">취소·환불 확인</span>';
         // 패널이 취소한 주문 — '완료'와 섞이면 안 된다. 돈이 안 나갔다는 뜻이다.
         if(o.canceled) return `<span class="chip gray" title="패널에서 취소됐어요${o.refunded?' · 전액 환불':''}">취소${o.refunded?' · 환불':''}</span>`;
@@ -3396,7 +3334,7 @@ const wonOf = usd => wonNum(usd).toLocaleString('ko-KR') + '원';
    납품시트 기입은 남긴다 — 돈도 브라우저도 안 쓰고 팀원도 할 수 있다. */
 function deliverBar(){
   return `<div class="bar"><button class="btn small" id="btnDeliver">📤 납품시트 기입</button>`
-    + `<span class="cmuted">조회수는 작업 콘솔 [조회수 스캔]에서 갱신해요</span>`
+    + `<span class="cmuted">조회수·좋아요는 작업 콘솔 [성과 갱신]에서 채워요</span>`
     + `<span class="spacer"></span></div>`;
 }
 
@@ -4923,7 +4861,6 @@ document.getElementById('content').addEventListener('click', e=>{
       // 표를 다시 그리지 않는다 — 체크할 때마다 표가 튀면 못 쓴다. 머리 체크와 버튼만 맞춘다.
       syncScanAll(); syncScanBtn();
       return; } }
-  { const bp = e.target.closest('#btnPickScan'); if(bp){ runPickScan(bp); return; } }
   { const gp = e.target.closest('[data-gpick]');
     if(gp){ const k = gp.dataset.gpick;
       if(gp.checked) gOff.delete(k); else gOff.add(k);
@@ -4931,8 +4868,6 @@ document.getElementById('content').addEventListener('click', e=>{
       updateGardenSum();          // 표는 그대로 두고 합계만 고친다 — 누를 때마다 표가 튀면 못 쓴다
       return; } }
   if(e.target.closest('#btnExec')){ execModal(); return; }
-  { const ab = e.target.closest('[data-abandon]'); if(ab){ abandonOrder(ab.dataset.abandon); return; } }
-  { const dn = e.target.closest('[data-odone]'); if(dn){ doneOrder(dn.dataset.odone); return; } }
   /* 폰에는 이 필터들을 끌 UI 가 없다 — 요약 카드가 켜 둔 것을 여기서 반드시 풀어야 한다.
      안 풀면 [업로드] 카드가 켠 hasContent 가 남아, 아무 데도 안 올린 지연자 전원이
      목록에서 빠진다. 정확히 오늘 메일 보낼 사람들이다. */

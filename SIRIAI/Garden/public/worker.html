@@ -84,6 +84,12 @@
     .wk-note { font-size: 12.5px; color: var(--faint); }
     /* 조회수 스캔 범위 — 라디오 세 줄 + 직접 지정 입력칸 */
     .wk-opts { display: flex; flex-direction: column; gap: 3px; margin: 8px 0 2px; }
+    /* 주문 관리 — 한 줄에 상태 + 조작 하나 */
+    .wk-orow { display: flex; align-items: center; gap: 9px; padding: 6px 0; font-size: 12.5px; }
+    .wk-orow + .wk-orow { border-top: 1px dashed var(--line2); }
+    .wk-orow > span { flex: 1; }
+    .wk-obad { color: var(--needs-ink); font-weight: 800; }
+    .wk-oman { color: var(--muted); font-weight: 800; }
     .wk-ta { width: 100%; box-sizing: border-box; margin-top: 5px; font: inherit; font-size: 12px;
       padding: 7px 9px; border: 1px solid var(--line); border-radius: 9px; resize: vertical;
       background: var(--card); color: var(--ink); }
@@ -184,12 +190,12 @@
     </div>
 
     <div class="wk-card" id="cardPerf">
-      <div class="wk-cardtop"><span class="wk-name">조회수 스캔</span><span class="wk-eta">3~10분</span><span class="wk-state">대기</span></div>
+      <div class="wk-cardtop"><span class="wk-name">성과 갱신</span><span class="wk-eta">5~15분</span><span class="wk-state">대기</span></div>
       <button class="btn wk-btn" id="btnPerf">시작</button>
       <div class="wk-opts" id="perfScope">
         <label class="wk-opt"><input type="radio" name="perfScope" value="all" checked> <b>올라온 것 전부</b>
           <span class="wk-note" id="perfCntAll">—</span></label>
-        <label class="wk-opt"><input type="radio" name="perfScope" value="missing"> <b>조회수 빈 것만</b>
+        <label class="wk-opt"><input type="radio" name="perfScope" value="missing"> <b>틱톡 조회수 빈 것만</b>
           <span class="wk-note" id="perfCntMiss">—</span></label>
         <label class="wk-opt"><input type="radio" name="perfScope" value="pick"> <b>직접 지정</b>
           <span class="wk-note">아래에 계정을 한 줄에 하나씩</span></label>
@@ -197,12 +203,17 @@
       </div>
       <div class="wk-legs" id="legsPerf" hidden>
         <div class="wk-leg" data-leg="tk"><b class="wk-lp tk">틱톡</b><span class="wk-lst">대기</span><i class="wk-lbar"><u></u></i></div>
+        <div class="wk-leg" data-leg="ig"><b class="wk-lp ig">인스타</b><span class="wk-lst">대기</span><i class="wk-lbar"><u></u></i></div>
       </div>
       <div class="wk-sub" id="perfPanel" hidden></div>
+      <div class="wk-sub" id="perfIgPanel" hidden></div>
       <details class="wk-more"><summary>이게 뭐죠?</summary>
-        <p class="wk-desc"><b>이미 올라온 틱톡 영상</b>의 조회수를 다시 긁어 마스터시트에 채워요.
+        <p class="wk-desc"><b>이미 올라온 콘텐츠</b>의 성과를 다시 읽어 마스터시트에 채워요.
         업로드 여부를 새로 찾지는 않아요 — 그건 [업로드 스캔]입니다.<br>
-        납품시트 <b>비고</b>의 '12000조회수' 표기가 이 값에서 나와요(1만 이상만).<br>
+        · <b>틱톡</b> — 조회수. 납품시트 <b>비고</b>의 '12000조회수' 표기가 여기서 나와요(1만 이상만).<br>
+        · <b>인스타</b> — 좋아요·댓글. <b>조회수는 인스타가 안 줍니다</b>(프로필 API 는 늘 0,
+        릴스 페이지에도 재생수 표기가 없어요 — 로그인 상태로 확인). 필요하면 시트에 직접 적어야 해요.<br>
+        예전엔 인스타가 <b>한 번 찾은 뒤로는 다시 안 봐서</b> 좋아요·댓글이 첫 값에 얼어 있었어요(시트 3인데 실제 24).<br>
         틱톡 브라우저를 쓰기 때문에 <b>다른 스캔이 도는 중엔 못 눌러요</b>. 로봇 인증을 끝낸 뒤 [스캔 시작]을 눌러야 진행돼요.</p>
       </details>
     </div>
@@ -227,6 +238,18 @@
         <p class="wk-desc">지원 응답시트(시리아이·마루)에서 <b>새로 지원한 사람</b>을 마스터시트로 가져와요.
         이미 있는 사람은 건너뛰고, 새 사람만 맨 아래에 붙습니다. <b>돈은 안 나가요.</b><br>
         가져온 뒤에는 대시보드에서 <b>↻ 새로고침</b> 을 눌러야 화면에 보여요.</p>
+      </details>
+    </div>
+
+    <div class="wk-card" id="cardOrders">
+      <div class="wk-cardtop"><span class="wk-name">주문 관리</span><span class="wk-state">대기</span></div>
+      <div class="wk-sub" id="orderList"><span class="wk-note">불러오는 중…</span></div>
+      <details class="wk-more"><summary>이게 뭐죠?</summary>
+        <p class="wk-desc">손볼 게 남은 가드닝 주문만 모아 보여줘요. 대시보드에서 옮겨 왔습니다.<br>
+        <b>패널 확인 필요</b> = 주문번호를 못 받은 건. 패널에서 실제로 들어갔는지 확인한 뒤 [확인함]을 누르면
+        그 계정에 다시 주문할 수 있게 열려요.<br>
+        <b>수기 집행</b> = 손으로 넣은 주문. 다 채워졌으면 [완료 처리]로 닫아요.<br>
+        <b>돈은 안 나가요</b> — 장부만 고칩니다.</p>
       </details>
     </div>
 
@@ -353,7 +376,7 @@
     var CARD = {                              // 버튼 → 카드·잡는 잠금
       btnScan:    { card: 'cardScan',    locks: ['tk', 'ig'] },
       btnContent: { card: 'cardContent', locks: ['tk', 'ig'] },
-      btnPerf:    { card: 'cardPerf',    locks: ['tk'] },     // 틱톡 브라우저만 쓴다(인스타 조회수는 안 긁는다)
+      btnPerf:    { card: 'cardPerf',    locks: ['tk', 'ig'] },   // 틱톡 조회수 + 인스타 좋아요·댓글
       btnExec:    { card: 'cardExec',    locks: ['tk'] },     // 틱톡 브라우저 재사용
       btnRecruit: { card: 'cardRecruit', locks: [] },   // 시트만 만진다 — 브라우저를 안 쓴다
       btnIp:      { card: 'cardIp',      locks: [] },
@@ -460,6 +483,7 @@
         pwRequired = !!(d.config && d.config.execPwRequired);
         var acc = d.accounts || [];
         PERF_ACC = acc; perfCounts();   // 조회수 스캔 카드의 대상 건수
+        renderOrders(d.orders || []);   // 주문 관리 카드
 
         // 틱톡과 인스타를 갈라 센다. 예전엔 틱톡만 세고 '가드닝 필요 N건'이라 적어
         // 전체인 것처럼 보였다(틱톡 6·인스타 1인데 6으로 표시).
@@ -898,26 +922,78 @@
       if (!take('btnPerf')) return;
       legsReset('btnPerf');
       var n = scope === 'all' ? t.up.length : only.length;
-      say('조회수 스캔 시작 — 대상 <b>' + n + '건</b>' + (scope === 'all' ? ' (올라온 것 전부)' : scope === 'missing' ? ' (조회수 빈 것만)' : ' (직접 지정)') + '. 크롬 창이 떠요.');
+      say('성과 갱신 시작 — 틱톡 <b>' + n + '건</b>' + (scope === 'all' ? ' (올라온 것 전부)' : scope === 'missing' ? ' (조회수 빈 것만)' : ' (직접 지정)') + ' · 인스타는 좋아요·댓글. 크롬 창이 떠요.');
+      // 둘은 세션도 실패 모드도 달라 같이 돌린다 — 업로드 스캔과 같은 구조다.
+      Promise.all([legTkPerf(only), legIgPerf(only)]).then(function (r) {
+        release('btnPerf', r.every(Boolean) ? 'ok' : 'err'); showDone(); loadStatus();
+      });
+    }
+    function legTkPerf(only) {
       leg('btnPerf', 'tk', '시작하는 중');
-      api('/api/content-scan?perf=1&campaign=' + CAMP, {
+      return api('/api/content-scan?perf=1&campaign=' + CAMP, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(only ? { only: only } : {})
       }).catch(netErr).then(function (r) {
-        if (!r || r.error) { leg('btnPerf', 'tk', '실패', 0, 0, 'err'); release('btnPerf', 'err'); fail(r, '조회수 스캔'); return; }
-        if (r.running) { leg('btnPerf', 'tk', '이미 도는 중', 0, 0, 'err'); release('btnPerf', 'err'); say('이미 스캔이 돌고 있어요 — 끝난 뒤에 다시 눌러주세요.', 'err'); return; }
-        pollTkContent('btnPerf', '조회수 스캔').then(function (ok) {
-          release('btnPerf', ok ? 'ok' : 'err'); showDone(); loadStatus();
-        });
+        if (!r || r.error) { leg('btnPerf', 'tk', '실패', 0, 0, 'err'); fail(r, '틱톡 조회수'); return false; }
+        if (r.running) { leg('btnPerf', 'tk', '이미 도는 중', 0, 0, 'err'); say('틱톡 스캔이 이미 돌고 있어요.', 'err'); return false; }
+        return pollTkContent('btnPerf', '틱톡 조회수');
+      });
+    }
+    /* 인스타 성과 — 조회수가 아니라 좋아요·댓글이다(인스타는 조회수를 안 준다).
+       업로드 스캔과 달리 '이미 올린 계정만' 다시 연다(서버 perf=1). */
+    function legIgPerf(only) {
+      leg('btnPerf', 'ig', '시작하는 중');
+      var el = $('#perfIgPanel');
+      return api('/api/ig-content-scan?perf=1&campaign=' + CAMP, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(only ? { only: only } : {})
+      }).catch(netErr).then(function (r) {
+        if (!r || r.error) { leg('btnPerf', 'ig', '실패', 0, 0, 'err'); if (el) el.hidden = true; fail(r, '인스타 성과'); return false; }
+        if (r.running) { leg('btnPerf', 'ig', '이미 도는 중', 0, 0, 'err'); say('인스타 스캔이 이미 돌고 있어요.', 'err'); return false; }
+        leg('btnPerf', 'ig', '완료', 0, 0, 'ok');
+        var n = (r.updated != null ? r.updated : (r.written || 0));
+        say('인스타 성과 갱신 — 시트 <b>' + n + '칸</b> (좋아요·댓글). 인스타는 조회수를 안 줘요.', 'ok');
+        if (r.failed) say('⚠️ 인스타 <b>' + r.failed + '개는 못 봤어요</b>' + acctLinks(r.failures, 'ig'), 'err');
+        return !r.failed;
       });
     }
     function reportPerf(s) {
       var clean = !s.failed && !s.writeError;
-      if (s.stopped) say('⏹ 조회수 스캔 중지 — 여기까지 ' + (s.written || 0) + '칸 반영');
-      else say('조회수 스캔 완료 — 시트 <b>' + (s.written || 0) + '칸</b> 갱신 (' + (s.done || 0) + '건 확인)', clean ? 'ok' : '');
+      if (s.stopped) say('⏹ 틱톡 조회수 중지 — 여기까지 ' + (s.written || 0) + '칸 반영');
+      else say('틱톡 조회수 갱신 — 시트 <b>' + (s.written || 0) + '칸</b> (' + (s.done || 0) + '건 확인)', clean ? 'ok' : '');
       if (s.writeError) say('⚠️ 시트 쓰기: ' + s.writeError, 'err');
       if (s.failed) say('⚠️ <b>' + s.failed + '개는 못 봤어요</b> — 눌러서 직접 확인해 주세요.' + acctLinks(s.failedHandles, 'tk'), 'err');
       return clean;
+    }
+    /* 주문 관리 — 대시보드에 있던 [확인함·재주문 열기] · [완료 처리] 를 여기로 옮겼다.
+       둘 다 대표님 PC 에서만 되는 조작이라 팀원 화면엔 버튼만 떠 있고 눌러도 아무 일이 없었다.
+       돈은 안 나간다 — 주문 장부의 상태만 고친다. */
+    function renderOrders(orders) {
+      var el = $('#orderList'); if (!el) return;
+      var todo = (orders || []).filter(function (o) { return o.needsPanelCheck || (o.manual && !o.done); });
+      if (!todo.length) { el.innerHTML = '<span class="wk-note">손볼 주문이 없어요.</span>'; return; }
+      el.innerHTML = todo.map(function (o) {
+        var key = esc(String(o.uid || o.id || ''));
+        var who = (o.plat === 'ig' ? '인스타' : '틱톡') + ' @' + esc(o.handle || '?');
+        var qty = o.quantity ? (' · ' + Number(o.quantity).toLocaleString() + '명') : '';
+        if (o.needsPanelCheck) {
+          return '<div class="wk-orow"><span><b class="wk-obad">패널 확인 필요</b> ' + who + qty
+            + '</span><button class="btn ghost small" data-oab="' + key + '">확인함 · 재주문 열기</button></div>';
+        }
+        return '<div class="wk-orow"><span><b class="wk-oman">수기 집행</b> ' + who + qty
+          + '</span><button class="btn ghost small" data-odn="' + key + '">완료 처리</button></div>';
+      }).join('');
+    }
+    function orderAct(url, key, label) {
+      say(label + ' 처리 중…');
+      api(url + '?campaign=' + CAMP, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: key })
+      }).catch(netErr).then(function (r) {
+        if (!r || r.error) return fail(r, label);
+        say(label + ' 완료 — 대시보드에서 <b>↻ 새로고침</b> 하면 반영돼요.', 'ok');
+        loadStatus();
+      });
     }
     function checkIp() {
       if (!take('btnIp')) return;
@@ -958,6 +1034,12 @@
     document.addEventListener('change', function (e) {
       if (!e.target || e.target.name !== 'perfScope') return;
       var ta = $('#perfPick'); if (ta) ta.hidden = perfScope() !== 'pick';
+    });
+    document.addEventListener('click', function (e) {
+      var ab = e.target.closest && e.target.closest('[data-oab]');
+      if (ab) { orderAct('/api/order/abandon', ab.dataset.oab, '재주문 열기'); return; }
+      var dn = e.target.closest && e.target.closest('[data-odn]');
+      if (dn) { orderAct('/api/order/done', dn.dataset.odn, '완료 처리'); return; }
     });
     $('#btnIp').addEventListener('click', checkIp);
     $('#modalCancel').addEventListener('click', closeModal);

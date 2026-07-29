@@ -55,7 +55,7 @@ function inWindow(post, since) {
  *   · 프로필에서 훑는 게시물 12 → 24개
  *   · 못 본 계정은 끝나고 한 번 더 — 그 사이 차단이 풀리는 경우가 많다
  * 45명 기준 10분 → 20분쯤. 놓치는 것보다 낫다. */
-export async function runIgContentScan(campaign, { onProgress, onWarmup, waitForGo, since = '', delayMs = 2000, limit = 0, shouldStop, only, concurrency = 5, deep = false } = {}) {
+export async function runIgContentScan(campaign, { onProgress, onWarmup, waitForGo, since = '', delayMs = 2000, limit = 0, shouldStop, only, concurrency = 5, deep = false, perf = false } = {}) {
   if (deep) { concurrency = 2; delayMs = Math.max(delayMs, 4500); }
   const pageMax = deep ? 24 : 12;
   // 캠페인 시작일이 있으면 그 전 게시물은 볼 이유가 없다 — 프로필을 직접 여는 경로에서
@@ -74,9 +74,16 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
     try { return JSON.parse(readFileSync(p, 'utf8')).detected || {}; } catch { return {}; }
   })();
 
-  // 이미 올린 게 확인된 계정은 다시 안 본다. 인스타 제한을 아끼고, 확정된 링크를 흔들지 않는다.
-  // 단 시트에 못 쓴 건(pendingWrite)은 아직 안 끝난 것이다 — 여기서 빼면 그 계정은 영원히 빈칸으로 남는다.
-  let _targets = accounts.filter((a) => !(prev[a.igHandle] && prev[a.igHandle].uploaded && !prev[a.igHandle].pendingWrite));
+  /* 기본(업로드 찾기): 이미 올린 게 확인된 계정은 다시 안 본다. 인스타 제한을 아끼고 확정된 링크를 안 흔든다.
+     단 시트에 못 쓴 건(pendingWrite)은 아직 안 끝난 것이라 남긴다.
+
+     perf(성과 갱신): 정확히 반대다 — **이미 올린 계정만** 다시 열어 좋아요·댓글을 새로 읽는다.
+     ⚠️ 이게 없어서 인스타 성과가 첫 발견 시점 값에 얼어 있었다(실측: 시트 3·1 인데 실제 24·38).
+     인스타는 조회수를 아예 안 준다 — 프로필 API 의 video_view_count 는 늘 0 이고, 릴스 페이지에도
+     재생수 표기가 없다(로그인 상태에서도 확인). 그래서 여기서 갱신하는 건 좋아요·댓글뿐이다. */
+  let _targets = perf
+    ? accounts.filter((a) => prev[a.igHandle] && prev[a.igHandle].uploaded)
+    : accounts.filter((a) => !(prev[a.igHandle] && prev[a.igHandle].uploaded && !prev[a.igHandle].pendingWrite));
   // 특정 계정만 보라고 지정되면 그것만. 행 번호로도 핸들로도 지정할 수 있게 한다.
   if (Array.isArray(only) && only.length) {
     const want = new Set(only.map((v) => String(v).replace(/^@/, '').toLowerCase()));
