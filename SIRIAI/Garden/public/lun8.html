@@ -321,7 +321,9 @@ input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--accent); c
 .inp { font-family: var(--sans); font-size: 14px; padding: 8px 11px; border: 1.5px solid var(--line); border-radius: 9px; background: var(--card); color: var(--ink); }
 .inp:focus { border-color: var(--accent); outline: none; }
 .inp.wide { min-width: 210px; }
-textarea.inp { min-height: 58px; resize: vertical; line-height:1.5; }
+/* 비고는 대개 한두 줄이다. 기본은 낮게, 쓰기 시작하면 커진다 — 빈 칸이 창을 밀어내지 않게. */
+textarea.inp { min-height: 44px; height: 44px; resize: vertical; line-height:1.5; transition:height .12s ease; }
+textarea.inp:focus { height: 100px; }
 
 /* 검수 셀렉트 / 정산방식 셀렉트 */
 .rev-sel { font-size: 13px; font-weight: 700; padding: 5px 9px; border-radius: 9px; border: 1.5px solid var(--line); background: var(--card); color: var(--ink); cursor:pointer; font-family:var(--sans); }
@@ -577,6 +579,13 @@ body.phone #content { padding: 0; }
 /* 모달 */
 .modal-bg { position: fixed; inset: 0; background: rgba(20,20,35,.42); display: flex; align-items: center; justify-content: center; z-index: 50; padding:18px; }
 .modal { background: var(--card); border-radius: 18px; padding: 26px; width: min(560px, 96vw); max-height: 90vh; overflow: auto; box-shadow: 0 20px 60px rgba(20,20,35,.25); }
+/* 플랫폼 두 벌을 편집하는 창(업로드·모집)은 넓게 쓴다.
+   ⚠️ 560px 에 위아래로 쌓으니 내용이 1,095px 이 되어 늘 스크롤이었다 — 틱톡을 고치고
+   인스타를 보려면 창 안에서 또 스크롤을 내려야 했다. 좌우로 놓으면 한눈에 들어온다. */
+.modal.wide { width: min(940px, 96vw); }
+.modal.wide .mform > .msec { margin: 0; }
+.modal.wide .psecs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+@media (max-width: 900px){ .modal.wide .psecs { grid-template-columns: 1fr; } }
 .modal h2 { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
 .modal .msub { font-size:13px; color:var(--muted); margin-bottom:16px; }
 .modal-actions { display: flex; gap: 11px; justify-content: flex-end; margin-top: 20px; }
@@ -4306,7 +4315,10 @@ function schedHint(d){
 }
 
 /* ============ 모달 ============ */
-function openModal(title, body, actions, sub){
+function openModal(title, body, actions, sub, opt){
+  const box = document.querySelector('#modal .modal');
+  // wide: 플랫폼 두 벌을 좌우로 놓는 편집창. 다른 모달(집행 확인 등)은 좁은 채로 둔다.
+  if(box) box.classList.toggle('wide', !!(opt && opt.wide));
   document.getElementById('modalTitle').textContent = title;
   const ms=document.getElementById('modalSub');
   if(sub){ ms.textContent=sub; ms.hidden=false; } else ms.hidden=true;
@@ -4344,7 +4356,7 @@ function openRowEdit(id, rowPlat){
           <select class="inp" id="reCo">${COS().map(c=>`<option value="${esc(c.id)}"${d.co===c.id?' selected':''}>${esc(c.id)}${c.role==='agency'?' · 실행사':''}</option>`).join('')}</select></div>
         <div class="row"><label class="h">크리에이터명 <small>시트에서만 수정</small></label><input class="inp" id="reNick" value="${esc(d.nick)}" readonly title="이 이름을 쓰는 열은 아직 대시보드에서 못 고쳐요 — 마스터시트에서 고쳐 주세요."></div>
       </div>
-      ${platsOn().map(pp=>`
+      <div class="psecs">${platsOn().map(pp=>`
       <div class="msec${d[pp]?'':' msec-off'}">
         <div class="msec-h"><i class="pmark ${pp}">${PLAT_MARK[pp]||''}</i>${pName(pp)}${d[pp]?'':'<span class="cmuted"> · 미참여</span>'}</div>
         <div class="row2">
@@ -4353,7 +4365,7 @@ function openRowEdit(id, rowPlat){
           <div class="row"><label class="h">팔로워 <small>손입력</small></label>
             <input class="inp" type="number" id="reFol${pp==='tk'?'Tk':'Ig'}" value="${d[pp]&&d[pp].fol!=null?d[pp].fol:''}" placeholder="${d[pp]?'스캔 대기':'미참여'}"${d[pp]?'':' disabled'}></div>
         </div>
-      </div>`).join('')}
+      </div>`).join('')}</div>
       <div class="cmuted" style="font-size:12.5px;margin:-2px 0 4px">팔로워는 마스터시트에 바로 저장돼요. 다음 팔로워 스캔이 돌면 실측값으로 바뀝니다.</div>
       <div class="row2">
         <div class="row"><label class="h">예정일 <small>크리에이터 희망</small></label>
@@ -4415,7 +4427,7 @@ function openRowEdit(id, rowPlat){
       </div>`; };
     // 미러링·날짜는 사람 단위라 플랫폼 묶음 밖에 한 번만 둔다.
     body = `<div class="mform">
-      ${eps.map(psec).join('')}
+      ${eps.length>1 ? `<div class="psecs">${eps.map(psec).join('')}</div>` : eps.map(psec).join('')}
       <div class="row"><label class="h">미러링</label>
         <select class="inp" id="reMir">${[['m1','미러링 ⚠'],['m0','오리지널'],['mx','미확인']].map(([v,l])=>`<option value="${v}"${v===d.mir?' selected':''}>${l}</option>`).join('')}</select></div>
       <div class="row2">
@@ -4533,9 +4545,13 @@ function openRowEdit(id, rowPlat){
     };
   }
 
+  /* 좌우 격자(.psecs)를 실제로 씌운 창만 넓힌다.
+     ⚠️ 'msec 가 2개 이상' 으로 재면 한쪽 플랫폼만 있는 사람도 940px 로 열려
+     반쪽이 비어 보인다. 넓히는 이유는 '나란히 놓을 게 있어서' 다. */
+  const wide = body.indexOf('class="psecs"') >= 0;
   openModal(TABN+' 편집 · '+d.nick, body,
     `<button class="btn ghost" onclick="closeModal()">취소</button><button class="btn primary" id="reSave">저장</button>`,
-    '이 탭('+TABN+') 관련 항목만 편집해요. 각 탭 편집은 독립적입니다.');
+    '이 탭('+TABN+') 관련 항목만 편집해요. 각 탭 편집은 독립적입니다.', { wide });
   document.getElementById('reSave').addEventListener('click',()=>{
     sent = 0;
     save(); closeModal(); render();
