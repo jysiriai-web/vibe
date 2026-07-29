@@ -2810,21 +2810,6 @@ async function abandonOrder(key){
     loadData();
   } catch(e){ toast('처리 실패: ' + esc(e.message)); }
 }
-/* 조회수 스캔 — 업로드된 계정의 조회수만 다시 긁는다(perf=1). 로컬 서버에서만 돈다.
-   예전엔 정의도 없는 scanRequest() 를 불러 버튼이 그냥 죽어 있었다(콘솔 오류 한 줄).
-   서버는 {started:true} 만 돌려주고 로봇인증 확인·진행률은 작업 콘솔에 있다 —
-   여기서 '완료'라고 말하면 거짓말이다. 시작됐다는 것까지만 말한다. */
-async function runPerfScan(btn){
-  btn.disabled = true; const t = btn.textContent; btn.textContent = '스캔 시작 중…';
-  try {
-    const r = await fetch(localApi('/api/content-scan?perf=1&campaign=' + state.campaign), { method:'POST' });
-    const j = await r.json();
-    if(j.error) throw new Error(j.error);
-    if(j.running) toast('이미 스캔이 돌고 있어요 — 작업 콘솔에서 진행상황을 봐주세요.');
-    else toast('조회수 스캔을 시작했어요 — 작업 콘솔에서 로봇인증을 확인하면 진행돼요.');
-  } catch(e){ toast('조회수 스캔 실패: ' + esc(e.message)); }
-  finally { btn.disabled = false; btn.textContent = t; }
-}
 /* 납품시트 기입 — 예전엔 fetch 없이 '자동 기입' 문구만 띄웠다.
    실제로 부르고 서버가 센 건수를 그대로 말한다(납품시트 설정이 없는 캠페인이면 그 이유가 뜬다). */
 async function runDeliverWrite(btn){
@@ -2833,7 +2818,10 @@ async function runDeliverWrite(btn){
     const r = await fetch('/api/deliver?campaign=' + state.campaign, { method:'POST' });
     const j = await r.json();
     if(j.error) throw new Error(j.error);
-    toast('납품시트에 <b>' + (j.added||0) + '건</b> 기입했어요 (검수완료 ' + (j.reviewedTotal||0) + '건 중, 중복 제외).');
+    const by = (j.byPlat||[]).map(x=>pName(x.plat)+' '+x.added+'건').join(' · ');
+    toast('납품시트에 <b>' + (j.added||0) + '건</b> 기입했어요' + (by?' — '+by:'')
+      + ' (대상 ' + (j.reviewedTotal||0) + '건 중, 이미 있는 행 제외)'
+      + (j.updated?' · 기존 ' + j.updated + '칸 갱신':'') + '.');
   } catch(e){ toast('납품 기입 실패: ' + esc(e.message)); }
   finally { btn.disabled = false; btn.textContent = t; }
 }
@@ -3401,11 +3389,15 @@ const wonOf = usd => wonNum(usd).toLocaleString('ko-KR') + '원';
    조회수 스캔은 대표님 PC 에서만 돈다(가드닝 집행과 같은 규칙) — 팀원 화면에 띄워두면 눌러도 아무 일이 없다.
    납품시트 기입 라벨에 플랫폼 이름을 안 붙인 이유: 서버(/api/deliver)는 캠페인당 납품시트 하나만 알고
    플랫폼을 가르지 않는다. '인스타 납품시트 기입'이라고 쓰면 그것부터 거짓말이다. */
+/* 납품 도구줄.
+   ⚠️ '조회수 스캔' 버튼은 여기서 뺐다 — 대표님 PC 에서만 돌아서 팀원 화면엔 안내문만 떴고,
+   눌러도 여기선 '시작했어요' 까지밖에 말할 수 없었다(진행률·로봇인증·중지는 작업 콘솔에 있다).
+   두 화면을 오갈 바에는 한 곳에 두는 게 낫다 → 작업 콘솔 [조회수 스캔] 카드.
+   납품시트 기입은 남긴다 — 돈도 브라우저도 안 쓰고 팀원도 할 수 있다. */
 function deliverBar(){
-  return `<div class="bar">${LOCAL.on
-      ? `<button class="btn small" id="btnPerf">📊 조회수 스캔</button>`
-      : `<span class="cmuted">조회수 스캔은 대표님 PC 작업 콘솔에서 실행해요</span>`
-    }<button class="btn small" id="btnDeliver">📤 납품시트 기입</button><span class="spacer"></span></div>`;
+  return `<div class="bar"><button class="btn small" id="btnDeliver">📤 납품시트 기입</button>`
+    + `<span class="cmuted">조회수는 작업 콘솔 [조회수 스캔]에서 갱신해요</span>`
+    + `<span class="spacer"></span></div>`;
 }
 
 /* 납품 통합 — 한 행 = 1건(사람×플랫폼). 업로드·가드닝 통합탭과 같은 모양.
@@ -4971,7 +4963,6 @@ document.getElementById('content').addEventListener('click', e=>{
   { const mm=e.target.closest('[data-memo]'); if(mm){ openMemoPop(mm, Number(mm.dataset.memo)); return; } }
   { const rg=e.target.closest('[data-remindg]'); if(rg){ copyRemind(rg.dataset.remindg); return; } }   // 빈 값 = 전체
   if(e.target.closest('#btnRemind')){ copyRemind(); return; }
-  { const bp = e.target.closest('#btnPerf'); if(bp){ runPerfScan(bp); return; } }
   { const bd = e.target.closest('#btnDeliver'); if(bd){ runDeliverWrite(bd); return; } }
   const bs=e.target.closest('[data-basis]'); if(bs){ setBasis(bs.dataset.basis); return; }
   if(e.target.closest('#simHead')){ state.simOpen=!state.simOpen; render(); return; }

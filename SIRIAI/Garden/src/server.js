@@ -944,22 +944,44 @@ export async function handler(req, res) {
     // 검수완료 콘텐츠 → 납품시트 자동 기입 (버튼). 링크 있고 3칸(음원·구간·해시) 모두 준수인 것만. 중복(계정 핸들) 제외.
     if (path === '/api/deliver' && req.method === 'POST') {
       if (!campaign.deliverySheetId) return send(res, 400, { error: '이 캠페인엔 납품시트 설정이 없어요 (campaigns.json deliverySheetId)' });
+      const body = await readBody(req);
       const has = (v) => !!(v != null && String(v).trim());
       const revState = (v) => { const s = String(v == null ? '' : v).trim(); if (!s) return 'none'; if (/다름|누락|미준수|미사용|불가|없음|이슈|문제|✗|✘/i.test(s)) return 'fail'; if (/확인|준수|사용|완료|ok|pass|✓|✔/i.test(s)) return 'pass'; return 'none'; };
       const accounts = await buildAccounts(campaign, await readOrders(campaign));
-      const reviewed = accounts.filter((a) => has(a.contentLink) && revState(a.soundOk) === 'pass' && revState(a.soundSection) === 'pass' && revState(a.hashtagOk) === 'pass');
-      const rows = reviewed.map((a) => {
-        const v = parseNum(a.views);
-        return {
-          nick: a.nick || a.handle,
-          link: a.link || ('https://www.tiktok.com/@' + a.handle),
-          contentLink: a.contentLink,
-          viewNote: (v != null && v >= 10000) ? (Math.floor(v / 1000) * 1000) + '조회수' : '', // 1만+만 표기. 12,428 → "12000조회수"
-        };
-      });
-      const r = await deliverToSheet(campaign.sheet, campaign.deliverySheetId, rows);
-      if (r.added === undefined) return send(res, 400, { error: '브릿지에 납품 기입 기능이 없어요 — Apps Script(Code.gs) 재배포가 필요합니다' });
-      return send(res, 200, { ok: true, ...r, reviewedTotal: reviewed.length });
+      /* ⚠️ 예전엔 계정 단위(a.contentLink = 틱톡 콘텐츠)로만 만들어서 인스타 업로드가 통째로 빠졌다.
+         멀티플랫폼 캠페인은 '한 사람'이 아니라 '사람×플랫폼'이 납품 단위다. */
+      const plats = (campaign.serviceIds ? Object.keys(campaign.serviceIds) : ['tk']).filter((p) => p === 'tk' || p === 'ig');
+      const PN = { tk: '틱톡', ig: '인스타' };
+      const okRow = (b) => b && has(b.contentA) && revState(b.soundOk) === 'pass' && revState(b.soundSection) === 'pass' && revState(b.hashtagOk) === 'pass';
+      // 지원타입 = 이 사람이 실제로 참여한 플랫폼(콘텐츠 유무가 아니라 배정 기준).
+      const applyTypeOf = (a) => plats.filter((p) => a[p]).map((p) => PN[p]).join('+') || '';
+      const batch = String(body.batch || '1차').trim();
+      const out = [];
+      for (const p of plats) {
+        const rows = accounts.filter((a) => okRow(a[p])).map((a) => {
+          const b = a[p];
+          const v = parseNum(b.views);
+          return {
+            nick: b.nick || a.creator || a.nick || b.handle,
+            link: b.link || (p === 'ig' ? 'https://www.instagram.com/' : 'https://www.tiktok.com/@') + b.handle,
+            contentLink: b.contentA,
+            viewNote: (v != null && v >= 10000) ? (Math.floor(v / 1000) * 1000) + '조회수' : '', // 1만+만 표기. 12,428 → "12000조회수"
+            applyType: applyTypeOf(a),
+            followers: b.followers != null ? b.followers : '',
+            /* 일본 — 마스터에 언어·국가 열이 없다(헤더 별칭이 못 찾아 엉뚱한 열에 물려 있다).
+               이 캠페인 자체가 일본(댄스)이고 납품시트 제목도 '일본' 이라 전부 O 로 적는다.
+               사람별 판정이 아니라 캠페인 상수라는 뜻이다 — 나중에 언어 열이 생기면 여기서 읽는다. */
+            japan: 'O',
+            batch,
+          };
+        });
+        if (!rows.length) { out.push({ plat: p, added: 0, updated: 0, handles: [], total: 0 }); continue; }
+        const r = await deliverToSheet(campaign.sheet, campaign.deliverySheetId, rows, p);
+        if (r.added === undefined) return send(res, 400, { error: (r.error || '브릿지에 납품 기입 기능이 없어요') + ' — Apps Script(Code.gs) 재배포가 필요합니다' });
+        out.push({ plat: p, ...r, total: rows.length });
+      }
+      const sum = (k) => out.reduce((a, x) => a + (Number(x[k]) || 0), 0);
+      return send(res, 200, { ok: true, batch, byPlat: out, added: sum('added'), updated: sum('updated'), reviewedTotal: sum('total') });
     }
 
     if (path === '/api/scan' && req.method === 'POST') {

@@ -627,27 +627,47 @@ function syncRecruit_(sheetId, company, linkCol) {
 // 검수완료 콘텐츠 → 납품시트(다른 스프레드시트)에 기입. rows = [{nick, link, contentLink, viewNote}].
 // 헤더명(채널명·계정링크·업로드 링크·특이사항)으로 열을 자동매칭 → 열 위치가 바뀌어도 안전.
 // 계정 핸들 기준 중복 제외. 채널명이 빈 템플릿 행부터 위→아래로 채우고, 모자라면 맨 아래에 append.
-function deliverReviewed_(sheetId, rows) {
+function deliverReviewed_(sheetId, rows, plat) {
   if (!sheetId) return { error: '납품시트 ID 없음(campaigns.json deliverySheetId)' };
   if (!rows || !rows.length) return { added: 0, handles: [] };
   var dst;
   try { dst = SpreadsheetApp.openById(sheetId); } catch (err) { return { error: '납품시트 열기 실패(권한/ID 확인): ' + err }; }
   var norm = function (v) { return String(v || '').replace(/\s+/g, ''); };
   var handleOf = function (str) { var m = String(str || '').match(/@([A-Za-z0-9._]+)/); return m ? m[1].toLowerCase() : ''; };
-  // 헤더행(채널명 + 업로드 링크가 있는 행)이 있는 탭 찾기 (상단 20행 내)
-  var sheets = dst.getSheets(), sh = null, header = null, hRow = -1;
-  for (var s = 0; s < sheets.length && !sh; s++) {
+  /* 헤더행(채널명 + 업로드 링크)이 있는 탭을 찾되, 플랫폼이 주어지면 그 플랫폼 탭을 고른다.
+     ⚠️ 예전엔 '헤더가 있는 첫 탭' 이라 틱톡·인스타 둘 다 틱톡 탭에 들어갔다.
+     탭 이름은 사람이 바꿀 수 있으므로 상단 20행 텍스트에서 tiktok/instagram 을 찾는다
+     (제목 셀에 'Lun8_Sneakers_일본_tiktok_...' 처럼 박혀 있다). */
+  var want = String(plat || '').toLowerCase();
+  var WORDS = { tk: ['tiktok', '틱톡'], ig: ['instagram', '인스타'] };
+  var sheets = dst.getSheets(), sh = null, header = null, hRow = -1, fallback = null;
+  for (var s = 0; s < sheets.length; s++) {
     var lr = sheets[s].getLastRow(), lc = sheets[s].getLastColumn();
     if (lr < 1) continue;
     var top = sheets[s].getRange(1, 1, Math.min(lr, 20), lc).getValues();
-    for (var r = 0; r < top.length; r++) {
+    var flat = top.map(function (row) { return row.join(' '); }).join(' ').toLowerCase()
+      + ' ' + String(sheets[s].getName()).toLowerCase();
+    var hit = null;
+    for (var r = 0; r < top.length && !hit; r++) {
       var hv = top[r].map(norm);
-      if (hv.indexOf('채널명') >= 0 && hv.indexOf('업로드링크') >= 0) { sh = sheets[s]; header = hv; hRow = r + 1; break; }
+      if (hv.indexOf('채널명') >= 0 && hv.indexOf('업로드링크') >= 0) hit = { hv: hv, row: r + 1 };
     }
+    if (!hit) continue;
+    if (!fallback) fallback = { sh: sheets[s], hv: hit.hv, row: hit.row };
+    if (!want) { sh = sheets[s]; header = hit.hv; hRow = hit.row; break; }
+    var mine = (WORDS[want] || []).some(function (w) { return flat.indexOf(w) >= 0; });
+    var other = Object.keys(WORDS).filter(function (k) { return k !== want; })
+      .some(function (k) { return WORDS[k].some(function (w) { return flat.indexOf(w) >= 0; }); });
+    if (mine && !other) { sh = sheets[s]; header = hit.hv; hRow = hit.row; break; }
   }
-  if (!sh) return { error: '납품시트에서 헤더행(채널명·업로드 링크)을 못 찾음' };
+  /* 플랫폼 탭을 못 찾았으면 '아무 탭' 으로 물러나지 않는다 — 인스타 납품이 틱톡 탭에
+     조용히 섞이는 게 정확히 그 사고다. 탭이 하나뿐일 때만 그걸 쓴다. */
+  if (!sh && fallback && sheets.length === 1) { sh = fallback.sh; header = fallback.hv; hRow = fallback.row; }
+  if (!sh) return { error: want ? ('납품시트에서 ' + want + ' 탭을 못 찾음 — 탭 안에 tiktok/instagram 표기가 필요해요') : '납품시트에서 헤더행(채널명·업로드 링크)을 못 찾음' };
   var col = function (name) { return header.indexOf(name) + 1; }; // 1-based, 없으면 0
-  var cName = col('채널명'), cLink = col('계정링크'), cUp = col('업로드링크'), cNo = col('no'), cMemo = col('비고'), cOld = col('특이사항'); // 조회수 노트는 비고에. 특이사항은 옛 노트 이관용.
+  var cName = col('채널명'), cLink = col('계정링크'), cUp = col('업로드링크'), cNo = col('no'), cMemo = col('비고'), cOld = col('특이사항'); // 조회수 노트는 비고에. 특이사항 = 납품 차수.
+  // 선정기준 충족여부 3열. 없는 시트면 col()이 0 이라 그냥 안 쓴다.
+  var cType = col('지원타입'), cFol = col('팔로워'), cJp = col('일본');
   if (!cName || !cLink || !cUp) return { error: '필수 열(채널명·계정링크·업로드 링크)을 못 찾음' };
   var last = sh.getLastRow(), lastC = sh.getLastColumn(), nData = Math.max(0, last - hRow);
   var body = nData ? sh.getRange(hRow + 1, 1, nData, lastC).getValues() : [];
@@ -672,7 +692,9 @@ function deliverReviewed_(sheetId, rows) {
         if (row.viewNote) { if (isAuto && ex.memo !== row.viewNote) { sh.getRange(ex.row, cMemo).setValue(row.viewNote); updated++; } } // 1만+ → 갱신
         else if (/조회수/.test(ex.memo)) { sh.getRange(ex.row, cMemo).setValue(''); updated++; } // 1만 미만인데 옛 자동노트 → 지움
       }
-      if (cOld && /조회수/.test(ex.old)) { sh.getRange(ex.row, cOld).setValue(''); updated++; } // 예전에 특이사항에 넣던 자동노트 제거(비고로 이관)
+      if (cOld && /조회수/.test(ex.old)) { sh.getRange(ex.row, cOld).setValue(''); updated++; ex.old = ''; } // 예전에 특이사항에 넣던 자동노트 제거(비고로 이관)
+      // 차수는 비어 있을 때만 적는다 — 이미 1차로 나간 건을 나중에 2차로 덮으면 이력이 사라진다.
+      if (cOld && row.batch && !String(ex.old || '').trim()) { sh.getRange(ex.row, cOld).setValue(row.batch); updated++; }
       continue;
     }
     var target = emptyRows.shift();
@@ -683,6 +705,11 @@ function deliverReviewed_(sheetId, rows) {
     sh.getRange(target, cLink).setValue(row.link || ('https://www.tiktok.com/@' + h));
     sh.getRange(target, cUp).setValue(row.contentLink);
     if (cMemo && row.viewNote) sh.getRange(target, cMemo).setValue(row.viewNote);
+    if (cType && row.applyType) sh.getRange(target, cType).setValue(row.applyType);
+    if (cFol && row.followers != null && row.followers !== '') sh.getRange(target, cFol).setValue(row.followers);
+    if (cJp && row.japan) sh.getRange(target, cJp).setValue(row.japan);
+    // 특이사항 = 납품 차수. 사람이 적어 둔 메모는 안 덮는다(빈 칸일 때만 쓴다).
+    if (cOld && row.batch) sh.getRange(target, cOld).setValue(row.batch);
     byHandle[h] = { row: target, memo: row.viewNote || '', old: '' };
     added.push(h);
   }
@@ -763,7 +790,7 @@ function doPost(e) {
     if (!TOKEN) return json_({ error: 'bridge token not configured' });   // 위 doGet 과 같은 이유
     if ((body.token || '') !== TOKEN) return json_({ error: 'unauthorized' });
     initCols_(); // 헤더 기반 열 매핑 — cells 의 필드명 해석·마스터 쓰기에 사용
-    if (body.deliver) return json_(deliverReviewed_(body.deliver.sheetId, body.deliver.rows)); // 검수완료 → 납품시트 기입 (자체 헤더 탐색이라 COL 무관)
+    if (body.deliver) return json_(deliverReviewed_(body.deliver.sheetId, body.deliver.rows, body.deliver.plat)); // 검수완료 → 납품시트 기입 (자체 헤더 탐색이라 COL 무관)
     // 내용이 있을 때만 분기 — 빈 배열 []/빈 객체 {} 는 truthy 라, 그냥 두면
     // {updates:[...], orders:[]} 같은 요청이 updates 를 조용히 건너뛴다.
     if (Array.isArray(body.orders) && body.orders.length) return json_(upsertOrders_(body.orders)); // 주문(돈) 로그 upsert

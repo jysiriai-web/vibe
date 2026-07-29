@@ -95,9 +95,10 @@ export async function runSheetSetup(sheet, name) {
 }
 
 // 검수완료 콘텐츠 → 납품시트(다른 스프레드시트)에 기입. deliver = { sheetId, rows:[{nick,link,contentLink,viewNote}] }.
-export async function deliverToSheet(sheet, deliverySheetId, rows) {
+export async function deliverToSheet(sheet, deliverySheetId, rows, plat) {
   ensure(sheet);
-  return await bridgePost(sheet, { deliver: { sheetId: deliverySheetId, rows } });
+  // plat 을 넘겨야 브릿지가 그 플랫폼 탭을 고른다. 안 넘기면 탭이 하나일 때만 동작한다.
+  return await bridgePost(sheet, { deliver: { sheetId: deliverySheetId, rows, plat } });
 }
 
 // 임의 셀 쓰기: cells = [{ row, field, value }] — 콘텐츠 링크·검수·조회수 되쓰기용.

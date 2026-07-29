@@ -27,7 +27,9 @@ export const LOCAL_ONLY = new Set([
   '/api/content-scan/stop',
   '/api/judge-link',
   '/api/scan-one',
-  '/api/deliver',
+  /* '/api/deliver' 는 여기 없다 — 팀원도 납품시트에 기입할 수 있어야 한다.
+     돈도 브라우저도 안 쓰고 시트만 만지며, 같은 성격의 셀 편집(/api/cell)은 이미 열려 있다.
+     예전엔 막혀 있었는데 버튼은 팀원 화면에도 그려져서, 누르면 501 만 났다. */
   '/api/exit-ip',
   '/api/plan',
   '/api/execute',
