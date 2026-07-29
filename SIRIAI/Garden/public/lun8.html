@@ -1790,9 +1790,17 @@ function upState(d, p){
      탈락 예정은 지연보다 한 단계 더 나간 상태다 — 같은 빨강이면 구분이 안 된다. */
   if(isDropSoon(d) && d[p] && !uploaded(d,p)) return { k:'gone', t:'탈락 예정' };
   if(isDropped(d))  return { k:'drop', t:'드랍' };
-  if(isMailSent(d)) return { k:'wait', t:'재발송 · 답 대기' };
-  const fx = String(d.fixed||'').trim();
-  if(fx && !isFixedState(fx)) return { k:'refix', t:'일정 재확정 ' + esc(fx) };
+  /* 아래 둘은 '우리가 쫓는 일정' 이야기다 — 실행사(마루) 인원에는 안 붙인다.
+     ⚠️ 확정일은 사람 단위인데 이 배지는 플랫폼 칸마다 뜬다. 그래서 인스타를 이미 올린
+     마루 사람의 틱톡 칸에 '일정 재확정 7/27' 이 떠서 '27일에 올렸어야 하는데 안 올렸다' 로
+     읽혔다(실측 3건: PARK CHANG HO·STUDIO MARU KYOTO·YEO SUN).
+     마루 일정은 마루가 LINE 으로 챙긴다 — isLate 가 이미 같은 이유로 실행사를 뺀다.
+     확정일 자체는 확정일 열에 그대로 보이므로 정보가 사라지지 않는다. */
+  if(oursToSchedule(d)){
+    if(isMailSent(d)) return { k:'wait', t:'재발송 · 답 대기' };
+    const fx = String(d.fixed||'').trim();
+    if(fx && !isFixedState(fx)) return { k:'refix', t:'일정 재확정 ' + esc(fx) };
+  }
   if(isLate(d,p))   return { k:'late', t:'지연' };
   return { k:'idle', t:'대기' };
 }
