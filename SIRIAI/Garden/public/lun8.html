@@ -157,6 +157,11 @@ small.flat { color:var(--faint); }
 /* 업로드 예정 — 켜면 연한 하늘색 바탕. 다른 탭은 글자색만 바뀌는데 여기만 바탕을 주는 이유는
    '지금 이 목록만 보고 있다' 를 한눈에 알리려는 것이다(전체와 헷갈리기 쉬운 탭이라서).
    ⚠️ .subtab 기본 좌우 여백이 2px 이라 바탕만 깔면 글자에 딱 붙는다 — 여백·모서리를 같이 준다. */
+/* 이 탭은 늘 하늘색이다. 눌렀을 때만 색이 붙으면 '어디 있더라' 를 매번 찾게 된다 —
+   색이 곧 이름표다. 활성일 때만 진해진다. */
+.subtab.pend { color:var(--sky-ink); background:var(--sky-bg); padding-left:12px; padding-right:12px;
+  border-radius:9px 9px 0 0; }
+.subtab.pend:hover { color:var(--sky-ink); }
 .subtab.pend .dot { background:var(--sky-ink); }
 .subtab.pend.active { color:var(--sky-ink); border-bottom-color:var(--sky-ink);
   background:var(--sky-bg); padding-left:12px; padding-right:12px; border-radius:9px 9px 0 0; }
