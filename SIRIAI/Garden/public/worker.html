@@ -12,7 +12,11 @@
        이 화면은 '리모컨'이다 — 누를 것과 지금 무슨 일이 벌어지는지만 보이면 된다.
        설명문이 버튼보다 길면 리모컨이 아니라 설명서가 된다. */
     .wk { max-width: 1720px; margin: 0; padding: 22px 24px 20px; }
-    .wk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+.wk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px;
+      /* ⚠️ 기본값(stretch)이면 한 줄의 카드가 제일 큰 카드 높이에 맞춰 늘어난다.
+         '성과 갱신'(라디오 3줄) 때문에 옆 카드들이 각각 40~90px 씩 빈 채로 늘어나
+         화면이 창을 넘어갔다. 카드는 제 내용만큼만 차지한다. */
+      align-items: start; }
     .wk-main { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 22px; align-items: start; }
     .wk-right { position: sticky; top: 18px; }
     @media (max-width: 1180px) {
@@ -176,8 +180,8 @@
     <div class="wk-card" id="cardContent">
       <div class="wk-cardtop"><span class="wk-name">업로드 스캔</span><span class="wk-eta">5~15분</span><span class="wk-state">대기</span></div>
       <button class="btn wk-btn" id="btnContent">시작</button>
-      <label class="wk-opt"><input type="checkbox" id="igDeep"> <b>인스타 정밀</b>
-        <span class="wk-note">느리게 깊게 봐요(2배쯤). 못 본 계정은 한 번 더 확인합니다.</span></label>
+      <label class="wk-opt"><input type="checkbox" id="igDeep" checked> <b>인스타 정밀</b>
+        <span class="wk-note">기본으로 켜 둬요 — 느리지만 덜 놓칩니다. 못 본 계정은 한 번 더 확인해요.</span></label>
       <div class="wk-legs" id="legsContent" hidden>
         <div class="wk-leg" data-leg="tk"><b class="wk-lp tk">틱톡</b><span class="wk-lst">대기</span><i class="wk-lbar"><u></u></i></div>
         <div class="wk-leg" data-leg="ig"><b class="wk-lp ig">인스타</b><span class="wk-lst">대기</span><i class="wk-lbar"><u></u></i></div>
@@ -683,13 +687,39 @@
           api('/api/content-scan/confirm', { method: 'POST' }).catch(function () {});
         });
       } else if (mode === 'scan') {
-        el.innerHTML = '<button class="btn" id="scanPause">■ 중지</button><span class="wk-note">진행 <b id="scanCount">' + (info.done || 0) + '/' + (info.total || '?') + '</b> · 크롬에 콘텐츠가 안 보이면 중지 → VPN 교체</span>';
+        /* 둘은 다른 일이다.
+           ⚠️ 예전엔 여기 버튼이 하나였고 이름은 '중지' 인데 실제로는 pause 를 불렀다.
+           그래서 '완전히 접기' 는 스캔이 스스로 멈춰 설 때까지 누를 방법이 아예 없었다.
+             일시정지 = 지금 계정까지만 끝내고 선다. VPN 바꾸고 [재개] 하면 그 자리에서 이어간다.
+             완전 중지 = 여기까지 저장하고 접는다. 다시 누르면 처음부터다. */
+        el.innerHTML = '<button class="btn" id="scanPause">⏸ 일시정지</button>'
+          + '<button class="btn ghost" id="scanStop">■ 완전 중지</button>'
+          + '<span class="wk-note">진행 <b id="scanCount">' + (info.done || 0) + '/' + (info.total || '?') + '</b>'
+          + ' · 크롬에 콘텐츠가 안 보이면 <b>일시정지</b> → VPN 교체 → 재개</span>';
         bind('scanPause', '/api/content-scan/pause', '멈추는 중…');
+        bindStop('scanStop');
       } else {
-        el.innerHTML = '<button class="btn primary" id="scanResume">▶ 재개</button><button class="btn ghost" id="scanStop">■ 중지</button><span class="wk-note">VPN을 바꾼 뒤 재개하면 멈춘 데서 이어가요</span>';
+        var why = info.blockReason === 'manual' ? '일시정지했어요'
+          : info.blockReason === 'blocked' ? '연속으로 막혀서 멈췄어요 — VPN을 바꿔주세요'
+          : '멈춰 있어요';
+        el.innerHTML = '<button class="btn primary" id="scanResume">▶ 재개</button>'
+          + '<button class="btn ghost" id="scanStop">■ 완전 중지</button>'
+          + '<span class="wk-note">' + why + ' · 재개하면 <b>멈춘 자리에서 이어가요</b>'
+          + ' (여기까지는 이미 시트에 저장됐어요)</span>';
         bind('scanResume', '/api/content-scan/resume', '재개 중…');
-        bind('scanStop', '/api/content-scan/stop', '');
+        bindStop('scanStop');
       }
+    }
+    /* 완전 중지는 되돌릴 수 없다(다시 누르면 처음부터). 한 번 묻는다.
+       일시정지는 안 묻는다 — 되돌릴 수 있고, 막혔을 때 급히 눌러야 하는 버튼이다. */
+    function bindStop(id) {
+      var b = $('#' + id);
+      if (!b) return;
+      b.addEventListener('click', function () {
+        if (!confirm('스캔을 완전히 접을까요?\n\n여기까지 확인한 건 시트에 저장돼 있어요.\n다시 돌리면 처음부터 시작합니다.')) return;
+        b.disabled = true; b.textContent = '접는 중…';
+        api('/api/content-scan/stop', { method: 'POST' }).catch(function () {});
+      });
     }
     function bind(id, url, label) {
       var b = $('#' + id);

@@ -992,6 +992,10 @@ body.nav-collapsed .side-btn { justify-content:center; }
   white-space:nowrap; overflow:hidden; }
 .svcnote b { color:var(--ink); font-weight:800; }
 .pickcount { font-size:12px; color:var(--muted); padding:0 4px; white-space:nowrap; }
+/* 복사용 선택 열 — 좁게, 인쇄·PDF 에선 뺀다(종이에 체크박스가 남을 이유가 없다) */
+th.selc, td.selc { width:30px; padding-left:10px; padding-right:0; }
+td.selc input, th.selc input { cursor:pointer; }
+@media print { th.selc, td.selc { display:none; } }
 .pickcount b { color:var(--accent-ink); font-weight:800; }
 .svcnote small { font-size:11px; color:var(--faint); }
 .svcnote .svc-n { color:var(--faint); overflow:hidden; text-overflow:ellipsis; }
@@ -1083,6 +1087,8 @@ select.best.on { background:#fff8e1; color:#8a6100; border-color:#f0d48a; font-w
    묶음이 안 보이면 어느 칸이 어느 플랫폼 것인지 헷갈린다. */
 .msec { border:1px solid var(--line); border-radius:10px; padding:12px 13px 4px; margin-bottom:12px; }
 .msec-h { display:flex; align-items:center; gap:7px; font-weight:800; font-size:12.5px; margin-bottom:9px; color:var(--ink); }
+/* 미참여 플랫폼도 자리는 보여준다 — '이 사람 인스타는 왜 없지' 를 찾아 헤매지 않게. 대신 흐리게. */
+.msec-off { opacity:.55; }
 .msec-h .pmark { width:15px; height:15px; }
 /* 미러링이면 업로드는 2건이어도 콘텐츠는 1건 — 셀에서 바로 보이게 */
 .mirct { display:inline-block; margin-left:7px; font-size:11.5px; font-weight:700; color:var(--warn-ink);
@@ -2247,7 +2253,23 @@ function renderTable(cols, rows, opts={}){
       return `<td class="${c.cls||''}${grp}${ghost?' col-ghost-c':''}">${c.cell(r)}</td>`;
     }).join('')}</tr>`;
   }).join('');
-  return `<div class="tscroll"><table><thead><tr>${thead}</tr></thead><tbody>${body || emptyRow(shown.length, opts.emptyMsg)}</tbody></table></div>`;
+  /* 표 복사용 선택 열. 표를 그리는 곳이 여기 하나라 모든 탭에 한 번에 붙는다.
+     드래그로 긁으면 뱃지·아이콘까지 딸려와 엑셀에 붙일 수 없는 덩어리가 된다 —
+     체크해서 [표 복사] 를 누르면 보이는 열만 탭으로 갈라 복사한다. */
+  const pick = opts.pick === false ? '' : 'sel';
+  const selTh = pick ? `<th class="selc"><input type="checkbox" class="rowselall" title="전체 선택 / 해제"></th>` : '';
+  const bodyRows = rows.map((r, i) => {
+    const rc = opts.rowClass ? opts.rowClass(r) : '';
+    const cells = shown.map(c=>{
+      const ghost = state.raw && emptyKeys.has(c.key);
+      const grp = c.grp ? ' pgrp-'+c.grp : '';
+      return `<td class="${c.cls||''}${grp}${ghost?' col-ghost-c':''}">${c.cell(r)}</td>`;
+    }).join('');
+    const sel = pick ? `<td class="selc"><input type="checkbox" class="rowsel"></td>` : '';
+    return `<tr${rc?` class="${rc}"`:''}>${sel}${cells}</tr>`;
+  }).join('');
+  return `<div class="tscroll"><table data-tid="${esc(tableId)}"><thead><tr>${selTh}${thead}</tr></thead>`
+    + `<tbody>${bodyRows || emptyRow(shown.length + (pick?1:0), opts.emptyMsg)}</tbody></table></div>`;
 }
 function hideNote(hiddenList){
   if(!hiddenList.length) return '';
@@ -2601,6 +2623,14 @@ function syncScanAll(){
   box.checked = on === all.length;
   box.indeterminate = on > 0 && on < all.length;
 }
+// 몇 줄 골랐는지 버튼에 적는다 — 체크해 놓고 '전부 복사되겠지' 하고 누르는 걸 막는다.
+function syncCopyBtn(){
+  const b = document.getElementById('btnCopyTbl');
+  if(!b) return;
+  const n = document.querySelectorAll('#content .rowsel:checked').length;
+  b.textContent = n ? `⧉ ${n}줄 복사` : '⧉ 표 복사';
+  b.classList.toggle('primary', !!n);
+}
 function syncScanBtn(){
   // 버튼이 아니라 '선택 N명' 표시를 갱신한다. 표를 다시 그리지 않고 숫자만 바꾼다.
   const el = document.querySelector('.pickcount b');
@@ -2746,6 +2776,53 @@ function resetBtn(){
 /* 체크박스는 남기고 '선택 스캔' 버튼만 뺐다.
    스캔은 대표님 PC 에서만 도는데, 체크박스 자체는 '몇 명인지 세어 보는' 용도라 팀원에게도 쓸모가 있다.
    고르는 것은 모두에게 열고, 실행은 작업 콘솔 한 곳으로 모은다. */
+/* 보이는 표를 탭으로 갈라 복사한다(엑셀·시트에 그대로 붙는다).
+   체크한 줄이 있으면 그것만, 없으면 지금 화면의 전부. 선택 열과 '편집' 열은 뺀다 —
+   붙여넣었을 때 쓸모없는 칸이다. */
+async function copyTable(btn){
+  const tbl = document.querySelector('#content table[data-tid]');
+  if(!tbl) return toast('복사할 표가 없어요.');
+  const heads = [...tbl.querySelectorAll('thead th')];
+  const skip = new Set();
+  heads.forEach((th,i)=>{ const t=th.innerText.trim(); if(th.classList.contains('selc') || t==='' || t==='편집') skip.add(i); });
+  const cell = td => {
+    // 줄바꿈·탭이 들어가면 엑셀에서 칸이 밀린다. 한 줄로 편다.
+    let t = (td.innerText||'').replace(/\s+/g,' ').trim();
+    /* 아이콘만 있는 칸(플랫폼 열 등)은 글자가 없다 — 툴팁을 글자로 쓴다.
+       안 그러면 붙여넣은 표에 빈 칸이 생겨 '이게 뭐였지' 가 된다. */
+    if(!t){
+      const ic = [...td.querySelectorAll('[title]')].map(x=>x.getAttribute('title')).filter(Boolean);
+      if(ic.length) t = [...new Set(ic)].join('+');
+    }
+    /* 링크 뱃지('콘텐츠①')는 글자가 이름표일 뿐이고 실제 값은 주소다. 그때만 주소를 쓴다.
+       ⚠️ 링크가 있으면 무조건 주소를 쓰면 '@studio_maru' 같은 닉네임 칸까지 URL 로 바뀐다 —
+       보이는 것과 다른 게 복사되면 그게 제일 헷갈린다. */
+    const a = td.querySelector('a[href^="http"]');
+    if(a && /^콘텐츠/.test(t)) return a.getAttribute('href');
+    return t;
+  };
+  const all = [...tbl.querySelectorAll('tbody tr')].filter(tr=>!tr.classList.contains('empty-tr'));
+  const checked = all.filter(tr=>{ const c=tr.querySelector('.rowsel'); return c && c.checked; });
+  const use = checked.length ? checked : all;
+  if(!use.length) return toast('복사할 줄이 없어요.');
+  const lines = [ heads.filter((_,i)=>!skip.has(i)).map(th=>th.innerText.replace(/[▴▾]/g,'').trim()).join('\t') ];
+  use.forEach(tr=>{ const tds=[...tr.children];
+    lines.push(tds.filter((_,i)=>!skip.has(i)).map(cell).join('\t')); });
+  const text = lines.join('\n');
+  try {
+    await navigator.clipboard.writeText(text);
+    toast(`표 <b>${use.length}줄</b> 복사했어요${checked.length?' (선택한 것만)':''} — 엑셀·시트에 바로 붙여넣기.`);
+  } catch(e){
+    // 클립보드 권한이 막히면 선택 가능한 창으로라도 준다 — '복사 실패'만 뜨면 방법이 없다.
+    openModal('표 복사', `<div class="note-line">클립보드를 못 써서 직접 복사해 주세요 (Ctrl+A → Ctrl+C).</div>`
+      + `<textarea class="inp" style="height:340px;font-family:ui-monospace,monospace;font-size:12px" id="cpBox">${esc(text)}</textarea>`,
+      `<button class="btn" onclick="closeModal()">닫기</button>`);
+    setTimeout(()=>{ const b=document.getElementById('cpBox'); if(b){ b.focus(); b.select(); } }, 60);
+  }
+}
+function copyBtn(){
+  return `<button class="btn small" id="btnCopyTbl" title="지금 보이는 표를 엑셀에 붙일 수 있게 복사해요 — 줄을 체크하면 그것만">⧉ 표 복사</button>`;
+}
 function scanPickBtn(){
   const n = scanPick.size;
   return n ? `<span class="pickcount">선택 <b>${n}</b>명</span>` : '';
@@ -3602,7 +3679,8 @@ function viewSettle(){
     ${kpi('정산 건수 · 건', `${settledGeon}<span class="of"> / ${capN} 상한</span>`, { ic:IC.cap, sub:'목표 100 + 오버부킹 5 = 105건' })}
     ${kpi('미입금 · 명', `${unpaid}<span class="of"> 명</span>`, { ic:IC.wallet, accent:'var(--needs-ink)' })}
   </div>`;
-  return simSection() + kpis + renderTable(cols, rows, {tableId:'settle'}) +
+  // 정산탭은 하위탭 도구줄이 없다 — 복사 버튼만 표 위에 따로 얹는다.
+  return simSection() + kpis + `<div class="bar"><span class="spacer"></span>${copyBtn()}</div>` + renderTable(cols, rows, {tableId:'settle'}) +
     `<div class="note-line">금액 <b>자동계산</b>(마우스 올리면 내역): 콘텐츠당 <b>마루 6,000엔 · 시리아이 5,000엔</b> + 최우수 1만 + 추천 3천×N, <b>3만 cap</b>. 정산 방식은 기프트카드(아마존·구글·애플) 드롭다운. 특별케이스는 편집에서 개별단가 입력(수식 무시).</div>`;
 }
 
@@ -3637,6 +3715,7 @@ function gardenSvcNote(){
 // 모집탭 도구 — 하위탭 줄 오른쪽 끝. 빈 열 배지(hideSlot)도 같이 담아 한 그룹으로 오른쪽에 붙인다.
 function recruitTools(){
   return `<span class="rec-tools">${searchBox()}<button class="btn small${state.briefOpen?' primary':''}" id="btnBrief" title="지금 상태를 문장으로 — 보고·문의 답변에 그대로 쓰세요">📋 현황</button><span id="hideSlot"></span>${resetBtn()}`
+    + copyBtn()
     + `<button class="btn small" id="btnRecScan" title="지원 응답시트에서 새로 지원한 사람을 마스터시트로 가져와요">⬇ 모집 가져오기</button>`
     + `<button class="btn small" id="btnAddPerson">${IC.userplus} 인원 추가</button>`
     + `<button class="btn small" id="btnReload">↻ 새로고침</button></span>`;
@@ -3803,7 +3882,7 @@ function platSubtabs(){
     ${state.view==='upload' ? ((g)=>`<button class="subtab gone ${state.plat==='dropped'?'active':''}" data-plat="dropped" title="결론이 난 사람 — 확보 건수에서 빠지고 추가 모집 계산에 들어갑니다"><span class="dot"></span>최종 드랍 <span class="cmuted">${g}건</span></button>`)(droppedGeon()) : ''}
     ${state.view==='garden' ? `<button class="subtab hist ${state.plat==='hist'?'active':''}" data-plat="hist"><span class="dot"></span>집행 내역 <span class="cmuted">${ORDERS.length}</span></button>` : ''}
     ${state.view==='recruit' ? recruitSubtabs() : ''}
-    ${state.view==='recruit' ? recruitTools() : `${gardenSvcNote()}<span class="sub-tools">${searchBox()}<button class="btn small${state.briefOpen?' primary':''}" id="btnBrief" title="지금 상태를 문장으로 — 보고·문의 답변에 그대로 쓰세요">📋 현황</button><span id="hideSlot" class="sub-hide"></span>${resetBtn()}${state.view==='upload'?scanPickBtn():''}</span>`}</div>`;
+    ${state.view==='recruit' ? recruitTools() : `${gardenSvcNote()}<span class="sub-tools">${searchBox()}<button class="btn small${state.briefOpen?' primary':''}" id="btnBrief" title="지금 상태를 문장으로 — 보고·문의 답변에 그대로 쓰세요">📋 현황</button><span id="hideSlot" class="sub-hide"></span>${resetBtn()}${copyBtn()}${state.view==='upload'?scanPickBtn():''}</span>`}</div>`;
 }
 /* ============ 매뉴얼 · 가이드 ============
    내용은 public/knowledge.js 하나뿐이다(MANUAL/GUIDE). 여기서 복붙하지 않는다 —
@@ -4260,16 +4339,16 @@ function openRowEdit(id, rowPlat){
           <select class="inp" id="reCo">${COS().map(c=>`<option value="${esc(c.id)}"${d.co===c.id?' selected':''}>${esc(c.id)}${c.role==='agency'?' · 실행사':''}</option>`).join('')}</select></div>
         <div class="row"><label class="h">크리에이터명 <small>시트에서만 수정</small></label><input class="inp" id="reNick" value="${esc(d.nick)}" readonly title="이 이름을 쓰는 열은 아직 대시보드에서 못 고쳐요 — 마스터시트에서 고쳐 주세요."></div>
       </div>
-      <div class="row2">
-        <div class="row"><label class="h">틱톡 링크/닉</label><input class="inp" id="reTk" value="${d.tk?esc(d.tk.h):''}" placeholder="${d.tk?'':'미참여'}"></div>
-        ${hasIG()?`<div class="row"><label class="h">인스타 링크/닉</label><input class="inp" id="reIg" value="${d.ig?esc(d.ig.h):''}" placeholder="${d.ig?'':'미참여'}"></div>`:''}
-      </div>
-      <div class="row2">
-        <div class="row"><label class="h">틱톡 팔로워 <small>손입력</small></label>
-          <input class="inp" type="number" id="reFolTk" value="${d.tk&&d.tk.fol!=null?d.tk.fol:''}" placeholder="${d.tk?'스캔 대기':'미참여'}"${d.tk?'':' disabled'}></div>
-        ${hasIG()?`<div class="row"><label class="h">인스타 팔로워 <small>손입력</small></label>
-          <input class="inp" type="number" id="reFolIg" value="${d.ig&&d.ig.fol!=null?d.ig.fol:''}" placeholder="${d.ig?'스캔 대기':'미참여'}"${d.ig?'':' disabled'}></div>`:''}
-      </div>
+      ${platsOn().map(pp=>`
+      <div class="msec${d[pp]?'':' msec-off'}">
+        <div class="msec-h"><i class="pmark ${pp}">${PLAT_MARK[pp]||''}</i>${pName(pp)}${d[pp]?'':'<span class="cmuted"> · 미참여</span>'}</div>
+        <div class="row2">
+          <div class="row"><label class="h">링크/닉</label>
+            <input class="inp" id="re${pp==='tk'?'Tk':'Ig'}" value="${d[pp]?esc(d[pp].h):''}" placeholder="${d[pp]?'':'미참여'}"></div>
+          <div class="row"><label class="h">팔로워 <small>손입력</small></label>
+            <input class="inp" type="number" id="reFol${pp==='tk'?'Tk':'Ig'}" value="${d[pp]&&d[pp].fol!=null?d[pp].fol:''}" placeholder="${d[pp]?'스캔 대기':'미참여'}"${d[pp]?'':' disabled'}></div>
+        </div>
+      </div>`).join('')}
       <div class="cmuted" style="font-size:12.5px;margin:-2px 0 4px">팔로워는 마스터시트에 바로 저장돼요. 다음 팔로워 스캔이 돌면 실측값으로 바뀝니다.</div>
       <div class="row2">
         <div class="row"><label class="h">예정일 <small>크리에이터 희망</small></label>
@@ -4846,6 +4925,11 @@ document.getElementById('content').addEventListener('click', e=>{
     if(cf){ const v = cf.dataset.cofilt; state.coOnly = (state.coOnly===v ? '' : v); render(); return; } }
   { const nf = e.target.closest('[data-contentf]');
     if(nf){ state.hasContent = nf.dataset.contentf==='1'; render(); return; } }
+  { const b = e.target.closest('#btnCopyTbl'); if(b){ copyTable(b); return; } }
+  { const sa = e.target.closest('.rowselall');
+    if(sa){ document.querySelectorAll('#content .rowsel').forEach(x=>{ x.checked = sa.checked; });
+      syncCopyBtn(); return; } }
+  { const rs = e.target.closest('.rowsel'); if(rs){ syncCopyBtn(); return; } }
   { const b = e.target.closest('#btnRecScan'); if(b){ syncRecruit(b); return; } }
   { const b = e.target.closest('#btnSvcRefresh');
     if(b){ (async ()=>{
