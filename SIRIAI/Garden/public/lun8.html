@@ -4257,6 +4257,13 @@ function openRowEdit(id, rowPlat){
         ${hasIG()?`<div class="row"><label class="h">인스타 링크/닉</label><input class="inp" id="reIg" value="${d.ig?esc(d.ig.h):''}" placeholder="${d.ig?'':'미참여'}"></div>`:''}
       </div>
       <div class="row2">
+        <div class="row"><label class="h">틱톡 팔로워 <small>손입력</small></label>
+          <input class="inp" type="number" id="reFolTk" value="${d.tk&&d.tk.fol!=null?d.tk.fol:''}" placeholder="${d.tk?'스캔 대기':'미참여'}"${d.tk?'':' disabled'}></div>
+        ${hasIG()?`<div class="row"><label class="h">인스타 팔로워 <small>손입력</small></label>
+          <input class="inp" type="number" id="reFolIg" value="${d.ig&&d.ig.fol!=null?d.ig.fol:''}" placeholder="${d.ig?'스캔 대기':'미참여'}"${d.ig?'':' disabled'}></div>`:''}
+      </div>
+      <div class="cmuted" style="font-size:12.5px;margin:-2px 0 4px">팔로워는 마스터시트에 바로 저장돼요. 다음 팔로워 스캔이 돌면 실측값으로 바뀝니다.</div>
+      <div class="row2">
         <div class="row"><label class="h">예정일 <small>크리에이터 희망</small></label>
           <input class="inp" type="date" id="reSched" value="${esc(mdToISO(d.sched))}"></div>
         <div class="row"><label class="h">확정일</label>
@@ -4279,7 +4286,18 @@ function openRowEdit(id, rowPlat){
          '틱톡 닉네임' 열을 덮어써 계정 식별이 망가진다. 열이 열릴 때까지 시트에서 고쳐야 한다. */
       // 링크는 시트에 되쓴다. 예전엔 화면 객체만 고쳐서 20초 뒤 옛 링크로 돌아갔다.
       if(d.tk && val('reTk') && val('reTk')!==d.tk.h){ d.tk.h=val('reTk'); put('tk.link',toLinkUrl('tk',d.tk.h)); }
-      if(d.ig && val('reIg') && val('reIg')!==d.ig.h){ d.ig.h=val('reIg'); put('ig.link',toLinkUrl('ig',d.ig.h)); } };
+      if(d.ig && val('reIg') && val('reIg')!==d.ig.h){ d.ig.h=val('reIg'); put('ig.link',toLinkUrl('ig',d.ig.h)); }
+      // 팔로워 — 빈칸이면 안 건드린다(지우려고 비운 게 아니라 '모른다'는 뜻이다).
+      platsOn().forEach(pp=>{
+        if(!d[pp]) return;
+        const el = document.getElementById(pp==='tk'?'reFolTk':'reFolIg');
+        if(!el) return;
+        const v = String(el.value||'').trim();
+        if(v==='') return;
+        const nv = Number(v);
+        if(!Number.isFinite(nv) || nv < 0) return;
+        if(nv !== d[pp].fol){ d[pp].fol = nv; put(pp+'.followers', nv); }
+      }); };
 
   } else if(state.view==='upload'){
     /* 통합 탭은 한 줄이 한 사람이다 — 그 사람이 하는 플랫폼을 전부 편집한다.
@@ -4355,21 +4373,26 @@ function openRowEdit(id, rowPlat){
     const x=d[p];
     body = `<div class="mform">
       <div class="row2">
-        <div class="row"><label class="h">현재 팔로워 (수동 보정)</label><input class="inp" id="reFol" type="number" value="${x.fol==null?'':x.fol}" placeholder="스캔 대기"></div>
+        <div class="row"><label class="h">${pName(p)} 팔로워 <small>시트에 저장돼요</small></label><input class="inp" id="reFol" type="number" value="${x.fol==null?'':x.fol}" placeholder="스캔 대기"></div>
         <div class="row"><label class="h">진행중 주문 remains</label><input class="inp" id="reInf" type="number" value="${x.inFlight||0}"></div>
       </div>
       <div class="row"><label class="inline"><input type="checkbox" id="reOdds" ${d.oddsLow?'checked':''}> 업로드 확률 낮음 → <b>보류</b>(업로드 확인 후 가드닝)</label></div>
       <div class="row"><label class="inline"><input type="checkbox" id="reNo" ${d.noUpload?'checked':''}> 연락두절 등 미업로드 확률 큼 (보류 유지)</label></div>
-      <div class="cmuted" style="font-size:12.5px;margin:-2px 0 6px">위 네 칸(팔로워 보정·진행중 주문·보류 체크 2개)은 <b>화면에서만 쓰여요 — 시트에 열이 없어요.</b> 자동 새로고침되면 원래 값으로 돌아가요. 아래 비고만 시트에 저장됩니다.</div>
+      <div class="cmuted" style="font-size:12.5px;margin:-2px 0 6px"><b>팔로워</b>는 마스터시트에 저장돼요 — 다음 팔로워 스캔이 돌면 실측값으로 바뀝니다(그게 맞아요).<br>
+        <b>진행중 주문 remains</b>와 <b>보류 체크 2개</b>는 시트에 열이 없어 화면에서만 쓰여요 — 새로고침하면 원래 값으로 돌아가요.</div>
       <div class="row"><label class="h">${pName(p)} 비고</label><textarea class="inp" id="rePMemo">${esc(x.memo||'')}</textarea></div>
     </div>`;
     // 비고만 시트에 열이 있다(업로드·납품과 같은 열이라 플랫폼 접두어 필수).
     // 나머지는 저장할 곳이 없어 화면 값만 바꾼다 — 그 사실을 위 안내문이 말한다.
-    const wasG = { memo: x.memo||'' };
+    const wasG = { memo: x.memo||'', fol: x.fol };
     save = ()=>{
       const f=val('reFol'); x.fol = f===''?null:(+f); x.inFlight=+val('reInf')||0;
       d.oddsLow=chk('reOdds'); d.noUpload=chk('reNo'); x.memo=val('rePMemo');
       if(x.memo!==wasG.memo) put(p+'.memo', x.memo);
+      /* 팔로워는 시트에 쓴다. 마스터에 '틱톡 팔로워'·'인스타 팔로워' 열이 있고 브릿지도 받는데,
+         예전엔 화면 값만 바꾸고 '시트에 열이 없다' 고 안내했다 — 20초 뒤 자동 새로고침이
+         옛 값으로 되돌려서 '고쳤는데 안 고쳐지는' 칸이었다. */
+      if(x.fol!==wasG.fol && x.fol!=null) put(p+'.followers', x.fol);
     };
 
   } else if(state.view==='deliver'){

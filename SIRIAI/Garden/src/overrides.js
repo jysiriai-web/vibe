@@ -23,6 +23,10 @@ export const OVERRIDE_FIELDS = ['contentA', 'contentB', 'soundOk', 'soundSection
 export const EDITABLE_FIELDS = ['nick', 'link', 'notice', 'contentA', 'schedDate', 'fixedDate', 'soundOk', 'soundSection', 'hashtagOk', 'memo', 'mirror',
   // 업로드·납품 모달에서 직접 고치는 값들. 없으면 서버가 400 으로 되돌려 '저장했는데 안 남는다'가 된다.
   'contentB', 'views',
+  /* 팔로워 — 신규 인원 두어 명 때문에 전체 스캔(5~10분)을 돌리는 건 낭비라 손으로 넣는다.
+     ⚠️ 잠금(OVERRIDE) 대상은 아니다. 계속 변하는 숫자라 한번 잠그면 스캔이 영영 못 고친다 —
+     조회수를 뺀 것과 같은 이유다. 손입력은 다음 스캔이 실측으로 덮는 게 맞다. */
+  'followers',
   // 정산 탭. 자동 스캔이 안 건드리는 칸이라 잠금(OVERRIDE) 대상은 아니고 편집만 허용한다.
   'pay', 'best', 'override', 'paid', 'settleMemo'];
 
