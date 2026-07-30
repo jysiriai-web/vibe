@@ -1282,9 +1282,11 @@ const esc = s => (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;
    주차 개념이 없는 캠페인도 weeks:[{label:'업로드 기간', share:1, days:[...]}] 하나면 그냥 동작한다. */
 const CAMPAIGNS = {
   /* 목표(검수완료) 틱톡 50 + 인스타 50 = 100건, 오버부킹 5 → 정산 인정 상한 105건. 단가 건당 15만원.
-     확보는 105가 아니라 **115건**으로 간다 — 미업로드 10건을 미리 깔고 가야 105를 채운다.
-       확보 115 = 시리아이 94(현재 틱톡48/인스타46) + 마루 21(요청함)
-     즉 여유분 10건이 '미업로드 완충'이고, 이게 0이 되면 마루에 추가 요청이 들어가야 한다. */
+     확보는 105가 아니라 **125건**으로 간다 — 미업로드분을 미리 깔고 가야 105를 채운다.
+       확보 125 = 시리아이 94(현재 틱톡48/인스타46) + 마루 31(계약 틱10·인21, 7/28 재협상)
+     즉 여유분이 '미업로드 완충'이고, 이게 0이 되면 마루에 추가 요청이 들어가야 한다.
+     ⚠️ 마루 초과분(계약을 넘겨 올라온 것)은 이 확보 수에는 들어가지만 마루 정산에는 안 들어간다 —
+        클라이언트에는 납품되고 실행사에는 돈을 안 주는 건이다. 두 숫자를 섞지 말 것. */
   lun8:   { name:'LUN8 · SNEAKERS', plats:['tk','ig'], targets:{tk:50, ig:50}, settleCap:105,
             /* 진행사 — 역할로 가른다. 'MARU' 라는 이름이 로직에 박히면 다음 실행사와 일할 때
                코드를 다시 손대야 한다. 여기 한 줄 추가하면 끝나게 둔다.
@@ -1294,15 +1296,20 @@ const CAMPAIGNS = {
             /* 실행사 계약 수량 — 이만큼만 정산한다. 초과분은 예상 건수에 넣으면 안 된다
                (마루가 틱톡을 7건 더 채워 총량만 맞춘 적이 있다).
                7/28 재협상: 당초 틱10·인11 로 요청했는데 마루가 확보한 건 틱17·인3 이라 믹스가
-               뒤집혔다. 인스타 10건을 추가 요청해 '대강 틱10·인20' 으로 합의. */
-            agencyQuota:{ tk:10, ig:20 },
+               뒤집혔다. 인스타 10건을 추가 요청 → 계약은 틱10·인21(=11+10)이다.
+               ⚠️ 구두로 '대강 20' 이라 들어 20 으로 적었던 것이 오표시를 만들었다. 계약서 숫자가 기준이다.
+
+               정산 규칙(7/30 확인): 마루는 양쪽에 다 올리고, 정산은 **플랫폼별로 계약 수량까지만**.
+               같은 사람이라도 틱톡은 초과분에 걸려 정산 제외, 인스타는 계약 안이라 인정 — 이렇게 갈린다.
+               초과분도 클라이언트에는 납품된다(목표 100건에는 들어간다). 마루에게 돈만 안 준다. */
+            agencyQuota:{ tk:10, ig:21 },
             companies:[
               { id:'SIRIAI', role:'self',   label:'시리아이', fee:5000, feeBoth:12000 },
               { id:'MARU',   role:'agency', label:'마루',     fee:6000 },
             ],
             /* 확보 목표 = 시리아이 94 + 실행사 계약 수량. 실행사 몫이 21(틱10+인11) → 30(틱10+인20)
                으로 늘어 124 가 된다. 이걸 115 로 두면 확보 카드가 9건 일찍 '달성' 으로 켜진다. */
-            secure:{ target:124, SIRIAI:94, MARU:30 }, sub:'댄스챌린지', scan:'—', sheet:'https://docs.google.com/spreadsheets/d/1PjiAHc7Zfonl1jXBPqzE8LmDBjCfAHcK6ycGUsLEcf8/edit',
+            secure:{ target:125, SIRIAI:94, MARU:31 }, sub:'댄스챌린지', scan:'—', sheet:'https://docs.google.com/spreadsheets/d/1PjiAHc7Zfonl1jXBPqzE8LmDBjCfAHcK6ycGUsLEcf8/edit',
             // 모집시트 — 진행사마다 하나. 마스터와 같은 자리에 둔다(정적 정보라 서버 왕복할 이유가 없다).
             recruits:[{company:'SIRIAI',url:'https://docs.google.com/spreadsheets/d/1Ov0v2JnLH9aLo0cZ8X1GnsNSOGKNJYfNiL8A3rVG9JU/edit'},{company:'MARU',url:'https://docs.google.com/spreadsheets/d/1slDXWW_S6HUUptAxRJ6VcgmXPPcO2lJJIOGVFwMOFmY/edit'}],
             weeks:[ { label:'1주차', share:0.60, days:['7/23','7/24','7/25','7/26','7/27','7/28'] },
@@ -2708,11 +2715,26 @@ function briefLines(){
 
   /* 실행사는 계약 수량이 상한이다 — 초과분은 정산이 안 되므로 예상에 넣으면 안 된다.
      (실제로 마루가 틱톡을 7건 더 채워 총량만 맞춘 적이 있다) */
+  /* 실행사 정산은 플랫폼별로 '계약 수량까지만' 이다. 네 값을 갈라 세지 않으면 말이 섞인다.
+       올라온 것(mUp)   — 실제로 올라온 건수. 클라이언트 납품에는 전부 들어간다.
+       정산 인정(mPaid) — min(올라온 것, 계약). 실행사에 돈을 주는 건수.
+       초과(mOver)      — 올라왔지만 계약을 넘겨 정산 안 되는 건수.
+       계약 여유(mRoom) — 앞으로 올라오면 인정받을 수 있는 자리.
+     ⚠️ 예전엔 '계약잔여' 라는 이름으로 min(마루 예정, 계약여유) 하나만 찍었다. 그건 '예정 건수'
+     인데 이름이 '계약잔여' 라서, 틱톡 16건이 올라와 6건이 정산 제외라는 사실이 화면에서 사라졌다. */
   const quota = (cfg().agencyQuota) || null;
-  const mCapTk = quota ? Math.max(0, quota.tk - M.up.tk) : t(M.fixed)+t(M.moving)+M.loose.tk;
-  const mCapIg = quota ? Math.max(0, quota.ig - M.up.ig) : M.loose.ig;
-  const mPendTk = quota ? Math.min(M.fixed.tk+M.moving.tk+M.loose.tk, mCapTk) : M.fixed.tk+M.moving.tk+M.loose.tk;
-  const mPendIg = quota ? Math.min(M.fixed.ig+M.moving.ig+M.loose.ig, mCapIg) : M.fixed.ig+M.moving.ig+M.loose.ig;
+  const mUp   = { tk: M.up.tk, ig: M.up.ig };
+  const mPend = { tk: M.fixed.tk+M.moving.tk+M.loose.tk, ig: M.fixed.ig+M.moving.ig+M.loose.ig };
+  const mPaid = {}, mOver = {}, mRoom = {}, mCount = {};
+  platsOn().forEach(p=>{
+    const q = quota ? (quota[p]||0) : null;
+    mPaid[p]  = q==null ? mUp[p] : Math.min(mUp[p], q);
+    mOver[p]  = q==null ? 0      : Math.max(0, mUp[p] - q);
+    mRoom[p]  = q==null ? Infinity : Math.max(0, q - mUp[p]);
+    // 예상에 넣는 것은 '정산될 것' 만 — 초과분은 마루 몫이 아니라 우리 납품 여유일 뿐이다.
+    mCount[p] = Math.min(mPend[p], mRoom[p]);
+  });
+  const mPendTk = mCount.tk || 0, mPendIg = mCount.ig || 0;
 
   const sSure = { tk: S.fixed.tk + S.moving.tk, ig: S.fixed.ig + S.moving.ig };
   const sLoose = S.loose;
@@ -2728,10 +2750,18 @@ function briefLines(){
   L.push('');
   L.push(`■ 지금 올라온 것  ${upTk+upIg}건  (틱톡 ${upTk} · 인스타 ${upIg})`);
   L.push(`   시리아이 ${t(S.up)} (틱${S.up.tk}/인${S.up.ig}) · 실행사 ${t(M.up)} (틱${M.up.tk}/인${M.up.ig})`);
+  if(quota){
+    const paid = platsOn().reduce((a,p)=>a+mPaid[p],0), over = platsOn().reduce((a,p)=>a+mOver[p],0);
+    L.push(`   실행사 정산 인정 ${paid}건 (${platsOn().map(p=>pName(p)+' '+mPaid[p]+'/'+(quota[p]||0)).join(' · ')})`);
+    if(over) L.push(`   ⚠️ 실행사 초과 ${over}건 (${platsOn().filter(p=>mOver[p]).map(p=>pName(p)+' '+mOver[p]).join(' · ')}) — 정산 제외, 납품엔 들어가요`);
+  }
   L.push('');
   L.push(`■ 업로드 예정  ${pTk+pIg}건  (틱톡 ${pTk} · 인스타 ${pIg})`);
   L.push(`   시리아이 확정일 ${t(S.fixed)} (틱${S.fixed.tk}/인${S.fixed.ig}) · 하나올림 ${t(S.moving)} (틱${S.moving.tk}/인${S.moving.ig})`);
-  if(quota) L.push(`   실행사 계약잔여 ${mPendTk+mPendIg} (틱${mPendTk}/인${mPendIg}) — 계약 틱${quota.tk}·인${quota.ig} 중 올라온 것 뺀 값`);
+  if(quota){
+    const room = platsOn().reduce((a,p)=>a+(mRoom[p]===Infinity?0:mRoom[p]),0);
+    L.push(`   실행사 예정 ${mPendTk+mPendIg} (틱${mPendTk}/인${mPendIg}) — 계약 여유 ${room}건(${platsOn().map(p=>pName(p)+' '+(mRoom[p]===Infinity?'∞':mRoom[p])).join('/')}) 안에서만 셌어요`);
+  }
   /* ⚠️ 계약 수량을 올려도 '업로드 예정' 은 안 움직인다. 저 숫자는 min(마루 실제 예정, 계약잔여)라
      잘라내는 쪽으로만 작동하기 때문이다 — 늘리려면 코드가 아니라 마스터시트에 사람이 들어와야 한다.
      그래서 '계약 대비 슬롯이 몇 개 모자란가' 를 따로 말한다. 마루에 추가 요청을 넣을지가
@@ -2740,9 +2770,11 @@ function briefLines(){
     const mSlot = {}; platsOn().forEach(p=>{ mSlot[p] = 0; });
     inC.filter(isAgency).forEach(d=> platsOn().forEach(p=>{ if(d[p] && !isDropped(d)) mSlot[p]++; }));
     const shortP = platsOn().map(p=>({ p, need: Math.max(0, (quota[p]||0) - mSlot[p]) })).filter(x=>x.need);
-    L.push(`   실행사 확보 슬롯 ${platsOn().map(p=>pName(p)+' '+mSlot[p]).join(' · ')}`
-      + (shortP.length ? ` → 계약을 채우려면 ${shortP.map(x=>pName(x.p)+' '+x.need+'명').join(' · ')} 더 받아야 해요`
-                       : ' → 계약 수량은 확보됐어요'));
+    const overS  = platsOn().map(p=>({ p, n: Math.max(0, mSlot[p] - (quota[p]||0)) })).filter(x=>x.n);
+    L.push(`   실행사 확보 슬롯 ${platsOn().map(p=>pName(p)+' '+mSlot[p]+'/'+(quota[p]||0)).join(' · ')}`
+      + (shortP.length ? ` → ${shortP.map(x=>pName(x.p)+' '+x.need+'명').join(' · ')} 더 받아야 계약을 채워요` : '')
+      + (overS.length  ? ` · ${overS.map(x=>pName(x.p)+' '+x.n+'명').join(' · ')}은 계약 초과(정산 제외)` : '')
+      + (!shortP.length && !overS.length ? ' → 계약 수량 딱 맞아요' : ''));
   }
   else L.push(`   실행사 ${mPendTk+mPendIg} (틱${mPendTk}/인${mPendIg})`);
   L.push(`   ※ 확정일 없이 예정일만 있는 시리아이 ${t(sLoose)}건(틱${sLoose.tk}/인${sLoose.ig})은 위에 안 넣었어요`);
