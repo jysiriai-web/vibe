@@ -1,5 +1,5 @@
 const p=require('puppeteer-core'); const fs=require('fs');
-const F='file:///C:/Users/whwns/Desktop/VIBE/SIRIAI/Routine/2_compose/templates/intercharm/_굽기/히어로_디자인원본.html';
+const F='file:///C:/Users/whwns/Desktop/VIBE/SIRIAI/Sales/Routine/2_compose/templates/intercharm/_굽기/히어로_디자인원본.html';
 (async()=>{
  const b=await p.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:'new',
    args:['--font-render-hinting=none','--force-color-profile=srgb','--disable-lcd-text']});

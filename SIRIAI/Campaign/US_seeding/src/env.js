@@ -1,4 +1,4 @@
-// [복사본] SIRIAI/Garden/src/env.js 에서 가져온 검증된 엔진 코드입니다.
+// [복사본] SIRIAI/Campaign/댄스캠페인/src/env.js 에서 가져온 검증된 엔진 코드입니다.
 //          US_seeding 은 Garden 과 완전히 독립 실행됩니다 — 한쪽을 고쳐도 다른 쪽에 반영되지 않습니다.
 // 의존성 없는 .env 로더 — dotenv 없이도 동작(키 확인 단계에서 npm install 불필요).
 import { readFileSync } from 'node:fs';

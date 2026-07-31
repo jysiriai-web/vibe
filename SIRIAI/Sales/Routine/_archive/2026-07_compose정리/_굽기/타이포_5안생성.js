@@ -2,8 +2,8 @@
 const p = require('puppeteer-core');
 const fs = require('fs');
 const path = require('path');
-const SRC = 'C:/Users/whwns/Desktop/VIBE/SIRIAI/Routine/2_compose/templates/intercharm/_굽기/히어로_디자인원본.html';
-const TMP = 'C:/Users/whwns/Desktop/VIBE/SIRIAI/Routine/2_compose/templates/intercharm/_굽기/_tmp';
+const SRC = 'C:/Users/whwns/Desktop/VIBE/SIRIAI/Sales/Routine/2_compose/templates/intercharm/_굽기/히어로_디자인원본.html';
+const TMP = 'C:/Users/whwns/Desktop/VIBE/SIRIAI/Sales/Routine/2_compose/templates/intercharm/_굽기/_tmp';
 
 // [id, 라벨, font-size, line-height(px), weight, letter-spacing]
 const OPTS = [

@@ -21,7 +21,7 @@ import compliance
 import suppress
 
 TAB = "6월"
-PREVIEWS = HERE.parent / "2_compose" / "archive" / "previews"
+PREVIEWS = HERE.parent / "2_compose" / "previews"
 SUBJECT = "[SIRIAI] {brand}에 맞는 인플루언서 제안드립니다"
 SENDER = "SIRIAI <jysiriai@gmail.com>"           # 발신자 표기
 WARMUP = [12, 12, 15, 15, 18, 18, 20, 22, 22, 25]  # 1~10일차, 이후 25 고정

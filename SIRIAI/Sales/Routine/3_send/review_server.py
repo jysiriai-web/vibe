@@ -74,7 +74,7 @@ def load_queue():
             continue
         rows.append({"brand": g(bi), "email": g(ei), "hook": g(hk), "warn": g(cau),
                      "insta": g(ig),
-                     "file": f"2_compose/archive/previews/{safe(g(bi))}.html", "stage": stage})
+                     "file": f"2_compose/previews/{safe(g(bi))}.html", "stage": stage})
     return rows, meta
 
 

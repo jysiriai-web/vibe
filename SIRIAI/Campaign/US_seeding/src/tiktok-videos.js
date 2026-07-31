@@ -1,4 +1,4 @@
-// [복사본] SIRIAI/Garden/src/tiktok-videos.js 에서 가져온 검증된 엔진 코드입니다.
+// [복사본] SIRIAI/Campaign/댄스캠페인/src/tiktok-videos.js 에서 가져온 검증된 엔진 코드입니다.
 //          US_seeding 은 Garden 과 완전히 독립 실행됩니다 — 한쪽을 고쳐도 다른 쪽에 반영되지 않습니다.
 // 틱톡 영상 목록 수집 (Playwright, 창 보이게 = 봇 감지 우회). 캠페인 감지·성과용.
 import { existsSync, mkdirSync } from 'node:fs';
