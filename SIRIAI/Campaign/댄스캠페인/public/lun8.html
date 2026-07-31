@@ -2322,7 +2322,15 @@ function renderTable(cols, rows, opts={}){
       const grp = c.grp ? ' pgrp-'+c.grp : '';
       return `<td class="${c.cls||''}${grp}${ghost?' col-ghost-c':''}">${c.cell(r)}</td>`;
     }).join('');
-    const sel = pick ? `<td class="selc"><input type="checkbox" class="rowsel"></td>` : '';
+    /* 체크박스에 마스터 행번호를 실어 둔다.
+       ⚠️ 예전엔 아무것도 안 실어서, [선택 삭제] 가 화면에 보이는 이름으로 사람을 되찾았다.
+       이름 접두 일치라 짧은 닉이 긴 닉을 잡아먹고, 닉이 빈 사람이 하나라도 있으면
+       startsWith('') 가 늘 참이라 **모든 줄이 그 사람으로 잡혔다**. 행번호로 잡는다.
+       표마다 행 모양이 달라(사람 / 사람×플랫폼) 양쪽을 다 본다. */
+    const rid = (r && (r.id != null ? r.id : r.row)) != null ? (r.id != null ? r.id : r.row)
+              : (r && r.d ? (r.d.id != null ? r.d.id : r.d.row) : null);
+    const ridAttr = Number.isFinite(Number(rid)) ? ` data-row="${Number(rid)}"` : '';
+    const sel = pick ? `<td class="selc"><input type="checkbox" class="rowsel"${ridAttr}></td>` : '';
     return `<tr${rc?` class="${rc}"`:''}>${sel}${cells}</tr>`;
   }).join('');
   return `<div class="tscroll"><table data-tid="${esc(tableId)}"><thead><tr>${selTh}${thead}</tr></thead>`
@@ -2690,9 +2698,12 @@ function syncCopyBtn(){
   const n = document.querySelectorAll('#content .rowsel:checked, #content [data-gpick]:checked').length;
   b.textContent = n ? `⧉ ${n}줄 복사` : '⧉ 표 복사';
   b.classList.toggle('primary', !!n);
-  // 삭제 버튼도 고른 수를 말한다 — 몇 명을 지우는지 누르기 전에 보여야 한다.
+  /* 삭제 버튼은 고른 수를 말한다 — 몇 명을 지우는지 누르기 전에 보여야 한다.
+     ⚠️ 복사와 달리 .rowsel 만 센다. data-gpick(가드닝 충전 대상)까지 세면
+     충전 대상 20명 체크해 둔 화면에 '🗑 20줄 삭제' 가 떠서 지우라고 부추긴다. */
+  const dn = document.querySelectorAll('#content .rowsel:checked').length;
   const db = document.getElementById('btnDelRows');
-  if(db){ db.textContent = n ? `🗑 ${n}줄 삭제` : '🗑 선택 삭제'; db.disabled = !n; }
+  if(db){ db.textContent = dn ? `🗑 ${dn}줄 삭제` : '🗑 선택 삭제'; db.disabled = !dn; }
 }
 function syncScanBtn(){
   // 버튼이 아니라 '선택 N명' 표시를 갱신한다. 표를 다시 그리지 않고 숫자만 바꾼다.
@@ -2917,21 +2928,21 @@ async function copyTable(btn){
 async function deleteSelected(){
   const tbl = document.querySelector('#content table[data-tid]');
   if(!tbl) return toast('표가 없어요.');
-  const trs = [...tbl.querySelectorAll('tbody tr')].filter(tr=>{
-    const c = tr.querySelector('.rowsel,[data-gpick]'); return c && c.checked; });
-  if(!trs.length) return toast('지울 줄을 먼저 체크해주세요.');
-  // 화면 행 → 사람. 표마다 행 모양이 달라 이름으로 찾는다.
-  const picked = [];
-  trs.forEach(tr=>{
-    const nick = (tr.querySelector('.nick')||{}).innerText;
-    const d = D.find(x=> nick && String(nick).trim().startsWith(String(x.nick).trim()));
-    if(d && !picked.includes(d)) picked.push(d);
-  });
-  if(!picked.length) return toast('고른 줄에서 사람을 못 찾았어요 — 새로고침 후 다시 해주세요.');
-  const rows = [...new Set(picked.map(d=>d.id))].filter(r=> r>1 && r<100000);
-  if(!rows.length) return toast('시트에 없는 행이에요.');
+  /* ⚠️ .rowsel 만 본다. data-gpick 은 **가드닝 탭의 '충전 주문 대상'** 체크박스다 —
+     같이 보면 충전할 사람을 골라 둔 상태에서 [선택 삭제] 를 누르는 순간 그 사람들을
+     지우려 든다(전체 선택까지 있다). 지울 사람은 지울 사람 칸에서만 고른다. */
+  const boxes = [...tbl.querySelectorAll('tbody tr .rowsel')].filter(c=>c.checked);
+  if(!boxes.length) return toast('지울 줄을 먼저 체크해주세요.');
+  /* 화면 행 → 마스터 행번호. 체크박스에 실어 둔 값만 쓴다.
+     예전엔 화면의 이름으로 되찾았는데, 접두 일치라 엉뚱한 사람이 잡혔다. */
+  const rows = [...new Set(boxes.map(c=>Number(c.dataset.row)).filter(n=>Number.isFinite(n) && n>1 && n<100000))];
+  if(rows.length !== boxes.length) return toast('행 번호가 없는 줄이 섞여 있어요 — 새로고침 후 다시 해주세요.', 'bad');
+  const picked = rows.map(r=> D.find(x=>Number(x.id)===r)).filter(Boolean);
+  if(picked.length !== rows.length) return toast('고른 줄에서 사람을 못 찾았어요 — 새로고침 후 다시 해주세요.', 'bad');
   const L = [`고른 ${picked.length}명을 마스터시트에서 지울까요?`, ''];
-  picked.slice(0,15).forEach(d=> L.push(`  · ${d.nick}` + (d.tk?` @${d.tk.h}`:'') + (d.ig?` / ${d.ig.h}`:'')));
+  // 핸들에 @ 가 이미 붙어 오는 쪽이 있어 '@@zn09_k2' 로 찍혔다 — 붙여서 한 번만.
+  const at = h => '@' + String(h||'').replace(/^@+/, '');
+  picked.slice(0,15).forEach(d=> L.push(`  · ${d.nick}` + (d.tk?` ${at(d.tk.h)}`:'') + (d.ig?` / ${at(d.ig.h)}`:'')));
   if(picked.length>15) L.push(`  · 외 ${picked.length-15}명`);
   L.push('', '되돌릴 수 없어요. 지운 값은 작업 기록에 남습니다.',
          '모집시트에 아직 있는 사람은 다음 [모집 가져오기] 때 다시 들어와요.');
