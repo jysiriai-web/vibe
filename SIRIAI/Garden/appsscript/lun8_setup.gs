@@ -167,21 +167,47 @@ function setupLun8() {
       Logger.log('⚠️ ' + src.company + ': 틱톡·인스타 열을 못 찾았어요 — 이 소스 건너뜁니다(헤더 확인 필요).');
       return;
     }
+    /* 이 행이 어느 플랫폼 지원인가. 헤더가 아니라 '값' 을 본다 —
+       마루 폼은 참가조건 칸에 'TikTok（フォロワー1,000人以上）' 처럼 적혀 있다. */
+    var platOfRow = function (row) {
+      for (var c = 0; c < row.length; c++) {
+        var v = t(row[c]);
+        if (/^tiktok\s*[（(]/i.test(v) || /^tiktok$/i.test(v)) return 'tk';
+        if (/^instagram\s*[（(]/i.test(v) || /^instagram$/i.test(v)) return 'ig';
+      }
+      return '';
+    };
     /* 한 행에서 (틱톡링크, 인스타링크)를 뽑는다.
        링크가 lite.tiktok.com 단축주소면 핸들을 못 뽑으므로 아이디 칸으로 만들어 준다
        (전각 ＠·앞뒤 공백 제거). 실제로 마루 시트에 3건 있었다. */
     var pickLinks = function (row) {
       if (!splitMode) {
-        /* 링크가 비었거나 주소 꼴이 아니면 아이디 칸으로 만들어 준다 — 링크만 보고 버리면
-           폼이 아이디만 받은 사람이 통째로 사라진다(마루 폼이 실제로 그랬다). */
-        var mk = function (iLnk, iId, isIgP) {
-          var v = iLnk >= 0 ? cleanUrl(row[iLnk]) : '';
-          if (v && /(tiktok|instagram)\.com/i.test(v) && v.indexOf('lite.tiktok.com') < 0) return v;
-          var idv = iId >= 0 ? t(row[iId]).replace(/[＠@]/g, '').replace(/\s+/g, '') : '';
-          if (!idv) return '';
-          return isIgP ? 'https://www.instagram.com/' + idv : 'https://www.tiktok.com/@' + idv;
-        };
-        return [mk(iTk, iTkId, false), mk(iIg, iIgId, true)];
+        /* 플랫폼은 **계정이 정한다** — 폼 헤더가 아니라.
+           ⚠️ 마루 폼은 헤더가 전부 'Instagram' 인데 실제로는 참가조건 칸에 TikTok/Instagram 이
+           적혀 있고 링크도 tiktok.com 이 온다(22건 중 10건이 TikTok). 헤더만 믿으면 틱톡 크리에이터가
+           인스타로 들어간다. 게다가 lite.tiktok 단축주소는 '주소가 아니다' 며 버려진 뒤 아이디로
+           인스타 주소를 만들어내, 있지도 않은 인스타 계정이 생겼다(91행 Yuina Uemura).
+           그래서 ① 주소의 호스트로 판정하고 ② 주소를 못 쓸 때만 참가조건이 말하는 플랫폼을 쓴다. */
+        var tkL = '', igL = '';
+        [iTk, iIg, iLink].forEach(function (c) {
+          if (c < 0) return;
+          var v = cleanUrl(row[c]);
+          if (!v) return;
+          if (!tkL && /tiktok\.com/i.test(v) && v.indexOf('lite.tiktok.com') < 0) tkL = v;
+          else if (!igL && /instagram\.com/i.test(v)) igL = v;
+        });
+        if (!tkL && !igL) {
+          var hint = platOfRow(row);           // 참가조건 칸: 'TikTok（…）' / 'Instagram（…）'
+          var idv = '';
+          [iTkId, iIgId, iSnsId].forEach(function (c) {
+            if (idv || c < 0) return;
+            idv = t(row[c]).replace(/[＠@]/g, '').replace(/\s+/g, '');
+          });
+          if (idv && hint === 'tk') tkL = 'https://www.tiktok.com/@' + idv;
+          else if (idv && hint === 'ig') igL = 'https://www.instagram.com/' + idv;
+          // 힌트도 없으면 아무것도 만들지 않는다 — 어느 플랫폼인지 모르는 채로 넣으면 가짜 계정이 된다.
+        }
+        return [tkL, igL];
       }
       var pv = t(row[iPlat]).toLowerCase();
       var isIg = pv.indexOf('instagram') >= 0 || pv.indexOf('インスタ') >= 0;
