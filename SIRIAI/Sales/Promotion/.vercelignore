@@ -1,0 +1,14 @@
+# Vercel 업로드 제외 목록.
+# ⚠️ 이 파일이 없으면 Vercel CLI가 .gitignore 를 대신 쓴다.
+#    public/influencer/ 를 git에서 빼더라도 배포에는 반드시 올라가야 하므로
+#    업로드 규칙은 여기서 명시적으로 관리한다.
+
+node_modules
+.next
+.git
+
+# 핸드오프 원본 zip (600MB) — 배포에 불필요
+_handoff
+
+# 실제 회사 이메일 335건이 든 원본 CSV — 서버에도 올릴 이유 없음
+인터참-코드.csv

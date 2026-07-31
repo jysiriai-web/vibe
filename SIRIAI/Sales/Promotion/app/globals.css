@@ -1,0 +1,436 @@
+@import "tailwindcss";
+
+/* ──────────────────────────────────────────────────────────────
+   SIRIAI — design system ported from cd-study-deploy
+   ("siriai — home study (monopo based)")
+   Black ground · near-white ink · Inter Tight + Noto Sans KR
+   Signature motif: halftone dot gradient (magenta → orange → amber)
+─────────────────────────────────────────────────────────────── */
+@theme {
+  /* one stack: Latin renders Inter Tight, Korean falls through to Noto Sans KR */
+  --font-display: "Inter Tight", "Noto Sans KR", Helvetica, Arial, sans-serif;
+  --font-sans: "Inter Tight", "Noto Sans KR", Helvetica, Arial, sans-serif;
+  --font-mono: "Inter Tight", "Noto Sans KR", Helvetica, Arial, sans-serif;
+  --font-jp: "Noto Sans JP", "Inter Tight", sans-serif;
+  --font-serif: Georgia, "Times New Roman", serif;
+
+  /* ground */
+  --color-paper: #000000;
+  --color-paper-2: #0a0a0a;
+  --color-ink: #f4f4f3;
+  --color-ink-2: rgba(244, 244, 243, 0.58);
+  --color-ink-3: rgba(244, 244, 243, 0.38);
+  --color-line: rgba(244, 244, 243, 0.14);
+  --color-line-2: rgba(244, 244, 243, 0.08);
+
+  /* signature halftone / glow palette */
+  --color-magenta: #ff2f7b;
+  --color-orange: #ff7a1a;
+  --color-amber: #e6c33f;
+  --color-ember: #c47a2a;
+
+  /* default accent */
+  --color-accent: #ff7a1a;
+
+  /* legacy aliases so existing utilities resolve into the dark system */
+  --color-canvas: #000000;
+  --color-muted: rgba(244, 244, 243, 0.38);
+  --color-ink-soft: rgba(244, 244, 243, 0.58);
+  --color-line-soft: rgba(244, 244, 243, 0.08);
+}
+
+:root {
+  /* content gutter — monopo.vn holds content off the edge by 12.58vw */
+  --pad-x: max(24px, 12.58vw);
+  --pad-hero: 40px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+}
+@media (max-width: 700px) {
+  :root {
+    --pad-x: 20px;
+    --pad-hero: 20px;
+  }
+}
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    border-color: var(--color-line);
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    overflow-x: clip;
+    word-break: keep-all; /* Korean: never break inside an eojeol */
+  }
+  ::selection {
+    background: var(--color-ink);
+    color: var(--color-paper);
+  }
+  ::-webkit-scrollbar { width: 11px; height: 11px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(244, 244, 243, 0.16);
+    border-radius: 99px;
+    border: 3px solid var(--color-paper);
+  }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(244, 244, 243, 0.3); }
+}
+
+@layer utilities {
+  .font-display { font-family: var(--font-display); }
+  .font-mono { font-family: var(--font-mono); }
+  .font-jp { font-family: var(--font-jp); }
+  .text-balance { text-wrap: balance; }
+  .text-pretty { text-wrap: pretty; }
+  .tnum { font-variant-numeric: tabular-nums; }
+  .keep-all { word-break: keep-all; }
+
+  /* content gutter */
+  .gutter { padding-inline: var(--pad-x); }
+
+  /* ── eyebrows: TWO distinct species, deliberately not merged ──
+     A. section eyebrow "→ Manifesto" — 600 / .08em, arrow is an SVG
+     B. biz label "↘ Connect"        — 400 / zero tracking, arrow is a glyph  */
+  .kicker {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(11px, 1.1vw, 14px);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(244, 244, 243, 0.55);
+  }
+  .label-arrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: max(10px, 0.83vw);
+    letter-spacing: 0;
+    text-transform: uppercase;
+    color: rgba(244, 244, 243, 0.5);
+  }
+  .label-arrow::before {
+    content: "\2198";
+    font-size: 1.08em;
+    opacity: 0.65;
+  }
+
+  /* the closing-lead measure — Korean display type, uncapped in vw */
+  .lead {
+    font-size: max(21px, 2.76vw);
+    font-weight: 500;
+    line-height: 1.12;
+    letter-spacing: -0.028em;
+    word-break: keep-all;
+  }
+  .lead-sub {
+    font-size: max(14px, 1.01vw);
+    font-weight: 400;
+    color: rgba(244, 244, 243, 0.6);
+    word-break: keep-all;
+  }
+
+  /* section rule, spanning the content gutter */
+  .rule-top {
+    position: absolute;
+    top: 0;
+    left: var(--pad-x);
+    right: var(--pad-x);
+    height: 1px;
+    background: rgba(244, 244, 243, 0.2);
+  }
+
+  /* dark glass surface */
+  .glass {
+    background: rgba(255, 255, 255, 0.045);
+    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+    backdrop-filter: blur(18px) saturate(1.2);
+    border: 1px solid rgba(244, 244, 243, 0.1);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 24px 60px -30px rgba(0, 0, 0, 0.8);
+  }
+  .glass-soft {
+    background: rgba(255, 255, 255, 0.03);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(244, 244, 243, 0.08);
+  }
+
+  /* CTA pills — solid + ghost, em-scaled so padding tracks the type */
+  .btn-ink,
+  .pill-solid {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55em;
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+    border-radius: 999px;
+    background: var(--color-ink);
+    color: #0a0a0a;
+    border: 1px solid var(--color-ink);
+    transition: background 0.3s, color 0.3s, border-color 0.3s;
+  }
+  .btn-ink:hover,
+  .pill-solid:hover { background: rgba(244, 244, 243, 0.86); }
+
+  .pill-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55em;
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--color-ink);
+    border: 1px solid rgba(244, 244, 243, 0.28);
+    transition: background 0.3s, color 0.3s, border-color 0.3s;
+  }
+  .pill-ghost:hover { border-color: rgba(244, 244, 243, 0.7); }
+
+  /* glassmorphism CTA — 표에 얹히는 보조 액션(Raw 데이터 등)을 은근히 강조 */
+  .pill-glass {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55em;
+    border-radius: 999px;
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+    background: rgba(255, 255, 255, 0.07);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    backdrop-filter: blur(16px) saturate(1.3);
+    border: 1px solid rgba(244, 244, 243, 0.16);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 10px 28px -14px rgba(0, 0, 0, 0.8);
+    transition: background 0.3s, border-color 0.3s, transform 0.3s var(--ease);
+  }
+  .pill-glass:hover {
+    background: rgba(255, 255, 255, 0.13);
+    border-color: rgba(244, 244, 243, 0.34);
+    transform: translateY(-1px);
+  }
+  .pill-glass:active { transform: translateY(0); }
+
+  /* the universal arrow hover — every ↗ in the system moves the same way */
+  .btn-ink svg,
+  .pill-solid svg,
+  .pill-ghost svg,
+  .link-arrow svg { width: 1em; height: 1em; transition: transform 0.3s var(--ease); }
+  .btn-ink:hover svg,
+  .pill-solid:hover svg,
+  .pill-ghost:hover svg,
+  .link-arrow:hover svg { transform: translate3d(0.16em, -0.16em, 0); }
+
+  /* underlined inline link with ↗ */
+  .link-arrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-ink);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(244, 244, 243, 0.4);
+    padding-bottom: 4px;
+    transition: border-color 0.3s var(--ease);
+  }
+  .link-arrow:hover { border-color: var(--color-ink); }
+
+  .edge-fade-x {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
+  }
+}
+
+/* ── the field, in CSS — powers both the loader's blooms and the
+   no-WebGL / reduced-motion fallback. Same amber→orange→pink recipe
+   as the shader, so the loader→hero handoff reads as one moment. ── */
+.l-bloom {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 50%;
+  filter: blur(64px);
+}
+.l-bloom.bl {
+  left: -12%;
+  bottom: -16%;
+  width: 64vmin;
+  height: 64vmin;
+  background: radial-gradient(
+    circle at 45% 60%,
+    rgba(255, 184, 60, 0.5),
+    rgba(255, 120, 48, 0.3) 44%,
+    rgba(230, 58, 110, 0.14) 68%,
+    transparent 80%
+  );
+}
+.l-bloom.tr {
+  right: -14%;
+  top: -18%;
+  width: 76vmin;
+  height: 76vmin;
+  background: radial-gradient(
+    circle at 56% 42%,
+    rgba(255, 184, 60, 0.44),
+    rgba(255, 120, 48, 0.26) 46%,
+    rgba(230, 58, 110, 0.12) 70%,
+    transparent 82%
+  );
+}
+.field-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background: var(--color-paper);
+}
+
+/* ── the loader: the brand's entry moment ── */
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--color-paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: opacity 0.7s ease;
+}
+.loader.hide { opacity: 0; pointer-events: none; }
+.loader .l-bloom {
+  opacity: 0;
+  will-change: opacity, transform;
+  animation: lBloomIn 2.8s cubic-bezier(0.4, 0, 0.2, 1) 0.25s forwards;
+}
+.loader .l-bloom.tr { animation-delay: 0.5s; }
+@keyframes lBloomIn {
+  from { opacity: 0; transform: scale(0.82); }
+  to { opacity: 1; transform: none; }
+}
+.loader .intro {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(22px, 3.6vw, 46px);
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+}
+.loader .caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  margin-left: 4px;
+  background: var(--color-ink);
+  animation: caretBlink 1.05s step-end infinite;
+  transition: opacity 0.2s ease;
+}
+@keyframes caretBlink {
+  0%, 50% { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
+}
+
+/* ── EN/KO overlay: both languages share ONE grid cell, swapped word by word ── */
+.mv-line { display: grid; }
+.mv-line + .mv-line { margin-top: 0.04em; }
+.mv-en-line,
+.mv-ko-line {
+  grid-column: 1;
+  grid-row: 1;
+}
+/* KO runs one weight heavier than its EN twin — optical compensation for
+   Hangul's lower stroke contrast */
+.mv-ko-line {
+  font-family: "Noto Sans KR", "Inter Tight", Helvetica, Arial, sans-serif;
+  font-weight: 600;
+  word-break: keep-all;
+}
+.mv-en-line { font-weight: 500; }
+.mv-w {
+  display: inline-block;
+  will-change: opacity;
+  transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.mv-ko-line .mv-w { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  /* no scroll reveal to trigger — give the reader the Korean outright */
+  .mv-en-line .mv-w { opacity: 0; }
+  .mv-ko-line .mv-w { opacity: 1; }
+}
+
+/* ── the brand cursor: 8px square, difference-blended ── */
+body { cursor: none; }
+.cd-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  border: 1px solid #fff;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: difference;
+}
+/* exception: real text fields keep their native caret so code entry stays obvious */
+input,
+textarea,
+[contenteditable] { cursor: text; }
+@media (hover: none), (pointer: coarse) {
+  body { cursor: auto; }
+  .cd-cursor { display: none; }
+}
+
+@keyframes drift { to { transform: translateX(-50%); } }
+.animate-drift { animation: drift 40s linear infinite; }
+
+/* repeating down-cue — the photo wall fills the viewport, so this is the only
+   signal that there is more below. Deliberately prominent. */
+@keyframes scrollcue {
+  0% { transform: translateY(-4px); opacity: 0.35; }
+  50% { transform: translateY(6px); opacity: 1; }
+  100% { transform: translateY(-4px); opacity: 0.35; }
+}
+.animate-scrollcue { animation: scrollcue 1.4s var(--ease-soft) infinite; }
+
+.scroll-cue {
+  background: rgba(255, 255, 255, 0.07);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  backdrop-filter: blur(16px) saturate(1.3);
+  border: 1px solid rgba(244, 244, 243, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 10px 30px -14px rgba(0, 0, 0, 0.8);
+  color: var(--color-ink);
+  transition: background 0.3s, border-color 0.3s, transform 0.3s var(--ease);
+}
+.scroll-cue:hover {
+  background: rgba(255, 255, 255, 0.13);
+  border-color: rgba(244, 244, 243, 0.32);
+  transform: translate(-50%, -2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,37 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+
+# env
+.env*.local
+.env
+
+# captured leads (mock persistence)
+/.leads
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+.vercel
+
+# 핸드오프 원본 zip (600MB)
+/_handoff/
+
+# 크리에이터 사진 292MB — 캠페인마다 갈아끼우는 소모성 에셋이라 git에 넣지 않는다.
+# (한 번 커밋하면 히스토리에 영구히 남아 되돌릴 수 없음)
+# 배포에는 반드시 올라가야 하므로 .vercelignore 로 업로드 규칙을 따로 관리한다.
+/public/influencer/
