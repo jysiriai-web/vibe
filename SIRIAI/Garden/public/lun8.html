@@ -2690,6 +2690,9 @@ function syncCopyBtn(){
   const n = document.querySelectorAll('#content .rowsel:checked, #content [data-gpick]:checked').length;
   b.textContent = n ? `⧉ ${n}줄 복사` : '⧉ 표 복사';
   b.classList.toggle('primary', !!n);
+  // 삭제 버튼도 고른 수를 말한다 — 몇 명을 지우는지 누르기 전에 보여야 한다.
+  const db = document.getElementById('btnDelRows');
+  if(db){ db.textContent = n ? `🗑 ${n}줄 삭제` : '🗑 선택 삭제'; db.disabled = !n; }
 }
 function syncScanBtn(){
   // 버튼이 아니라 '선택 N명' 표시를 갱신한다. 표를 다시 그리지 않고 숫자만 바꾼다.
@@ -2906,6 +2909,45 @@ async function copyTable(btn){
       `<button class="btn" onclick="closeModal()">닫기</button>`);
     setTimeout(()=>{ const b=document.getElementById('cpBox'); if(b){ b.focus(); b.select(); } }, 60);
   }
+}
+/* 선택 삭제 — 체크한 줄을 마스터에서 지운다.
+   되돌릴 수 없어서 ① 이름을 나열해 확인받고 ② 지운 값을 작업 기록(토스트)에 남긴다.
+   ⚠️ 모집시트에 아직 남아 있는 사람은 다음 [모집 가져오기] 때 다시 들어온다 —
+   폼이 원본이기 때문이다. 그 사실을 확인창에 적는다. */
+async function deleteSelected(){
+  const tbl = document.querySelector('#content table[data-tid]');
+  if(!tbl) return toast('표가 없어요.');
+  const trs = [...tbl.querySelectorAll('tbody tr')].filter(tr=>{
+    const c = tr.querySelector('.rowsel,[data-gpick]'); return c && c.checked; });
+  if(!trs.length) return toast('지울 줄을 먼저 체크해주세요.');
+  // 화면 행 → 사람. 표마다 행 모양이 달라 이름으로 찾는다.
+  const picked = [];
+  trs.forEach(tr=>{
+    const nick = (tr.querySelector('.nick')||{}).innerText;
+    const d = D.find(x=> nick && String(nick).trim().startsWith(String(x.nick).trim()));
+    if(d && !picked.includes(d)) picked.push(d);
+  });
+  if(!picked.length) return toast('고른 줄에서 사람을 못 찾았어요 — 새로고침 후 다시 해주세요.');
+  const rows = [...new Set(picked.map(d=>d.id))].filter(r=> r>1 && r<100000);
+  if(!rows.length) return toast('시트에 없는 행이에요.');
+  const L = [`고른 ${picked.length}명을 마스터시트에서 지울까요?`, ''];
+  picked.slice(0,15).forEach(d=> L.push(`  · ${d.nick}` + (d.tk?` @${d.tk.h}`:'') + (d.ig?` / ${d.ig.h}`:'')));
+  if(picked.length>15) L.push(`  · 외 ${picked.length-15}명`);
+  L.push('', '되돌릴 수 없어요. 지운 값은 작업 기록에 남습니다.',
+         '모집시트에 아직 있는 사람은 다음 [모집 가져오기] 때 다시 들어와요.');
+  if(!confirm(L.join(String.fromCharCode(10)))) return;
+  try {
+    const res = await fetch(localApi('/api/rows/delete?campaign=' + state.campaign), { method:'POST',
+      headers:{'Content-Type':'application/json'}, body: JSON.stringify({ rows }) });
+    const j = await res.json();
+    if(j.error) throw new Error(j.error);
+    toast(`<b>${j.deleted}명</b> 지웠어요` + (j.overridesShifted?` · 검수 잠금 ${j.overridesShifted}건 정리`:'') + '.');
+    await loadData();
+  } catch(e){ toast('삭제 실패: ' + esc(e.message||e), 'bad'); }
+}
+function delBtn(){
+  if(!LOCAL.on) return '';   // 사람 명단을 지우는 일 — 팀 URL 에서는 안 보이게
+  return `<button class="btn small danger" id="btnDelRows" title="체크한 줄을 마스터시트에서 지워요 — 되돌릴 수 없어요">🗑 선택 삭제</button>`;
 }
 function copyBtn(){
   return `<button class="btn small" id="btnCopyTbl" title="지금 보이는 표를 엑셀에 붙일 수 있게 복사해요 — 줄을 체크하면 그것만">⧉ 표 복사</button>`;
@@ -3813,7 +3855,7 @@ function gardenSvcNote(){
 // 모집탭 도구 — 하위탭 줄 오른쪽 끝. 빈 열 배지(hideSlot)도 같이 담아 한 그룹으로 오른쪽에 붙인다.
 function recruitTools(){
   return `<span class="rec-tools">${searchBox()}<button class="btn small${state.briefOpen?' primary':''}" id="btnBrief" title="지금 상태를 문장으로 — 보고·문의 답변에 그대로 쓰세요">📋 현황</button><span id="hideSlot"></span>${resetBtn()}`
-    + copyBtn()
+    + copyBtn() + delBtn()
     + `<button class="btn small" id="btnRecScan" title="지원 응답시트에서 새로 지원한 사람을 마스터시트로 가져와요">⬇ 모집 가져오기</button>`
     + `<button class="btn small" id="btnAddPerson">${IC.userplus} 인원 추가</button>`
     + `<button class="btn small" id="btnReload">↻ 새로고침</button></span>`;
@@ -3980,7 +4022,7 @@ function platSubtabs(){
     ${state.view==='upload' ? ((g)=>`<button class="subtab gone ${state.plat==='dropped'?'active':''}" data-plat="dropped" title="결론이 난 사람 — 확보 건수에서 빠지고 추가 모집 계산에 들어갑니다"><span class="dot"></span>최종 드랍 <span class="cmuted">${g}건</span></button>`)(droppedGeon()) : ''}
     ${state.view==='garden' ? `<button class="subtab hist ${state.plat==='hist'?'active':''}" data-plat="hist"><span class="dot"></span>집행 내역 <span class="cmuted">${ORDERS.length}</span></button>` : ''}
     ${state.view==='recruit' ? recruitSubtabs() : ''}
-    ${state.view==='recruit' ? recruitTools() : `${gardenSvcNote()}<span class="sub-tools">${searchBox()}<button class="btn small${state.briefOpen?' primary':''}" id="btnBrief" title="지금 상태를 문장으로 — 보고·문의 답변에 그대로 쓰세요">📋 현황</button><span id="hideSlot" class="sub-hide"></span>${resetBtn()}${copyBtn()}</span>`}</div>`;
+    ${state.view==='recruit' ? recruitTools() : `${gardenSvcNote()}<span class="sub-tools">${searchBox()}<button class="btn small${state.briefOpen?' primary':''}" id="btnBrief" title="지금 상태를 문장으로 — 보고·문의 답변에 그대로 쓰세요">📋 현황</button><span id="hideSlot" class="sub-hide"></span>${resetBtn()}${copyBtn()}${delBtn()}</span>`}</div>`;
 }
 /* ============ 매뉴얼 · 가이드 ============
    내용은 public/knowledge.js 하나뿐이다(MANUAL/GUIDE). 여기서 복붙하지 않는다 —
@@ -5063,6 +5105,7 @@ document.getElementById('content').addEventListener('click', e=>{
   { const nf = e.target.closest('[data-contentf]');
     if(nf){ state.hasContent = nf.dataset.contentf==='1'; render(); return; } }
   { const b = e.target.closest('#btnCopyTbl'); if(b){ copyTable(b); return; } }
+  { const b = e.target.closest('#btnDelRows'); if(b){ deleteSelected(); return; } }
   { const sa = e.target.closest('.rowselall');
     if(sa){ document.querySelectorAll('#content .rowsel').forEach(x=>{ x.checked = sa.checked; });
       syncCopyBtn(); return; } }

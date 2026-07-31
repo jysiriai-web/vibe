@@ -10,7 +10,7 @@ import { createSmm } from './smm.js';
 import { classify } from './garden.js';
 import { refreshOrders, inFlightFor } from './orders.js';
 import { runAutoRefill, refillServiceIds, REFILL_WINDOW_DAYS } from './refill.js';
-import { runSheetSetup, getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet, syncRecruitToSheet, deliverToSheet, readFeedbackFromSheet, addFeedbackToSheet, markFeedbackDone, addPersonToSheet } from './sheet.js';
+import { runSheetSetup, getAccountsFromSheet, pushFollowersToSheet, pushCellsToSheet, syncRecruitToSheet, deliverToSheet, deleteRowsFromSheet, readFeedbackFromSheet, addFeedbackToSheet, markFeedbackDone, addPersonToSheet } from './sheet.js';
 import { scanAccounts, buildPlan, placeOrders, findService, tiktokOnly, igFollowers } from './execute-core.js';
 import { normH } from './orders.js';
 import { runIgSync } from './ig-sync.js';
@@ -730,6 +730,22 @@ export async function handler(req, res) {
         }
       }
       return send(res, 200, { ok: true, count: arr.length, before: before.length, changed: changed.length, mineChanged });
+    }
+
+    /* 선택 삭제 — 마스터에서 행을 지운다.
+       ⚠️ 되돌릴 수 없다. 그래서 ① 지운 행의 값을 통째로 응답에 실어 보내고(작업 기록에 남는다)
+       ② 대표님 PC 에서만 되게 막는다. 공개 URL 로 사람 명단을 지울 수 있으면 안 된다. */
+    if (path === '/api/rows/delete' && req.method === 'POST') {
+      const body = await readBody(req);
+      const rows = (Array.isArray(body.rows) ? body.rows : []).map(Number).filter((n) => Number.isFinite(n) && n > 1);
+      if (!rows.length) return send(res, 400, { error: '지울 행이 없어요' });
+      let r;
+      try { r = await deleteRowsFromSheet(campaign.sheet, rows); }
+      catch (e) { return send(res, 502, { error: '삭제 실패: ' + ((e && e.message) || e) }); }
+      if (r && r.error) return send(res, 400, { error: r.error });
+      /* 잠금이 밀렸으니 로컬 캐시도 버린다 — 안 그러면 옛 행 번호로 다시 써서 되돌아간다. */
+      try { clearOverrideStore(campaign); } catch {}
+      return send(res, 200, { ok: true, ...r });
     }
 
     // 수기 팔로워 입력 → 시트에 되쓰기 (스크래핑 안 되는 계정용, 예: @kotanissy)

@@ -97,6 +97,13 @@ export async function runSheetSetup(sheet, name) {
 }
 
 // 검수완료 콘텐츠 → 납품시트(다른 스프레드시트)에 기입. deliver = { sheetId, rows:[{nick,link,contentLink,viewNote}] }.
+/* 마스터에서 행을 지운다 — 대시보드 '선택 삭제'.
+   브릿지가 잠금(overrides)까지 같이 밀어 준다(행 번호가 키라서). */
+export async function deleteRowsFromSheet(sheet, rows) {
+  ensure(sheet);
+  return await bridgePost(sheet, { deleteRows: rows });
+}
+
 export async function deliverToSheet(sheet, deliverySheetId, rows, plat) {
   ensure(sheet);
   // plat 을 넘겨야 브릿지가 그 플랫폼 탭을 고른다. 안 넘기면 탭이 하나일 때만 동작한다.

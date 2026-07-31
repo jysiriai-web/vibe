@@ -922,6 +922,58 @@ function setCell_(sh, row, col, value, field, skipCell) {
   }
 }
 
+/* 행 삭제 — 대시보드에서 고른 사람을 마스터에서 지운다.
+ *
+ * ⚠️ 왜 조심해야 하나: 검수 잠금(_state.overrides)이 **행 번호**를 키로 쓴다. 행을 지우면
+ * 그 아래 사람들이 한 칸씩 올라오는데 잠금은 그대로라, 엉뚱한 사람의 칸이 잠긴 채 남는다.
+ * 다음 스캔이 그 사람 값을 못 고치고, 아무도 이유를 모른다. 그래서 지운 뒤 잠금도 같이 민다.
+ *
+ * 안전장치
+ *  · 아래에서 위로 지운다 — 위에서부터 지우면 남은 번호가 그때그때 밀려 엉뚱한 행을 지운다.
+ *  · 지우기 전에 그 행의 값을 통째로 담아 돌려준다(되돌릴 근거).
+ *  · 헤더행 위(요약·헤더)는 절대 안 지운다.
+ *  · 한 번에 지울 수 있는 수를 제한한다 — 실수로 전체를 넘기면 캠페인이 통째로 날아간다.
+ */
+function deleteRows_(rows) {
+  var sh = getSheet_();
+  var hRow = lun8Head_ ? lun8Head_(sh) : 8;
+  var list = (rows || []).map(Number).filter(function (r) { return r > hRow; });
+  list = list.filter(function (r, i) { return list.indexOf(r) === i; }).sort(function (a, b) { return b - a; });
+  if (!list.length) return { error: '지울 행이 없어요(헤더 위 행은 못 지웁니다)' };
+  if (list.length > 30) return { error: '한 번에 30행까지만 지울 수 있어요 — ' + list.length + '행이 들어왔습니다.' };
+
+  var lastCol = sh.getLastColumn();
+  var snapshot = [];
+  for (var i = 0; i < list.length; i++) {
+    var r = list[i];
+    if (r > sh.getLastRow()) continue;
+    try { snapshot.push({ row: r, values: sh.getRange(r, 1, 1, lastCol).getValues()[0] }); } catch (e) {}
+    sh.deleteRow(r);
+  }
+  SpreadsheetApp.flush();
+
+  /* 잠금을 같이 민다. 지운 행보다 아래였던 것은 지운 개수만큼 번호가 줄어든다.
+     지운 행 자신의 잠금은 버린다 — 그 사람이 없어졌으니 잠글 칸도 없다. */
+  var shifted = 0;
+  try {
+    var st = readState_();
+    var ov = st.overrides || {};
+    var next = {};
+    for (var k in ov) {
+      var n = Number(k);
+      if (!isFinite(n)) { next[k] = ov[k]; continue; }        // 숫자 아닌 키는 그대로
+      if (list.indexOf(n) >= 0) { shifted++; continue; }      // 지운 행의 잠금 — 버린다
+      var below = 0;
+      for (var j = 0; j < list.length; j++) if (list[j] < n) below++;
+      if (below) shifted++;
+      next[String(n - below)] = ov[k];
+    }
+    writeState_({ overrides: next });
+  } catch (e) { return { deleted: snapshot.length, rows: list, snapshot: snapshot, overrideError: String(e) }; }
+
+  return { deleted: snapshot.length, rows: list, snapshot: snapshot, overridesShifted: shifted };
+}
+
 function doPost(e) {
   try {
     var body;
@@ -929,6 +981,7 @@ function doPost(e) {
     if (!TOKEN) return json_({ error: 'bridge token not configured' });   // 위 doGet 과 같은 이유
     if ((body.token || '') !== TOKEN) return json_({ error: 'unauthorized' });
     initCols_(); // 헤더 기반 열 매핑 — cells 의 필드명 해석·마스터 쓰기에 사용
+    if (body.deleteRows) return json_(deleteRows_(body.deleteRows));   // 대시보드 '선택 삭제'
     if (body.deliver) return json_(deliverReviewed_(body.deliver.sheetId, body.deliver.rows, body.deliver.plat)); // 검수완료 → 납품시트 기입 (자체 헤더 탐색이라 COL 무관)
     // 내용이 있을 때만 분기 — 빈 배열 []/빈 객체 {} 는 truthy 라, 그냥 두면
     // {updates:[...], orders:[]} 같은 요청이 updates 를 조용히 건너뛴다.
