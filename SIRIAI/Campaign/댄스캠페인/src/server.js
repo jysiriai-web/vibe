@@ -132,7 +132,7 @@ import { getMarketUsdKrw } from './fx.js';
 import { EDITABLE_FIELDS, OVERRIDE_FIELDS, LEGACY_COL_FIELD, reviewText } from './overrides.js';
 // 상태 계층 — GARDEN_STATE=sheet 면 시트가 진실, 기본(local)은 지금까지처럼 로컬 파일.
 import { CLOUD, isLocalOnly, cloudConfigError } from './cloud.js';
-import { mode as stateMode, readOrders, writeOrders, updateOrders, readOverrides, setOverrideStore, clearOverrideStore, readBest, toggleBest, readAll, pendingState } from './store.js';
+import { mode as stateMode, readOrders, writeOrders, updateOrders, readOverrides, setOverrideStore, clearOverrideStore, resetOverridesFromSheet, readBest, toggleBest, readAll, pendingState } from './store.js';
 
 loadEnv();
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -743,9 +743,14 @@ export async function handler(req, res) {
       try { r = await deleteRowsFromSheet(campaign.sheet, rows); }
       catch (e) { return send(res, 502, { error: '삭제 실패: ' + ((e && e.message) || e) }); }
       if (r && r.error) return send(res, 400, { error: r.error });
-      /* 잠금이 밀렸으니 로컬 캐시도 버린다 — 안 그러면 옛 행 번호로 다시 써서 되돌아간다. */
-      try { clearOverrideStore(campaign); } catch {}
-      return send(res, 200, { ok: true, ...r });
+      /* 잠금이 밀렸으니 로컬 캐시도 시트 값으로 맞춘다 — 안 그러면 옛 행 번호가
+         되살아나 그 자리에 올라온 다른 사람의 칸이 잠긴다.
+         ⚠️ 실패를 삼키면 안 된다. 여기서 못 맞추면 다음 읽기 때 잠금이 어긋난 채로
+         시트에 되쓰이므로, 사람이 알고 새로고침이라도 해야 한다. */
+      let ovWarn = null;
+      try { await resetOverridesFromSheet(campaign); }
+      catch (e) { ovWarn = '검수 잠금 정리가 안 됐어요 — 화면을 새로고침해주세요: ' + ((e && e.message) || e); }
+      return send(res, 200, { ok: true, ...r, ovWarn });
     }
 
     // 수기 팔로워 입력 → 시트에 되쓰기 (스크래핑 안 되는 계정용, 예: @kotanissy)

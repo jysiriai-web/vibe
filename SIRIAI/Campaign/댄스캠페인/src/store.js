@@ -210,6 +210,30 @@ export function setOverrideStore(campaign, row, field, value) {
     return writeOverrides(campaign, ov);
   });
 }
+/* 행 삭제 뒤 — 로컬 잠금 캐시를 시트 쪽 '밀린' 값으로 통째로 갈아끼운다.
+ *
+ * ⚠️ 왜 union 이 아니라 '갈아끼우기' 인가:
+ * 브릿지가 행을 지우면서 시트의 잠금 키를 밀어 준다(92→91 …). 그런데 로컬 파일에는
+ * 옛 키가 그대로 남는다. readOverrides 는 로컬을 시트에 **합쳐서 되쓰기**까지 하므로
+ * (unionOverrides → putOverrides), 다음 읽기 한 번이면 옛 행번호 잠금이 되살아나
+ * 그 자리에 올라온 **다른 사람의 칸**이 잠긴다. 그 사람은 다음 스캔이 값을 못 고치는데
+ * 아무도 이유를 모른다 — 행 삭제가 조용히 남의 데이터를 망가뜨리는 경로다.
+ *
+ * (예전엔 이 자리에서 clearOverrideStore(campaign) 를 불렀다. 그건 '칸 하나'를 지우는
+ *  함수라 row·field 없이 부르면 ov['undefined'] 를 찾다 그냥 빠져나가는 완전한 무동작이었다.)
+ */
+export function resetOverridesFromSheet(campaign) {
+  return withLock(`${campaign.id}:ov`, async () => {
+    let ov = {};
+    // 시트를 못 읽으면 로컬을 건드리지 않는다 — 빈 값으로 갈아끼우면 잠금이 통째로 날아간다.
+    if (isSheet()) ov = normalizeOverrides((await getState(campaign.sheet)).overrides || {});
+    else return { skipped: '시트 모드가 아니라 그대로 둡니다' };
+    writeJson(campaign.dataDir, ovFile(campaign.dataDir), ov);
+    clearPending(campaign, 'overrides');
+    return { local: 'ok', count: Object.keys(ov).length };
+  });
+}
+
 export function clearOverrideStore(campaign, row, field) {
   return withLock(`${campaign.id}:ov`, async () => {
     const ov = await readOverrides(campaign);
