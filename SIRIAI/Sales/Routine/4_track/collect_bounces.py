@@ -23,7 +23,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import gmail_read  # noqa: E402  (읽기 전용)
 
-SHEET_ID = "1ebBKzcX3dEN77EElLBWn1fHZtBFOLoPz8upDLvdO2kQ"
+sys.path.insert(0, str(HERE.parent))                    # Routine/ (for _shared)
+from _shared.config import MASTER_SHEET_ID as SHEET_ID  # noqa: E402  단일 출처(하드코딩 금지)
 SA_JSON = HERE.parent / "secrets" / "service_account.json"
 
 # 하드 바운스(영구 실패) 신호. 5.x.x = 영구, 4.x.x = 일시라 제외한다.

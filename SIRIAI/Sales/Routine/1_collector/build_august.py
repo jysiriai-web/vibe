@@ -21,7 +21,8 @@ try:
 except Exception:
     pass
 
-ASSET_ID = "1Op-L_x1IWMX77N11lLON9WcwMvZ9EWpt09tCq4r4FGM"
+sys.path.insert(0, str(ROOT))                        # Routine/ (for _shared)
+from _shared.config import SHEET_ID as ASSET_ID      # noqa: E402  레거시 자산시트(단일 출처)
 OUT = ROOT.parent / "intercharm" / "data" / "august_seed.csv"
 
 # 8월 탭 스키마 — 앞쪽은 작업용(보임), 뒤쪽은 6월 원천 데이터(숨김)

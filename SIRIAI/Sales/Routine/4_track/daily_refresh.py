@@ -19,6 +19,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent          # 4_track/
 ROOT = HERE.parent                               # Routine/
 PY = ROOT / ".venv" / "Scripts" / "python.exe"
+DAILY_N = 10          # 하루에 준비할 발송 후보 수
 
 try:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -82,6 +83,15 @@ def main() -> int:
     ok1 = run("sync_replies")
     ok2 = run("collect_bounces", days=7)
 
+    # 평일이면 오늘 발송 후보도 미리 뽑아 둔다(주말은 건너뜀).
+    # 사람이 아침에 시트를 열면 그날 것만 필터돼 보이는 상태가 되어 있다.
+    if datetime.now().weekday() < 5:
+        sys.path.insert(0, str(ROOT / "3_send"))
+        ok3 = run("prepare_daily", n=DAILY_N, recheck=False, date="", clear=False)
+    else:
+        print("[prepare_daily] 주말 — 건너뜀")
+        ok3 = True
+
     # 확인시각 스탬프 + 오늘 요약 — 시트 우상단(N2) / 메모(D2)
     try:
         sys.path.insert(0, str(ROOT / "3_send"))
@@ -98,7 +108,7 @@ def main() -> int:
         print("스탬프 완료")
     except Exception as e:
         print("스탬프 실패:", e)
-    return 0 if (ok1 and ok2) else 1
+    return 0 if (ok1 and ok2 and ok3) else 1
 
 
 class _Tee:

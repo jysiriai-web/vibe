@@ -19,6 +19,12 @@ except Exception:
     pass
 
 # --- 시트 연결 (공유) ---
+# ★현행 마스터 = 세일즈 마스터시트(인터참). 신규 자동화는 전부 이걸 쓴다.
+#   시트가 바뀌면 여기만 고치면 됨(하드코딩 금지).
+MASTER_SHEET_ID = os.environ.get(
+    "MASTER_SHEET_ID", "1ebBKzcX3dEN77EElLBWn1fHZtBFOLoPz8upDLvdO2kQ"
+)
+# 레거시 = 브랜드 에셋 리스트(구 6월/7월 파이프라인). 옛 모듈들이 아직 참조.
 SHEET_ID = os.environ.get(
     "SHEET_ID", "1Op-L_x1IWMX77N11lLON9WcwMvZ9EWpt09tCq4r4FGM"
 )

@@ -12,7 +12,8 @@
 
 고르는 기준(위에서부터):
   적합도=적합 · 제외 사유 없음 · 발송 안 됨 · 예정일 없음
-링크가 죽어 있으면 후보에서 빼고 '링크 점검' 열에 남긴다 — 판단은 사람이 한다.
+링크가 죽어 있으면 후보에서 빼고 '링크 점검' 열에 남긴다.
+정상인 경우엔 아무것도 쓰지 않는다 — 빈칸이 곧 '이상 없음'이다.
 """
 from __future__ import annotations
 
@@ -91,6 +92,17 @@ def main(a) -> int:
             print("  미리보기입니다. 반영하려면 --apply")
         return 0
 
+    # 지난 날짜로 잡혀 있는데 안 보낸 행은 예정 해제 — 하루 걸러도 후보 풀로 돌아오게
+    if not a.recheck:
+        stale = [i for i, r in enumerate(grid[8:], 9)
+                 if g(r, cPlan) and g(r, cPlan) < today and not g(r, cSend)]
+        if stale:
+            print(f"  지난 예정일 {len(stale)}건 해제(미발송) — 다시 후보로")
+            if a.apply:
+                ws.update_cells([gspread.Cell(i, cPlan + 1, "") for i in stale],
+                                value_input_option="USER_ENTERED")
+                grid = ws.get_all_values()
+
     if a.recheck:
         pool = [(i, r) for i, r in enumerate(grid[8:], 9) if g(r, cPlan) == today]
         print(f"■ {today} 예정 {len(pool)}건 재점검")
@@ -110,11 +122,13 @@ def main(a) -> int:
     for (i, r), st in zip(pool, checks):
         (dead if st.startswith("응답없음") else ok).append((i, r, st))
 
-    print(f"  링크 정상·확인필요 {len(ok)} · 응답없음 {len(dead)}")
+    odd = [x for x in ok if x[2] != "정상"]
+    print(f"  링크 이상 {len(odd) + len(dead)}건" + (" (전부 정상)" if not odd and not dead else ""))
     print()
     for i, r, st in ok:
         mark = "  ※신뢰도확인" if g(r, cTrust) != "높음" else ""
-        print(f"  {i:>4} {g(r,cName)[:18]:20} {g(r,cTrust) or '(빈칸)':5} {st:16}{mark}")
+        note = "" if st == "정상" else f"  ⚠{st}"
+        print(f"  {i:>4} {g(r,cName)[:18]:20} {g(r,cTrust) or '(빈칸)':5}{note}{mark}")
         print(f"       개인화: {g(r,cHook)[:72]}")
     if dead:
         print()
@@ -128,7 +142,9 @@ def main(a) -> int:
 
     cells = []
     for i, r, st in ok:
-        cells.append(gspread.Cell(i, cChk + 1, f"{st} {datetime.now():%m/%d}"))
+        # 정상은 기록하지 않는다(빈칸 = 이상 없음). 이상할 때만 눈에 띄게.
+        cells.append(gspread.Cell(i, cChk + 1,
+                                    "" if st == "정상" else f"{st} {datetime.now():%m/%d}"))
         if not a.recheck:
             cells.append(gspread.Cell(i, cPlan + 1, today))
     for i, r, st in dead:

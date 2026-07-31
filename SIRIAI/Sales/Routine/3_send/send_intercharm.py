@@ -35,7 +35,8 @@ SENDER = "SIRIAI 조준용 <jysiriai@gmail.com>"
 GAP = (10, 25)  # 9~10시 1시간 내 180건 (평균 17.5초 → 약 53분)
 
 
-SHEET_ID = "1ebBKzcX3dEN77EElLBWn1fHZtBFOLoPz8upDLvdO2kQ"
+sys.path.insert(0, str(HERE.parent))                    # Routine/ (for _shared)
+from _shared.config import MASTER_SHEET_ID as SHEET_ID  # noqa: E402  단일 출처(하드코딩 금지)
 SA_JSON = HERE.parent / "secrets" / "service_account.json"
 
 
