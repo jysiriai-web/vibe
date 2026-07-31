@@ -1,0 +1,66 @@
+[
+  {
+    "code": "EKC9325",
+    "cat": "기타",
+    "intro": "K뷰티 화장품 OEM·ODM 제조사, 비건·클린뷰티 전문",
+    "verdict": "제외",
+    "basis": "OEM/ODM 수탁 전문, 자체 브랜드 없음",
+    "homepage": "https://www.ek-cos.com"
+  },
+  {
+    "code": "LRO4793",
+    "cat": "기타",
+    "intro": "친환경·디자인 중심 글로벌 화장품 용기 제조 기업",
+    "verdict": "제외",
+    "basis": "화장품 용기·패키징 부자재 제조",
+    "homepage": "http://www.lroad.co.kr"
+  },
+  {
+    "code": "UNS7209",
+    "cat": "기타",
+    "intro": "독일·일본 기술 기반 화학 원료 수입·도매 기업",
+    "verdict": "제외",
+    "basis": "화학제품 도매업, 완제품 없음",
+    "homepage": ""
+  },
+  {
+    "code": "YCF5388",
+    "cat": "기타",
+    "intro": "Dow·Solvay 등 글로벌 화학 원료 공급 유통사",
+    "verdict": "제외",
+    "basis": "화학 원료 유통 B2B",
+    "homepage": ""
+  },
+  {
+    "code": "YUH9170",
+    "cat": "이너뷰티",
+    "intro": "국내 대표 제약사, 건기식·생활용품 자체 브랜드 운영",
+    "verdict": "타겟",
+    "basis": "원더씬·마그비 등 자체 건기식 직판",
+    "homepage": "https://www.yuhan.co.kr"
+  },
+  {
+    "code": "RED9716",
+    "cat": "스킨케어",
+    "intro": "필러·스킨부스터와 자체 스킨케어 브랜드 보유 기업",
+    "verdict": "타겟",
+    "basis": "자사몰서 소비자용 스킨케어 판매",
+    "homepage": ""
+  },
+  {
+    "code": "LEA9053",
+    "cat": "스킨케어",
+    "intro": "마스크팩·PDRN 스킨케어 자체 브랜드 보유 화장품사",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 완제품 소비자 직판",
+    "homepage": ""
+  },
+  {
+    "code": "CEL8757",
+    "cat": "스킨케어",
+    "intro": "메디컬 디바이스 기업, 미백 화장품 WhiteORA 운영",
+    "verdict": "타겟",
+    "basis": "WhiteORA 세럼 소비자 직판",
+    "homepage": ""
+  }
+]

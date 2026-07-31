@@ -1,0 +1,79 @@
+<!-- SIRIAI 콜드메일 — 일반세일즈 / 화려한 v2 "기깔" 초안 (2026-06-18)
+     종합: 화려한A(클릭 카드) + 키비주얼 밴드(눈에 확) + 레퍼런스 적용(제목·프리뷰·역피라미드·불릿프루프 버튼·소프트질문 CTA).
+     구조: [단정 한마디]→[→ 떡밥=클릭], 박스 전체 링크, 답은 랜딩 앵커. 톤=하십시오체 단정(해요체 금지). 브랜드명 인사 1회.
+     하이브리드: 이미지 꺼져도 텍스트로 살아남음. 키비주얼은 색 밴드(=Gmail 안전). 더 화려하게: {{hero_img}}에 디자인 배너 <img> 교체.
+     슬롯: {{brand}} {{hook}} {{land}} {{home}} · 앵커 #different #work #how #global
+     ▸ 제목(발송 시 설정·질문형·브랜드 주어·스팸어 금지): "{{brand}} 인플루언서, 기준 있으십니까?" / "{{brand}}, 맞는 사람 고르고 계십니까?" / "{{brand}} 인플루언서, 몇 명이나 써보셨습니까?"
+     ▸ 프리헤더 = 위 숨김 div(제목의 '다음 문장'·≤45자). hook = {{brand}}별 관찰 1줄(격식체).
+     ⚠️ '3,000+'는 대표님 카피(준용 확인). 표시규칙: 단가 비노출·미검증수치 배제·해외 직접운영 표현 게이트.
+     토큰: Paper #F3EEE2·Ink #211A33·웜워시 #F6C9A8·링크 #2A6FDB·카드 #FBF7EE·라벨 JetBrains Mono. 검정블록·이모지 금지. max 560. -->
+<div style="font-family:'Pretendard',Arial,sans-serif;font-size:14px;line-height:1.7;color:#211A33;background:#F3EEE2;max-width:560px;margin:0 auto;word-break:keep-all">
+
+  <!-- 프리헤더(수신함 미리보기·화면엔 안 보임·≤45자·제목의 '다음 문장'). 없으면 본문 첫 줄이 노출됨 -->
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#F3EEE2;opacity:0">같은 인플루언서 풀, 다들 똑같이 돌려 씁니다.</div>
+
+  <!-- 키비주얼 밴드 (3초 안에 잡기) — 실제 배너 이미지 쓰려면 이 블록을 <img src="{{hero_img}}"> 로 교체 -->
+  <div style="background:#211A33;padding:30px 30px 26px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(243,238,226,.55)">SIRIAI · Influencer Matching</div>
+    <div style="height:1px;background:rgba(246,201,168,.55);width:38px;margin:13px 0 15px"></div>
+    <div style="font-family:'Helvetica Neue',Arimo,sans-serif;font-size:23px;font-weight:700;line-height:1.32;letter-spacing:-.01em;color:#F3EEE2">인플루언서, '많이'가 아니라<br><span style="color:#F6C9A8">'맞게'.</span></div>
+    <div style="font-size:13px;color:rgba(243,238,226,.7);margin-top:10px">{{brand}}에 맞는 분만, 인스타그램 전체에서 직접 선별합니다.</div>
+  </div>
+
+  <div style="padding:28px 30px 32px">
+    <p style="margin:0 0 14px">안녕하세요, {{brand}} 담당자님.<br>SIRIAI(시리아이)입니다.</p>
+    <p style="margin:0 0 22px">{{hook}}</p>
+
+    <p style="margin:0 0 14px;color:rgba(33,26,51,.6);font-size:13px">궁금하실 것만 짧게 정리했습니다. 눌러보십시오.</p>
+
+    <!-- 클릭 카드 그리드 (역피라미드 → 하단 CTA로 수렴) -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 4px">
+      <tr>
+        <td width="50%" valign="top" style="padding:0 5px 10px 0">
+          <a href="{{land}}#different" style="display:block;background:#FBF7EE;border:1px solid rgba(33,26,51,.12);border-left:3px solid rgba(246,201,168,.9);border-radius:12px;padding:15px;text-decoration:none;color:#211A33">
+            <span style="display:block;font-size:15px;font-weight:700;letter-spacing:-.01em">확실하게 다릅니다.</span>
+            <span style="font-size:12px;color:#2A6FDB">어떻게 다를까요? →</span>
+          </a>
+        </td>
+        <td width="50%" valign="top" style="padding:0 0 10px 5px">
+          <a href="{{land}}#work" style="display:block;background:#FBF7EE;border:1px solid rgba(33,26,51,.12);border-left:3px solid rgba(246,201,168,.9);border-radius:12px;padding:15px;text-decoration:none;color:#211A33">
+            <span style="display:block;font-size:15px;font-weight:700;letter-spacing:-.01em">3,000+ 브랜드와 일했습니다.</span>
+            <span style="font-size:12px;color:#2A6FDB">어떤 브랜드일까요? →</span>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td width="50%" valign="top" style="padding:0 5px 0 0">
+          <a href="{{land}}#how" style="display:block;background:#FBF7EE;border:1px solid rgba(33,26,51,.12);border-left:3px solid rgba(246,201,168,.9);border-radius:12px;padding:15px;text-decoration:none;color:#211A33">
+            <span style="display:block;font-size:15px;font-weight:700;letter-spacing:-.01em">퀄리티부터 프로세스까지 쉽습니다.</span>
+            <span style="font-size:12px;color:#2A6FDB">얼마나 쉬울까요? →</span>
+          </a>
+        </td>
+        <td width="50%" valign="top" style="padding:0 0 0 5px">
+          <a href="{{land}}#global" style="display:block;background:#FBF7EE;border:1px solid rgba(33,26,51,.12);border-left:3px solid rgba(246,201,168,.9);border-radius:12px;padding:15px;text-decoration:none;color:#211A33">
+            <span style="display:block;font-size:15px;font-weight:700;letter-spacing:-.01em">국내도, 해외도 봅니다.</span>
+            <span style="font-size:12px;color:#2A6FDB">어디까지 할까요? →</span>
+          </a>
+        </td>
+      </tr>
+    </table>
+
+    <!-- 불릿프루프 1차 CTA (Outlook 안전 table 버튼) -->
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:22px 0 8px"><tr>
+      <td align="center" bgcolor="#211A33" style="border-radius:100px">
+        <a href="{{land}}" style="display:inline-block;padding:14px 30px;font-family:'Pretendard',Arial,sans-serif;font-size:14px;font-weight:600;color:#F3EEE2;text-decoration:none;border-radius:100px">{{brand}} 맞춤으로 1분 둘러보기 →</a>
+      </td>
+    </tr></table>
+    <p style="margin:0 0 24px;font-size:13px"><a href="{{home}}" style="color:#2A6FDB;text-decoration:none">회사·서비스 자세히 보기 →</a></p>
+
+    <!-- 소프트 질문 클로저 (답장률↑) -->
+    <p style="margin:0 0 4px">지금 인플루언서, 어떻게 고르고 계십니까?</p>
+    <p style="margin:0 0 24px">한 줄만 주시면 {{brand}}에 맞는 후보부터 정리해 보내겠습니다.</p>
+
+    <div style="border-top:1px solid rgba(33,26,51,.13);padding-top:16px;color:rgba(33,26,51,.66);font-size:13px">
+      <div style="font-family:'Helvetica Neue',Arimo,sans-serif;font-size:18px;font-weight:700;letter-spacing:.02em;color:#211A33;margin-bottom:8px">SIRIAI</div>
+      <div style="font-weight:600;color:#211A33">조준용 Jun Yong Cho · Sales Manager</div>
+      <div>M (+82) 10-7552-4320 · E <a href="mailto:jysiriai@gmail.com" style="color:#2A6FDB;text-decoration:none">jysiriai@gmail.com</a></div>
+    </div>
+  </div>
+</div>

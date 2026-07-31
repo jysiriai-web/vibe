@@ -1,0 +1,11 @@
+# Routine 공유 — 절대 커밋 금지
+secrets/
+.env
+
+# 공유 환경
+.venv/
+__pycache__/
+*.pyc
+
+# 0_intake 소싱 working 프로필 (재생성물 — checkpoint.py init이 매번 생성)
+0_intake/profiles/_working.json

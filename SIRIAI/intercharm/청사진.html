@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INTERCHARM 신규 클라 확보 플랜 — SIRIAI</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F3EEE2; --ink:#211A33;
+    --ink-2:rgba(33,26,51,.66); --ink-3:rgba(33,26,51,.46);
+    --line:rgba(33,26,51,.13); --line-2:rgba(33,26,51,.08);
+    --accent:#2A6FDB;
+    --peach:rgba(246,201,168,.5); --lilac:rgba(221,208,239,.45); --cream:rgba(255,224,196,.4);
+    --card:rgba(255,255,255,.42); --card-2:rgba(255,255,255,.28);
+    --disp:'Helvetica Neue','Helvetica','Arimo','Pretendard',Arial,sans-serif;
+    --kr:'Pretendard',sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--kr); color:var(--ink); background:var(--paper);
+    line-height:1.6; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+    background-image:
+      radial-gradient(60vw 50vh at 8% -5%, var(--peach), transparent 60%),
+      radial-gradient(50vw 45vh at 100% 12%, var(--lilac), transparent 58%),
+      radial-gradient(55vw 50vh at 50% 108%, var(--cream), transparent 60%);
+    background-attachment:fixed;
+  }
+  .wrap{max-width:1000px; margin:0 auto; padding:0 28px}
+  .mono{font-family:var(--mono); text-transform:uppercase; letter-spacing:.18em; font-size:11px; color:var(--ink-3)}
+  h1,h2,h3{font-family:var(--disp); font-weight:600; word-break:keep-all; letter-spacing:-.02em}
+  section{padding:60px 0; border-top:1px solid var(--line-2)}
+  .eyebrow{display:flex; align-items:center; gap:10px; margin-bottom:16px}
+  .eyebrow .num{font-family:var(--mono); font-size:11px; letter-spacing:.16em; color:var(--ink); background:rgba(255,255,255,.5); border:1px solid var(--line); border-radius:100px; padding:3px 10px}
+  .lead{font-size:17px; color:var(--ink-2); max-width:36em; word-break:keep-all}
+
+  .topbar{position:sticky; top:0; z-index:50; backdrop-filter:blur(20px); background:rgba(243,238,226,.7); border-bottom:1px solid var(--line)}
+  .topbar .inner{max-width:1000px; margin:0 auto; padding:13px 28px; display:flex; align-items:center; justify-content:space-between}
+  .brand{font-family:var(--mono); font-size:12px; letter-spacing:.22em; text-transform:uppercase; font-weight:500}
+  .brand b{color:var(--ink)} .brand span{color:var(--ink-3)}
+  .dday{font-family:var(--mono); font-size:12px; letter-spacing:.12em; color:var(--ink); border:1px solid var(--ink); border-radius:100px; padding:5px 13px; white-space:nowrap}
+
+  .hero{padding:72px 0 50px}
+  .hero h1{font-size:clamp(33px,5.4vw,54px); line-height:1.1; max-width:15em}
+  .hero .sub{margin-top:24px; font-size:18px; color:var(--ink-2); max-width:34em; word-break:keep-all}
+  .hero .sub b{color:var(--ink); font-weight:600}
+  .facts{display:flex; flex-wrap:wrap; gap:10px; margin-top:30px}
+  .pill{font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-2); background:var(--card); border:1px solid var(--line); border-radius:100px; padding:8px 14px}
+  .pill b{color:var(--ink); font-weight:500}
+
+  .principle{margin-top:26px; background:rgba(246,201,168,.3); border:1px solid var(--line); border-radius:14px; padding:15px 20px; font-size:14.5px; color:var(--ink); max-width:40em; word-break:keep-all}
+  .principle b{font-weight:600}
+
+  /* funnel */
+  .barwrap{margin:6px 0 8px; height:44px; display:flex; border-radius:12px; overflow:hidden; border:1px solid var(--line)}
+  .barwrap .seg{display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--ink)}
+  .seg.a{background:rgba(246,201,168,.55); flex:3.2}
+  .seg.b{background:rgba(221,208,239,.5); flex:2}
+  .seg.x{background:rgba(33,26,51,.06); color:var(--ink-3); flex:4.8}
+  .funnel{display:flex; flex-direction:column; margin-top:18px}
+  .frow{display:grid; grid-template-columns:150px 1fr; gap:18px; align-items:start; padding:17px 0; border-bottom:1px solid var(--line-2)}
+  .frow:last-child{border-bottom:0}
+  .frow .tag{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; padding-top:3px}
+  .frow .tier-a{color:var(--ink)} .frow .tier-b{color:var(--ink-2)} .frow .out{color:var(--ink-3)}
+  .frow h3{font-size:17px; margin-bottom:5px}
+  .frow p{font-size:14.5px; color:var(--ink-2); word-break:keep-all}
+
+  /* phases */
+  .phases{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:8px}
+  .phase{background:var(--card); border:1px solid var(--line); border-radius:18px; padding:24px; display:flex; flex-direction:column}
+  .phase .ph{font-family:var(--mono); font-size:11px; letter-spacing:.14em; color:var(--ink-3); margin-bottom:6px}
+  .phase .when{font-family:var(--mono); font-size:12px; color:var(--accent); letter-spacing:.06em; margin-bottom:14px}
+  .phase h3{font-size:21px; margin-bottom:4px}
+  .phase .goal{font-size:14px; color:var(--ink-2); margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid var(--line); word-break:keep-all}
+  .phase ul{list-style:none; display:flex; flex-direction:column; gap:11px; margin-top:auto}
+  .phase li{font-size:14px; color:var(--ink-2); padding-left:16px; position:relative; word-break:keep-all}
+  .phase li::before{content:""; position:absolute; left:0; top:9px; width:6px; height:6px; border-radius:50%; background:var(--ink-3)}
+  .phase li b{color:var(--ink); font-weight:600}
+  .ph-track{display:flex; align-items:center; gap:8px; margin:24px 2px 0; font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; color:var(--ink-3); text-transform:uppercase}
+  .ph-track .ln{flex:1; height:1px; background:var(--line)}
+
+  /* message table */
+  .mtable{width:100%; border-collapse:collapse; margin-top:4px}
+  .mtable td{padding:16px 14px; border-bottom:1px solid var(--line-2); vertical-align:top; font-size:14.5px; color:var(--ink-2); word-break:keep-all}
+  .mtable tr td:first-child{font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink); white-space:nowrap; width:130px}
+  .mtable tr td:nth-child(2){color:var(--ink); font-weight:500; width:210px}
+  .tonenote{margin-top:18px; font-size:13.5px; color:var(--ink-3); word-break:keep-all}
+
+  /* two-col + steps */
+  .two{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  .scard{background:var(--card); border:1px solid var(--line); border-radius:18px; padding:24px}
+  .scard h3{font-size:17px; margin-bottom:14px}
+  .scard ul{list-style:none; display:flex; flex-direction:column; gap:10px}
+  .scard li{font-size:14px; color:var(--ink-2); padding-left:16px; position:relative; word-break:keep-all}
+  .scard li::before{content:""; position:absolute; left:0; top:8px; width:6px; height:6px; border-radius:50%; background:var(--ink-3)}
+  .scard li b{color:var(--ink)}
+
+  /* asset flow */
+  .assetflow{display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin:6px 0 14px}
+  .acard{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px}
+  .acard .st{font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); margin-bottom:9px}
+  .acard h3{font-size:18px; margin-bottom:8px}
+  .acard p{font-size:13.5px; color:var(--ink-2); word-break:keep-all}
+
+  .steps{display:flex; flex-direction:column; margin-top:8px}
+  .step{display:grid; grid-template-columns:46px 1fr; gap:18px; padding:17px 0; border-bottom:1px solid var(--line-2); align-items:baseline}
+  .step:last-child{border-bottom:0}
+  .step .n{font-family:var(--mono); font-size:13px; color:var(--ink-3)}
+  .step b{font-size:16px; color:var(--ink); font-weight:600}
+  .step p{font-size:14px; color:var(--ink-2); margin-top:3px; word-break:keep-all}
+
+  /* decisions */
+  .dec{counter-reset:d}
+  .decgrid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:6px}
+  .ditem{counter-increment:d; background:rgba(255,255,255,.5); border:1px solid var(--line); border-radius:14px; padding:18px 20px 18px 50px; position:relative; word-break:keep-all}
+  .ditem::before{content:counter(d); position:absolute; left:16px; top:17px; font-family:var(--mono); font-size:12px; color:var(--ink); border:1px solid var(--ink); border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center}
+  .ditem b{display:block; font-size:15px; color:var(--ink); margin-bottom:4px}
+  .ditem span{font-size:13.5px; color:var(--ink-2)}
+
+  footer{padding:46px 0 60px; border-top:1px solid var(--line); margin-top:20px}
+  footer .mono{font-size:11px}
+
+  @media(max-width:760px){
+    .phases,.two,.decgrid{grid-template-columns:1fr}
+    .frow{grid-template-columns:1fr; gap:6px}
+    .mtable tr td:first-child{width:auto}
+    .hero{padding:50px 0 38px}
+    section{padding:46px 0}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="inner">
+    <div class="brand"><b>SIRIAI</b> <span>· INTERCHARM PLAN</span></div>
+    <div class="dday" id="dday">D-16 · 7.1</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="mono" style="margin-bottom:18px">INTERCHARM KOREA 2026 · CLIENT ACQUISITION</div>
+    <h1>INTERCHARM 참가사에서 신규 클라이언트를 확보한다</h1>
+    <p class="sub">참가 500개사 중 <b>인플루언서 마케팅이 필요한 브랜드</b>만 추려서, <b>사전 → 현장 → 사후</b> 3단계로 접점을 만들고 미팅·계약으로 전환한다.</p>
+    <div class="facts">
+      <span class="pill"><b>2026.7.1–3</b> · COEX A·C홀</span>
+      <span class="pill"><b>500</b>개사 / 800부스</span>
+      <span class="pill">참가기업 디렉터리 <b>공개</b></span>
+    </div>
+    <div class="principle">접근은 <b>맞춤·수작업</b>. 행사 맥락과 대면 관계가 무기라, 일반 자동 대량메일에는 태우지 않는다.</div>
+  </header>
+
+  <!-- 01 WHO -->
+  <section id="who">
+    <div class="eyebrow"><span class="num">01</span><span class="mono">누구를 노리나 · 500 → 타겟</span></div>
+    <h2 style="font-size:27px; margin-bottom:8px">우리 고객이 될 곳만 추린다</h2>
+    <p class="lead" style="margin-bottom:22px">인플루언서 마케팅은 <b>소비자에게 자기 브랜드를 파는 곳</b>만 필요하다. 500을 세 갈래로 자른다.</p>
+    <div class="barwrap" aria-hidden="true">
+      <div class="seg a">TIER A</div>
+      <div class="seg b">TIER B</div>
+      <div class="seg x">제외 · 원료/OEM/B2B</div>
+    </div>
+    <div class="mono" style="text-align:right; margin-bottom:4px">실제 비율은 수집 후 확정 · 도식은 개념</div>
+    <div class="funnel">
+      <div class="frow"><div class="tag tier-a">TIER A · 1순위</div><div><h3>소비자 완제품 뷰티 브랜드</h3><p>스킨케어·메이크업·헤어·바디·향수·이너뷰티. 자체 브랜드로 소비자에게 판매 = 인플루언서 수요 명확.</p></div></div>
+      <div class="frow"><div class="tag tier-b">TIER B · 조건부</div><div><h3>인디·더마·수출·뷰티테크</h3><p>신생/인디, 더마/코스메슈티컬, K-뷰티 수출(국내 인플 의향 확인), 뷰티 디바이스.</p></div></div>
+      <div class="frow"><div class="tag out">제외 · NON-ICP</div><div><h3>원료 · OEM/ODM · B2B</h3><p>순수 원료·소재, 수탁제조(자체 소비자 브랜드 없음), 부자재·패키징·기계·물류·인증·B2B 서비스.</p></div></div>
+      <div class="frow"><div class="tag out">안전 제외</div><div><h3>민감 카테고리 + 이미 닿은 곳</h3><p>여성위생·생리대·의약품 등 민감군 + 우리가 이미 접촉했거나 진행 중인 브랜드는 뺀다.</p></div></div>
+    </div>
+  </section>
+
+  <!-- 02 HOW -->
+  <section id="how">
+    <div class="eyebrow"><span class="num">02</span><span class="mono">어떻게 확보하나 · 3단계</span></div>
+    <h2 style="font-size:27px; margin-bottom:8px">사전 → 현장 → 사후</h2>
+    <p class="lead" style="margin-bottom:24px">덱이 아직 미완이라 사전은 가볍게(관계형). 진짜 전환은 현장 대면과 사후 팔로업에서.</p>
+    <div class="phases">
+      <div class="phase">
+        <div class="ph">PHASE 1</div>
+        <div class="when">6/15 – 6/30 · D-16~D-1</div>
+        <h3>사전 워밍</h3>
+        <div class="goal">타겟 리스트 완성 + 현장 미팅 예열</div>
+        <ul>
+          <li>디렉터리 <b>수집·세그먼트</b> → 타겟 리스트</li>
+          <li>이메일·인스타 보강</li>
+          <li><b>메일 + 랜딩페이지</b> 제작 (재사용 베이스 → §03)</li>
+          <li>현장 준비물: 부스 우선순위 · <b>원페이저</b> · 명함 · QR</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <div class="ph">PHASE 2</div>
+        <div class="when">7/1 – 7/3 · 행사 3일</div>
+        <h3>현장 대면</h3>
+        <div class="goal">대면 접촉 · 명함 · 관심도 캡처</div>
+        <ul>
+          <li>Tier A 우선 <b>부스 동선</b> (홀·부스번호)</li>
+          <li>30초 피치 + <b>질문</b>(현재 인플 마케팅·페인포인트)</li>
+          <li>관심도(상중하)·후속약속 그 자리서 기록</li>
+          <li>못 만난 Tier A = 사후 콜드로 분류</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <div class="ph">PHASE 3</div>
+        <div class="when">7/4 – · D+1~</div>
+        <h3>사후 전환</h3>
+        <div class="goal">팔로업 → 미팅 → 계약</div>
+        <ul>
+          <li>만난 곳: "반가웠다 + <b>모멘텀 증폭</b>" → 제안</li>
+          <li>못 만난 곳: "현장서 뵙고 싶었다" 콜드</li>
+          <li>관심 보인 곳 미팅 잡기</li>
+          <li>(이때 덱 근접하면) 정식 제안서</li>
+        </ul>
+      </div>
+    </div>
+    <div class="ph-track"><span>LIST</span><span class="ln"></span><span>WARM</span><span class="ln"></span><span>MEET</span><span class="ln"></span><span>CONVERT</span></div>
+  </section>
+
+  <!-- 03 ASSET: MAIL -> LANDING -->
+  <section id="asset">
+    <div class="eyebrow"><span class="num">03</span><span class="mono">핵심 자산 · 메일 → 랜딩 → 문의</span></div>
+    <h2 style="font-size:27px; margin-bottom:8px">클릭을 문의로 바꾸는 한 벌</h2>
+    <p class="lead" style="margin-bottom:22px">메일은 <b>열람·클릭</b>까지만 책임진다. 진짜 설명과 전환은 클릭 뒤 <b>랜딩페이지</b>가 한다.</p>
+    <div class="assetflow">
+      <div class="acard"><div class="st">STEP 1 · 메일</div><h3>Q&amp;A 티저 메일</h3><p>기존 SIRIAI 메일 톤(굵은 주장 + "더 알아볼까요?" 질문 링크). 직관·쉬움으로 열람·클릭 유도 + 브랜드별 특별 혜택 한 줄.</p></div>
+      <div class="acard"><div class="st">STEP 2 · 랜딩</div><h3>Q&amp;A / 챗봇 랜딩</h3><p>클릭하면 브랜드 궁금증을 쉽게 풀어줌. "북미 진출, 준비 없어도 되나요? → 네, 원큐 프로세스" "국내 인플 방식은?"</p></div>
+      <div class="acard"><div class="st">STEP 3 · 전환</div><h3>협업 문의하기</h3><p>마지막은 항상 <b>"SIRIAI에 협업 문의하기"</b> CTA. 회신을 기다리지 않고 그 자리서 액션으로.</p></div>
+    </div>
+    <div class="two">
+      <div class="scard"><h3>범용 베이스</h3><ul>
+        <li>메일 · DM · QR <b>한 벌로 재사용</b></li>
+        <li>INTERCHARM용은 <b>서론/마지막만</b> 살짝 변형</li>
+        <li>채널 늘어도 랜딩 본문은 그대로</li>
+      </ul></div>
+      <div class="scard"><h3>INTERCHARM 개인화</h3><ul>
+        <li>브랜드별 <b>QR</b> → 스캔 → "안녕하세요 OO 담당자님, SIRIAI입니다"</li>
+        <li>개인화 랜딩 + <b>브랜드 전용 특별 혜택</b> (ex 이니스프리 OO)</li>
+        <li>행사 한정 이벤트 느낌으로 반응률 ↑</li>
+      </ul></div>
+    </div>
+    <p class="tonenote">톤 — 단정 금지 · "X처럼" 금지 · 담백 · 쉬운 말 · 한 브랜드씩 맞춤. SIRIAI 수치·혜택은 준용 승인분만.</p>
+  </section>
+
+  <!-- 04 DATA + NEXT -->
+  <section id="next">
+    <div class="eyebrow"><span class="num">04</span><span class="mono">데이터 &amp; 다음 액션</span></div>
+    <h2 style="font-size:27px; margin-bottom:20px">지금부터 할 일</h2>
+    <div class="two" style="margin-bottom:30px">
+      <div class="scard">
+        <h3>데이터 수집</h3>
+        <ul>
+          <li>소스 = exhibitor_directory.html (<b>JS SPA</b>)</li>
+          <li>① 내부 JSON/API 엔드포인트 탐색(우선)</li>
+          <li>② 안 되면 Claude-in-Chrome 렌더 스크랩</li>
+          <li>필드 = 회사·브랜드·카테고리·부스·홀·국가·웹사이트</li>
+          <li><b>2025 디렉터리</b>도 참고: 단골 참가사 조기 확보</li>
+        </ul>
+      </div>
+      <div class="scard">
+        <h3>리스트 정제</h3>
+        <ul>
+          <li>Tier A/B/제외 <b>세그먼트</b></li>
+          <li>민감 카테고리 + 이미 닿은 곳 제거</li>
+          <li>이메일·인스타 <b>보강</b></li>
+          <li>부스 우선순위 매기기 (현장 동선용)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="n">01</div><div><b>디렉터리 수집</b><p>500개사 원시 리스트 확보</p></div></div>
+      <div class="step"><div class="n">02</div><div><b>세그먼트 + 보강</b><p>타겟 리스트 확정 (Tier·연락처·부스)</p></div></div>
+      <div class="step"><div class="n">03</div><div><b>메일 + 랜딩페이지</b><p>Q&amp;A 랜딩(재사용 베이스) → "협업 문의" + 메일 템플릿 + QR 개인화</p></div></div>
+      <div class="step"><div class="n">04</div><div><b>현장 원페이저 · 동선 · 후속</b><p>리브하인드 + 부스 동선 + 회신/관심 브랜드 후속</p></div></div>
+    </div>
+  </section>
+
+  <!-- 05 DECISIONS -->
+  <section id="decisions" class="dec">
+    <div class="eyebrow"><span class="num">05</span><span class="mono">정해줄 것 · 준용</span></div>
+    <h2 style="font-size:27px; margin-bottom:14px">네가 정하면 바로 움직인다</h2>
+    <div class="decgrid">
+      <div class="ditem"><b>발송 방식</b><span>완전 수작업(Gmail) vs 전용 템플릿+사람 발송 vs 현장 대면 중심(메일 보조)</span></div>
+      <div class="ditem"><b>사전 터치 여부</b><span>관계형 소량 보낼지 vs 아예 현장부터</span></div>
+      <div class="ditem"><b>현장 리브하인드</b><span>원페이저 신규 제작 vs 기존 자료 활용</span></div>
+      <div class="ditem"><b>현장 참관 일정</b><span>준용 단독 vs 동행 · 3일 중 며칠</span></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="mono">SIRIAI · INTERCHARM KOREA 2026 · 신규 클라 확보 플랜 · 2026.06.15</div>
+    <div class="mono" style="margin-top:8px; color:var(--ink-3)">정본 = PRD_intercharm.md</div>
+  </footer>
+
+</div>
+
+<script>
+  (function(){
+    var el = document.getElementById('dday');
+    var event = new Date(2026, 6, 1);
+    var now = new Date();
+    var d0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var diff = Math.round((event - d0) / 86400000);
+    if (diff > 0) el.textContent = 'D-' + diff + ' · 7.1';
+    else if (diff === 0) el.textContent = 'D-DAY';
+    else el.textContent = 'D+' + (-diff);
+  })();
+</script>
+</body>
+</html>

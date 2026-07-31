@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "TROIAREUKE",
+      "verdict": "적합",
+      "own_brand": "TROIAREUKE, ACSEN",
+      "reason": "자체 스킨케어 브랜드 TROIAREUKE·ACSEN 직판, 스파·아카데미 운영 (troiareuke.com)"
+    },
+    {
+      "company": "오미티드",
+      "verdict": "적합",
+      "own_brand": "Omitted, Fresh Lime",
+      "reason": "자체 브랜드 Omitted·Fresh Lime으로 B2C 온라인몰 직판 운영 (omitted.kr)"
+    },
+    {
+      "company": "DAILY WEEKLY",
+      "verdict": "적합",
+      "own_brand": "DAILY WEEKLY",
+      "reason": "자체 브랜드 DAILY WEEKLY로 쿨래스팅 선세럼 등 스킨케어 직판 (dailyweekly.co.kr)"
+    },
+    {
+      "company": "(주)아트페이스",
+      "verdict": "적합",
+      "own_brand": "TENZERO",
+      "reason": "자체 브랜드 TENZERO로 스킨케어·메이크업 B2C 직판, 법인명 아트페이스 (tenzero.co.kr)"
+    },
+    {
+      "company": "KOCOSTAR",
+      "verdict": "적합",
+      "own_brand": "KOCOSTAR, MANIA HOLIC, Amaholic 등",
+      "reason": "퍼스트마켓이 KOCOSTAR 포함 20여개 자체 뷰티 브랜드 보유·직판 (firstmarket.co.kr)"
+    },
+    {
+      "company": "채널스완",
+      "verdict": "적합",
+      "own_brand": "OAVO",
+      "reason": "자체 브랜드 OAVO Cosmetics로 비건 스킨케어·메이크업 소비자 직판 (oavo.global)"
+    },
+    {
+      "company": "CELLEA/BELLADIA",
+      "verdict": "적합",
+      "own_brand": "CELLEA",
+      "reason": "자체 브랜드 CELLEA로 NK 부스터 솔루션 등 스킨케어 직판 (cellea.co.kr, 법인 에프씨세컨드)"
+    },
+    {
+      "company": "포뉴레브",
+      "verdict": "적합",
+      "own_brand": "포뉴레브(Fonewlev)",
+      "reason": "자체 브랜드 포뉴레브로 디퓨저/방향제 소비자 직판 (fonewlev.com, 법인 넥스텝)"
+    },
+    {
+      "company": "제이크리컴퍼니",
+      "verdict": "적합",
+      "own_brand": "레필레오(lefilleo)",
+      "reason": "자체 더마 스킨케어 브랜드 레필레오(lefilleo) 보유·직판, 인터참코리아 2025 참가 확인 (gukjenews.com)"
+    },
+    {
+      "company": "웰본",
+      "verdict": "적합",
+      "own_brand": "청담스타일(Cheongdam Style)",
+      "reason": "자체 브랜드 청담스타일로 염색샴푸·브러쉬 등 소비자 직판 (cheongdamstyle.co.kr, 법인 주식회사 웰본)"
+    }
+  ]
+}

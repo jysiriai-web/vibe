@@ -1,0 +1,66 @@
+[
+  {
+    "code": "BUL9697",
+    "cat": "기타",
+    "intro": "자동차 토탈 케어 용품 전문기업(불스원샷·레인OK·그라스)",
+    "verdict": "제외",
+    "basis": "자동차용품 전문, 뷰티 완제품 없음",
+    "homepage": ""
+  },
+  {
+    "code": "AND1180",
+    "cat": "기타",
+    "intro": "",
+    "verdict": "불명",
+    "basis": "동명 업체 다수, 공식 정보 없어 특정 불가",
+    "homepage": ""
+  },
+  {
+    "code": "CPX1993",
+    "cat": "기타",
+    "intro": "K뷰티 브랜드 글로벌 커머스·아마존 운영 대행사",
+    "verdict": "제외",
+    "basis": "자체 브랜드 없는 유통·마케팅 대행",
+    "homepage": ""
+  },
+  {
+    "code": "CEL6186",
+    "cat": "기타",
+    "intro": "대전 소재 화장품 OEM·ODM 연구개발 제조사",
+    "verdict": "제외",
+    "basis": "OEM·ODM 수탁 전문, 자체 브랜드 없음",
+    "homepage": ""
+  },
+  {
+    "code": "COC6864",
+    "cat": "스킨케어",
+    "intro": "큐브캡이 만드는 캡슐형 앰플 세럼 자체 브랜드",
+    "verdict": "타겟",
+    "basis": "자사몰서 캡슐세럼 직접 판매",
+    "homepage": ""
+  },
+  {
+    "code": "COR1221",
+    "cat": "기타",
+    "intro": "아로마케미칼·화공약품·화장품 원료 유통 전문기업",
+    "verdict": "제외",
+    "basis": "원료 유통, 완제품 브랜드 없음",
+    "homepage": "http://corehb.co.kr"
+  },
+  {
+    "code": "CUS8388",
+    "cat": "스킨케어",
+    "intro": "클린업피부과 기반 코스메슈티컬 스킨케어 브랜드",
+    "verdict": "타겟",
+    "basis": "자체 코스메슈티컬 브랜드 판매",
+    "homepage": ""
+  },
+  {
+    "code": "CUR7231",
+    "cat": "홈디바이스",
+    "intro": "AI 루틴케어 결합 홈 뷰티 디바이스 브랜드",
+    "verdict": "타겟",
+    "basis": "자사몰서 자체 뷰티기기 판매",
+    "homepage": ""
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "keywords": ["#ratedgreen", "#rosemary", "@ratedgreen"],
+  "recentN": 10,
+  "delayMs": { "min": 8000, "max": 20000 },
+  "restEvery": 10,
+  "restMs": 60000,
+  "stopAfterConsecutiveFails": 2,
+  "maxFails": 3,
+  "sheet": {
+    "url": "여기에 Apps Script 웹앱 URL 붙여넣기",
+    "token": "sheet.gs 의 TOKEN 과 같은 값"
+  }
+}

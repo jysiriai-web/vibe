@@ -1,0 +1,66 @@
+[
+  {
+    "code": "ENT3068",
+    "cat": "기타",
+    "intro": "네일·색조 화장품 OEM/ODM 전문 제조사",
+    "verdict": "제외",
+    "basis": "홈피·검색 모두 OEM/ODM만, 자체브랜드 없음",
+    "homepage": ""
+  },
+  {
+    "code": "WIZ2024",
+    "cat": "스킨케어",
+    "intro": "대전 소재 바이오·메디 스킨케어 기업, 글루카·위즈메디 운영",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 GLUCA·WIZMEDI 확인",
+    "homepage": ""
+  },
+  {
+    "code": "JSS3164",
+    "cat": "기타",
+    "intro": "화장품·미용기기 피부임상시험 및 인증 컨설팅 기업",
+    "verdict": "제외",
+    "basis": "임상·인증 컨설팅 B2B 서비스업",
+    "homepage": ""
+  },
+  {
+    "code": "KON5156",
+    "cat": "기타",
+    "intro": "필러·보톡스·스킨부스터 등 미용 의료제품 제조·수출사",
+    "verdict": "제외",
+    "basis": "필러·실·캐뉼라 등 병의원용 의료제품 주력",
+    "homepage": ""
+  },
+  {
+    "code": "PFN4500",
+    "cat": "스킨케어",
+    "intro": "오송 소재 화장품 ODM·OEM 기업, 자체 브랜드도 운영",
+    "verdict": "타겟",
+    "basis": "ODM 주력이나 자체브랜드 시스터리 확인",
+    "homepage": ""
+  },
+  {
+    "code": "KME8256",
+    "cat": "스킨케어",
+    "intro": "엑소좀 기반 스킨부스터·화장품 자체 브랜드 기업",
+    "verdict": "타겟",
+    "basis": "자체브랜드 EXO·HA-VIT 보유(병원용 중심)",
+    "homepage": "https://www.k2meditech.com/"
+  },
+  {
+    "code": "PRN1009",
+    "cat": "색조",
+    "intro": "네일 니퍼·툴 브랜드 루카너스를 만드는 뷰티툴 기업",
+    "verdict": "타겟",
+    "basis": "자체브랜드 루카너스 네일툴 직접 판매",
+    "homepage": "http://www.lucanus.co.kr"
+  },
+  {
+    "code": "PAM9673",
+    "cat": "스킨케어",
+    "intro": "에스테틱 스킨케어 브랜드 팜스아이비씨 운영·직판 기업",
+    "verdict": "타겟",
+    "basis": "자사몰 팜스이숍서 자체브랜드 직판",
+    "homepage": ""
+  }
+]

@@ -1,0 +1,63 @@
+<!-- SIRIAI 콜드메일 — ① 일반 세일즈 / 그래픽 버전 · 2026-06-16 v7
+     핵심: 텍스트 화살표 대신 '클릭되는 박스(카드)'로 랜딩 유도. 박스 전체가 링크. (콘텐츠를 베껴넣는 게 아님)
+     일반본 = 텍스트+→링크 / 그래픽본 = 같은 메시지를 '눌러지는 카드 그리드'로.
+     슬롯: {{brand}}(인사) / {{hook}} / {{land}} 랜딩 URL / {{home}} 사업소개서 URL · 카드 링크 = 랜딩 앵커
+     박스=<a display:block> 라 Gmail에서 전체 클릭됨(SVG·JS 불필요). 라벨/톤은 대표님 단정톤.
+     브랜드 토큰: Paper #F3EEE2 · Ink #211A33 · 웜워시 #F6C9A8 · 링크 #2A6FDB · 라벨 JetBrains Mono. 검정블록·이모지 금지. -->
+<div style="font-family:'Pretendard',Arial,sans-serif;font-size:14px;line-height:1.7;color:#211A33;background:#F3EEE2;padding:32px 28px;max-width:560px;word-break:keep-all">
+
+  <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:rgba(33,26,51,.46);margin-bottom:20px">SIRIAI · Influencer Matching</div>
+
+  <p style="margin:0 0 16px">안녕하세요, {{brand}} 담당자님.<br>SIRIAI(시리아이)입니다.</p>
+  <p style="margin:0 0 22px">{{hook}}</p>
+
+  <p style="margin:0 0 22px;font-size:16px;font-weight:600;letter-spacing:-.01em">
+    <span style="background:rgba(246,201,168,.5);padding:1px 4px">인스타그램 전역에서, {{brand}}에 맞는 인플루언서만 직접 선별합니다.</span>
+  </p>
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 14px">
+    <tr>
+      <td width="50%" style="padding:0 5px 10px 0;vertical-align:top">
+        <a href="{{land}}#different" style="display:block;background:#FBF7EE;border:1px solid rgba(33,26,51,.14);border-radius:12px;padding:16px;text-decoration:none">
+          <span style="display:block;font-weight:600;font-size:15px;color:#211A33;margin-bottom:4px">무엇이 다른가</span>
+          <span style="font-size:12px;color:#2A6FDB">자세히 보기 →</span>
+        </a>
+      </td>
+      <td width="50%" style="padding:0 0 10px 5px;vertical-align:top">
+        <a href="{{land}}#work" style="display:block;background:#FBF7EE;border:1px solid rgba(33,26,51,.14);border-radius:12px;padding:16px;text-decoration:none">
+          <span style="display:block;font-weight:600;font-size:15px;color:#211A33;margin-bottom:4px">함께한 브랜드</span>
+          <span style="font-size:12px;color:#2A6FDB">포트폴리오 →</span>
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td width="50%" style="padding:0 5px 0 0;vertical-align:top">
+        <a href="{{land}}#how" style="display:block;background:#FBF7EE;border:1px solid rgba(33,26,51,.14);border-radius:12px;padding:16px;text-decoration:none">
+          <span style="display:block;font-weight:600;font-size:15px;color:#211A33;margin-bottom:4px">진행 방식</span>
+          <span style="font-size:12px;color:#2A6FDB">얼마나 쉬운지 →</span>
+        </a>
+      </td>
+      <td width="50%" style="padding:0 0 0 5px;vertical-align:top">
+        <a href="{{land}}#global" style="display:block;background:#FBF7EE;border:1px solid rgba(33,26,51,.14);border-radius:12px;padding:16px;text-decoration:none">
+          <span style="display:block;font-weight:600;font-size:15px;color:#211A33;margin-bottom:4px">국내·해외</span>
+          <span style="font-size:12px;color:#2A6FDB">어디까지 하는지 →</span>
+        </a>
+      </td>
+    </tr>
+  </table>
+
+  <a href="{{land}}" style="display:block;background:#211A33;border-radius:12px;padding:16px 18px;text-decoration:none;margin:0 0 26px">
+    <span style="display:block;font-weight:600;font-size:15px;color:#F3EEE2;margin-bottom:2px">{{brand}} 맞춤으로 1분 둘러보기 →</span>
+    <span style="font-size:12px;color:rgba(243,238,226,.66)">브랜드는 준비할 게 없습니다. 방향만 주시면 됩니다.</span>
+  </a>
+
+  <p style="margin:0 0 4px;font-size:13px"><a href="{{home}}" style="color:#2A6FDB;text-decoration:none">회사·서비스 자세히 보기 →</a></p>
+
+  <p style="margin:20px 0 24px">회신 기다리겠습니다.</p>
+
+  <div style="border-top:1px solid rgba(33,26,51,.13);padding-top:16px;color:rgba(33,26,51,.66);font-size:13px">
+    <div style="font-family:'Helvetica Neue',Arimo,sans-serif;font-size:18px;font-weight:700;letter-spacing:.02em;color:#211A33;margin-bottom:8px">SIRIAI</div>
+    <div style="font-weight:600;color:#211A33">조준용 Jun Yong Cho · Sales Manager</div>
+    <div>M (+82) 10-7552-4320 · E <a href="mailto:jysiriai@gmail.com" style="color:#2A6FDB;text-decoration:none">jysiriai@gmail.com</a></div>
+  </div>
+</div>

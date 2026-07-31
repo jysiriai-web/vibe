@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "(주)알에이치앤비브랜즈",
+      "verdict": "적합",
+      "own_brand": "RATED GREEN, Pretty Actually",
+      "reason": "ratedgreenglobal.com/prettyactually에서 RATED GREEN 및 Pretty Actually 브랜드로 헤어케어·스킨케어 제품을 직접 소비자에게 판매 중 (가격 표기·온라인 쇼핑몰 운영 확인)"
+    },
+    {
+      "company": "브에노메디텍",
+      "verdict": "적합",
+      "own_brand": "브에노 (Bueno)",
+      "reason": "bueno9.com에서 자체 브랜드 '브에노' 홈메디케어 스킨케어 제품을 소비자에게 직접 판매, OEM/ODM 겸업이나 자체 PB 보유 확인"
+    },
+    {
+      "company": "쥬네뷰",
+      "verdict": "적합",
+      "own_brand": "Dewdap (듀댑)",
+      "reason": "dewdap.com에서 시카티·바이틱스·듀톡스 등 자체 브랜드 라인 소비자 직판, OEM/ODM 안내 없음"
+    },
+    {
+      "company": "컬러딥",
+      "verdict": "적합",
+      "own_brand": "MISKOS (미스코스), 컬러딥",
+      "reason": "miskos.co.kr에서 컬러딥·무드매쳐·크리스탈 데오드란트 등 자체 PB 제품 소비자 직판 확인"
+    },
+    {
+      "company": "주식회사 반다비앤에이치",
+      "verdict": "적합",
+      "own_brand": "KIWIGLOW (키위글로우)",
+      "reason": "kiwiglow.co.kr에서 비건 인증 토너패드·세럼·선케어 등 KIWIGLOW 브랜드 자체 제품 직판 확인"
+    },
+    {
+      "company": "주식회사 정림에프앤에이치",
+      "verdict": "적합",
+      "own_brand": "Vanava (바나바)",
+      "reason": "vanava.co.kr에서 듀얼 모이스처라이저, 시카 리커버리 크림 등 Vanava 자체 브랜드 소비자 직판 운영 확인"
+    },
+    {
+      "company": "주식회사 웰컴이엔앰",
+      "verdict": "적합",
+      "own_brand": "WELBORN, LOEVIE",
+      "reason": "welcomesgroup.com Group Family에 WELBORN·LOEVIE 자체 브랜드 보유, 뷰티·헬스케어 제품 직접 기획·생산 확인"
+    },
+    {
+      "company": "닥터바이오 & 티블레스",
+      "verdict": "적합",
+      "own_brand": "DR.BIO (닥터바이오)",
+      "reason": "doctorbio.kr 공식몰 및 올리브영·무신사 입점으로 DR.BIO 더마코스메틱 브랜드 자체 소비자 판매 확인 (litt.ly 링크는 글로벌 영업 안내 페이지)"
+    },
+    {
+      "company": "Y.N.M",
+      "verdict": "적합",
+      "own_brand": "YNM (You Need Me)",
+      "reason": "ynmcosmetic.co.kr에서 YNM 자체 브랜드 립밤·틴트·아이라이너 등 누적판매 570만 소비자 직판 확인"
+    },
+    {
+      "company": "헤트라스",
+      "verdict": "적합",
+      "own_brand": "헤트라스 (Hetras)",
+      "reason": "유튜브 영상 제목 '가장 매력적인 향기, 나만 알고 싶은 감성 향기 디퓨저, 헤트라스'로 헤트라스 자체 브랜드 향기 제품 확인"
+    }
+  ]
+}

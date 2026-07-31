@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "(주)미성메탈",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "화장품 부자재(코스메틱 웨지, 손톱깎이 등) 제조·소매 업체. 자체 소비자 화장품 브랜드 없음. (saramin·잡코리아 기업정보, misunggc 스마트스토어)"
+    },
+    {
+      "company": "주식회사 정코스메틱",
+      "verdict": "적합",
+      "own_brand": "ESSELLO(에쎌로)",
+      "reason": "에쎌로 브랜드로 마스크팩·선크림·앰플 등 소비자 직판. B2C 뷰티 기업. (essello.co.kr)"
+    },
+    {
+      "company": "AESTHEIN",
+      "verdict": "적합",
+      "own_brand": "AESTHEIN(에스테인)",
+      "reason": "에스테인 브랜드 스킨케어·미용기기 소비자 직판. 에스테티션 임상 기반. (aesthein.kr)"
+    },
+    {
+      "company": "㈜3일애",
+      "verdict": "적합",
+      "own_brand": "3일애(3DaysLove)",
+      "reason": "3일애 브랜드로 스킨케어(리커버리밤, 앰플 등) 공식몰·자사몰 소비자 직판. (3dayslove.shop)"
+    },
+    {
+      "company": "더마퀸",
+      "verdict": "적합",
+      "own_brand": "THEMAQUEEN(더마퀸)",
+      "reason": "OEM/ODM 전문이나 자사 브랜드 쿨링스틱·에어쿠션브러시 소비자 직판(무신사·G마켓 등록). (themaqueen.com, musinsa.com/brand/themaqueen)"
+    },
+    {
+      "company": "㈜바이오에프디엔씨",
+      "verdict": "적합",
+      "own_brand": "BIO-FD&C",
+      "reason": "원료·OEM 병행하지만 자체 브랜드 쇼핑몰(biofdncshop.com)에서 소비자 직판. (biofdnc-global.com)"
+    },
+    {
+      "company": "(주)울파인",
+      "verdict": "적합",
+      "own_brand": "ULFINE(울파인)",
+      "reason": "ULFINE 자체 브랜드로 HIFU·RF 미용기기 및 스킨케어 겔 소비자 직판. (ulfine.co.kr)"
+    },
+    {
+      "company": "(주)피노젠",
+      "verdict": "적합",
+      "own_brand": "피노젠, 피네수(Pinesoo)",
+      "reason": "소나무 추출물 기반 자체 브랜드 화장품(피네수 스킨케어 라인) 소비자 직판. (pinogen.com)"
+    },
+    {
+      "company": "BiOBiO Co.,Ltd.",
+      "verdict": "적합",
+      "own_brand": "BiOBiO",
+      "reason": "BiOBiO 브랜드로 핸드·바디·풋케어·네일 소비자 직판. B2C 중심. (biobiokorea.com)"
+    },
+    {
+      "company": "주식회사 라메디텍",
+      "verdict": "적합",
+      "own_brand": "PURAXEL(퓨라셀), 퓨라더마",
+      "reason": "퓨라셀 레이저 미용기기+퓨라더마 화장품 자체 브랜드 소비자 직판. (puraxel.co.kr)"
+    }
+  ]
+}

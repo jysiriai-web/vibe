@@ -1,0 +1,66 @@
+[
+  {
+    "code": "SAC4914",
+    "cat": "기타",
+    "intro": "PLLA 미립구·엑소좀 기반 코스메슈티컬 소재/의료기기 개발사",
+    "verdict": "제외",
+    "basis": "시술용 원료·의료기기 B2B",
+    "homepage": ""
+  },
+  {
+    "code": "SAM5493",
+    "cat": "기타",
+    "intro": "WACKER 등 해외 화장품 원료를 국내에 공급하는 원료 유통사",
+    "verdict": "제외",
+    "basis": "화장품 원료 수입·유통",
+    "homepage": ""
+  },
+  {
+    "code": "SEU1849",
+    "cat": "스킨케어",
+    "intro": "비건 클린뷰티 브랜드 LOOBEE 운영, 마스크팩·선크림·클렌징",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 LOOBEE 판매",
+    "homepage": ""
+  },
+  {
+    "code": "SHI1094",
+    "cat": "스킨케어",
+    "intro": "아름연·AOOL·훌루푸 등 자체 브랜드의 스킨케어·바디 화장품사",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 3개 소비자 판매",
+    "homepage": "www.shinancosmetics.co.kr"
+  },
+  {
+    "code": "SKS5499",
+    "cat": "기타",
+    "intro": "하이드로콜로이드 트러블패치·하이드로겔 전문 제조사(평택)",
+    "verdict": "제외",
+    "basis": "기획·개발·생산 수탁 OEM/ODM",
+    "homepage": ""
+  },
+  {
+    "code": "CRE3638",
+    "cat": "스킨케어",
+    "intro": "금진온천수 기반 코스메슈티컬 스킨케어 브랜드 크레모랩",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 완제품 판매",
+    "homepage": ""
+  },
+  {
+    "code": "SNO2263",
+    "cat": "스킨케어",
+    "intro": "아줄렌·핑크알로에 쿨링 진정 라인의 민감성 스킨케어 브랜드",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 스킨케어 판매",
+    "homepage": ""
+  },
+  {
+    "code": "SOM7449",
+    "cat": "기타",
+    "intro": "화장품 용기·튜브·펌프 등 패키징 제조사(중국 닝보)",
+    "verdict": "제외",
+    "basis": "화장품 용기·부자재 제조",
+    "homepage": ""
+  }
+]

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SIRIAI 04 PB · 신비 변주</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&family=Noto+Serif+KR:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --cream:#faf7f2; --ink:#1c1a16; --ink-2:#6f685f; --ink-faint:#a8a194;
+    --lav:#cabce8; --lav-2:#e7e0f3; --peach:#edc6a8;
+    --dark:#14131a; --dark-2:#1d1b26; --navy:#191a28;
+    --serif-kr:'Noto Serif KR',serif; --serif-en:'Fraunces',serif; --sans:'Pretendard',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{font-family:var(--sans);background:var(--cream);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5;}
+  .lab-flag{position:fixed;top:16px;left:16px;z-index:80;font-family:var(--serif-en);font-style:italic;font-size:13px;color:var(--ink-2);background:rgba(250,247,242,.85);border:1px solid rgba(28,26,22,.12);border-radius:100px;padding:6px 14px;backdrop-filter:blur(6px);}
+  .field{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:9vh 6vw;position:relative;overflow:hidden;}
+  .eyebrow{font-family:var(--serif-en);font-style:italic;font-size:15px;letter-spacing:.02em;margin-bottom:26px;opacity:.7;}
+  .kr-title{font-family:var(--serif-kr);font-weight:600;font-size:clamp(26px,3vw,42px);letter-spacing:-.01em;line-height:1.25;word-break:keep-all;}
+  .lead{color:var(--ink-2);font-size:15px;margin-top:18px;max-width:30ch;word-break:keep-all;}
+  .year{font-family:var(--serif-en);font-weight:300;letter-spacing:.04em;}
+  .vlabel{position:absolute;top:18px;right:20px;font-family:var(--serif-en);font-style:italic;font-size:13px;opacity:.5;}
+
+  /* ============ 1. NIGHTFALL — 다크 신비 ============ */
+  .pb-night{background:radial-gradient(130% 90% at 50% 30%,var(--dark-2),var(--dark) 70%,#0e0d12);color:var(--cream);}
+  .pb-night .eyebrow{color:rgba(250,247,242,.45);}
+  .pb-night .kr-title{color:#f3eee6;}
+  .pb-night .lead{color:rgba(250,247,242,.5);}
+  .pb-night .silhouette{
+    width:120px;height:150px;margin:0 auto 40px;border-radius:22px 22px 12px 12px;
+    background:linear-gradient(170deg,rgba(202,188,232,.32),rgba(202,188,232,.04));
+    box-shadow:0 0 90px 10px rgba(160,140,220,.28), inset 0 1px 20px rgba(255,255,255,.12);
+    backdrop-filter:blur(2px);position:relative;
+  }
+  .pb-night .silhouette::after{content:"";position:absolute;inset:0;border-radius:inherit;border:1px solid rgba(255,255,255,.12);}
+  .pb-night .year{font-size:clamp(56px,8vw,120px);color:rgba(250,247,242,.92);margin:6px 0;text-shadow:0 0 40px rgba(160,140,220,.4);}
+  .pb-night .star{position:absolute;width:2px;height:2px;border-radius:50%;background:rgba(255,255,255,.6);}
+
+  /* ============ 2. MIST — 안개 속 실루엣 ============ */
+  .pb-mist{background:linear-gradient(180deg,#f3ede4,var(--cream));}
+  .pb-mist .stagewrap{position:relative;margin-bottom:38px;}
+  .pb-mist .silhouette{
+    width:120px;height:152px;border-radius:22px 22px 12px 12px;
+    background:linear-gradient(165deg,#fff,#e9e2d6);
+    filter:blur(7px);opacity:.85;
+  }
+  .pb-mist .mist-layer{position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);width:340px;height:200px;background:radial-gradient(ellipse at center,rgba(250,247,242,.9),rgba(250,247,242,0) 70%);pointer-events:none;}
+  .pb-mist .year{font-size:clamp(40px,5vw,72px);color:var(--ink-faint);}
+
+  /* ============ 3. SEALED — 봉인된 윤곽선 ============ */
+  .pb-sealed{background:var(--cream);}
+  .pb-sealed .year{font-size:clamp(90px,15vw,230px);color:var(--ink);line-height:.9;position:relative;}
+  .pb-sealed .outline{
+    width:96px;height:122px;margin:0 auto 36px;border-radius:18px 18px 9px 9px;
+    border:1.5px solid var(--ink);background:transparent;position:relative;
+  }
+  .pb-sealed .outline::before{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:8px;height:8px;border-radius:50%;background:var(--lav);}
+  .pb-sealed .seal-line{width:1px;height:60px;background:linear-gradient(var(--ink-faint),transparent);margin:30px auto 0;}
+  .pb-sealed .kr-title{margin-top:20px;}
+
+  /* ============ 4. STAGE — 스포트라이트 무대 ============ */
+  .pb-stage{background:#100f15;color:var(--cream);justify-content:flex-end;padding-bottom:14vh;}
+  .pb-stage .beam{position:absolute;top:-5%;left:50%;transform:translateX(-50%);width:0;height:0;
+    border-left:200px solid transparent;border-right:200px solid transparent;border-bottom:560px solid rgba(231,224,243,.07);filter:blur(8px);}
+  .pb-stage .eyebrow{color:rgba(250,247,242,.4);}
+  .pb-stage .kr-title{color:#f3eee6;}
+  .pb-stage .silhouette{
+    width:108px;height:140px;margin:0 auto 30px;border-radius:20px 20px 10px 10px;
+    background:linear-gradient(180deg,rgba(243,238,230,.9),rgba(243,238,230,.25));
+    box-shadow:0 -10px 60px rgba(231,224,243,.25);position:relative;z-index:2;
+  }
+  .pb-stage .floor{position:absolute;bottom:0;left:0;right:0;height:30vh;background:linear-gradient(180deg,transparent,rgba(231,224,243,.05));}
+  .pb-stage .year{font-size:clamp(36px,4.5vw,64px);color:rgba(250,247,242,.85);position:relative;z-index:2;}
+</style>
+</head>
+<body>
+  <div class="lab-flag">04 PB · 신비 변주 (4종) — 스크롤</div>
+
+  <!-- 1. NIGHTFALL -->
+  <section class="field pb-night">
+    <span class="vlabel">v-A · Nightfall</span>
+    <span class="star" style="top:22%;left:30%"></span><span class="star" style="top:30%;left:68%"></span>
+    <span class="star" style="top:60%;left:22%"></span><span class="star" style="top:70%;left:75%"></span>
+    <div class="eyebrow">04 — Private Brand</div>
+    <div class="silhouette"></div>
+    <div class="year">2026</div>
+    <h2 class="kr-title">아직 보여드릴 수 없는<br/>무언가를 짓고 있습니다.</h2>
+    <p class="lead">남의 브랜드만 키우지 않습니다. 우리의 것으로.</p>
+  </section>
+
+  <!-- 2. MIST -->
+  <section class="field pb-mist">
+    <span class="vlabel">v-B · Mist</span>
+    <div class="eyebrow">04 — Private Brand</div>
+    <div class="stagewrap">
+      <div class="silhouette"></div>
+      <div class="mist-layer"></div>
+    </div>
+    <h2 class="kr-title">안개가 걷히면,<br/>그때 이름을 부르겠습니다.</h2>
+    <p class="lead">우리가 권하는 구조가, 곧 우리가 쓰는 구조입니다.</p>
+    <div class="year" style="margin-top:24px">2026 —</div>
+  </section>
+
+  <!-- 3. SEALED -->
+  <section class="field pb-sealed">
+    <span class="vlabel">v-C · Sealed</span>
+    <div class="eyebrow">04 — Private Brand</div>
+    <div class="outline"></div>
+    <div class="year">2026</div>
+    <div class="seal-line"></div>
+    <h2 class="kr-title">윤곽만 공개합니다.</h2>
+    <p class="lead">제품으로 증명할 차례입니다.</p>
+  </section>
+
+  <!-- 4. STAGE -->
+  <section class="field pb-stage">
+    <span class="vlabel">v-D · Stage</span>
+    <div class="beam"></div>
+    <div class="floor"></div>
+    <div class="eyebrow">04 — Private Brand</div>
+    <div class="silhouette"></div>
+    <h2 class="kr-title">무대 위, 아직 조명만 켜졌습니다.</h2>
+    <div class="year" style="margin-top:20px">2026</div>
+  </section>
+</body>
+</html>

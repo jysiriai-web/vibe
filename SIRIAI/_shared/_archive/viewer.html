@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIRIAI Docs · Preview</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#111;--sub:#666;--line:#e8e8e8;--accent:#0d0d0d;--codebg:#f6f6f6;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Inter','Noto Sans KR',sans-serif;color:var(--ink);background:#fff;display:flex;min-height:100vh;-webkit-font-smoothing:antialiased;}
+  /* sidebar */
+  nav{width:280px;flex-shrink:0;border-right:1px solid var(--line);padding:28px 18px;position:sticky;top:0;height:100vh;overflow-y:auto;background:#fafafa;}
+  nav .brand{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--sub);font-weight:600;margin-bottom:6px;}
+  nav h1{font-size:1.1rem;font-weight:600;margin:0 0 22px;letter-spacing:-0.01em;}
+  nav button{display:block;width:100%;text-align:left;background:none;border:none;border-radius:8px;padding:11px 12px;font-size:.92rem;font-family:inherit;color:#333;cursor:pointer;margin-bottom:3px;line-height:1.4;transition:background .15s,color .15s;}
+  nav button:hover{background:#eee;}
+  nav button.active{background:var(--accent);color:#fff;}
+  nav button .tag{display:block;font-size:.68rem;color:var(--sub);font-weight:400;margin-top:2px;}
+  nav button.active .tag{color:#aaa;}
+  nav .hint{font-size:.74rem;color:var(--sub);font-weight:300;margin-top:20px;line-height:1.6;padding:12px;background:#fff;border:1px solid var(--line);border-radius:8px;}
+  /* content */
+  main{flex:1;padding:56px 64px 120px;max-width:900px;overflow-x:hidden;}
+  main h1{font-size:2.1rem;font-weight:600;letter-spacing:-0.025em;margin:.2em 0 .6em;line-height:1.2;}
+  main h2{font-size:1.5rem;font-weight:600;margin:1.8em 0 .6em;padding-bottom:.3em;border-bottom:1px solid var(--line);letter-spacing:-0.02em;}
+  main h3{font-size:1.18rem;font-weight:600;margin:1.5em 0 .5em;}
+  main h4{font-size:1rem;font-weight:600;margin:1.2em 0 .4em;color:#333;}
+  main p,main li{font-size:.98rem;line-height:1.75;color:#222;word-break:keep-all;font-weight:300;}
+  main strong{font-weight:600;color:var(--ink);}
+  main a{color:#0a58ca;text-decoration:none;border-bottom:1px solid #cdd9ef;}
+  main a:hover{border-color:#0a58ca;}
+  main code{background:var(--codebg);padding:2px 6px;border-radius:5px;font-size:.86em;font-family:'Inter',ui-monospace,monospace;}
+  main pre{background:var(--codebg);border:1px solid var(--line);border-radius:10px;padding:18px 20px;overflow-x:auto;line-height:1.6;}
+  main pre code{background:none;padding:0;font-size:.84rem;}
+  main blockquote{margin:1em 0;padding:12px 20px;background:#fafafa;border-left:3px solid var(--accent);border-radius:0 8px 8px 0;}
+  main blockquote p{color:#444;}
+  main table{border-collapse:collapse;width:100%;margin:1.2em 0;font-size:.9rem;}
+  main th,main td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top;word-break:keep-all;}
+  main th{background:#f4f4f4;font-weight:600;}
+  main hr{border:none;border-top:1px solid var(--line);margin:2em 0;}
+  main ul,main ol{padding-left:1.4em;}
+  main li{margin:.3em 0;}
+  .loading{color:var(--sub);font-weight:300;padding:40px 0;}
+  .err{color:#b4232a;font-weight:400;padding:40px 0;line-height:1.7;}
+  @media(max-width:760px){body{flex-direction:column;}nav{width:auto;height:auto;position:static;}main{padding:32px 22px 80px;}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="brand">SIRIAI · Deck</div>
+  <h1>문서 미리보기</h1>
+  <div id="nav-list"></div>
+  <div class="hint">메모장 말고 여기서 보세요. 문서를 수정하면 <b>새로고침(F5)</b>으로 반영됩니다.</div>
+</nav>
+<main id="content"><div class="loading">불러오는 중…</div></main>
+<script>
+  const DOCS = [
+    {f:'클로드디자인_사용법.md', t:'🚀 클로드 사용법', d:'처음용 — 클로드 디자인 쓰는 법'},
+    {f:'클로드_프롬프트.md',     t:'🚀 클로드 프롬프트', d:'복붙용 — claude.ai에 넣을 프롬프트'},
+    {f:'메시지_아키텍처.md',     t:'⭐ 메시지 아키텍처', d:'deck 척추 — 고객 hero 서사 (NEW)'},
+    {f:'브랜딩_기준_스터디.md',  t:'⭐ 브랜딩 기준',    d:'영업메일 탈피 = 격의 정체 (NEW)'},
+    {f:'홈페이지_정밀분석.md',   t:'홈 정밀분석',      d:'팀장님 홈 비판·"왜?" 점검 (NEW)'},
+    {f:'브랜딩_톤앤매너.md',     t:'톤앤매너',        d:'산세리프·모노크롬·Archival Index'},
+    {f:'PRD_SIRIAI_v0.2.md',   t:'PRD v0.2',        d:'기준 문서 — 포지셔닝·IA·전략'},
+    {f:'콘텐츠_원천수집.md',     t:'콘텐츠 원천수집',  d:'드라이브·로컬 raw 재료'},
+    {f:'사업소개서_필요사항.md', t:'필요사항 점검',    d:'PRD 부족분 + 우선순위'},
+    {f:'카피뱅크.md',           t:'카피뱅크',        d:'카피안 (※ 메시지 확정 후 재작성 예정)'},
+    {f:'레퍼런스_해부.md',       t:'레퍼런스 해부',    d:'monopo·12랩스 등 6종'},
+    {f:'홈페이지_분석.md',       t:'홈 분석(구버전)',  d:'이전 — 정밀분석으로 대체'},
+    {f:'PRD_SIRIAI_사업소개서.md',t:'PRD v0.1 (원본)', d:'최초 — 보존용'},
+  ];
+  const nav = document.getElementById('nav-list');
+  const content = document.getElementById('content');
+  let buttons = [];
+  DOCS.forEach((doc,i)=>{
+    const b=document.createElement('button');
+    b.innerHTML = doc.t + '<span class="tag">'+doc.d+'</span>';
+    b.onclick=()=>load(i);
+    nav.appendChild(b); buttons.push(b);
+  });
+  async function load(i){
+    buttons.forEach(b=>b.classList.remove('active'));
+    buttons[i].classList.add('active');
+    content.innerHTML='<div class="loading">불러오는 중…</div>';
+    try{
+      const res = await fetch('./'+encodeURIComponent(DOCS[i].f));
+      if(!res.ok) throw new Error(res.status);
+      const txt = await res.text();
+      content.innerHTML = marked.parse(txt);
+      content.scrollIntoView({block:'start'});
+      window.scrollTo(0,0);
+    }catch(e){
+      content.innerHTML='<div class="err">불러오기 실패 ('+e.message+').<br>이 페이지는 <b>http://localhost:8765/viewer.html</b> 로 열어야 합니다.<br>(파일 더블클릭 file:// 로는 fetch가 막혀요.)</div>';
+    }
+  }
+  load(0);
+</script>
+</body>
+</html>

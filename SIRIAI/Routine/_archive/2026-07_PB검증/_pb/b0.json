@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "TREEANNSEA 트리앤씨",
+      "verdict": "적합",
+      "own_brand": "TREEANNSEA",
+      "reason": "treeannsea.com 공식몰에서 Desert Salt Pack 등 자체 브랜드 제품을 직접 소비자에게 판매 (Korean Clean Beauty 자사몰)"
+    },
+    {
+      "company": "(주)더제이알",
+      "verdict": "적합",
+      "own_brand": "BEVERLY HILLS POLO CLUB, JUJULINE, ARQUERO",
+      "reason": "polocosmetic.com에서 자체 개발 브랜드(베버리힐스폴로클럽·주줄린 등) 제품을 직접 판매, OEM 언급 없음"
+    },
+    {
+      "company": "(주)본플렉스",
+      "verdict": "적합",
+      "own_brand": "BONPLEX",
+      "reason": "자체 특허성분(다이말리에이트) 기반 BONPLEX 헤어케어 브랜드 보유, 2024 인터참코리아 출품 확인 (kr.aving.net)"
+    },
+    {
+      "company": "㈜프롬비건",
+      "verdict": "적합",
+      "own_brand": "CHOROK CHORONG (초록초롱)",
+      "reason": "chorokchorong.com에서 자체 비건 스킨케어 브랜드 초록초롱으로 토너패드·세럼 등 직판, 통신판매업 등록 확인"
+    },
+    {
+      "company": "벨플라워",
+      "verdict": "적합",
+      "own_brand": "bellflower (벨플라워)",
+      "reason": "bellflowercos.com에서 자체 브랜드 세럼·마스크 등 직판, OEM도 병행하나 자체 소비자 브랜드 명확히 존재"
+    },
+    {
+      "company": "주식회사 보타닉센스",
+      "verdict": "적합",
+      "own_brand": "보타닉센스 (Botanicsens)",
+      "reason": "botanicsens.com에서 이오논 퍼밍에센스 등 자체 브랜드 제품 직판, 통신판매업신고 보유"
+    },
+    {
+      "company": "누셀리크",
+      "verdict": "적합",
+      "own_brand": "NUSELIQUE / 나디언스+",
+      "reason": "nuselique.co.kr에서 나디언스+ 리페어 코드 시리즈 등 자체 브랜드 직판, OEM 병행하나 소비자 브랜드 명확"
+    },
+    {
+      "company": "CLAIRLISSE",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "홈페이지 없음, 웹 검색에서도 브랜드 정보 확인 불가 — 정보 부족"
+    },
+    {
+      "company": "DEWVERO",
+      "verdict": "적합",
+      "own_brand": "DEWVERO (듀베로)",
+      "reason": "dewvero.com 공식몰에서 듀베로 더블로 크림 등 자체 브랜드 직판, 운영사 앤스컴퍼니"
+    },
+    {
+      "company": "LANNUE",
+      "verdict": "적합",
+      "own_brand": "LANNUE (랑느 코스메틱)",
+      "reason": "lannue.co.kr 공식몰에서 매치 캄 라인·티어스 라인 등 자체 저자극 스킨케어 브랜드 직판"
+    }
+  ]
+}

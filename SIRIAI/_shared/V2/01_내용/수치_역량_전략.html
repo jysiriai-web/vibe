@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SIRIAI · 수치 → 역량 전략</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#f3eee2;--surface:#fff;--ink:#211a33;--ink-2:rgba(33,26,51,.66);--ink-3:rgba(33,26,51,.46);--line:rgba(33,26,51,.12);
+    --lav:#cabce8;--lav-soft:#e9e3f3;--green:#7fae7f;--green-soft:#e4efe2;--red-soft:#f6ecec;--amber-soft:#f3e8d2;
+    --f-en:'Helvetica Neue','Helvetica','Arimo','Pretendard',Arial,sans-serif;--f-kr:'Pretendard',sans-serif;--f-sans:'Helvetica Neue','Helvetica','Arimo','Pretendard',sans-serif;--f-mono:'JetBrains Mono',ui-monospace,monospace;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--f-sans);background:var(--bg);color:var(--ink);line-height:1.6;letter-spacing:-.01em;padding:46px clamp(18px,5vw,64px);max-width:900px;margin:0 auto;-webkit-font-smoothing:antialiased;}
+  .top{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);}
+  h1{font-size:clamp(26px,3.2vw,38px);font-weight:700;letter-spacing:-.022em;margin:5px 0 8px;}
+  .lead{font-family:var(--f-kr);color:var(--ink-2);font-size:14.5px;margin-bottom:6px;word-break:keep-all;line-height:1.65;}
+  .quote{font-family:var(--f-kr);font-size:13.5px;color:#5a4a85;background:var(--lav-soft);border-radius:12px;padding:13px 17px;margin:14px 0 30px;word-break:keep-all;line-height:1.65;}
+  .quote b{color:#3a2d5e;}
+
+  .principle{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:36px;}
+  @media(max-width:680px){.principle{grid-template-columns:1fr;}}
+  .pc{border-radius:16px;padding:20px 22px;}
+  .pc.closed{background:var(--red-soft);border:1px solid rgba(201,138,138,.3);}
+  .pc.open{background:var(--green-soft);border:1px solid rgba(127,174,127,.35);}
+  .pc .lbl{font-family:var(--f-en);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;}
+  .pc.closed .lbl{color:#b06a6a;} .pc.open .lbl{color:#4f8a4f;}
+  .pc h3{font-family:var(--f-kr);font-size:17px;font-weight:800;margin:5px 0 10px;}
+  .pc ul{list-style:none;display:flex;flex-direction:column;gap:6px;}
+  .pc li{font-family:var(--f-kr);font-size:13px;color:var(--ink-2);padding-left:15px;position:relative;word-break:keep-all;line-height:1.5;}
+  .pc.closed li::before{content:"✕";position:absolute;left:0;color:#b87a7a;font-weight:700;}
+  .pc.open li::before{content:"✓";position:absolute;left:0;color:var(--green);font-weight:700;}
+
+  h2{font-family:var(--f-kr);font-size:14px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:.02em;border-bottom:1px solid var(--line);padding-bottom:9px;margin:34px 0 16px;}
+  .ba{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin-bottom:13px;}
+  .ba .where{font-family:var(--f-en);font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--lav);margin-bottom:12px;}
+  .ba .row{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;}
+  @media(max-width:640px){.ba .row{grid-template-columns:1fr;}}
+  .ba .before,.ba .after{border-radius:12px;padding:14px 16px;font-family:var(--f-kr);font-size:14px;word-break:keep-all;line-height:1.5;}
+  .ba .before{background:var(--red-soft);color:#8a5a5a;text-decoration:line-through;text-decoration-color:rgba(138,90,90,.4);}
+  .ba .after{background:var(--green-soft);color:var(--ink);font-weight:600;}
+  .ba .arr{font-family:var(--f-en);color:var(--ink-3);font-size:20px;text-align:center;}
+  @media(max-width:640px){.ba .arr{transform:rotate(90deg);}}
+  .ba .note{font-family:var(--f-kr);font-size:12px;color:var(--ink-3);margin-top:10px;word-break:keep-all;}
+  .ba .note b{color:var(--ink-2);}
+
+  .keep{font-family:var(--f-kr);font-size:13.5px;color:#3f6b3f;background:var(--green-soft);border:1px solid rgba(127,174,127,.35);border-radius:12px;padding:14px 17px;margin-top:8px;word-break:keep-all;line-height:1.7;}
+  .keep b{color:var(--ink);}
+  .foot{margin-top:30px;font-family:var(--f-kr);font-size:12.5px;color:var(--ink-3);text-align:center;}
+</style>
+</head>
+<body>
+  <div class="top">SIRIAI · Deck — 카피 전략</div>
+  <h1>수치 → 역량으로</h1>
+  <p class="lead">P4에서 네가 "<b>'전세계 다 해요'라곤 못 하니 수치를 넣었다, 좋은 의견 달라</b>"고 한 거에 대한 내 답.</p>
+  <div class="quote">📌 너 말: "우리는 인플루언서 마케팅이 필요한 국가에 인플루언서가 있다면 다 가능하다. 다만 그걸 '전세계 다 해요'라고 할 수 없으니 수치를 넣었던 것." → <b>그 직관이 맞아. 수치가 오히려 우릴 작게 만들어.</b></div>
+
+  <div class="principle">
+    <div class="pc closed"><div class="lbl">닫힌 수치</div><h3>"75개국 · 20만"</h3><ul>
+      <li>스스로 한계를 그어버림 (76번째 나라는?)</li>
+      <li>검증 부담·반박 위험 (진짜 20만이야?)</li>
+      <li>차갑다 — 카탈로그·벤더 느낌</li>
+      <li>경쟁사도 다 쓰는 흔한 자랑</li>
+    </ul></div>
+    <div class="pc open"><div class="lbl">열린 역량</div><h3>"필요한 곳이면, 어디든"</h3><ul>
+      <li>한계가 없음 — 가능성으로 읽힘</li>
+      <li>검증 불필요 (역량의 선언)</li>
+      <li>따뜻하다 — "우리 편" 느낌</li>
+      <li>우리만의 관점(관계·역량)과 정합</li>
+    </ul></div>
+  </div>
+
+  <h2>적용 — Before → After</h2>
+
+  <div class="ba">
+    <div class="where">① 해외 / 글로벌 시딩</div>
+    <div class="row">
+      <div class="before">"75개국 · 12만 큐레이터 · 12개 플랫폼에서 시딩합니다."</div>
+      <div class="arr">→</div>
+      <div class="after">"당신의 시장이 어디든, 그곳의 진짜 목소리를 찾습니다. 인플루언서가 있는 곳이라면, 어디든."</div>
+    </div>
+    <div class="note"><b>수치는 버리지 않아</b> — 아래에 작은 증거로: <i>"지금까지 75개국 · 12만 큐레이터와"</i> (각주처럼, 자랑이 아니라 근거로)</div>
+  </div>
+
+  <div class="ba">
+    <div class="where">② 케이스 / 우리가 할 수 있는 것</div>
+    <div class="row">
+      <div class="before">"나노 100명 · 매거진 7개 · 시딩 72명 진행"</div>
+      <div class="arr">→</div>
+      <div class="after">"온·오프라인, 매거진, 시딩, 챌린지 — 브랜드에 필요한 방식을 처음부터 끝까지 설계합니다."</div>
+    </div>
+    <div class="note"><b>너 P2 철학 그대로</b> — 숫자로 한계를 긋지 말고 "우리가 할 수 있는 범위"를 보여주기. 숫자는 안 써도 더 커 보여.</div>
+  </div>
+
+  <div class="ba">
+    <div class="where">③ sa:ai / 거점·기술 (P4)</div>
+    <div class="row">
+      <div class="before">"20만 즉시 스코어링 · 60개국 · Seoul·SF·Tokyo"</div>
+      <div class="arr">→</div>
+      <div class="after">"브랜드를 사람처럼 이해하는 AI 위에서, 당신의 시장이 어디든 그곳의 데이터로 정확히."</div>
+    </div>
+    <div class="note"><b>거점·기술은 '활용한다'를 보여주는 톤으로</b>(네 P4 답) — "OpenAI·Anthropic 위에서 우리가 만든 sa:ai로" 정도. ⚠️ <b>수치를 빼라는 게 아님</b> — '20만'처럼 진위 불명인 것만 보류(검증되면 그대로 OK). 75개국·12만 큐레이터 등 <b>검증된 수치는 증거로 적극 활용.</b></div>
+  </div>
+
+  <div class="ba">
+    <div class="where">④ Trusted by / 실적</div>
+    <div class="row">
+      <div class="before">"거래처 17곳+ · 인재풀 1,100건 (우리 실적)"</div>
+      <div class="arr">→</div>
+      <div class="after">"당신과 비슷한 고민에서 시작한 브랜드들. 그들이 택한 이유가 곧 근거입니다."</div>
+    </div>
+    <div class="note"><b>실명은 전부 노출(P1)</b> — 단 '우리 실적 자랑'이 아니라 '당신이 안심할 근거'로 프레이밍. 숫자는 신뢰의 보조.</div>
+  </div>
+
+  <div class="keep">✅ <b>핵심 한 줄:</b> 수치를 <b>지우는 게 아니라</b>, 메인은 "할 수 있는 역량"으로 크게 → 수치는 그 아래 <b>작은 '증거'</b>로. 닫힌 숫자가 메인이 되면 우리가 작아지고, 열린 역량이 메인이면 우리가 커진다.</div>
+
+  <div class="foot">이 방향 OK면 → 시안 v2 카피를 이 톤으로 손볼게. (지금은 제안 — 네 내용 검수와 함께 확정)</div>
+</body>
+</html>

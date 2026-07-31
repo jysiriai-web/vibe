@@ -1,0 +1,523 @@
+{
+  "count": 73,
+  "tally": {
+    "uncertain": 21,
+    "confirmed": 24,
+    "found": 5,
+    "notfound": 1,
+    "corrected": 22
+  },
+  "results": [
+    {
+      "company": "CLAIRLISSE",
+      "email": "",
+      "status": "uncertain",
+      "source": "https://www.intercharmkorea.com/en-us/Exhibitor_directory.html",
+      "note": "웹 전체 검색 및 Intercharm Korea 2026 참가업체 디렉토리 검색 결과, CLAIRLISSE 브랜드명으로 공식 웹사이트·이메일을 확인하지 못함. 동명 혼동 방지를 위해 추측 불가."
+    },
+    {
+      "company": "제이크리컴퍼니",
+      "email": "jcre@jcrecompany.com",
+      "status": "confirmed",
+      "source": "http://www.lefilleo.com/privacy_policy.php",
+      "note": "lefilleo.com 개인정보처리방침에 (주)제이크리컴퍼니의 개인정보보호책임자 이메일로 jcre@jcrecompany.com 명시됨. 도메인이 회사 공식 도메인(jcrecompany.com)과 일치하여 신뢰 높음."
+    },
+    {
+      "company": "SHINAN COSMETICS Co., Ltd.",
+      "email": "admin@shinancosmetics.co.kr",
+      "status": "found",
+      "source": "https://en.shionle.com/",
+      "note": "공식 영문몰 en.shionle.com 본문에 'CONTACT admin@shinancosmetics.co.kr FOR MORE INFORMATION' 명시 확인. 도메인 shinancosmetics.co.kr이 회사명과 일치. Intercharm Korea 2026 참가업체 등록도 확인됨."
+    },
+    {
+      "company": "(주)한국쉬즈라인",
+      "email": "info@koreashesline.co.kr",
+      "status": "confirmed",
+      "source": "https://toolif.co.kr",
+      "note": "toolif.co.kr footer에 사업자명 (주)한국쉬즈라인, 사업자등록번호 215-81-46169, 이메일 info@koreashesline.co.kr 명시 확인. 도메인 koreashesline.co.kr이 회사명과 일치하여 신뢰 높음."
+    },
+    {
+      "company": "휴션",
+      "email": "",
+      "status": "uncertain",
+      "source": "https://www.huceane.com",
+      "note": "huceane.com 공식 사이트 contact/about 페이지 모두 확인했으나 이메일 미노출, 문의 양식만 존재. 웹 검색에서도 공식 이메일 미확인. 추측 불가."
+    },
+    {
+      "company": "주식회사 사계절",
+      "email": "",
+      "status": "uncertain",
+      "source": "",
+      "note": "웹사이트 정보 없이 사명만으로 검색 시 동명 타사(사계절컴퍼니 등) 다수 존재. 화장품 업체 특정 불가로 이메일 확인 불가. 추측 금지."
+    },
+    {
+      "company": "레보아미",
+      "email": "sun2268@naver.com",
+      "status": "confirmed",
+      "source": "https://www.k-expo.org/brand-exhibition-2024/?bmode=view&idx=14738706",
+      "note": "공식 브랜드 전시관(KOREA EXPO) 프로필에서 sun2268@naver.com이 대표자(김선태) 연락처로 등록 확인. 공식 사이트 amies2.co.kr도 동일 이메일 사용 확인. 범용 도메인(naver)이나 공식 디렉터리 출처에서 해당 회사 것임을 확인함."
+    },
+    {
+      "company": "ODSY",
+      "email": "",
+      "status": "uncertain",
+      "source": "",
+      "note": "웹 검색에서 'ODSY'라는 한국 화장품 브랜드를 특정할 수 없었음. odsycoltd.com은 '오디세이㈜(ODYSSEY Co., Ltd.)'로 별개 회사. deunerang@naver.com이 어떤 공식 채널에서도 ODSY 브랜드 연락처로 확인되지 않음. 동명 혼동 가능성이 있어 추측 불가 — 이메일 비워둠."
+    },
+    {
+      "company": "(주)승건코스메틱스",
+      "email": "lppm47@naver.com",
+      "status": "found",
+      "source": "https://www.loobee.co.kr/",
+      "note": "공식 웹사이트(loobee.co.kr) 하단 푸터에 대표자 이메일로 lppm47@naver.com이 등재됨. 전화번호 010-7577-5702도 함께 표기. 해당 사이트가 (주)승건코스메틱스 운영임을 footer 사업자정보로 확인."
+    },
+    {
+      "company": "브라이트",
+      "email": "",
+      "status": "notfound",
+      "source": "",
+      "note": "smartstore.naver.com/brightbrush 페이지를 직접 fetch할 수 없고, 웹 검색에서도 '브라이트(brightbrush)' 스마트스토어의 공식 이메일을 확인할 수 있는 출처가 없었음. 스마트스토어 사업자정보는 직접 방문 확인 필요."
+    },
+    {
+      "company": "리타",
+      "email": "liita@proving-grounds.co.kr",
+      "status": "confirmed",
+      "source": "https://www.liita-seoul.com/pages/contact",
+      "note": "liita-seoul.com의 공식 Contact 페이지에 liita@proving-grounds.co.kr이 문의 전용 이메일로 명시됨. LIITA@phosesei.kr은 회사정보란(사업자 기재)에 병기되나 contact 폼의 주 이메일은 proving-grounds.co.kr 도메인. current_email과 일치."
+    },
+    {
+      "company": "지비알아이디어",
+      "email": "",
+      "status": "uncertain",
+      "source": "https://www.vah.co.kr/",
+      "note": "vah.co.kr의 사업자명은 '주식회사브이에이에이치(VAH)'이며 지비알아이디어가 아님. seo9009@hanmail.net은 VAH Corporation의 상담/주문 이메일로 확인되나, 이 이메일이 지비알아이디어 소속인지 확인 불가. 회사 식별 불일치로 귀속 금지."
+    },
+    {
+      "company": "셀비오코스메틱(주)",
+      "email": "cellviocosmetic@naver.com",
+      "status": "confirmed",
+      "source": "https://www.cellviocosmetic.co.kr/",
+      "note": "회사 공식 사이트 하단 '개인정보관리책임자' 및 컨택 항목에 동일 이메일 명시. naver 범용 도메인이나 자사 웹사이트에서 직접 확인되어 신뢰 가능."
+    },
+    {
+      "company": "이아이오(L-H02) / 누이브(L-H03)",
+      "email": "eiio@cosmetina.co.kr",
+      "status": "found",
+      "source": "https://eiio.co.kr/",
+      "note": "공식 사이트 footer에 '홍보 및 제휴문의' 이메일로 eiio@cosmetina.co.kr 명시. 운영사는 주식회사 코스메티나(Cosmetina Co., Ltd.)로, EIIO 상표 USPTO 등록도 동사 명의. 누이브(NUIVE) 브랜드도 동일 운영사 확인. 기존 이메일 없던 항목에 신규 발굴."
+    },
+    {
+      "company": "(주)케이비에이치케어",
+      "email": "kbhcare@naver.com",
+      "status": "confirmed",
+      "source": "https://kbhcare.com/",
+      "note": "공식 사이트 footer에 kbhcare@naver.com, 전화 +82-2-868-4795, 서울 소재 주소 함께 명시 확인. naver 범용 도메인이나 자사 웹사이트에서 직접 확인."
+    },
+    {
+      "company": "주식회사 아가파월드",
+      "email": "",
+      "status": "uncertain",
+      "source": "https://agafar.com/",
+      "note": "공식 사이트(agafar.com) 및 영문 글로벌 사이트(agafarusa.com)에 이메일 주소 일체 미게재. 전화(02-3281-2253)·카카오톡만 안내. current_email인 info@agafar.com을 이 회사 것으로 확인해줄 공식 출처 없음 — 추측 불가로 uncertain 처리."
+    },
+    {
+      "company": "(주)제노헬릭스",
+      "email": "xenohelix@xenohelix.com",
+      "status": "uncertain",
+      "source": "https://www.southkoreayp.com/company/116757/Xenohelix",
+      "note": "xenohelix.com 공식 사이트 접속 불가(ECONNREFUSED). 한국 비즈니스 디렉터리(southkoreayp.com)에 xenohelix@xenohelix.com 및 전화 +82-032-815-7213 기재 확인. 도메인 일치(xenohelix.com)로 신뢰도 있으나, 자사 공식 웹사이트에서 직접 확인 불가 — 규칙상 confirmed 처리 불가, uncertain 유지."
+    },
+    {
+      "company": "Beaufirst Global Company Limited",
+      "email": "",
+      "status": "uncertain",
+      "source": "",
+      "note": "공식 웹사이트 확인 불가. 검색 결과에서 이 회사의 신뢰할 수 있는 출처 없음. current_email Beaufirstglobal@gmail.com을 이 회사 것으로 귀속시킬 공식 출처 발견 불가. 동명 혼동 리스크도 배제 불가 — 추측 금지 원칙에 따라 uncertain, 이메일 비워둠."
+    },
+    {
+      "company": "메딕콘",
+      "email": "medicon@medicon.co.kr",
+      "status": "confirmed",
+      "source": "http://www.medicon.co.kr/en/page/13",
+      "note": "도메인이 공식 웹사이트(medicon.co.kr)와 일치. Contact Us 페이지에서 영업부 공식 이메일로 확인됨."
+    },
+    {
+      "company": "피텐",
+      "email": "pms@pitenkorea.com",
+      "status": "confirmed",
+      "source": "https://www.drpiten.com/contact-us",
+      "note": "drpiten.com의 Contact Us 페이지에 주식회사 피텐 공식 이메일로 pms@pitenkorea.com 명시 확인. pitenkorea.com이 법인 공식 도메인이며, drpiten.com은 동일 법인의 쇼핑몰 도메인."
+    },
+    {
+      "company": "ILLON CO., LTD",
+      "email": "global@illon.co.kr",
+      "status": "confirmed",
+      "source": "https://kr.kompass.com/c/illon-co-ltd/kr002475/",
+      "note": "GobizKorea 및 Kompass 디렉터리에서 THE iLLON Co., Ltd. 공식 글로벌 담당 이메일로 global@illon.co.kr 확인. illon.co.kr은 theillon.com과 동일 법인의 공식 도메인."
+    },
+    {
+      "company": "리쥬멜라 코리아",
+      "email": "rejumela@naver.com",
+      "status": "confirmed",
+      "source": "https://rejumela.co.kr/",
+      "note": "rejumela.co.kr 공식 홈페이지 footer에 개인정보보호책임자 이메일로 rejumela@naver.com 명시 확인. naver 도메인이지만 자사 공식 사이트 footer에서 직접 확인됨."
+    },
+    {
+      "company": "BIO GLORIOUS CO.,LTD.",
+      "email": "bioglorious@naver.com",
+      "status": "confirmed",
+      "source": "https://bioglorious.com/",
+      "note": "bioglorious.com 공식 홈페이지 footer에 상담/주문 이메일로 bioglorious@naver.com 명시 확인. palab.co.kr도 동일 대표자(한근영)·사업자번호(507-88-02263)로 같은 법인임을 확인."
+    },
+    {
+      "company": "㈜나인원코스메디",
+      "email": "official@91cosmedi.com",
+      "status": "corrected",
+      "source": "https://91cosmedi.com/",
+      "note": "91cosmedi.com 공식 홈페이지 footer에서 확인된 공개 공식 이메일은 official@91cosmedi.com 및 91cosmedi@naver.com. 기존 OBD@91cosmedi.com은 어떤 공개 출처에서도 확인되지 않아 부서내부용으로 추정되며 공식 컨택 이메일로 사용 불가. official@91cosmedi.com으로 교체."
+    },
+    {
+      "company": "에텔랑",
+      "email": "thyme9905@naver.com",
+      "status": "corrected",
+      "source": "https://etelanc.com/shopinfo/guide.html",
+      "note": "공식 사이트(etelanc.com) 이용안내 페이지에 개인정보보호책임자 이메일로 thyme9905@naver.com 명시. 입력된 etelanc@naver.com은 동일 사이트에서 직접 확인되지 않음. 웹검색 요약에는 etelanc@naver.com이 등장하나, 실제 페이지 본문 크롤링 결과에서는 thyme9905@naver.com만 확인됨. naver 범용 도메인이나 공식 자사몰 출처로 귀속 확인됨."
+    },
+    {
+      "company": "세포랩",
+      "email": "cepolab@naver.com",
+      "status": "corrected",
+      "source": "https://cepolab.com/member/privacy.html",
+      "note": "공식 사이트(cepolab.com) 개인정보처리방침 페이지에서 마케팅/제휴문의 및 개인정보보호책임자 이메일로 cepolab@naver.com 직접 확인. 운영사=(주)퓨젠바이오 동일. 입력된 biz@fugenbio.co.kr은 사이트 어디에서도 확인되지 않아 교체."
+    },
+    {
+      "company": "주식회사 메조팜",
+      "email": "purple9260@hnamail.net",
+      "status": "uncertain",
+      "source": "https://mesopharm.co.kr/",
+      "note": "공식 사이트(mesopharm.co.kr)에 이메일 주소 미표시. 웹검색에서 purple9260@hanmail.net(hanmail, hnamail 오타 의심) 언급되나 공식 출처에서 직접 확인 불가. bizno.net에서는 cosmocnt20@naver.com이라는 전혀 다른 이메일이 나와 혼선. 공식 사이트 귀속 확인 불가로 추측 불가."
+    },
+    {
+      "company": "(주)미성메탈",
+      "email": "jkhan@misunggc.co.k",
+      "status": "uncertain",
+      "source": "https://misunggc.tradekorea.com/company.do",
+      "note": "공식 도메인(misunggc.co.kr) 접속 불가(ECONNREFUSED). TradeKorea 프로필·잡코리아·사람인 등 외부 기업정보 사이트에 이메일 미표시. 입력 이메일의 도메인 .co.k는 오타(.co.kr 추정)이나 실제 주소 공식 출처 확인 불가. misunggc@unitel.co.kr이 일부 검색결과에 등장하나 해당 출처의 신뢰도·귀속 확인이 어려워 교체하지 않음."
+    },
+    {
+      "company": "AESTHEIN",
+      "email": "aesthein_sa@naver.com",
+      "status": "corrected",
+      "source": "http://aesthein.kr",
+      "note": "공식 사이트(aesthein.kr) 푸터에 개인정보보호책임자 박상아(aesthein_sa@naver.com) 직접 확인. 운영사=주식회사 더마홀딩스. 입력된 aesthein_sy@naver.com은 _sy 접미사로 상이하며 사이트에서 확인되지 않음."
+    },
+    {
+      "company": "㈜3일애",
+      "email": "sales@3dayslove.kr",
+      "status": "uncertain",
+      "source": "http://www.3dayslove.kr/",
+      "note": "공식 도메인(3dayslove.kr) 사이트에 이메일 미표시. 실제 공식 사이트(3dayslove.co.kr)에는 cgen@daum.net이 표시되나 이는 다른 도메인 운영. sales@3dayslove.kr은 3dayslove.kr 도메인 기반이나 실제 사용 여부를 공식 출처에서 확인 불가. 추측 불가로 현행 유지."
+    },
+    {
+      "company": "더마퀸",
+      "email": "limta11@naver.com",
+      "status": "confirmed",
+      "source": "https://themaqueen.com/",
+      "note": "공식 사이트 footer에 limta11@naver.com과 ydjcom@naver.com 두 주소 모두 게시됨. limta11@naver.com은 현재 이메일과 일치, 그 회사 사이트에서 직접 확인."
+    },
+    {
+      "company": "㈜바이오에프디엔씨",
+      "email": "global@biofdnc.com",
+      "status": "corrected",
+      "source": "https://www.biofdnc-global.com/",
+      "note": "공식 사이트 footer에 global@biofdnc.com으로 기재됨. 현재 이메일 biofdnc@global.com은 도메인 순서가 뒤집힌 오류로 보임 — global.com은 이 회사와 무관한 범용 도메인."
+    },
+    {
+      "company": "(주)피노젠",
+      "email": "pinogen@pinogen.com",
+      "status": "corrected",
+      "source": "https://pinogen.com/",
+      "note": "공식 사이트 footer 및 대표자 이메일란에 pinogen@pinogen.com 명시. star@pinogen.com은 과거 채용 공고용 주소로 확인됨(더팀스 공고 기준), 공식 컨택 이메일 아님."
+    },
+    {
+      "company": "BiOBiO Co.,Ltd.",
+      "email": "",
+      "status": "uncertain",
+      "source": "https://www.biobiokorea.com/",
+      "note": "공식 사이트(biobiokorea.com)에 이메일 미게시, channel.io 채팅 문의만 존재. biobiocos@naver.com의 출처 URL 확인 불가. 동명 유사 도메인(biobio-cos.com) 존재로 혼동 가능성도 있어 추측 처리 금지."
+    },
+    {
+      "company": "(주)엠피컴퍼니",
+      "email": "jungye@medipair.co.kr",
+      "status": "confirmed",
+      "source": "https://www.medipair.co.kr/",
+      "note": "공식 사이트 footer 개인정보 관리 담당자 연락처로 jungye@medipair.co.kr 기재. 도메인 medipair.co.kr이 공식 사이트 도메인과 일치."
+    },
+    {
+      "company": "MLAY INTERNATIONAL LIMITED",
+      "email": "mt@mlays.com",
+      "status": "corrected",
+      "source": "https://mlays.com/pages/contact",
+      "note": "공식 사이트 contact 페이지에 mt@mlays.com (Customer Support & Marketing)만 게시됨. cml@mlays.com은 사이트 어디서도 확인 불가, 복수 검색에서도 출처 없음 — 교체 처리."
+    },
+    {
+      "company": "미영씨앤씨",
+      "email": "",
+      "status": "uncertain",
+      "source": "https://hesolmall.com/",
+      "note": "hesolmall.com의 사업자 정보란에는 운영사가 (주)에코마인(Ecomine Co., Ltd.)으로 표기되어 있음. 기존 이메일 ecomine@ecomine.co.kr은 에코마인 도메인이나, 에코마인이 미영씨앤씨와 동일 법인인지 불명. 헤솔몰 공식 컨택 이메일은 haesol@ecomine.co.kr로 확인됨. '미영씨앤씨'라는 법인 명의의 공식 이메일은 웹 검색으로 확인 불가 — 운영사 혼동 가능성 있어 단독 귀속 불가."
+    },
+    {
+      "company": "디오에스앤유니크",
+      "email": "help@doskorea.co.kr",
+      "status": "corrected",
+      "source": "https://dosinternational.co.kr/en/sub0501.php",
+      "note": "기존 이메일 monica.son@dosintl.com은 dosintl.com 도메인으로 공식 웹사이트(dosinternational.co.kr)와 다름. 공식 컨택 페이지(dosinternational.co.kr/en/sub0501.php)에서 help@doskorea.co.kr이 2회 노출되는 공식 이메일로 확인됨. 대표자 Soonchul (Dean) Choe, DOS & YOUNIQUE Co., Ltd. 법인 동일성 확인."
+    },
+    {
+      "company": "엑소블랑",
+      "email": "info@linkusglobal.kr",
+      "status": "corrected",
+      "source": "https://linkusglobal.kr/contact/",
+      "note": "기존 이메일 sales1@linkusglobal.kr은 같은 도메인이나 공식 컨택 페이지에서 확인 불가. linkusglobal.kr/contact/ 에서 info@linkusglobal.kr이 공식 문의 이메일로 복수 노출 확인됨. Linkus Global Co., Ltd.가 Exoblanc 브랜드 운영사임을 사이트에서 명시."
+    },
+    {
+      "company": "(주)새로핸즈",
+      "email": "saero@saero.co.kr",
+      "status": "corrected",
+      "source": "https://www.saerohands.co.kr/",
+      "note": "기존 이메일 jh.lee@saero.co.kr은 개인 담당자 주소로 추정되며 공개 출처에서 공식 컨택으로 확인 불가. saerohands.co.kr 하단 footer에서 saero@saero.co.kr이 법인 공식 이메일로 단독 표기됨. 사업자등록번호 201-86-24176, 소재지 서울 강북구 수성로 379."
+    },
+    {
+      "company": "(주)제이앤제이",
+      "email": "jnj_25@daum.net",
+      "status": "confirmed",
+      "source": "https://earthera01.cafe24.com/",
+      "note": "earthera01.cafe24.com 사업자 정보에서 법인명 '제이앤제이 주식회사', 사업자등록번호 346-87-01833 확인. jnj_25@daum.net은 개인정보 보호책임자 이메일로 명시됨. 일반 고객 문의는 peoplenco@daum.net 별도 운영. 공식 출처에서 법인 귀속 확인됨."
+    },
+    {
+      "company": "VINACEUTICALS",
+      "email": "",
+      "status": "uncertain",
+      "source": "https://vinaceuticals.vn/",
+      "note": "vinaceuticals.vn 사이트 및 /contact, /lien-he 페이지 접속 시도하였으나 이메일 정보 추출 불가(페이지 콘텐츠 미반환). 웹 검색에서도 official@vinaceuticals.vn이 공개 출처에서 노출된 기록 확인 불가. 도메인 일치 여부 외 귀속 근거 없어 confirmed 처리 불가."
+    },
+    {
+      "company": "비오아이",
+      "email": "jaypal_company@naver.com",
+      "status": "confirmed",
+      "source": "https://bringorganic.com/",
+      "note": "자사 웹사이트(bringorganic.com) footer 사업자정보 이메일 항목에 jaypal_company@naver.com이 명시되어 있음. 대표 이정서 명의. naver 범용 도메인이나 자사 공식 footer에서 직접 확인됨."
+    },
+    {
+      "company": "SHAAN HONQ INT'L COSMETICS CORP.",
+      "email": "sophia@shaanhonq.com.tw",
+      "status": "corrected",
+      "source": "https://www.shaanhonq.com.tw/contact",
+      "note": "current 이메일 liliya@shaanhonq.com.tw는 공식 contact 페이지에서 확인 불가. 공식 contact 페이지 'Get in Touch' 섹션에 sophia@shaanhonq.com.tw가 본사 담당 이메일로 표기됨. 도메인 shaanhonq.com.tw 일치."
+    },
+    {
+      "company": "코이즈",
+      "email": "mkt@oxyfacial.com",
+      "status": "corrected",
+      "source": "https://oxygenceuticals.co.kr/",
+      "note": "제공된 웹사이트 oxygenceuticals.co.kr의 footer 고객센터 항목에 mkt@oxyfacial.com이 표기됨. current 이메일 coizmkt@gmail.com은 별도 B2B몰(coiz.co.kr) footer 개인정보관리책임자 이메일로 확인되나, 제공 도메인(oxygenceuticals.co.kr)의 직접 연결 공식 이메일은 mkt@oxyfacial.com. 동일 법인((주)코이즈) 운영 확인."
+    },
+    {
+      "company": "(주)배쓰프로젝트",
+      "email": "office@bathproject.kr",
+      "status": "confirmed",
+      "source": "https://www.bathproject.kr/",
+      "note": "자사 웹사이트(bathproject.kr) footer 사업자정보에 '이메일: office@bathproject.kr'이 명시됨. 도메인 bathproject.kr 일치. 대표 박종원."
+    },
+    {
+      "company": "바이더퀄리티",
+      "email": "bythequality@gmail.com",
+      "status": "confirmed",
+      "source": "https://www.bythequality.com/en",
+      "note": "자사 웹사이트(bythequality.com) footer Company Info 항목에 bythequality@gmail.com이 표기됨. gmail 범용 도메인이나 자사 공식 footer에서 그 회사 연락처로 확인됨."
+    },
+    {
+      "company": "epielle",
+      "email": "online@epielle.com",
+      "status": "found",
+      "source": "https://epiellebeauty.wordpress.com/contact-us/",
+      "note": "epielle.com 공식 contact 페이지는 form만 있고 이메일 미표기. 브랜드 공식 WordPress contact 페이지(epiellebeauty.wordpress.com/contact-us/)에 'Email: online@epielle.com'이 명시됨. 도메인 epielle.com과 일치하는 공식 이메일. 웹 검색에서도 B2B 문의처로 동일 주소 확인."
+    },
+    {
+      "company": "Korea Honey",
+      "email": "sharp-be@naver.com",
+      "status": "corrected",
+      "source": "https://www.sharp-be.com/",
+      "note": "공식 사이트 footer에 CPO 연락처로 '주식회사 코리아허니 (sharp-be@naver.com)' 명시. 기존 k-honey@naver.com은 사이트 어디에도 없어 불일치 → 교체."
+    },
+    {
+      "company": "주식회사 제트글로벌",
+      "email": "tomtittot.official@gmail.com",
+      "status": "corrected",
+      "source": "https://tomtittot.com/contact/?lang=en",
+      "note": "공식 contact 페이지에 'tomtittot.official@gmail.com'(t 2개)으로 확인. 기존 등록값 tomtittot.official@gmail.com과 표기 동일하나, 사이트 footer에서 간혹 tomtitttot(t 3개) 오타 혼용. 공식 contact 페이지 기준 t 2개가 정확한 주소임."
+    },
+    {
+      "company": "MIMO CO., LTD.",
+      "email": "sales@mimonail.com",
+      "status": "corrected",
+      "source": "https://mimonail.com/",
+      "note": "mimonail.com footer에 'sales@mimonail.com' 및 'info@veterannails.com' 두 개 이메일 확인. B2B/수출 컨택으로 sales@mimonail.com이 공식 도메인 일치. 기존 kkb0717@naver.com은 사이트에 없어 불일치 → 교체."
+    },
+    {
+      "company": "JKOSMEC",
+      "email": "sales@jkosmecseoul.com",
+      "status": "corrected",
+      "source": "https://www.jkosmec.com/en",
+      "note": "jkosmec.com 공식 사이트 footer에 'JKOSMEC KOREA' 연락처로 sales@jkosmecseoul.com 명시. 기존 sales@jkosmec.com 도메인(@jkosmec.com)은 공식 사이트 어디에도 없음 → 교체. 전화 +82 70 5175 0100도 동일 페이지 확인."
+    },
+    {
+      "company": "성림 BNC",
+      "email": "sunglimbnc@naver.com",
+      "status": "uncertain",
+      "source": "https://ick.intercharmkorea.com/kor/exhibitor/exhi_detail04.asp?idx=4995&ref_idx=14559&param=fst_name%3D%5B%25u3145-%25uC543%5D&page=1",
+      "note": "sunglimbnc.com SSL 인증서 만료로 사이트 직접 접근 불가. INTERCHARM 전시사 페이지(전화 02-413-1944 확인)에도 이메일 미기재. sunglimbnc@naver.com은 SNS(Facebook 성림쇼핑몰)에서 언급되나 해당 계정이 성림BNC 본사 공식 것인지 단독 확인 불가 — 공식 출처 부재로 confirmed 처리 불가."
+    },
+    {
+      "company": "(주)바이오센서연구소",
+      "email": "franz@biosensorlab.com",
+      "status": "corrected",
+      "source": "https://franzskincare.com/",
+      "note": "franzskincare.com(공식 한국 브랜드 사이트) footer에 '개인정보 보호책임자 E-mail: franz@biosensorlab.com' 및 'Global Sales Contact: franz@biosensorlab.com' 이중 명시. 기존 global@biosensorlab.com은 어떤 공식 페이지에서도 확인 안 됨 → franz@biosensorlab.com으로 교체."
+    },
+    {
+      "company": "(주)씨유스킨",
+      "email": "jay@cuskin.com",
+      "status": "uncertain",
+      "source": "https://www.cueshop.co.kr (footer), https://www.intercharmkorea.com (exhibitor page)",
+      "note": "jay@cuskin.com은 공식 출처(자사몰 footer·GoBizKorea·INTERCHARM 전시 페이지)에서 확인되지 않음. 공식 footer에는 webmaster@cuskin.co.kr, 수출 담당은 info@cuskin.com(Sunny Park)만 노출. jay@cuskin.com은 도메인은 맞으나 특정 담당자 개인 주소로 추정되며 공개 출처 미확인 상태."
+    },
+    {
+      "company": "일공일공 이미지플러스",
+      "email": "1010master@naver.com",
+      "status": "confirmed",
+      "source": "http://www.tentengroup.net/sub/com00.asp",
+      "note": "공식 사이트(tentengroup.net) 하단 footer에 'E-MAIL. 1010master@naver.com'으로 명시. naver 도메인이나 자사 공식 페이지에서 직접 확인됨."
+    },
+    {
+      "company": "주식회사 에이치피앤씨",
+      "email": "hpncmall@hpnc.co.kr",
+      "status": "confirmed",
+      "source": "http://www.hpnc.co.kr/ (공식 도메인), 복수 비즈니스 디렉터리(사람인·weseb.com·검색결과)",
+      "note": "hpncmall@hpnc.co.kr은 공식 사이트 도메인(hpnc.co.kr)과 일치하며 복수 출처에서 이 회사의 공식 쇼핑몰/문의 이메일로 일관되게 확인됨. 직접 fetch는 SSL 오류로 실패했으나 검색 결과 내 사이트 정보에서 반복 확인."
+    },
+    {
+      "company": "주식회사 오션스인터내셔널",
+      "email": "sales@oseansint.com",
+      "status": "uncertain",
+      "source": "http://www.oseansint.com/ (사이트 접속 불가), 검색 결과 비즈니스 디렉터리",
+      "note": "oseansint.com 사이트가 접속 불가(연결 오류)여서 직접 확인 불가. 검색에서 확인된 이 회사의 이메일은 overseas@oseansint.com이며 sales@oseansint.com은 공개 출처에서 발견되지 않음. 도메인은 일치하나 sales@ 주소는 미검증. 현재값(sales@) 유지하되 불확실 처리."
+    },
+    {
+      "company": "(주)필코코스팜",
+      "email": "pilko@pilko.org",
+      "status": "confirmed",
+      "source": "https://pilkocospharm.co.kr/",
+      "note": "공식 사이트(pilkocospharm.co.kr) footer에 'Email: pilko@pilko.org'로 명시. 전화·팩스·주소와 함께 직접 확인됨. 도메인은 pilko.org로 pilkocospharm.co.kr과 다르나 자사 공식 페이지 footer에서 직접 게재한 이메일이므로 신뢰 가능."
+    },
+    {
+      "company": "INOPRO",
+      "email": "alexander@inopro.us",
+      "status": "uncertain",
+      "source": "https://inopro.us/pages/contact",
+      "note": "공식 contact 페이지(inopro.us/pages/contact)에 게재된 공식 이메일은 support@inopro.us임. alexander@inopro.us는 도메인은 맞으나 공개 출처 어디에서도 확인되지 않는 개인 담당자 주소로 추정. 공식 컨택 이메일로 확증 불가."
+    },
+    {
+      "company": "(주)이레코스메틱",
+      "email": "irecosmetics@naver.com",
+      "status": "corrected",
+      "source": "https://www.intercharmkorea.com/ko-kr/exhibitor_directory/Exhibitor_detail.%EC%A3%BC%EC%9D%B4%EB%A0%88%EC%BD%94%EC%8A%A4%EB%A9%94%ED%8B%B1%20%20irecosmetic%20coltd.org-a61bedfe-251e-459a-8d19-f780f0549844.html",
+      "note": "기존 holyleader@naver.com은 어떤 공식 출처에서도 확인 불가. 공식 사이트(irecosmetic.co.kr) footer에는 csplim@naver.com(개인정보 관리자)이 기재되나, 인터참코리아 공식 전시사 페이지의 INFO & CONTACT 섹션에 irecosmetics@naver.com이 컨택 이메일로 등재됨 — 이쪽이 영업/전시 담당 이메일로 판단. gmail/naver 범용 도메인이나 공식 전시 프로필 출처로 그 회사 것임 확인."
+    },
+    {
+      "company": "와더스킨",
+      "email": "whataskin7@gmail.com",
+      "status": "corrected",
+      "source": "https://whataskin7.cafe24.com/shop3/",
+      "note": "기존 info@whataskin.co.kr은 공식 출처에서 확인 불가. 공식 쇼핑몰(whataskin7.cafe24.com) footer 개인정보 관리자 항목에 whataskin7@gmail.com이 등재됨 — 자사 공식 사이트에서 그 회사 것임 확인. gmail 범용 도메인이나 공식 사이트 직접 기재로 허용 기준 충족."
+    },
+    {
+      "company": "KONAD코나드",
+      "email": "konadkorea@konadnail.com",
+      "status": "confirmed",
+      "source": "http://www.konadcosmetic.com",
+      "note": "공식 사이트(konadcosmetic.com) footer에서 동일 이메일 konadkorea@konadnail.com 확인. 이메일 도메인 konadnail.com은 회사 브랜드명과 일치하며 공식 사이트에 직접 기재됨."
+    },
+    {
+      "company": "VIEWTEL Co., Ltd.",
+      "email": "",
+      "status": "uncertain",
+      "source": "https://viewtel.cafe24.com/",
+      "note": "기존 marketing@view-tel.co.kr을 어떤 공식 출처에서도 확인하지 못함. 공식 사이트(viewtel.cafe24.com)에 이메일 표기 자체가 없고(전화번호만 있음), GoBizKorea 프로필·Kompass 등 B2B 디렉터리에도 이메일 없음. 인터참코리아 전시사 검색에서도 VIEWTEL 항목 미확인. 추측 금지 원칙에 따라 이메일 공란 처리."
+    },
+    {
+      "company": "㈜상떼화장품",
+      "email": "sante@santecosmetic.net",
+      "status": "corrected",
+      "source": "https://en-drsante.imweb.me/about",
+      "note": "기존 drsantecosmetics@gmail.com은 어떤 공식 출처에서도 확인 불가. 공식 영문 사이트(en.santecosmetic.co.kr → en-drsante.imweb.me)의 About 페이지에 MAIL 항목으로 sante@santecosmetic.net 등재됨. 이메일 도메인 santecosmetic.net이 회사 공식 도메인(santecosmetic.co.kr/.net)과 일치하여 신뢰도 높음. 대표자 이메일 sante8911@naver.com도 존재하나 공식 법인 메일 우선."
+    },
+    {
+      "company": "주식회사 에스테르",
+      "email": "estercos@daum.net",
+      "status": "found",
+      "source": "https://bizno.net/article/1318625425",
+      "note": "공식 사이트 estercos.com은 SSL 오류로 직접 접근 불가. 사업자정보 디렉터리(bizno.net) 등재 정보에서 estercos@daum.net 확인. 이메일 ID 'estercos'가 공식 사이트 도메인 estercos.com과 일치하여 그 회사 것임 신뢰도 높음. 인터참코리아 공식 전시사 페이지(93c9167f 항목)에서 동사 출전 확인됨."
+    },
+    {
+      "company": "(주)제이지에스헬스큐어",
+      "email": "mayyoung@mayyoung.kr",
+      "status": "corrected",
+      "source": "https://mayyoung.kr/member/privacy.html",
+      "note": "mayyoung.kr 개인정보처리방침 footer에 '개인정보보호책임자: SON GWAN YEONG(mayyoung@mayyoung.kr)' 명시, 사업자 (주)제이지에스헬스큐어(131-88-02881) 확인. 기존 jgshealthcure@gmail.com은 사이트 어디에도 없음."
+    },
+    {
+      "company": "(주) 엠디무역",
+      "email": "mdtrad@naver.com",
+      "status": "uncertain",
+      "source": "https://www.mdwig.co.kr/",
+      "note": "mdwig.co.kr 사이트 및 개인정보처리방침에는 luoaiqi@naver.com만 표기(개인정보관리책임자). mdtrad@naver.com은 웹 검색 snippet 1건에서 언급되었으나 실제 사이트 페이지에서 직접 확인되지 않음. 둘 다 naver 범용 도메인이라 공식 컨택인지 단정 불가. 재확인 권장."
+    },
+    {
+      "company": "(주)코윈바이오",
+      "email": "mesablue@kowinbio.co.kr",
+      "status": "confirmed",
+      "source": "https://en.mesabluestore.com/",
+      "note": "en.mesabluestore.com 공식 사이트 footer에 KOWIN BIO Co., Ltd. 개인정보관리자 이메일로 mesablue@kowinbio.co.kr 명시. 도메인 kowinbio.co.kr와 일치해 신뢰도 높음. 기존 이메일과 동일."
+    },
+    {
+      "company": "HANJINEYMAY CO.,LTD",
+      "email": "",
+      "status": "uncertain",
+      "source": "http://hanjineymay.co.kr/en/",
+      "note": "hanjineymay.co.kr 사이트 존재 확인(SSL 자체서명 오류로 직접 fetch 불가). 검색결과에서 official@hanjineymay.com 언급되었으나 독립된 공식 페이지 직접 확인 불가. 도메인 불일치(.com vs .co.kr)도 주의. 직접 사이트 접속 또는 전화(+82-2-3443-9688) 재확인 권장."
+    },
+    {
+      "company": "FACE FACTORY",
+      "email": "marketing@cubist.co.kr",
+      "status": "corrected",
+      "source": "https://www.face-factory.com/",
+      "note": "face-factory.com 운영사는 주식회사 큐비스트(893-88-00851). 사이트 내 공식 이메일은 marketing@cubist.co.kr(개인정보보호책임자 오미연). global@cubist.co.kr은 사이트 어디에도 존재하지 않음."
+    },
+    {
+      "company": "(주)뷰티앤팩토리",
+      "email": "global@beautynfactory.com",
+      "status": "confirmed",
+      "source": "https://beautynfactory.com/",
+      "note": "beautynfactory.com 공식 사이트 footer 및 연락처 섹션 다수에서 global@beautynfactory.com 확인. 도메인 일치, 업무시간 09:00-18:00 KST 표기. 기존 이메일과 동일."
+    },
+    {
+      "company": "(주)시카젠",
+      "email": "cicagen@cicagen.com",
+      "status": "confirmed",
+      "source": "https://en.cicagen.com/",
+      "note": "en.cicagen.com 푸터 및 파트너십 문의 섹션에 cicagen@cicagen.com 명시. 이메일 도메인이 공식 웹사이트 도메인(cicagen.com)과 일치하며 회사명도 CICAGEN Co., Ltd.로 일치 확인."
+    }
+  ]
+}

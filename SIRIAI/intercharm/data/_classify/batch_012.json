@@ -1,0 +1,66 @@
+[
+  {
+    "code": "MOE3064",
+    "cat": "헤어바디",
+    "intro": "탈모 완화 기능성 아누카틴 샴푸·트리트먼트 헤어케어 브랜드",
+    "verdict": "타겟",
+    "basis": "moevhair.com 자체 헤어케어 판매",
+    "homepage": "https://moevhair.com"
+  },
+  {
+    "code": "MOM4344",
+    "cat": "색조",
+    "intro": "(주)뷰템의 메이크업 브랜드, 틴트·파우더 팩트 판매",
+    "verdict": "타겟",
+    "basis": "momeii.com 공식몰서 틴트·팩트 판매",
+    "homepage": "https://momeii.com"
+  },
+  {
+    "code": "MOM2718",
+    "cat": "기타",
+    "intro": "화장품용 유리용기 제조 전문 기업",
+    "verdict": "제외",
+    "basis": "momix.co.kr 화장품 유리용기 제조",
+    "homepage": "https://momix.co.kr"
+  },
+  {
+    "code": "MUL2722",
+    "cat": "스킨케어",
+    "intro": "민감 피부용 순한 비건 스킨케어 브랜드",
+    "verdict": "타겟",
+    "basis": "공식몰서 토너·세럼·크림 직판",
+    "homepage": "https://www.muldream.com"
+  },
+  {
+    "code": "NAS1215",
+    "cat": "기타",
+    "intro": "알루미늄·인쇄 필름, 패치용 지지필름 등 소재 제조사",
+    "verdict": "제외",
+    "basis": "필름·라벨·부자재 소재 B2B 공급",
+    "homepage": "http://www.nascor.co.kr"
+  },
+  {
+    "code": "NOC8436",
+    "cat": "스킨케어",
+    "intro": "코스메슈티컬 OEM·ODM 겸 REBL 등 자체 브랜드 다수 보유",
+    "verdict": "타겟",
+    "basis": "91cosmedi 자체 브랜드 11종 보유",
+    "homepage": "https://www.91cosmedi.com"
+  },
+  {
+    "code": "NOV7252",
+    "cat": "기타",
+    "intro": "홈뷰티 디바이스(RF·EMS·LED) 제조 공급사",
+    "verdict": "제외",
+    "basis": "수입·도매상 대상 기기 제조 공급",
+    "homepage": "http://www.novebeauty.cn"
+  },
+  {
+    "code": "NUN9416",
+    "cat": "스킨케어",
+    "intro": "K뷰티 기반 세럼·아이케어 중심 클린 스킨케어 브랜드",
+    "verdict": "타겟",
+    "basis": "자사몰·아마존서 자체 제품 판매",
+    "homepage": "https://nunabeautylab.com"
+  }
+]

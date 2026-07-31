@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "주식회사 일레븐코퍼레이션",
+      "verdict": "적합",
+      "own_brand": "파넬(PARNELL), 그로우어스(GROWUS), 에이딕트(ADDCT), 루미르(LUMMIR), 라덴스(LA DENS)",
+      "reason": "글로벌 55개국 진출, 자체 브랜드 5개 보유·직판 (11corp.co.kr)"
+    },
+    {
+      "company": "주식회사 더마라인",
+      "verdict": "적합",
+      "own_brand": "DERMALINE, D'LEXO",
+      "reason": "병원 기반 스킨케어 자체 브랜드 보유, 소비자 직판 B2C 운영 (en.dermaline.co.kr)"
+    },
+    {
+      "company": "로그인 포레스트 (유나뷰티랩)",
+      "verdict": "적합",
+      "own_brand": "로그인 포레스트(LOGiN FOREST)",
+      "reason": "바디 칠링 케어 자체 브랜드 런칭, 네이버 스마트스토어 직판 운영 (loginforest.com)"
+    },
+    {
+      "company": "디유코스메틱",
+      "verdict": "적합",
+      "own_brand": "JOA(조아)",
+      "reason": "JOA 브랜드로 립·마스카라 등 색조화장품 소비자 직판, 공식 인스타그램 운영 (ducos.co.kr)"
+    },
+    {
+      "company": "지구의 온도 G9ONDO",
+      "verdict": "적합",
+      "own_brand": "지구의 온도(G9ONDO)",
+      "reason": "입욕제·향수·바디케어 자체 브랜드로 소비자 직판, 자체 쇼핑몰 운영 (g9ondo.com)"
+    },
+    {
+      "company": "(주)한국쉬즈라인",
+      "verdict": "적합",
+      "own_brand": "TOOLIF(툴리프)",
+      "reason": "메이크업 브러시·헤어 액세서리 자체 브랜드 직판, 공식 온라인몰 운영 (toolif.co.kr)"
+    },
+    {
+      "company": "아이프로덕트",
+      "verdict": "적합",
+      "own_brand": "닥터퍼센트(Dr.Percent)",
+      "reason": "스킨케어 자체 브랜드 닥터퍼센트 직판 운영 (drpercent.co.kr)"
+    },
+    {
+      "company": "(주)코비스타",
+      "verdict": "적합",
+      "own_brand": "솔랩(SOLEP)",
+      "reason": "21년 노하우 프리미엄 두피케어 자체 브랜드, 올리브영 등 다채널 판매 (solepkorea.com)"
+    },
+    {
+      "company": "LINDSAY&COS Inc.",
+      "verdict": "적합",
+      "own_brand": "린제이(LINDSAY)",
+      "reason": "홈에스테틱 No.1 자체 브랜드, 네이버 쇼핑 마스크팩 8년 연속 1위 기록 (lindsaycos.com)"
+    },
+    {
+      "company": "주식회사 스타힐스코스메틱",
+      "verdict": "적합",
+      "own_brand": "MOO100(무백)",
+      "reason": "헤어케어 자체 브랜드 무백 공식 온라인 스토어 직판 운영 (moo100.com)"
+    }
+  ]
+}

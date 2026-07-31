@@ -1,0 +1,66 @@
+[
+  {
+    "code": "NUC8063",
+    "cat": "색조",
+    "intro": "무접착 속눈썹·아이브로우 중심 아이메이크업 브랜드",
+    "verdict": "타겟",
+    "basis": "자사몰·쿠팡서 속눈썹 직판",
+    "homepage": ""
+  },
+  {
+    "code": "UZO5605",
+    "cat": "기타",
+    "intro": "화장품 유리병·용기 등 패키징 전문 제조사",
+    "verdict": "제외",
+    "basis": "화장품 용기·패키징 B2B",
+    "homepage": ""
+  },
+  {
+    "code": "VEL9208",
+    "cat": "기타",
+    "intro": "K뷰티 브랜드 인도 진출 유통 플랫폼(마카롱) 운영",
+    "verdict": "제외",
+    "basis": "자체 브랜드 없는 유통사",
+    "homepage": "https://www.velymonkeys.com"
+  },
+  {
+    "code": "WOO7974",
+    "cat": "기타",
+    "intro": "해외 화장품 원료 수입·유통 및 처방 개발 기업",
+    "verdict": "제외",
+    "basis": "화장품 원료 B2B 유통",
+    "homepage": ""
+  },
+  {
+    "code": "YCE9526",
+    "cat": "홈디바이스",
+    "intro": "PRP 의료기기사, 홈케어 MTS '톡스틱' 브랜드 보유",
+    "verdict": "타겟",
+    "basis": "톡스틱 소비자 판매 확인",
+    "homepage": ""
+  },
+  {
+    "code": "YMT3577",
+    "cat": "기타",
+    "intro": "메이크업 브러시·퍼프 OEM 제조사(광둥 유롄)",
+    "verdict": "제외",
+    "basis": "브러시 OEM 수탁 제조",
+    "homepage": ""
+  },
+  {
+    "code": "YSM1285",
+    "cat": "기타",
+    "intro": "국내 미용 의료기기 유통·수출 B2B 기업",
+    "verdict": "제외",
+    "basis": "의료기기 유통, 자체브랜드 없음",
+    "homepage": "https://ysmedi.kr"
+  },
+  {
+    "code": "ZLB4075",
+    "cat": "기타",
+    "intro": "진주분말·콜라겐 등 화장품·식품 원료 제조사",
+    "verdict": "제외",
+    "basis": "zlbio.com=중국 원료 제조사",
+    "homepage": ""
+  }
+]

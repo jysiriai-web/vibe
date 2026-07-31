@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "주식회사 리더스코스메틱",
+      "verdict": "적합",
+      "own_brand": "LEADERS(리더스)",
+      "reason": "자사몰에서 PDRN·카밍바이오틱스 등 'LEADERS' 브랜드로 소비자 직판; OEM/ODM도 병행 (leaderscosmetics.com)"
+    },
+    {
+      "company": "(주)에이로마플라붐",
+      "verdict": "적합",
+      "own_brand": "Hetras, Rapiner, OKIDO, Twin Pro",
+      "reason": "향수·핸드크림·탈취제 등 4개 자체 PB 보유, 스마트스토어·SNS 소비자 직판; OEM/ODM도 병행 (aromaflavum.com)"
+    },
+    {
+      "company": "NATUZEN CO., LTD.,",
+      "verdict": "적합",
+      "own_brand": "Minicell(미니셀)",
+      "reason": "엑소좀 기반 스킨케어 자체 PB 'Minicell' 보유, 박람회 전시 및 소비자 판매; OEM/ODM도 병행 (natuzen.net)"
+    },
+    {
+      "company": "BODYYA HEALTH",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "'건강한 화장품 전문제조기업'을 표방하며 컬렉션 OEM 수탁제조 전문; 자체 소비자 브랜드 확인 불가 (bodyyahealth.com)"
+    },
+    {
+      "company": "리봄화장품",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "사이트 명칭 '화장품ODM제조전문 리봄화장품', 순수 OEM/ODM 제조사, 27개국 수출도 위탁제조 기반 (rebom.kr)"
+    },
+    {
+      "company": "오프뷰티",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "자체 브랜드 없는 뷰티 재고 유통 플랫폼; 타 브랜드 과잉재고·유통기한임박품 완사입 후 오프라인 판매 (offbeauty-percent.com)"
+    },
+    {
+      "company": "HEBEI BEYRON BIOTECH CO., LTD.",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "중국 바이오텍 법인, 홈페이지(beyron.cn) 접속 불가로 자체 소비자 브랜드 유무 확인 불가"
+    },
+    {
+      "company": "그린코스 주식회사",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "30년+ OEM/ODM 전문 제조사, 연구소·3공장 건설 중; 자체 소비자 브랜드 없음 (green-cos.com)"
+    },
+    {
+      "company": "(주)죠이라이프",
+      "verdict": "적합",
+      "own_brand": "jungnani(정나니)",
+      "reason": "자체 브랜드 'jungnani'로 홍콩·이탈리아·라스베이거스 박람회 전시 및 해외 수출; OEM/ODM 병행 (joylifekorea.com)"
+    },
+    {
+      "company": "주식회사 피에프네이처",
+      "verdict": "적합",
+      "own_brand": "디어시스터(Dear Sister)",
+      "reason": "자체 PB '디어시스터' 보유(앰플·크림·핸드크림 등); OEM/ODM 토탈서비스도 제공 (pfnature.com, sexyzoo.com 소개)"
+    }
+  ]
+}

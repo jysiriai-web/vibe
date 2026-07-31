@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>서비스소개서 벤치마크 — 팀 드라이브 19선 정독</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{--paper:#F3EEE2;--surface:#FBF8F1;--ink:#211A33;--ink-2:rgba(33,26,51,.66);--ink-3:rgba(33,26,51,.46);--line:rgba(33,26,51,.13);
+    --lav:#cabce8;--lav-soft:#e9e3f3;--sky:#b7cce0;--sky-soft:#e2ecf3;--amber:#c79a3f;--amber-soft:#f3e8d2;--red-soft:#f6ecec;--green:#7fae7f;--green-soft:#e4efe2;--grey-soft:#eae6dc;
+    --f-en:'Helvetica Neue','Helvetica','Arimo','Pretendard',Arial,sans-serif;--f-kr:'Pretendard',system-ui,sans-serif;--f-mono:'JetBrains Mono',ui-monospace,monospace;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--f-kr);background:var(--paper);color:var(--ink);line-height:1.6;letter-spacing:-.005em;padding:40px clamp(18px,5vw,60px);max-width:1000px;margin:0 auto;}
+  .top{font-family:var(--f-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);}
+  h1{font-family:var(--f-en);font-size:clamp(26px,3.2vw,38px);font-weight:500;letter-spacing:-.022em;margin:6px 0 4px;}
+  .sub{font-family:var(--f-kr);color:var(--ink-2);font-size:13.5px;max-width:62ch;word-break:keep-all;}
+  h2{font-family:var(--f-mono);font-size:12px;font-weight:500;letter-spacing:.14em;color:var(--ink-3);text-transform:uppercase;border-bottom:1px solid var(--line);padding-bottom:9px;margin:40px 0 16px;}
+  h2 .cnt{color:var(--lav);}
+  ol.patterns{list-style:none;counter-reset:p;display:flex;flex-direction:column;gap:9px;}
+  ol.patterns li{counter-increment:p;position:relative;padding:13px 16px 13px 46px;background:var(--surface);border:1px solid var(--line);border-radius:12px;font-size:13px;color:var(--ink-2);word-break:keep-all;line-height:1.55;}
+  ol.patterns li::before{content:counter(p,decimal-leading-zero);position:absolute;left:15px;top:13px;font-family:var(--f-mono);font-size:11px;font-weight:600;color:var(--lav);}
+  ol.patterns.proof li::before{color:var(--sky);}
+  ol.patterns li b{color:var(--ink);}
+  ol.patterns li .src{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-3);}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:720px){.two{grid-template-columns:1fr;}}
+  .col{border-radius:14px;padding:17px 19px;}
+  .col.borrow{background:var(--green-soft);border:1px solid rgba(127,174,127,.35);}
+  .col.avoid{background:var(--red-soft);border:1px solid rgba(201,138,138,.3);}
+  .col .h{font-family:var(--f-kr);font-size:13.5px;font-weight:800;margin-bottom:10px;}
+  .col.borrow .h{color:#3f6b3f;} .col.avoid .h{color:#8a5a5a;}
+  .col ul{list-style:none;display:flex;flex-direction:column;gap:8px;}
+  .col li{font-size:12.5px;color:var(--ink-2);padding-left:15px;position:relative;word-break:keep-all;line-height:1.5;}
+  .col.borrow li::before{content:"+";position:absolute;left:0;color:var(--green);font-weight:700;}
+  .col.avoid li::before{content:"−";position:absolute;left:0;color:#b87a7a;font-weight:700;}
+  .col li .s{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);}
+  .note{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 19px;font-size:13px;color:var(--ink-2);word-break:keep-all;line-height:1.65;margin-bottom:12px;}
+  .note b{color:var(--ink);}
+  .note .k{font-family:var(--f-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--lav);display:block;margin-bottom:6px;font-weight:600;}
+  .docs{display:flex;flex-direction:column;gap:7px;}
+  .doc{display:grid;grid-template-columns:max-content 1fr;gap:13px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 15px;}
+  .tag{font-family:var(--f-mono);font-size:9px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;padding:4px 9px;border-radius:100px;white-space:nowrap;height:fit-content;margin-top:2px;}
+  .tag.dna{background:var(--lav-soft);color:#5a4a85;}
+  .tag.comp{background:var(--red-soft);color:#9a5a5a;}
+  .tag.struct{background:var(--sky-soft);color:#3d6080;}
+  .tag.anti{background:var(--amber-soft);color:#8a6a25;}
+  .tag.tan{background:var(--grey-soft);color:var(--ink-3);}
+  .doc .nm{font-family:var(--f-kr);font-weight:700;font-size:13px;}
+  .doc .ol{font-family:var(--f-kr);font-size:12px;color:var(--ink-2);margin-top:2px;word-break:keep-all;line-height:1.5;}
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+  .foot{font-family:var(--f-mono);font-size:10px;letter-spacing:.04em;color:var(--ink-3);text-align:center;margin-top:40px;padding-top:20px;border-top:1px solid var(--line);text-transform:uppercase;}
+</style>
+</head>
+<body>
+  <div class="top">SIRIAI · 레퍼런스 · 경쟁/동종 소개서 벤치마크</div>
+  <h1>서비스소개서 벤치마크 — 19선 정독</h1>
+  <p class="sub">팀이 드라이브에 모은 경쟁·동종 서비스/회사 소개서 19개를 전수 정독해, <b>deck 골격·증명 방식·차용/회피·경쟁 좌표</b>를 뽑은 것. <b>구조(Step2)·디자인(Step3) 설계의 근거 자료.</b></p>
+
+  <h2>공통 deck 골격 패턴 <span class="cnt">9</span> — 우리 구조 시사점</h2>
+  <ol class="patterns">
+    <li><b>척추 = 커버(1줄 정의/슬로건) → 문제 → 해결/포지셔닝 → 서비스·역량 → 증명 → 프로세스 → CTA.</b> 거의 모든 덱이 공유. 우리는 '소개' 아닌 '증명'이 목적 → <b>증명 블록을 서사 무게중심(분량 40%+)</b>으로.</li>
+    <li>오프닝에서 <b>'한 줄 정의 + 핵심 수치'</b>를 즉시 던짐 <span class="src">레뷰 SUMMARY · 그루브웹 표지 · 스타일씨 대시</span>. 우리=커버 직후 '도달이 아니라 관계' 한 줄 + 실집행 시그니처 수치 1~2개.</li>
+    <li><b>'기존 방식 vs 우리 방식' 좌우 대비</b>가 설득 단골 <span class="src">카카오·스타일씨·브랜더진·투명한마케터들·인플루언서컴퍼니</span>. 우리=<b>'도달 중심 기존 마케팅 vs 관계 중심 SIRIAI(sa:ai)'</b>로 메시지A를 구조에 못박음.</li>
+    <li>서비스/역량을 <b>번호 매긴 3~4기둥 모듈</b>로 끊음 <span class="src">인플루넷 01·02·03 · 브랜더진 4기둥 · 레뷰</span>. 우리=실행 + 콘텐츠 + 자체 AI(sa:ai) <b>3기둥</b>(또는 두 기둥+엔진).</li>
+    <li>자체 SW를 <b>풀스크린 1페이지 + 실제 화면 스크린샷 + 운영비율 수치</b>로 독립 증명 <span class="src">위치커머스 · 투명한마케터들 80%AI+20%검수 · 브랜더진</span>. 우리=sa:ai를 곁가지 아닌 <b>별도 챕터</b>로.</li>
+    <li>케이스를 <b>동일 표준 카드 포맷으로 반복</b> <span class="src">브랜더진 목적/예산/산출물 · 레뷰 국가별 템플릿 · 인플루언서컴퍼니 갤러리</span>. 우리=<b>[브랜드·목표 / 실행 / before-after 결과]</b> 표준 카드로 통일.</li>
+    <li>트랙레코드를 <b>연혁 타임라인</b>으로 누적 <span class="src">어반플레이 History · 8division · on170</span>. 우리=8division 분사 계보 + 주요 캠페인 + sa:ai 마일스톤 → '갑자기 생긴 회사 아님' 증명.</li>
+    <li><b>목차를 3~5섹션으로 절제</b>하는 미니멀이 톤 좋은 덱일수록 강함 <span class="src">PEEP 3섹션 · 8division · 투명한마케터들</span>. 우리=Paper 에디토리얼 톤, 대섹션 4~5개·한 슬라이드 한 메시지.</li>
+    <li>마지막을 <b>명확한 협업 모델/CTA</b>로 닫느냐가 강약을 가름 — 강(인플루언서컴퍼니·on170) vs 약(8division·PEEP·인플루넷=email로만 끝). 우리=협업 단계·산출물·다음 액션 명시 CTA로 '읽고 끝' 방지.</li>
+  </ol>
+
+  <h2>증명·신뢰를 만드는 방식 <span class="cnt">6</span> — 우리 적용</h2>
+  <ol class="patterns proof">
+    <li><b>정량 + 정성 + 사후 리포팅을 한 세트로</b> <span class="src">롱블랙: 검색스파이크·판매순위 + 담당자/고객 후기 + D+7 리포트</span>. 우리=캠페인 before/after 수치 + 담당자 한 줄 후기 + sa:ai 리포트 화면을 한 케이스에 묶어 입체 증명.</li>
+    <li><b>실제 결과물·화면을 raw로</b>(말이 아니라 작업물) <span class="src">인플루언서컴퍼니 갤러리 · 투명한마케터들 실섭외 이메일·스샷 · on170 클릭→실방송 VOD</span>. 우리=HTML 대시보드 강점 살려 케이스 썸네일 클릭→실콘텐츠/리포트 + <b>결과 한 줄 캡션 필수</b>.</li>
+    <li><b>로고월을 양 기둥(미디어/클라이언트)으로 분리</b> <span class="src">위치커머스 35+30 · 8division TIER 0 · 어반플레이</span>. 우리='함께한 브랜드' 로고월에 status 라벨(진행중/완료) + 8division 계보 로고를 신뢰 담보로.</li>
+    <li><b>시그니처 단일 수치를 brand-able하게 반복</b> <span class="src">스타일씨 3,000% · 위치커머스 재계약율 70% · 레뷰 25만+</span>. 우리=핵심 KPI 하나로 정하되 <b>정의·기간·표본 캡션 필수</b>(빅넘버 남발=반면교사).</li>
+    <li><b>외부 공인 인증으로 권위 차용</b> <span class="src">레뷰·인플루언서컴퍼니 코트라 · on170 플랫폼 배지 · 썸비스 장관상</span>. 우리=8division 글로벌 브랜드 협업 위상(Salomon·New Balance 등) + 분사 배경을 'HISTORY & NOW'로.</li>
+    <li><b>창업자·팀 이력을 신뢰 자산으로 전면화</b> <span class="src">COMMALAX(NAVER/LINE) · 어반플레이(맥킨지·베인) · 슈퍼파인(쿠팡·LG)</span>. 우리=8division 분사 배경 + 핵심 인력 트랙레코드로 '실행해본 사람들' 증명.</li>
+  </ol>
+
+  <h2>차용 ↔ 회피</h2>
+  <div class="two">
+    <div class="col borrow"><div class="h">빌릴 것 (Borrow · 8)</div><ul>
+      <li><span class="s">롱블랙</span> 단일 강력 증거 한 컷 오프닝(검색·매출 스파이크)으로 '해냈다' 즉시 증명</li>
+      <li><span class="s">브랜더진·카카오·투명한마케터들</span> ★'도달 중심 vs 관계 중심' 좌우 대비 (차용 1순위)</li>
+      <li><span class="s">브랜더진</span> [목적/실행/결과] 표준 케이스 카드 5개+ 반복</li>
+      <li><span class="s">위치커머스·투명한마케터들</span> 자체 SW 풀스크린+대시보드 스샷+운영비율 → sa:ai 챕터화</li>
+      <li><span class="s">롱블랙·인플루언서컴퍼니</span> 정량+정성+사후 리포팅을 '케이스에 포함'(재구매 장치)</li>
+      <li><span class="s">어반플레이·8division</span> 한 개념어/배지로 회사 단숨 각인(sa:ai=엔진/OS 비유)</li>
+      <li><span class="s">인플루언서컴퍼니·on170</span> 협업 프로세스 단계 도식(성과기반·리스크 0)</li>
+      <li><span class="s">8division</span> 케이스 안에서 에디토리얼·결과물을 절제 노출(PEEP 톤 참고, 별도 헤드라인화는 않음)</li>
+    </ul></div>
+    <div class="col avoid"><div class="h">피할 것 (Avoid · 6)</div><ul>
+      <li><span class="s">스타일씨·레뷰</span> 출처·기준 없는 빅넘버 + 'No.1·최저가·무제한' 카피 과잉</li>
+      <li><span class="s">롱블랙·스타일씨·8division</span> 텍스트가 이미지/그래픽에 갇힘 → 핵심 주장은 살아있는 텍스트로 자립</li>
+      <li><span class="s">그루브웹·PEEP</span> 라벨 없는 수치·텍스트 없는 후기 = '주장만, 증거 빈'</li>
+      <li><span class="s">NURICLE·슈퍼파인</span> KPI가 '목표치'뿐, 실집행 성과 없음 → 검증 케이스를 목표 옆에 함께</li>
+      <li><span class="s">카카오·위치커머스</span> 기능·설정·로고만 나열, '왜 우리' 서사·성과 0</li>
+      <li><span class="s">8division·PEEP·인플루넷</span> CTA·플랜·산출물 없이 email/링크로만 종료</li>
+    </ul></div>
+  </div>
+
+  <h2>경쟁 좌표 · 우리 DNA</h2>
+  <div class="note"><span class="k">직접경쟁 4사 좌표 + SIRIAI 차별</span>
+    <b>레뷰</b>(8개국·시딩 규모 리더, 콘텐츠 깊이·자체 AI 부재) · <b>인플루넷</b>(인력 아웃소싱 중개=인접군) · <b>인플루언서컴퍼니</b>(중화권 현지직영·정찰가 강점, 기술서사·디자인 약함) · <b>브랜더진</b>(셀프vs대행·PRODUCTION·워크스페이스 AI로 구조가 우리와 가장 유사). 투명한마케터들은 'sa:ai=80%AI+20%검수'와 거의 동형이나 K-한인 니치로 좁음. <b>차별 좌표 =</b> ① 메시지A '도달이 아니라 관계'로 규모경쟁(레뷰)·저가경쟁(스타일씨)에서 이탈 ② <b>sa:ai를 독립 기술 기둥으로 전면화</b>(경쟁 다수가 AI를 한 줄로만 스침 = 빈틈) ③ 8division 계보의 글로벌 TIER 0 협업·실집행 케이스로 '관계·퀄리티' 실증. <span style="color:var(--ink-3);">※ 룩북·모델스타일링은 경쟁 대부분이 UGC 자가촬영뿐인 빈틈 — 헤드라인화하지 말고 8division/PEEP 케이스 안 '관계·퀄리티' 증거의 한 조각으로만.</span></div>
+  <div class="note"><span class="k">우리 뿌리 · 자작 · 반면교사</span>
+    <b>8division(직계):</b> 글로벌 TIER 0(Salomon·New Balance·CAMPERLAB) 협업·팝업·에디토리얼 + SNS 인플루언스 데이터 = DNA 직계. 'HISTORY & NOW' 계보로 계승하되 <b>'글로벌 인플루언서 스케일 + sa:ai' 두 기둥으로 진화</b>(단순 편집숍 인상 탈피). LUAEB도 같은 분사 라인 — '결핍서사(글로벌엔 있는데 한국엔 빈칸)→증명블록' 차용. · <b>NURICLE(자작):</b> 채널별 통합 실행 매트릭스·운영 인플루언서 실측(147만·2.2억뷰) = '실행력 기둥' 최상위 증거. 단 sa:ai 약함·KPI 목표치뿐 → 실집행 성과로 보강. · <b>on170(반면교사):</b> 연혁·실증링크·티어 가격표는 좋은 구조나, 증명이 제작회차·배지 위주고 고객 성과 약함 + 가격 전면노출=단가 외주사화 → 우리는 캠페인 성과(관계·전환)로 증명, 가격은 후순위.</div>
+
+  <h2>19개 한 줄 요약</h2>
+  <div class="legend">
+    <span class="tag dna">our-dna 우리뿌리</span><span class="tag comp">competitor 직접경쟁</span><span class="tag struct">structure 구조참고</span><span class="tag anti">anti 반면교사</span><span class="tag tan">tangential 주변</span>
+  </div>
+  <div class="docs">
+    <div class="doc"><span class="tag dna">DNA</span><div><div class="nm">8DIVISION (우리 모체)</div><div class="ol">목차→오디언스→SNS지표→TIER 0 브랜드권위→케이스 타임라인→전용 Looks의 글로벌 협업 에디토리얼 덱. 유산 계승하되 글로벌 스케일+sa:ai 두 기둥으로 진화. 가격·산출물·기술서사 부재는 우리가 채울 공백.</div></div></div>
+    <div class="doc"><span class="tag dna">DNA</span><div><div class="nm">NURICLE × 올리브영 (우리 자작)</div><div class="ol">채널별 통합 실행 매트릭스+분기/월 타임라인+운영 메가인플루언서 실측(147만·2.2억뷰)으로 실행력 정량 증명. sa:ai 약함·KPI 목표치뿐 → 실집행 성과로 보강할 직접 자산.</div></div></div>
+    <div class="doc"><span class="tag dna">DNA</span><div><div class="nm">PB 소개서 LUAEB 'de Matilda'</div><div class="ol">'명제 1줄→글로벌엔 있다→한국엔 없다→우리가 그 빈칸' 결핍서사 + 로고벽·핵심수치 증명. 같은 8division 분사 라인. 가격·CTA 부재·OCR 과밀은 반면교사.</div></div></div>
+    <div class="doc"><span class="tag comp">COMP</span><div><div class="nm">레뷰(REVU) 글로벌 2025</div><div class="ol">'한줄 정의+압도적 수치' SUMMARY 오프닝, 8개국 동일 템플릿, 캠페인별 단일 임팩트 수치+실캡처. 카테고리 기준점. 콘텐츠 깊이·자체 AI 부재가 우리가 파고들 빈틈.</div></div></div>
+    <div class="doc"><span class="tag comp">COMP</span><div><div class="nm">인플루언서컴퍼니 (중화권)</div><div class="ol">'꼭필요/자신있다' 2단 오프닝+카테고리별 실작업 갤러리+'외주 대비 30%절감'+정찰가 3단. 페인포인트→자신감 오프닝·실증 갤러리 차용. 디자인 거칢·기술서사 약함은 넘어설 대상.</div></div></div>
+    <div class="doc"><span class="tag comp">COMP</span><div><div class="nm">투명한 마케터들 2025</div><div class="ol">'없이/쉽지만/결과는' 부사 3박자 + '80%AI+20%검수' 대시보드·실섭외 이메일로 기술·투명성 증명. sa:ai와 거의 동형. K-한인 니치·산만한 비주얼은 반면교사.</div></div></div>
+    <div class="doc"><span class="tag comp">COMP</span><div><div class="nm">Brandazine 뷰티 deck</div><div class="ol">'일반 vs 브랜더진'(30일→7일) + [목적/예산/산출물] 표준 케이스카드 + 셀프vs대행 2축 + 워크스페이스 AI + 투명 PRICING. 구조가 우리와 가장 유사 = 직접 벤치마크.</div></div></div>
+    <div class="doc"><span class="tag struct">STRUCT</span><div><div class="nm">롱블랙 상품 소개서</div><div class="ol">'발행일=네이버 검색 최고점' 단일 증거 한 컷 + 정량+정성+D+7 사후리포팅 3겹. 증명·신뢰 섹션 구성과 '사후리포팅을 상품에 포함'이 케이스 설계 최상위 레퍼런스.</div></div></div>
+    <div class="doc"><span class="tag struct">STRUCT</span><div><div class="nm">어반플레이 회사소개서</div><div class="ol">'도시에도 OS가 필요하다' 개념어+수치3종+투자자/대기업 로고+연혁 History+자체 브랜드 카탈로그. 콘텐츠+크리에이터망+자체SW+파트너십 구조가 우리와 강하게 평행. 분량 과다는 압축.</div></div></div>
+    <div class="doc"><span class="tag struct">STRUCT</span><div><div class="nm">스튜디오 온일칠공 (on170)</div><div class="ol">연혁+플랫폼 배지 신뢰서사, 클릭→실방송 VOD 실증링크, 티어 가격표 상품화. 실증링크 인터랙티브·티어 매트릭스 차용. 증명이 제작회차·배지 위주·가격 전면노출=외주사화는 반면교사.</div></div></div>
+    <div class="doc"><span class="tag struct">STRUCT</span><div><div class="nm">PEEP (패션 스튜디오)</div><div class="ol">About/LookBook/Products 3섹션 미니멀 목차 + 결과물을 데이터 아닌 시즌 무드·문학 내러티브로 절제 스토리텔링. 정보절제 톤 레퍼런스(별도 헤드라인 섹션화는 금지, 케이스 톤 참고만).</div></div></div>
+    <div class="doc"><span class="tag struct">STRUCT</span><div><div class="nm">그루브웹 소개서</div><div class="ol">표지 수치배너 + 걱정→A-Z해결→특징→규모별후기→프로세스→FAQ→신뢰 클로징의 정석 B2B 플로우. 표준 골격·FAQ 마찰제거 차용. 라벨없는 수치·약한 후기는 회피.</div></div></div>
+    <div class="doc"><span class="tag struct">STRUCT</span><div><div class="nm">슈퍼파인 IR Deck</div><div class="ol">문제→페르소나→솔루션→why now→차별화→BM→팀→재무→비전 IR 정석 + 외부 벤치마크 로고/수치로 시장성 증명. IR 순서·'why now' 차용. AI를 한 줄로만 다룬 약한 기술서사는 반면교사.</div></div></div>
+    <div class="doc"><span class="tag anti">ANTI</span><div><div class="nm">스타일씨 체험단</div><div class="ol">월30만 무제한·모집률 3,000% 빅넘버+비교표로 '국내 최저가'를 미는 셀프 대량 UGC. 비교표·실결과 캡처·셀프 어드민 화면은 차용, 최저가·빅넘버·정보과밀은 프리미엄 톤과 정반대라 회피.</div></div></div>
+    <div class="doc"><span class="tag anti">ANTI</span><div><div class="nm">카카오톡 스토어 소개서</div><div class="ol">★'가격 중심 vs 관계 중심' 패러다임 대비 + 투명 프로세스 2가지만 차용(관계 프레임은 메시지A 직결). 케이스 0·매뉴얼 톤·정보과밀은 반면교사.</div></div></div>
+    <div class="doc"><span class="tag anti">ANTI</span><div><div class="nm">위치커머스 회사소개서</div><div class="ol">'자체 개발 앱' 풀스크린 1페이지 + 미디어/클라이언트 로고월 2단 + '재계약율 70%' 도넛. 자체SW 증명·로고월·단일KPI 차트 차용. 어뷰징성 국내 톤·콘텐츠 공백은 회피.</div></div></div>
+    <div class="doc"><span class="tag tan">TAN</span><div><div class="nm">COMMALAX 회사소개서</div><div class="ol">창업자 빅테크 이력(NAVER/LINE) 전면 + MUA·모델 before/after 콘텐츠·인증서·시장통계. 창업자 이력 신뢰화·콘텐츠 포맷 아이디어 부분 차용. 슬로건 기계반복·성과 빈약은 회피.</div></div></div>
+    <div class="doc"><span class="tag tan">TAN</span><div><div class="nm">인플루넷 소개서 (우리 파트너)</div><div class="ol">'해외진출 인력난' 단일 페인포인트→번호 차별점 3종+글로벌 매니페스토. 단일 통증 진입·영문 워드마크 차용. 정량증명 0·이미지에 텍스트·가격 완전비공개는 회피.</div></div></div>
+    <div class="doc"><span class="tag tan">TAN</span><div><div class="nm">SOSS 플랫폼 (썸비스)</div><div class="ol">'계약 완료' 도장 로고그리드+비용 비교표+수상·MOU로 권위 차용한 창업 프랜차이즈 제안서. 로고그리드 트랙션·비교표는 참고. 공포마케팅·비현실 절대우위는 회피.</div></div></div>
+  </div>
+
+  <div class="foot">Workflow service-deck-benchmark · 드라이브 19/19 정독 · 일반 종합본 · 2026-06-08</div>
+</body>
+</html>

@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "모메이",
+      "verdict": "적합",
+      "own_brand": "모메이(Momeii)",
+      "reason": "공식 온라인몰(momeii.com)에서 '구름 뽀용 파우더 팩트' 등 자체 브랜드 제품 직판, 운영법인 주식회사 뷰템 (출처: momeii.com)"
+    },
+    {
+      "company": "에이치앤와이 상사",
+      "verdict": "적합",
+      "own_brand": "DR.MISIMOU, EVEN ONE",
+      "reason": "홈페이지(hycoporation.com)에 자체 브랜드 DR.MISIMOU·EVEN ONE 제품 직접 판매, '글로벌 화장품 제조·판매 전문기업' 표기 (출처: hycoporation.com)"
+    },
+    {
+      "company": "(주) 록키스",
+      "verdict": "적합",
+      "own_brand": "ROKKISS",
+      "reason": "공식 온라인몰(rokkiss.co.kr)에서 자체 브랜드 ROKKISS로 스킨케어·메이크업 제품 직판 (출처: rokkiss.co.kr)"
+    },
+    {
+      "company": "HUEHEAL",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "홈페이지(hueheal.co.kr) TLS 인증서 오류로 접속 불가, 웹검색에서도 브랜드 정보 미확인 — 정보 부족 (출처: 접속시도 실패 + WebSearch)"
+    },
+    {
+      "company": "아이뽀",
+      "verdict": "적합",
+      "own_brand": "AIPPO",
+      "reason": "10년 이상 스파 운영 노하우 기반 자체 SPA 브랜드 AIPPO로 마스크팩·크림 등 온라인몰 직판 (출처: aippo.co.kr)"
+    },
+    {
+      "company": "주식회사 링더벨",
+      "verdict": "적합",
+      "own_brand": "링더벨(RINGTHEBELL), 리써(resear)",
+      "reason": "자체 브랜드 RINGTHEBELL 및 리써(resear)로 네이버 스마트스토어 등 직판, 자체 R&D 발효 기술 보유 (출처: ringthebell.kr)"
+    },
+    {
+      "company": "ODSY",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "홈페이지 없음, 웹검색에서도 브랜드 정보 미확인 — 정보 부족"
+    },
+    {
+      "company": "크레모랩",
+      "verdict": "적합",
+      "own_brand": "CREMORLAB (T.E.N. Cremor, T.E.N. Miracle, O₂ Couture)",
+      "reason": "자체 브랜드 CREMORLAB로 스킨케어 라인 직판, 운영법인 SAMWHAN Corporation (출처: eng.cremorlab.co.kr)"
+    },
+    {
+      "company": "제이앤지코스메틱(주)",
+      "verdict": "적합",
+      "own_brand": "GSLEY",
+      "reason": "홈페이지(gsley.co.kr)에서 자체 브랜드 GSLEY로 24K Gold Snail 등 화장품 직접 판매 (출처: gsley.co.kr)"
+    },
+    {
+      "company": "릴릴",
+      "verdict": "적합",
+      "own_brand": "LYLYL(릴릴)",
+      "reason": "운영법인 주식회사 리와인드랩, 자체 브랜드 LYLYL로 에센스·선케어·뷰티디바이스 등 공식몰 B2C 직판 (출처: lylyl.co.kr)"
+    }
+  ]
+}

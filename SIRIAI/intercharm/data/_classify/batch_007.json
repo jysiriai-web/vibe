@@ -1,0 +1,66 @@
+[
+  {
+    "code": "ERT2767",
+    "cat": "스킨케어",
+    "intro": "더마 에스테틱 스킨케어 브랜드 ERTY(토너·앰플·크림·선크림)",
+    "verdict": "타겟",
+    "basis": "공식몰서 자체브랜드 완제품 판매",
+    "homepage": ""
+  },
+  {
+    "code": "ESG4161",
+    "cat": "기타",
+    "intro": "",
+    "verdict": "불명",
+    "basis": "홈피 접속불가·검색 근거 없음",
+    "homepage": ""
+  },
+  {
+    "code": "ETE2837",
+    "cat": "스킨케어",
+    "intro": "에스테틱 전문 화장품 에텔랑, 앰플·크림·마스크 중심",
+    "verdict": "타겟",
+    "basis": "본사 공식몰 자체브랜드 판매",
+    "homepage": "https://etelanc.com"
+  },
+  {
+    "code": "EXO5620",
+    "cat": "스킨케어",
+    "intro": "엑소좀·NMN 기반 프리미엄 스킨케어 브랜드 엑소메라",
+    "verdict": "타겟",
+    "basis": "와이드모어 자체브랜드 공식몰 운영",
+    "homepage": "https://exomera.co.kr"
+  },
+  {
+    "code": "FAC7015",
+    "cat": "기타",
+    "intro": "원저우 소재 세라믹 괄사·마사저 OEM/ODM 제조사",
+    "verdict": "제외",
+    "basis": "알리바바 B2B OEM 수탁 제조사",
+    "homepage": ""
+  },
+  {
+    "code": "FLE5048",
+    "cat": "기타",
+    "intro": "",
+    "verdict": "불명",
+    "basis": "홈피 Launching Soon·정보 전무",
+    "homepage": ""
+  },
+  {
+    "code": "GCI6418",
+    "cat": "기타",
+    "intro": "인도 헬스케어 혁신 라이선싱·투자자문 B2B 기업",
+    "verdict": "제외",
+    "basis": "라이선싱·IB 서비스, 자체브랜드 없음",
+    "homepage": "https://gcvideal.com"
+  },
+  {
+    "code": "GEN8322",
+    "cat": "스킨케어",
+    "intro": "의료기기 기업 제노스, 필러 모나리자·코스메틱 브라이트 보유",
+    "verdict": "타겟",
+    "basis": "자체 화장품 브랜드 소비자 판매",
+    "homepage": ""
+  }
+]

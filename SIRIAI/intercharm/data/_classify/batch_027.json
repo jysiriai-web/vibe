@@ -1,0 +1,66 @@
+[
+  {
+    "code": "TRE8645",
+    "cat": "색조",
+    "intro": "1996년 설립, 네일·풋·페이스케어 자체 브랜드 제조 수출사",
+    "verdict": "타겟",
+    "basis": "About: 자체 브랜드 제조·수출",
+    "homepage": ""
+  },
+  {
+    "code": "NSC5176",
+    "cat": "기타",
+    "intro": "헤어컬러 차트·미용실 부자재 제조 전문(인천, 2001년)",
+    "verdict": "제외",
+    "basis": "헤어컬러차트 등 미용 부자재",
+    "homepage": ""
+  },
+  {
+    "code": "CEL8625",
+    "cat": "기타",
+    "intro": "2014년 설립, 기초·선케어 처방개발 화장품 OEM·ODM사",
+    "verdict": "제외",
+    "basis": "화장품 OEM·ODM 수탁 전문",
+    "homepage": ""
+  },
+  {
+    "code": "JDB4181",
+    "cat": "기타",
+    "intro": "필러·톡신 등 메디컬 에스테틱 제품 제조·글로벌 유통사",
+    "verdict": "제외",
+    "basis": "병의원용 의료기기·의약품 B2B",
+    "homepage": ""
+  },
+  {
+    "code": "GRE2804",
+    "cat": "기타",
+    "intro": "화장품·의약외품·동물용의약외품 OEM·ODM 연구개발 제조사",
+    "verdict": "제외",
+    "basis": "자사 소개가 OEM·ODM 전문기업",
+    "homepage": "http://www.green-cos.com"
+  },
+  {
+    "code": "NAT6553",
+    "cat": "기타",
+    "intro": "병의원 전용 의약품·필러·리쥬셀 스킨부스터 제조 공급사",
+    "verdict": "제외",
+    "basis": "병·의원 전용, 소비자 판매 아님",
+    "homepage": ""
+  },
+  {
+    "code": "NRX1505",
+    "cat": "기타",
+    "intro": "",
+    "verdict": "불명",
+    "basis": "홈피·이메일 없고 검색 무결과",
+    "homepage": ""
+  },
+  {
+    "code": "DER9753",
+    "cat": "기타",
+    "intro": "2015년 설립, 기초·헤어바디·향수 화장품 OEM·ODM 제조사",
+    "verdict": "제외",
+    "basis": "화장품 OEM·ODM 전문 제조사",
+    "homepage": ""
+  }
+]

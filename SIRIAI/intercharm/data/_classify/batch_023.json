@@ -1,0 +1,66 @@
+[
+  {
+    "code": "YOU3872",
+    "cat": "기타",
+    "intro": "해외규격인증·수출 컨설팅 SMG그룹 관계사",
+    "verdict": "제외",
+    "basis": "이메일·영상 모두 에스엠지코리아",
+    "homepage": "https://smgkorea.or.kr/"
+  },
+  {
+    "code": "ARO6001",
+    "cat": "기타",
+    "intro": "향료·디퓨저·향수 원료 및 OEM/ODM 전문 제조사",
+    "verdict": "제외",
+    "basis": "향료원료+OEM/ODM만, 자체몰 없음",
+    "homepage": ""
+  },
+  {
+    "code": "ACE8992",
+    "cat": "기타",
+    "intro": "화장품 피부임상시험 전문 CRO 연구소",
+    "verdict": "제외",
+    "basis": "임상시험 대행 B2B 서비스",
+    "homepage": ""
+  },
+  {
+    "code": "ORE8741",
+    "cat": "기타",
+    "intro": "필러·부스터 등 비수술 에스테틱 의료기기 제조(OREON)",
+    "verdict": "제외",
+    "basis": "병의원용 필러·의료기기",
+    "homepage": "https://oreon.co.kr"
+  },
+  {
+    "code": "NEE6112",
+    "cat": "스킨케어",
+    "intro": "온천수·PDRN 스킨케어 브랜드 NEEDON 운영",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 스킨케어 3라인",
+    "homepage": ""
+  },
+  {
+    "code": "YCE2645",
+    "cat": "기타",
+    "intro": "PRP 키트·원심분리기·MTS 등 의료기기 제조",
+    "verdict": "제외",
+    "basis": "3등급 의료기기, 화장품 아님",
+    "homepage": ""
+  },
+  {
+    "code": "WOO3160",
+    "cat": "기타",
+    "intro": "스킨·바디·헤어 화장품 OEM/ODM 제조사",
+    "verdict": "제외",
+    "basis": "홈피 전부 OEM/ODM 수탁",
+    "homepage": ""
+  },
+  {
+    "code": "JKS2372",
+    "cat": "헤어바디",
+    "intro": "1962년 설립, 헤어 브랜드 IJP 프로페셔널 운영",
+    "verdict": "타겟",
+    "basis": "자체 IJP 브랜드 자사몰 판매",
+    "homepage": "https://iljincosmetics.co.kr/"
+  }
+]

@@ -1,0 +1,66 @@
+[
+  {
+    "code": "JTP8999",
+    "cat": "기타",
+    "intro": "제주 공공 R&D기관, 화장품 제형기술 이전·시험검사 지원",
+    "verdict": "제외",
+    "basis": "공공 테크노파크, 기업지원 기관",
+    "homepage": "https://www.jejutp.or.kr"
+  },
+  {
+    "code": "ONP6693",
+    "cat": "기타",
+    "intro": "필러·톡신·스킨부스터 제조유통, 병원·유통사 대상 도매",
+    "verdict": "제외",
+    "basis": "의료기기·의약품 B2B 도매",
+    "homepage": "https://konepharma.co.kr"
+  },
+  {
+    "code": "KMX2763",
+    "cat": "기타",
+    "intro": "엑소좀 스킨부스터·리프팅실 등 시술용 제품 개발사",
+    "verdict": "제외",
+    "basis": "병의원 시술재료 B2B, 소비자 브랜드 없음",
+    "homepage": "https://www.k2meditech.com"
+  },
+  {
+    "code": "KBC4961",
+    "cat": "기타",
+    "intro": "BONAFILL·BELLUXI 등 필러·톡신 브랜드 보유 의료미용 기업",
+    "verdict": "제외",
+    "basis": "의료기기·의약품, 클리닉 대상 B2B",
+    "homepage": "https://kbhcare.com"
+  },
+  {
+    "code": "LAV2337",
+    "cat": "스킨케어",
+    "intro": "락토바실러스·스피큘 활용 더마 스킨케어 브랜드",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 토너·크림·선크림 판매",
+    "homepage": ""
+  },
+  {
+    "code": "LEB7452",
+    "cat": "스킨케어",
+    "intro": "동동구리무의 자연주의 브랜드, 한방·골드 스킨케어",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 완제품 국내외 판매",
+    "homepage": "https://www.lebelage.co.kr"
+  },
+  {
+    "code": "LEF8448",
+    "cat": "향수",
+    "intro": "아노에틱, 패션·라이프스타일 브랜드로 향수밤 자체 출시",
+    "verdict": "타겟",
+    "basis": "자사몰서 ANOETIC 퍼퓸밤 직접 판매",
+    "homepage": "https://anoetic.kr"
+  },
+  {
+    "code": "LPH4940",
+    "cat": "기타",
+    "intro": "써마웨이브 등 전문가용 웰니스 장비 공급·스튜디오 운영",
+    "verdict": "제외",
+    "basis": "병원·에스테틱 대상 장비 B2B",
+    "homepage": "https://lphysio.com"
+  }
+]

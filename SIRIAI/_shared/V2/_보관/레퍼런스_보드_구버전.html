@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SIRIAI 사업소개서 · 레퍼런스 보드</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --f-en:'Helvetica Neue','Helvetica','Arimo','Pretendard',Arial,sans-serif;
+    --f-sans:'Helvetica Neue','Helvetica','Arimo','Pretendard',sans-serif;
+    --f-kr:'Pretendard',sans-serif;
+    --f-mono:'JetBrains Mono',ui-monospace,monospace;
+    --cream:#f3eee2; --card:#fff; --ink:#211a33; --ink2:rgba(33,26,51,.66); --ink3:rgba(33,26,51,.46);
+    --line:rgba(33,26,51,.12); --line2:rgba(33,26,51,.06);
+    --lav:#cabce8; --lav-s:#efe9f7; --peach:#edc6a8; --peach-s:#f8eee2;
+    --sky:#b7cce0; --sky-s:#e7eff6; --sage:#c2d2bf; --sage-s:#e9f0e8; --rose:#e6b8c2; --rose-s:#f6e8ec;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--f-sans);background:var(--cream);color:var(--ink);line-height:1.55;letter-spacing:-.01em;padding:40px clamp(16px,4vw,56px);}
+  header{max-width:1200px;margin:0 auto 26px;}
+  .eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink2);margin-bottom:10px;}
+  h1{font-size:clamp(24px,3vw,34px);font-weight:800;letter-spacing:-.02em;}
+  header p{color:var(--ink2);font-size:14.5px;margin-top:8px;max-width:70ch;word-break:keep-all;}
+  .wrap{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:340px 1fr;gap:24px;align-items:start;}
+  @media(max-width:820px){.wrap{grid-template-columns:1fr;}}
+  /* form */
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;position:sticky;top:20px;}
+  .panel h2{font-size:15px;font-weight:700;margin-bottom:16px;}
+  label{display:block;font-size:12px;font-weight:600;color:var(--ink2);margin:12px 0 5px;}
+  input,select,textarea{width:100%;font-family:inherit;font-size:14px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fdfcfa;color:var(--ink);}
+  textarea{resize:vertical;min-height:54px;}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--lav);}
+  .drop{margin-top:6px;border:1.5px dashed var(--line);border-radius:10px;padding:16px;text-align:center;font-size:12.5px;color:var(--ink3);cursor:pointer;transition:.15s;}
+  .drop.over{border-color:var(--lav);background:var(--lav-s);color:#5a4a85;}
+  .drop img{max-width:100%;border-radius:7px;margin-top:8px;}
+  .btn{width:100%;margin-top:16px;padding:12px;border:none;border-radius:100px;background:var(--ink);color:var(--cream);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;}
+  .btn:hover{opacity:.9;}
+  .btn-row{display:flex;gap:8px;margin-top:10px;}
+  .btn-row .btn{margin-top:0;background:#fff;color:var(--ink);border:1px solid var(--line);font-size:12.5px;padding:9px;}
+  /* list */
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+  .chip{font-size:12px;padding:6px 13px;border-radius:100px;border:1px solid var(--line);background:#fff;cursor:pointer;color:var(--ink2);}
+  .chip.active{background:var(--ink);color:var(--cream);border-color:var(--ink);}
+  .count{margin-left:auto;font-size:12.5px;color:var(--ink3);}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+  .ref{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;}
+  .ref .thumb{aspect-ratio:16/10;background:var(--lav-s);display:flex;align-items:center;justify-content:center;color:var(--ink3);font-size:12px;overflow:hidden;}
+  .ref .thumb img{width:100%;height:100%;object-fit:cover;}
+  .ref .body{padding:14px;display:flex;flex-direction:column;gap:7px;flex:1;}
+  .ref .cat{font-family:var(--f-mono);font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 9px;border-radius:100px;align-self:flex-start;}
+  .ref .title{font-weight:700;font-size:15px;}
+  .ref a{font-size:12px;color:#6a5a9c;word-break:break-all;text-decoration:none;}
+  .ref a:hover{text-decoration:underline;}
+  .ref .desc{font-size:13px;color:var(--ink);word-break:keep-all;}
+  .ref .apply{font-size:12px;color:var(--ink2);background:var(--cream);border-radius:7px;padding:7px 9px;word-break:keep-all;}
+  .ref .apply b{color:var(--lav);}
+  .ref .del{align-self:flex-end;font-size:11px;color:var(--ink3);background:none;border:none;cursor:pointer;margin-top:2px;}
+  .empty{grid-column:1/-1;text-align:center;color:var(--ink3);padding:60px 0;font-size:14px;}
+  /* category colors */
+  .c-overview{background:var(--lav-s);color:#5a4a85;} .c-structure{background:var(--sky-s);color:#2f4a66;}
+  .c-toc{background:var(--peach-s);color:#8a5a32;} .c-section{background:var(--sage-s);color:#3a5a40;}
+  .c-case{background:var(--rose-s);color:#9a4a5e;} .c-cta{background:var(--lav-s);color:#5a4a85;}
+  .c-type{background:var(--peach-s);color:#8a5a32;} .c-interaction{background:var(--sky-s);color:#2f4a66;}
+  .c-etc{background:#eee;color:#666;}
+  dialog{border:none;border-radius:14px;padding:22px;max-width:560px;width:90%;box-shadow:0 30px 60px -20px rgba(0,0,0,.3);}
+  dialog textarea{min-height:260px;font-family:ui-monospace,monospace;font-size:12px;}
+  dialog .btn{margin-top:12px;}
+</style>
+</head>
+<body>
+  <header>
+    <div class="eyebrow">SIRIAI · 사업소개서 재설계 (rebuild)</div>
+    <h1>레퍼런스 보드</h1>
+    <p>좋은 사업소개서·회사소개·deck을 찾으면 여기 쌓아줘. 링크·캡처(드래그)·왜 좋은지·우리 어디에 쓸지를 적으면, 내가 <b>JSON/MD로 받아서</b> 골격에 반영해. 자동 저장돼(localStorage). 캡처는 카드에 드래그하면 미리보기로 박혀.</p>
+  </header>
+  <div class="wrap">
+    <!-- 입력 패널 -->
+    <div class="panel">
+      <h2>+ 레퍼런스 추가</h2>
+      <label>제목 / 이름</label>
+      <input id="f-title" placeholder="예: monopo / 어떤 agency deck" />
+      <label>URL</label>
+      <input id="f-url" placeholder="https://" />
+      <label>카테고리</label>
+      <select id="f-cat">
+        <option value="overview">사업소개서 전체 무드</option>
+        <option value="structure">구조 · IA · 흐름</option>
+        <option value="toc">목차 · 네비게이션</option>
+        <option value="section">영역 소개 방식</option>
+        <option value="case">케이스 스터디</option>
+        <option value="cta">전환 · CTA · 폼</option>
+        <option value="type">타이포 · 색</option>
+        <option value="interaction">인터랙션 · 공간활용</option>
+        <option value="etc">기타</option>
+      </select>
+      <label>왜 좋은지 (한 줄)</label>
+      <textarea id="f-desc" placeholder="예: 목차가 첫 화면에 한눈에 들어옴"></textarea>
+      <label>우리 deck 어디에 쓸지 (선택)</label>
+      <textarea id="f-apply" placeholder="예: 02 케이스 스터디 레이아웃에"></textarea>
+      <label>캡처 (드래그 / 붙여넣기)</label>
+      <div class="drop" id="drop">이미지를 여기로 드래그하거나 클릭→붙여넣기<input type="file" id="f-img" accept="image/*" hidden /></div>
+      <button class="btn" onclick="addRef()">추가하기</button>
+      <div class="btn-row">
+        <button class="btn" onclick="exportMD()">MD 복사</button>
+        <button class="btn" onclick="exportJSON()">JSON 내보내기</button>
+      </div>
+    </div>
+    <!-- 리스트 -->
+    <div>
+      <div class="toolbar" id="filters"></div>
+      <div class="grid" id="grid"></div>
+    </div>
+  </div>
+
+  <dialog id="md-dlg">
+    <h2 style="font-size:15px;margin-bottom:10px;">마크다운 (전체 선택 → 복사 → 클로드에게 붙여넣기)</h2>
+    <textarea id="md-out" readonly></textarea>
+    <button class="btn" onclick="copyMD()">📋 클립보드에 복사</button>
+    <button class="btn" style="background:#fff;color:var(--ink);border:1px solid var(--line)" onclick="document.getElementById('md-dlg').close()">닫기</button>
+  </dialog>
+
+<script>
+const CATS={overview:'전체 무드',structure:'구조·IA',toc:'목차',section:'영역소개',case:'케이스',cta:'전환·폼',type:'타이포·색',interaction:'인터랙션',etc:'기타'};
+let refs=JSON.parse(localStorage.getItem('siriai_refs')||'[]');
+let filter='all';
+let pendingImg='';
+
+const drop=document.getElementById('drop'), fileInput=document.getElementById('f-img');
+drop.addEventListener('click',()=>fileInput.click());
+drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('over');});
+drop.addEventListener('dragleave',()=>drop.classList.remove('over'));
+drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('over');if(e.dataTransfer.files[0])readImg(e.dataTransfer.files[0]);});
+fileInput.addEventListener('change',e=>{if(e.target.files[0])readImg(e.target.files[0]);});
+window.addEventListener('paste',e=>{const it=[...e.clipboardData.items].find(i=>i.type.startsWith('image'));if(it)readImg(it.getAsFile());});
+function readImg(file){const r=new FileReader();r.onload=()=>{pendingImg=r.result;drop.innerHTML='<img src="'+r.result+'"/>';};r.readAsDataURL(file);}
+
+function save(){localStorage.setItem('siriai_refs',JSON.stringify(refs));}
+function addRef(){
+  const t=document.getElementById('f-title').value.trim();
+  if(!t){alert('제목은 넣어줘');return;}
+  refs.unshift({title:t,url:document.getElementById('f-url').value.trim(),cat:document.getElementById('f-cat').value,desc:document.getElementById('f-desc').value.trim(),apply:document.getElementById('f-apply').value.trim(),img:pendingImg,ts:Date.now()});
+  save();render();
+  document.getElementById('f-title').value='';document.getElementById('f-url').value='';document.getElementById('f-desc').value='';document.getElementById('f-apply').value='';
+  pendingImg='';drop.innerHTML='이미지를 여기로 드래그하거나 클릭→붙여넣기';
+}
+function delRef(i){if(confirm('삭제?')){refs.splice(i,1);save();render();}}
+
+function render(){
+  // filters
+  const fc=document.getElementById('filters');
+  const counts={all:refs.length};refs.forEach(r=>counts[r.cat]=(counts[r.cat]||0)+1);
+  fc.innerHTML='<span class="chip '+(filter==='all'?'active':'')+'" onclick="setF(\'all\')">전체 '+refs.length+'</span>'+
+    Object.keys(CATS).map(c=>counts[c]?'<span class="chip '+(filter===c?'active':'')+'" onclick="setF(\''+c+'\')">'+CATS[c]+' '+counts[c]+'</span>':'').join('')+
+    '<span class="count">총 '+refs.length+'개</span>';
+  // grid
+  const g=document.getElementById('grid');
+  const list=refs.map((r,i)=>({r,i})).filter(x=>filter==='all'||x.r.cat===filter);
+  if(!list.length){g.innerHTML='<div class="empty">아직 비어 있어 — 왼쪽에서 첫 레퍼런스를 추가해줘 👀</div>';return;}
+  g.innerHTML=list.map(({r,i})=>`<div class="ref">
+    <div class="thumb">${r.img?`<img src="${r.img}"/>`:'캡처 없음'}</div>
+    <div class="body">
+      <span class="cat c-${r.cat}">${CATS[r.cat]}</span>
+      <div class="title">${esc(r.title)}</div>
+      ${r.url?`<a href="${esc(r.url)}" target="_blank">${esc(r.url)}</a>`:''}
+      ${r.desc?`<div class="desc">${esc(r.desc)}</div>`:''}
+      ${r.apply?`<div class="apply"><b>→ 적용:</b> ${esc(r.apply)}</div>`:''}
+      <button class="del" onclick="delRef(${i})">삭제</button>
+    </div></div>`).join('');
+}
+function setF(c){filter=c;render();}
+function esc(s){return (s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+
+function buildMD(){
+  let md='# SIRIAI 사업소개서 — 레퍼런스 ('+refs.length+'개)\n\n';
+  Object.keys(CATS).forEach(c=>{
+    const items=refs.filter(r=>r.cat===c);if(!items.length)return;
+    md+='## '+CATS[c]+'\n';
+    items.forEach(r=>{md+='- **'+r.title+'**'+(r.url?' — '+r.url:'')+'\n';if(r.desc)md+='  - 좋은점: '+r.desc+'\n';if(r.apply)md+='  - 적용: '+r.apply+'\n';if(r.img)md+='  - (캡처 있음)\n';});
+    md+='\n';
+  });
+  return md;
+}
+function exportMD(){document.getElementById('md-out').value=buildMD();document.getElementById('md-dlg').showModal();}
+function copyMD(){navigator.clipboard.writeText(document.getElementById('md-out').value).then(()=>alert('복사됨! 클로드에게 붙여넣어줘'));}
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(refs,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='siriai-refs.json';a.click();
+}
+render();
+</script>
+</body>
+</html>

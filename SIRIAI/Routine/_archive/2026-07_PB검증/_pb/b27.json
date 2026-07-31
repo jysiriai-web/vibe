@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "홈앤쇼핑",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "홈쇼핑 방송 채널 유통 플랫폼. 자체 화장품 PB 브랜드 확인 불가, 유통/방송 채널사로 분류."
+    },
+    {
+      "company": "(주)톨리코리아",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "화장품 용기·패키징 부품 제조·공급사(셀프코스 DB 확인). 자체 소비자 화장품 브랜드 없음."
+    },
+    {
+      "company": "LECOS",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "홈페이지 없음. 동명 LECOS(lecospack.com)는 유리병·패키징 제조사이나 인터참 참가 LECOS와 동일사 여부 불확실."
+    },
+    {
+      "company": "BELLE CRAFT MANUFACTURING CO.,LTD.",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "유리 용기·패키징 부품 제조사(Bloomberg, WebPackaging 확인). 소비자 향 자체 화장품 브랜드 없음."
+    },
+    {
+      "company": "DONGGUAN KINWONG TECHNOLOGY CO.,LTD",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "알리바바 B2B 페이지 접속 실패. 사명에 'TECHNOLOGY'로 부품/기술 공급사 추정되나 정보 부족."
+    },
+    {
+      "company": "ZHEJIANG CHENYANG NONWOVEN CO., LTD",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "사명에 NONWOVEN 명시. 부직포 소재 제조·공급사로 자체 소비자 화장품 브랜드 없음."
+    },
+    {
+      "company": "A&H INTERNATIONAL COSMETICS CO., LTD",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "글로벌 ODM 색조화장품 제조사(a-hcosmetics.com 확인). 자체 소비자 브랜드 없이 타사 브랜드 수탁 생산만."
+    },
+    {
+      "company": "GUANGZHOU SIYU NON-WOVEN PRODUCTS CO., LTD.",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "사명에 NON-WOVEN 명시. 부직포 소재 제조사(NBD Trade Data 확인). 자체 소비자 화장품 브랜드 없음."
+    },
+    {
+      "company": "유니엔코리아",
+      "verdict": "적합",
+      "own_brand": "EVE, 르셀로, SYNA PLUS, ELEUP",
+      "reason": "자사 홈페이지(unienkorea.com)에 EVE·르셀로·SYNA PLUS·ELEUP 등 자체 헬스케어·화장품 브랜드 다수 보유 확인."
+    },
+    {
+      "company": "디자인바른",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "화장품 패키지 디자인 에이전시(Facebook 확인). 자체 소비자 화장품 브랜드 없는 B2B 디자인 서비스사."
+    }
+  ]
+}

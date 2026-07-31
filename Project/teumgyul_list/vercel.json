@@ -1,5 +1,5 @@
 {
   "rewrites": [
-    { "source": "/", "destination": "/teumgyul_list.html" }
+    { "source": "/", "destination": "/teumgyul_seeding_202606.html" }
   ]
 }

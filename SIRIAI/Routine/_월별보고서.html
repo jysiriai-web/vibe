@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIRIAI · 6월 세일즈 보고서</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--paper:#F3EEE2;--ink:#211A33;--soft:#5b5468;--line:rgba(33,26,51,.14);--card:#FBF8F1;
+    --ok:#2E7D5B;--warn:#B7791F;--idle:#9b93a3;--accent:#6B4DE6;--accentbg:rgba(107,77,230,.08);
+    --mono:'JetBrains Mono',monospace;--sans:'Pretendard','Helvetica Neue',sans-serif;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.55;padding:32px 24px 70px}
+  .wrap{max-width:840px;margin:0 auto}
+  .top{display:flex;align-items:center;gap:13px;margin-bottom:6px}
+  .home{font-size:13px;color:var(--accent);text-decoration:none;font-weight:500;padding:5px 11px;border:1px solid var(--line);border-radius:8px}
+  .home:hover{background:#fff}
+  .label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft)}
+  h1{font-size:24px;font-weight:600;letter-spacing:-.02em;margin:6px 0 2px}
+  .sub{color:var(--soft);font-size:13px;margin-bottom:22px}
+  h2{font-size:11px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--soft);font-weight:600;margin:30px 0 13px;display:flex;align-items:center;gap:9px}
+  h2::after{content:"";flex:1;height:1px;background:var(--line)}
+  .note{background:#FFF3D6;border:1px solid #EAD9A0;border-radius:10px;padding:11px 15px;font-size:12.5px;color:#7A5B12;margin-bottom:6px}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:14px 16px}
+  .kpi .v{font-size:24px;font-weight:600}
+  .kpi .k{font-size:12px;color:var(--soft);margin-top:2px}
+  .kpi .x{font-family:var(--mono);font-size:10.5px;color:var(--idle);margin-top:5px}
+
+  .funnel{display:flex;flex-direction:column;gap:9px}
+  .frow{display:flex;align-items:center;gap:13px}
+  .flbl{width:90px;flex:none;font-size:13px;font-weight:600;text-align:right}
+  .ftrack{flex:1;background:rgba(33,26,51,.05);border-radius:8px;height:34px;position:relative;overflow:hidden}
+  .fbar{height:100%;background:var(--accent);border-radius:8px;min-width:2px;display:flex;align-items:center;transition:width .5s}
+  .fbar.s0{background:#7d76a0}.fbar.s1{background:#6B4DE6}.fbar.s2{background:#2E7D5B}
+  .fbar.s3{background:#1f6e8c}.fbar.s4{background:#B7791F}.fbar.s5{background:#A33D7A}
+  .fcount{position:absolute;right:11px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-weight:600;font-size:13px}
+  .fconv{width:74px;flex:none;font-family:var(--mono);font-size:11px;color:var(--soft)}
+
+  .cats{display:flex;flex-direction:column;gap:7px}
+  .crow{display:flex;align-items:center;gap:11px;font-size:13px}
+  .cname{width:64px;flex:none;color:var(--soft)}
+  .ctrack{flex:1;background:rgba(33,26,51,.05);border-radius:6px;height:22px;overflow:hidden}
+  .cbar{height:100%;background:var(--accent);opacity:.5;border-radius:6px;min-width:2px}
+  .cnum{width:40px;flex:none;font-family:var(--mono);font-size:12px;text-align:right}
+  .err{color:var(--soft);font-family:var(--mono);font-size:13px;padding:20px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="대시보드.html" class="home">← 홈</a><span class="label">Monthly Report</span></div>
+  <h1>6월 세일즈 보고서</h1>
+  <div class="sub" id="sub">집계 중…</div>
+
+  <div id="prenote"></div>
+
+  <h2>핵심 지표</h2>
+  <div class="kpis">
+    <div class="kpi"><div class="v" id="k-sent">—</div><div class="k">발송</div><div class="x">/ 대상 <span id="k-pool">—</span></div></div>
+    <div class="kpi"><div class="v" id="k-reply">—</div><div class="k">회신율</div><div class="x" id="k-reply-n">—건</div></div>
+    <div class="kpi"><div class="v" id="k-meet">—</div><div class="k">미팅</div><div class="x">성사</div></div>
+    <div class="kpi"><div class="v" id="k-deal">—</div><div class="k">계약</div><div class="x">완료</div></div>
+  </div>
+
+  <h2>세일즈 퍼널</h2>
+  <div class="funnel" id="funnel"><div class="err">불러오는 중…</div></div>
+
+  <h2>발송 대상 카테고리 분포</h2>
+  <div class="cats" id="cats"></div>
+</div>
+<script>
+const pct=(a,b)=>b>0?Math.round(a/b*100):0;
+fetch('/api/stats').then(r=>r.json()).then(s=>{
+  const pool=s.적합||0;
+  document.getElementById('sub').textContent=`발송 대상 ${pool}개 · 갱신 ${new Date().toLocaleDateString('ko-KR')}`;
+  // 발송 전 안내
+  if((s.발송||0)===0){
+    document.getElementById('prenote').innerHTML=
+      '<div class="note">아직 발송 전이라 퍼널·회신은 0입니다. <b>발송이 시작되면 이 보고서가 자동으로 채워집니다.</b> (지금은 발송 대기 '+pool+'건)</div>';
+  }
+  // KPI
+  const set=(id,v)=>document.getElementById(id).textContent=v;
+  set('k-sent',s.발송); set('k-pool',pool);
+  set('k-reply',pct(s.회신,s.발송)+'%'); set('k-reply-n',(s.회신||0)+'건');
+  set('k-meet',s.미팅); set('k-deal',s.계약);
+  // 퍼널
+  const stages=[
+    ['발송 대상',pool,null,'s0'],['발송',s.발송,pool,'s1'],['회신',s.회신,s.발송,'s2'],
+    ['미팅',s.미팅,s.회신,'s3'],['계약',s.계약,s.미팅,'s4'],['성사',s.성사,s.계약,'s5']
+  ];
+  const max=pool||1;
+  document.getElementById('funnel').innerHTML=stages.map(([lbl,n,prev,cls])=>{
+    n=n||0; const w=Math.max(2,Math.round(n/max*100));
+    const conv=prev===null?'':(prev>0?pct(n,prev)+'%':'0%');
+    return `<div class="frow"><div class="flbl">${lbl}</div>
+      <div class="ftrack"><div class="fbar ${cls}" style="width:${w}%"></div><span class="fcount">${n}</span></div>
+      <div class="fconv">${conv?'↳ '+conv:''}</div></div>`;
+  }).join('');
+  // 카테고리
+  const cats=s.카테고리||{}; const entries=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  const cmax=entries.length?entries[0][1]:1;
+  document.getElementById('cats').innerHTML=entries.length?entries.map(([name,n])=>
+    `<div class="crow"><div class="cname">${name}</div>
+      <div class="ctrack"><div class="cbar" style="width:${Math.round(n/cmax*100)}%"></div></div>
+      <div class="cnum">${n}</div></div>`).join(''):'<div class="err">카테고리 데이터 없음</div>';
+}).catch(e=>{
+  document.getElementById('funnel').innerHTML='<div class="err">서버 연결 실패 — review_server.py 확인</div>';
+});
+</script>
+</body>
+</html>

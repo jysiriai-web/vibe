@@ -1,0 +1,11 @@
+node_modules/
+
+# 시트 토큰·웹앱 URL 포함 — 커밋 금지 (config.example.json 이 템플릿)
+config.json
+.env
+
+# 실행 결과·체크포인트·틱톡 로그인 쿠키
+state.json
+result.csv
+accounts.txt
+data/

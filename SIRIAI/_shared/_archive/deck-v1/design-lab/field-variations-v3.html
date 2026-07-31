@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SIRIAI 02 · 변주 v3 — 소프트 오가닉</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.min.css" />
+<style>
+  :root{
+    --cream:#faf7f2; --ink:#2b2722; --ink-2:#7c756b; --ink-faint:#a8a094;
+    --lav:#cdbce8; --lav-2:#e7ddf4; --peach:#f1c9a8; --peach-2:#f8e6d6;
+    --sky:#abc6e2; --sky-2:#dde9f3; --mint:#c1ddca; --mint-2:#e0efe6;
+    --kr:'Pretendard',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{font-family:var(--kr);background:var(--cream);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;}
+  .lab-flag{position:fixed;top:16px;left:16px;z-index:50;font-size:11px;letter-spacing:.12em;color:var(--ink-2);background:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.8);border-radius:100px;padding:7px 15px;backdrop-filter:blur(8px);box-shadow:0 8px 24px -12px rgba(80,60,120,.3);}
+  .field{min-height:100vh;display:flex;align-items:center;padding:9vh 6vw;position:relative;overflow:hidden;}
+  .field::before{content:"";position:absolute;inset:-12%;z-index:0;opacity:.92;}
+  .f1::before{background:radial-gradient(38% 44% at 20% 26%,var(--lav) 0%,transparent 60%),radial-gradient(42% 42% at 84% 74%,var(--sky-2) 0%,transparent 60%);}
+  .f2::before{background:radial-gradient(46% 52% at 80% 26%,var(--peach) 0%,transparent 60%),radial-gradient(42% 46% at 16% 78%,var(--lav-2) 0%,transparent 60%);}
+  .f3::before{background:radial-gradient(40% 46% at 28% 36%,var(--sky) 0%,transparent 60%),radial-gradient(44% 42% at 78% 66%,var(--lav) 0%,transparent 62%);}
+  .f4::before{background:radial-gradient(54% 42% at 50% 82%,var(--lav-2) 0%,transparent 66%),radial-gradient(30% 30% at 50% 30%,var(--peach-2) 0%,transparent 60%);}
+  .inner{position:relative;z-index:1;width:100%;max-width:1180px;margin:0 auto;}
+  .eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-2);margin-bottom:22px;display:flex;gap:11px;align-items:center;}
+  .eyebrow .bead{width:22px;height:22px;border-radius:50%;background:var(--lav);}
+  .title{font-weight:700;letter-spacing:-.022em;line-height:1.12;word-break:keep-all;}
+  .lead{color:var(--ink-2);word-break:keep-all;}
+  .soft{background:rgba(255,255,255,.55);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.75);border-radius:36px;box-shadow:0 44px 80px -44px rgba(90,70,130,.32);}
+  .pill{border-radius:100px;padding:11px 22px;font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:8px;}
+  .pill small{font-weight:400;font-size:11px;opacity:.7;}
+  /* 01 */
+  .f1 .inner{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center;}
+  .f1 .title{font-size:clamp(30px,3.8vw,52px);margin:0 0 24px;}
+  .f1 .lead{font-size:17px;max-width:30ch;}
+  .f1 .viz{aspect-ratio:1/.82;display:flex;align-items:center;justify-content:center;padding:42px;}
+  .f1 .steps{margin-top:30px;display:flex;flex-direction:column;gap:11px;}
+  .f1 .step{display:flex;gap:13px;align-items:center;font-size:15px;}
+  .f1 .step i{width:26px;height:26px;border-radius:50%;background:var(--lav-2);color:#5a4a85;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:12px;font-weight:700;}
+  /* 02 */
+  .f2 .inner{text-align:center;}
+  .f2 .title{font-size:clamp(28px,3.6vw,50px);margin:0 auto 12px;max-width:18ch;}
+  .f2 .big{font-size:clamp(40px,5.5vw,84px);font-weight:800;letter-spacing:-.03em;background:linear-gradient(120deg,#7b5bb0,#d98a5a);-webkit-background-clip:text;background-clip:text;color:transparent;margin:34px 0 8px;}
+  .f2 .sub{color:var(--ink-2);font-size:14px;letter-spacing:.04em;margin-bottom:38px;}
+  .f2 .cloud{display:flex;flex-wrap:wrap;gap:13px;justify-content:center;max-width:780px;margin:0 auto;}
+  /* 03 */
+  .f3 .inner{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center;}
+  .f3 .title{font-size:clamp(26px,3.2vw,46px);margin:0 0 20px;}
+  .f3 .lead{font-size:16px;max-width:32ch;margin-bottom:24px;}
+  .f3 .axes{display:flex;gap:9px;flex-wrap:wrap;}
+  .f3 .orb{aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 38% 34%,#fff 0%,var(--lav-2) 30%,var(--sky) 78%,var(--lav) 100%);box-shadow:0 50px 90px -40px rgba(120,90,170,.5),inset 0 0 60px rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;max-width:340px;margin:0 auto;}
+  .f3 .orb b{font-size:13px;letter-spacing:.18em;color:#4a3b72;text-transform:uppercase;}
+  .built{margin-top:22px;font-size:11px;letter-spacing:.13em;color:var(--ink-faint);text-transform:uppercase;}
+  /* 04 */
+  .f4 .inner{text-align:center;}
+  .f4 .title{font-size:clamp(28px,3.6vw,52px);margin:0 auto 18px;}
+  .f4 .lead{font-size:17px;max-width:32ch;margin:0 auto;}
+  .f4 .obj{width:140px;height:150px;margin:0 auto 44px;border-radius:38px 38px 30px 30px;background:linear-gradient(160deg,#fff,var(--lav-2));box-shadow:0 60px 90px -40px rgba(120,90,170,.45),inset 0 2px 8px rgba(255,255,255,.8);}
+  .f4 .soon{margin-top:32px;display:inline-block;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#7b5bb0;background:rgba(255,255,255,.6);border-radius:100px;padding:9px 20px;}
+</style>
+</head>
+<body>
+  <div class="lab-flag">v3 — Soft / Organic Pastel</div>
+
+  <section class="field f1">
+    <div class="inner">
+      <div>
+        <div class="eyebrow"><span class="bead"></span>01 — Architecting</div>
+        <h2 class="title">당신이 놓친 건 예산이 아니라, 비어 있는 '자리'입니다.</h2>
+        <p class="lead">시장에서 당신 브랜드가 들어설 빈 자리를 진단하고, 어떻게 들어설지 설계합니다.</p>
+        <div class="steps">
+          <div class="step"><i>1</i>페인포인트 진단</div>
+          <div class="step"><i>2</i>포지셔닝 매핑</div>
+          <div class="step"><i>3</i>캠페인 아키텍처</div>
+        </div>
+      </div>
+      <div class="soft viz">
+        <svg viewBox="0 0 360 300" width="100%">
+          <g fill="none" stroke="#b9a6dd" stroke-width="1.5" stroke-dasharray="4 6">
+            <rect x="40" y="50" width="70" height="70" rx="22"/>
+            <rect x="250" y="40" width="70" height="70" rx="22"/>
+            <rect x="255" y="190" width="70" height="70" rx="22"/>
+          </g>
+          <circle cx="180" cy="150" r="56" fill="#cdbce8" opacity=".85"/>
+          <circle cx="180" cy="150" r="56" fill="none" stroke="#fff" stroke-width="2"/>
+          <circle cx="180" cy="150" r="7" fill="#fff"/>
+          <g stroke="#cdbce8" stroke-width="1.5" opacity=".7">
+            <line x1="110" y1="85" x2="150" y2="130"/><line x1="250" y1="75" x2="210" y2="125"/><line x1="270" y1="200" x2="215" y2="170"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section class="field f2">
+    <div class="inner">
+      <div class="eyebrow" style="justify-content:center"><span class="bead" style="background:var(--peach)"></span>02 — Visual Content</div>
+      <h2 class="title">가입자 풀이 아니라, 당신께 맞는 사람을 고릅니다.</h2>
+      <div class="big">75개국 · 120,000</div>
+      <div class="sub">큐레이터 · 12+ 플랫폼 · 후불제</div>
+      <div class="cloud">
+        <span class="pill" style="background:var(--lav-2);color:#5a4a85">인플루언서 시딩 <small>나노–메가</small></span>
+        <span class="pill" style="background:var(--peach-2);color:#8a5a32">글로벌 시딩 <small>美·日·中</small></span>
+        <span class="pill" style="background:var(--sky-2);color:#3a5675">릴스 · 숏츠</span>
+        <span class="pill" style="background:var(--mint-2);color:#3a5a47">라이브커머스 · 광고</span>
+        <span class="pill" style="background:var(--lav-2);color:#5a4a85">매거진 협업</span>
+        <span class="pill" style="background:#fff;color:var(--ink-2)">검수 · 리스크 관리</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="field f3">
+    <div class="inner">
+      <div>
+        <div class="eyebrow"><span class="bead" style="background:var(--sky)"></span>03 — sa:ai</div>
+        <h2 class="title">관계에서 시작해 데이터로 확장하고, 기록으로 증명합니다.</h2>
+        <p class="lead">당신의 브랜드를 사람처럼 이해하는 AI 위에서 일합니다.</p>
+        <div class="axes">
+          <span class="pill" style="background:var(--peach-2);color:#8a5a32">Performance</span>
+          <span class="pill" style="background:var(--lav-2);color:#5a4a85">Creative</span>
+          <span class="pill" style="background:var(--sky-2);color:#3a5675">Archivo</span>
+        </div>
+        <div class="built">Built on — OpenAI · Anthropic · Gemini · Vercel · Next.js</div>
+      </div>
+      <div class="orb"><b>sa:ai</b></div>
+    </div>
+  </section>
+
+  <section class="field f4">
+    <div class="inner">
+      <div class="obj"></div>
+      <div class="eyebrow" style="justify-content:center"><span class="bead"></span>04 — Private Brand</div>
+      <h2 class="title">우리 말을, 우리 제품으로 증명합니다.</h2>
+      <p class="lead">남의 브랜드만 키우지 않습니다. 우리가 권하는 구조가, 곧 우리가 쓰는 구조입니다.</p>
+      <div class="soon">Coming 2026</div>
+    </div>
+  </section>
+</body>
+</html>

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIRIAI — 知り合い</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root{
+    --bg:#FFFFFF; --off:#FAFAF8; --ink:#111111; --sub:#5f5f5f; --faint:#9a9a9a; --line:#E6E5E1; --line2:#EFEEEB;
+    --sans:'Pretendard', -apple-system, sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.7; letter-spacing:-0.015em; -webkit-font-smoothing:antialiased; font-weight:300;}
+  .wrap{max-width:1040px; margin:0 auto; padding:0 40px;}
+  section{padding:120px 0; border-top:1px solid var(--line2);}
+  h1,h2,h3,h4{font-weight:600; letter-spacing:-0.035em; line-height:1.24;}
+
+  /* archival index head */
+  .ix-head{display:flex; gap:18px; align-items:baseline; margin-bottom:46px;}
+  .ix-num{font-size:.95rem; color:var(--faint); font-weight:600; min-width:30px;}
+  .ix-label{font-size:.72rem; letter-spacing:.22em; text-transform:uppercase; color:var(--sub); font-weight:700;}
+  .ix-note{margin-left:auto; font-size:.74rem; color:var(--faint); font-weight:400; text-align:right; max-width:300px; line-height:1.6;}
+
+  /* hero */
+  .hero{padding:190px 0 140px; border:none;}
+  .hero .eyebrow{font-size:.78rem; letter-spacing:.3em; text-transform:uppercase; color:var(--sub); font-weight:700; margin-bottom:38px;}
+  .hero h1{font-size:3.9rem; line-height:1.2; margin-bottom:38px; font-weight:700; letter-spacing:-0.04em;}
+  .hero .lede{font-size:1.28rem; color:#333; max-width:720px; word-break:keep-all; font-weight:300; line-height:1.85;}
+  .hero .jp{font-size:.95rem; color:var(--faint); letter-spacing:.04em; margin-top:24px; font-weight:400;}
+  .hero .anchor{margin-top:60px; padding-top:24px; border-top:1px solid var(--line); font-size:.9rem; color:var(--sub); font-weight:300;}
+  .hero .anchor b{color:var(--ink); font-weight:500;}
+
+  /* approach (관점) */
+  .lead-q{font-size:2.4rem; font-weight:700; letter-spacing:-0.04em; line-height:1.3; max-width:840px; margin-bottom:36px;}
+  .lead-q .em{color:var(--faint);}
+  .lead-body{font-size:1.18rem; color:var(--sub); max-width:680px; word-break:keep-all; font-weight:300; line-height:1.85;}
+  .lead-body + .lead-body{margin-top:20px;}
+
+  /* practice block: 관점 + 상세 */
+  .sec-h2{font-size:2.3rem; margin-bottom:14px; letter-spacing:-0.04em;}
+  .sec-intro{font-size:1.1rem; color:var(--sub); max-width:600px; word-break:keep-all; margin-bottom:54px; font-weight:300;}
+  .prac{border-top:1px solid var(--line); padding:44px 0;}
+  .prac:last-child{border-bottom:1px solid var(--line);}
+  .prac-top{display:grid; grid-template-columns:52px 1fr; gap:22px; align-items:baseline; cursor:pointer;}
+  .prac-no{font-size:1.05rem; color:var(--faint); font-weight:600;}
+  .prac-title{font-size:1.6rem; font-weight:600; letter-spacing:-0.035em;}
+  .prac-title small{display:block; font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); font-weight:700; margin-top:7px;}
+  .prac-view{font-size:1.05rem; color:var(--ink); margin:18px 0 0 74px; word-break:keep-all; font-weight:400; line-height:1.7;}
+  .prac-view .pq{font-weight:600;}
+  .prac-detail{margin:26px 0 0 74px; display:grid; grid-template-columns:1fr 1fr; gap:30px 40px;}
+  .pd-block .pk{font-size:.7rem; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); font-weight:700; margin-bottom:10px;}
+  .pd-block p{font-size:.96rem; color:var(--sub); word-break:keep-all; font-weight:300; line-height:1.7;}
+  .pd-block .flow{font-size:.92rem; color:var(--sub); font-weight:300;}
+  .pd-block .flow b{color:var(--ink); font-weight:500;}
+  .prac.soon{opacity:.5;}
+  .tech{margin:26px 0 0 74px; font-size:.74rem; letter-spacing:.1em; color:var(--faint); font-weight:400; padding-top:18px; border-top:1px dashed var(--line);}
+
+  /* process */
+  .steps{display:grid; grid-template-columns:repeat(7,1fr); gap:0; border:1px solid var(--line); margin-top:10px;}
+  .step{padding:24px 16px; border-right:1px solid var(--line); position:relative;}
+  .step:last-child{border-right:none;}
+  .step .sn{font-size:.72rem; color:var(--faint); font-weight:700; margin-bottom:10px;}
+  .step .st{font-size:.95rem; font-weight:600; line-height:1.35; margin-bottom:8px; word-break:keep-all;}
+  .step .sd{font-size:.76rem; color:var(--sub); font-weight:300; word-break:keep-all; line-height:1.5;}
+  .step.hl{background:var(--off);}
+
+  /* proof */
+  .proof-grid{display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--line); margin-bottom:26px;}
+  .stat{padding:32px 24px; border-right:1px solid var(--line);}
+  .stat:last-child{border-right:none;}
+  .stat .sv{font-size:2.6rem; font-weight:700; line-height:1; letter-spacing:-0.04em;}
+  .stat .sl{font-size:.82rem; color:var(--sub); margin-top:12px; word-break:keep-all; font-weight:300;}
+  .cases{display:grid; grid-template-columns:1fr 1fr 1fr; gap:1px; background:var(--line); border:1px solid var(--line);}
+  .case{background:var(--bg); padding:28px 24px;}
+  .case .ck{font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); font-weight:700; margin-bottom:12px;}
+  .case h4{font-size:1.15rem; font-weight:600; margin-bottom:11px;}
+  .case p{font-size:.92rem; color:var(--sub); word-break:keep-all; font-weight:300;}
+
+  /* partners */
+  .partners{columns:4; column-gap:28px; margin-top:6px;}
+  .partners li{list-style:none; font-size:1rem; padding:6px 0; color:var(--ink); font-weight:300; break-inside:avoid;}
+  .partners li .grp{font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); font-weight:700; padding-top:14px; display:block;}
+
+  /* sa:ai dark */
+  .saai{background:var(--ink); color:#f2f2f2; padding:64px 56px; margin-top:6px;}
+  .saai .eyebrow{font-size:.72rem; letter-spacing:.22em; text-transform:uppercase; color:#888; font-weight:700; margin-bottom:22px;}
+  .saai h2{color:#fff; font-size:2.1rem; margin-bottom:20px; max-width:660px; letter-spacing:-0.04em;}
+  .saai p{color:#bbb; font-size:1.05rem; max-width:620px; word-break:keep-all; font-weight:300; margin-bottom:38px;}
+  .saai .axes{display:flex; gap:48px; flex-wrap:wrap;}
+  .saai .axis .ak{font-size:1.15rem; color:#fff; font-weight:600; margin-bottom:5px;}
+  .saai .axis .ad{font-size:.84rem; color:#888; font-weight:300;}
+  .saai .techstack{margin-top:40px; padding-top:24px; border-top:1px solid #333; font-size:.74rem; letter-spacing:.12em; color:#777; font-weight:400;}
+
+  /* faq */
+  .faq-item{border-bottom:1px solid var(--line); padding:26px 0;}
+  .faq-q{font-size:1.15rem; font-weight:500; cursor:pointer; display:flex; justify-content:space-between; gap:20px; letter-spacing:-0.02em;}
+  .faq-q::after{content:"+"; color:var(--faint); font-weight:300; font-size:1.4rem; transition:transform .3s;}
+  .faq-item.open .faq-q::after{transform:rotate(45deg);}
+  .faq-a{font-size:1rem; color:var(--sub); max-height:0; overflow:hidden; transition:max-height .4s, margin-top .4s; word-break:keep-all; font-weight:300;}
+  .faq-item.open .faq-a{max-height:240px; margin-top:16px;}
+
+  /* studio */
+  .team-wrap{display:grid; grid-template-columns:1fr 1fr; gap:54px; margin-top:46px;}
+  .team h4{font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--faint); font-weight:700; border-bottom:1px solid var(--line); padding-bottom:13px; margin-bottom:6px;}
+  .team .row{display:flex; justify-content:space-between; padding:13px 0; border-bottom:1px solid var(--line2); font-size:1rem;}
+  .team .row span{color:var(--faint); font-size:.88rem; font-weight:300;}
+
+  /* contact */
+  .contact{text-align:center; padding:150px 0;}
+  .contact .lead-q{margin:0 auto 28px; text-align:center;}
+  .contact .csub{font-size:1.08rem; color:var(--sub); margin-bottom:50px; word-break:keep-all; font-weight:300;}
+  .btn{display:inline-block; padding:19px 50px; background:var(--ink); color:#fff; text-decoration:none; font-size:1rem; font-weight:500; border-radius:100px; transition:transform .3s, background .3s;}
+  .btn:hover{background:#333; transform:translateY(-2px);}
+  .footer{border-top:1px solid var(--line); padding:38px 0 90px; font-size:.82rem; color:var(--faint); font-weight:300; line-height:1.9;}
+  .footer a{color:var(--sub); text-decoration:none;}
+
+  .fade{opacity:0; transform:translateY(26px); transition:opacity 1s cubic-bezier(.16,1,.3,1), transform 1s cubic-bezier(.16,1,.3,1);}
+  .fade.in{opacity:1; transform:none;}
+  .note-banner{position:fixed; bottom:0; left:0; right:0; background:#111; color:#bbb; font-size:.74rem; text-align:center; padding:7px; z-index:50;}
+  @media(max-width:820px){
+    .wrap{padding:0 24px;} .hero h1{font-size:2.5rem;} .lead-q{font-size:1.7rem;} .sec-h2{font-size:1.7rem;}
+    .prac-detail{grid-template-columns:1fr;} .steps{grid-template-columns:1fr 1fr;} .proof-grid{grid-template-columns:1fr 1fr;}
+    .cases{grid-template-columns:1fr;} .partners{columns:2;} .team-wrap{grid-template-columns:1fr;} .saai{padding:40px 26px;}
+    .prac-view,.prac-detail,.tech{margin-left:0;}
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero wrap fade">
+  <div class="eyebrow">SIRIAI · 知り合い · Seoul</div>
+  <h1>모두가 ‘도달’을 말할 때,<br>우리는 ‘관계’를 설계합니다.</h1>
+  <p class="lede">숫자는 스쳐 지나가지만, 관계는 기록됩니다. 시리아이는 브랜드와 시장 사이에 오래 남는 ‘아는 사이’를 만드는 일을 합니다.</p>
+  <div class="jp">SIRIAI &nbsp;·&nbsp; 知り合い — 시장과 브랜드를 잇는 친절한 지인</div>
+  <div class="anchor"><b>무신사 · 카카오페이 · 이니스프리 · COSRX · 글로벌 K-pop 아티스트</b> — 평균을 거부하는 브랜드들이 함께했습니다.</div>
+</header>
+
+<!-- 01 APPROACH (관점) -->
+<section class="wrap fade">
+  <div class="ix-head"><span class="ix-num">01</span><span class="ix-label">Approach</span><span class="ix-note">우리가 시장을 보는 방식.</span></div>
+  <p class="lead-q">우리는 ‘무엇을 파는가’보다<br><span class="em">‘무엇을 놓쳤는가’</span>를 먼저 봅니다.</p>
+  <p class="lead-body">대부분의 마케팅은 도달과 노출의 숫자에서 출발합니다. 시리아이는 브랜드가 시장에서 비워둔 자리, 놓쳐버린 관계에서 출발합니다. 그래서 우리의 결과물은 일회성 캠페인이 아니라, 브랜드가 오래 기댈 수 있는 ‘구조’입니다.</p>
+  <p class="lead-body">이 관점을 두 가지로 증명합니다 — <b style="color:#111;font-weight:500">끝까지 책임지는 실행력</b>, 그리고 그 실행을 떠받치는 <b style="color:#111;font-weight:500">자체 기술(sa:ai)</b>. 실행이 신뢰를 만들고, 기술이 그 신뢰를 확장합니다.</p>
+</section>
+
+<!-- 02 PRACTICES (관점 + 상세) -->
+<section class="wrap fade">
+  <div class="ix-head"><span class="ix-num">02</span><span class="ix-label">Practices</span><span class="ix-note">네 영역, 하나의 관점.</span></div>
+  <h2 class="sec-h2">우리가 일하는 네 가지 방식.</h2>
+  <p class="sec-intro">각 영역은 같은 질문에서 출발합니다 — “이 브랜드에 진짜 필요한 것은 무엇인가.”</p>
+
+  <div class="prac">
+    <div class="prac-top"><div class="prac-no">01</div><div class="prac-title">아키텍팅<small>Architecting · 기획·컨설팅</small></div></div>
+    <p class="prac-view"><span class="pq">“무엇을 팔지가 아니라, 무엇을 놓쳤는지.”</span> 팔로워 숫자가 아니라 시장에서 비어 있는 자리를 진단하고, 거기서부터 전략을 설계합니다.</p>
+    <div class="prac-detail">
+      <div class="pd-block"><div class="pk">무엇을</div><p>브랜드 페인포인트 진단 → 캠페인 전략 설계. 플랫폼을 직접 운영해본 경험으로, 에이전시가 아닌 브랜드의 눈으로 봅니다.</p></div>
+      <div class="pd-block"><div class="pk">어떻게</div><p>AI 스코어링으로 수십만 크리에이터 중 브랜드 무드에 맞는 사람만 발굴. 가입자 풀에서 돌려쓰지 않습니다.</p></div>
+      <div class="pd-block"><div class="pk">프로세스</div><p class="flow">상담 → 진단 → <b>3~4일 내</b> 큐레이션 리스트 → 착수</p></div>
+      <div class="pd-block"><div class="pk">받는 것</div><p>진단 리포트 · 핏 기반 크리에이터 리스트 · 전략 제안서</p></div>
+    </div>
+  </div>
+
+  <div class="prac">
+    <div class="prac-top"><div class="prac-no">02</div><div class="prac-title">콘텐츠 비즈니스<small>Visual Content</small></div></div>
+    <p class="prac-view"><span class="pq">“가입자 풀이 아니라, 세계 전체에서 고릅니다.”</span> 인스타그램 전체가 우리의 DB. 매번 당신 브랜드에 맞는 사람을 새로 찾습니다.</p>
+    <div class="prac-detail">
+      <div class="pd-block"><div class="pk">무엇을</div><p>인플루언서 시딩 · 릴스/숏츠 · 글로벌 UGC · 브랜디드 콘텐츠 · 커머스 전환형 콘텐츠.</p></div>
+      <div class="pd-block"><div class="pk">어떻게</div><p>후불제(실제 업로드분만 청구)로 리스크 0. 2차 활용 보장, 글로벌 물류(Amazon MCF)·권역 필터링까지.</p></div>
+      <div class="pd-block"><div class="pk">프로세스</div><p class="flow">리스트 1주 → 선정 2~3일 → 배송 1주 → 업로드 1~2주 (<b>평균 14일~1달</b>)</p></div>
+      <div class="pd-block"><div class="pk">받는 것</div><p>업로드 콘텐츠 · 퍼포먼스 데이터 · KPI 맞춤 보고서</p></div>
+    </div>
+  </div>
+
+  <div class="prac">
+    <div class="prac-top"><div class="prac-no">03</div><div class="prac-title">sa:ai<small>Software Engineering</small></div></div>
+    <p class="prac-view"><span class="pq">“우리의 마케팅은 자체 AI 위에서 돕니다.”</span> 관계를 데이터로, 데이터를 기록으로. 그 기술을 브랜드의 솔루션으로도 짓습니다.</p>
+    <div class="prac-detail">
+      <div class="pd-block"><div class="pk">무엇을</div><p>자체 AI 플랫폼 sa:ai. 성과(Performance)·생성(Creative)·기록(Archivo) 세 축으로 마케팅을 구동.</p></div>
+      <div class="pd-block"><div class="pk">확장</div><p>마케팅을 떠받치는 기술을, 브랜드에 필요한 맞춤 솔루션으로도 개발합니다. (서드파티 앱 개발 이력)</p></div>
+    </div>
+    <div class="tech">BUILT ON &nbsp;—&nbsp; OpenAI · Anthropic · Gemini · Vercel · Supabase · Next.js</div>
+  </div>
+
+  <div class="prac soon">
+    <div class="prac-top"><div class="prac-no">04</div><div class="prac-title">프라이빗 브랜드<small>Private Brand · 2026~</small></div></div>
+    <p class="prac-view"><span class="pq">“우리는 우리 말을, 우리 제품으로 증명합니다.”</span> 남의 브랜드만 키우지 않습니다. 우리 브랜드도 만듭니다.</p>
+  </div>
+</section>
+
+<!-- 03 PROCESS -->
+<section class="wrap fade">
+  <div class="ix-head"><span class="ix-num">03</span><span class="ix-label">Process</span><span class="ix-note">상담부터 정산까지, 시리아이가 끝까지.</span></div>
+  <h2 class="sec-h2">어떻게 일하는가.</h2>
+  <p class="sec-intro">리스트만 던지고 빠지지 않습니다. 시작부터 보고서까지 한 창구로.</p>
+  <div class="steps">
+    <div class="step"><div class="sn">01</div><div class="st">계약 & 협의</div><div class="sd">커스텀 요소 확정</div></div>
+    <div class="step"><div class="sn">02</div><div class="st">캠페인 생성 & 직접 컨택</div><div class="sd">시리아이가 즉시 진행</div></div>
+    <div class="step hl"><div class="sn">03</div><div class="st">리스트 제공</div><div class="sd">1.5배수 · 평균 모집율 400%</div></div>
+    <div class="step"><div class="sn">04</div><div class="st">컨펌</div><div class="sd">브랜드 확정</div></div>
+    <div class="step"><div class="sn">05</div><div class="st">제품 발송</div><div class="sd">물류 관리</div></div>
+    <div class="step"><div class="sn">06</div><div class="st">업로드 관리</div><div class="sd">가이드 준수까지</div></div>
+    <div class="step hl"><div class="sn">07</div><div class="st">보고서 & 정산</div><div class="sd">KPI 맞춤 리포트</div></div>
+  </div>
+</section>
+
+<!-- 04 PROOF -->
+<section class="wrap fade">
+  <div class="ix-head"><span class="ix-num">04</span><span class="ix-label">Proof</span><span class="ix-note">관점은, 결과로 증명됩니다.</span></div>
+  <h2 class="sec-h2">관점은 결과로 증명됩니다.</h2>
+  <div class="proof-grid">
+    <div class="stat"><div class="sv">94.6<span style="font-size:1.2rem">%</span></div><div class="sl">나노 인플루언서 방문 이행률 (191지원→87실방문)</div></div>
+    <div class="stat"><div class="sv">700<span style="font-size:1.2rem">만+</span></div><div class="sl">메가 인플루언서 동원 (글로벌 K-pop 아티스트급)</div></div>
+    <div class="stat"><div class="sv">8<span style="font-size:1.2rem">곳</span></div><div class="sl">검증된 에이전시 네트워크 직접 협업</div></div>
+    <div class="stat"><div class="sv">55<span style="font-size:1.2rem">+</span></div><div class="sl">함께한 브랜드·파트너</div></div>
+  </div>
+  <div class="cases">
+    <div class="case"><div class="ck">Case — 종합 캠페인</div><h4>플래그십 오픈</h4><p>오프라인 행사 3일 + 나노 100인 + 매거진 7개 + 시딩 72명 + 메가 인플루언서를 한 번에. 종합 마케팅 솔루션을 실증.</p></div>
+    <div class="case"><div class="ck">Case — 글로벌 K-pop</div><h4>일본 틱톡 챌린지</h4><p>글로벌 아티스트 댄스챌린지를 일본 현지 크리에이터로. 36명 모집·90% 진행률.</p></div>
+    <div class="case"><div class="ck">Case — 글로벌 시딩</div><h4>USA · 필리핀</h4><p>이니스프리·COSRX 등 글로벌 브랜드의 현지 시딩. 영어권 정밀 섭외 + 권역 필터링.</p></div>
+  </div>
+</section>
+
+<!-- 05 SA:AI -->
+<section class="wrap fade">
+  <div class="ix-head"><span class="ix-num">05</span><span class="ix-label">sa:ai</span><span class="ix-note">마케팅 노하우를, 제품으로.</span></div>
+  <div class="saai">
+    <div class="eyebrow">Our own AI platform</div>
+    <h2>관계에서 시작해 데이터로 확장하고, 기록으로 증명합니다.</h2>
+    <p>사람을 이해하고 세상을 연결하는 AI. 시리아이의 마케팅이 돌아가는 엔진이자, 브랜드를 위한 솔루션입니다.</p>
+    <div class="axes">
+      <div class="axis"><div class="ak">Performance</div><div class="ad">성과·데이터</div></div>
+      <div class="axis"><div class="ak">Creative</div><div class="ad">생성 AI 통합</div></div>
+      <div class="axis"><div class="ak">Archivo</div><div class="ad">기록·증명</div></div>
+    </div>
+    <div class="techstack">BUILT ON &nbsp;—&nbsp; OpenAI · Anthropic · Gemini · Vercel · Supabase · Next.js</div>
+  </div>
+</section>
+
+<!-- 06 PARTNERS -->
+<section class="wrap fade">
+  <div class="ix-head"><span class="ix-num">06</span><span class="ix-label">Partners</span><span class="ix-note">로고로 자랑하지 않습니다. 목록이 곧 안목입니다. ※공개 동의 확정 후 노출</span></div>
+  <ul class="partners">
+    <li><span class="grp">Platform · Enterprise</span></li><li>MUSINSA</li><li>KAKAOPAY</li><li>ID HOSPITAL</li><li>INNISFREE</li><li>COSRX</li>
+    <li><span class="grp">Beauty · Skin</span></li><li>RATED GREEN</li><li>ITPUE</li><li>CREMORLAB</li><li>toun28</li><li>DR.BIO</li><li>ODDTYPE</li>
+    <li><span class="grp">Fashion · Living</span></li><li>MOEV</li><li>OOTD</li><li>SWAGGER</li><li>LUSOM</li><li>TOCOBO</li>
+    <li><span class="grp">Global · Entertainment</span></li><li>K-POP Artists</li><li>TEUMGYUL</li><li>TOOMUCHTAX</li><li>…and more</li>
+  </ul>
+</section>
+
+<!-- 07 FAQ -->
+<section class="wrap fade">
+  <div class="ix-head"><span class="ix-num">07</span><span class="ix-label">FAQ</span><span class="ix-note">궁금한 것을 먼저 답합니다.</span></div>
+  <h2 class="sec-h2">자주 묻는 것들.</h2>
+  <div style="margin-top:40px;">
+    <div class="faq-item"><div class="faq-q">프로젝트는 얼마나 걸리나요?</div><div class="faq-a">브랜드 인터뷰·진단부터 리스팅·역제안까지 평균 영업일 14일 내외. 핏이 맞는 사람을 고르는 일이라 호흡을 서두르지 않습니다.</div></div>
+    <div class="faq-item"><div class="faq-q">AI로 사람을 고른다는 게 무슨 뜻인가요?</div><div class="faq-a">가입한 풀에서 돌려쓰지 않습니다. 인스타그램 전체를 데이터로 두고, 브랜드 무드·타깃·KPI에 맞는 사람만 매번 새로 골라냅니다. 한·일·미·동남아 20만 명을 즉시 스코어링합니다.</div></div>
+    <div class="faq-item"><div class="faq-q">플랫폼과 무엇이 다른가요?</div><div class="faq-a">플랫폼은 가입자 안에서 매칭합니다. 우리는 인스타 전체를 DB로 보고, 매니저가 직접 핸들링하며, 플랫폼 유지비와 에이전시 마크업을 걷어낸 비용으로 일합니다.</div></div>
+    <div class="faq-item"><div class="faq-q">어떤 플랫폼·국가가 가능한가요?</div><div class="faq-a">인스타그램·틱톡·유튜브. 한국·일본·미국·동남아. 영어권 계정을 정밀 섭외하고 핏이 맞지 않는 권역은 자체 필터링으로 제외합니다.</div></div>
+    <div class="faq-item"><div class="faq-q">예산은 얼마나 잡아야 하나요?</div><div class="faq-a">규모·목적에 따라 다릅니다. 단가표를 들이밀기보다, 목표를 먼저 듣고 가장 린(lean)한 구조를 역제안하는 편이 빠릅니다. 착수금 20%로 시작합니다.</div></div>
+    <div class="faq-item"><div class="faq-q">미팅 전에 준비할 게 있나요?</div><div class="faq-a">없습니다. 지금, 그대로 연락 주세요.</div></div>
+  </div>
+</section>
+
+<!-- 08 STUDIO -->
+<section class="wrap fade">
+  <div class="ix-head"><span class="ix-num">08</span><span class="ix-label">Studio</span><span class="ix-note">연혁 대신 실무로 증명합니다.</span></div>
+  <h2 class="sec-h2">브랜드를 운영해본 팀이 만듭니다.</h2>
+  <p class="sec-intro">플랫폼을 직접 운영하던 팀이 분사했습니다. 그래서 클라이언트의 페인포인트를 누구보다 정확히 압니다. 약 5인 코어 + 객원.</p>
+  <div class="team-wrap">
+    <div class="team">
+      <h4>Core Operations</h4>
+      <div class="row">CEO · 전략 <span>Strategy</span></div>
+      <div class="row">세일즈 <span>Sales & Strategy</span></div>
+      <div class="row">운영 <span>Operations</span></div>
+      <div class="row">엔지니어 <span>Engineering</span></div>
+      <div class="row">데이터 <span>Data</span></div>
+    </div>
+    <div class="team">
+      <h4>Creative Partners</h4>
+      <div class="row">비주얼 디자이너 <span>Visual</span></div>
+      <div class="row">크리에이티브 어드바이저 <span>Advisor</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 09 CONTACT -->
+<section class="contact wrap fade">
+  <p class="lead-q">관계는, 대화에서 시작됩니다.</p>
+  <p class="csub">준비물은 없습니다. 지금, 편하게 연락 주세요.</p>
+  <a class="btn" href="mailto:jysiriai@gmail.com">협업 제안 보내기</a>
+</section>
+
+<div class="footer wrap">
+  시리아이(SIRIAI) · 知り合い &nbsp;|&nbsp; 사업자등록번호 405-23-02027 &nbsp;|&nbsp; 서울특별시 용산구 한강대로 293<br>
+  <a href="mailto:jysiriai@gmail.com">jysiriai@gmail.com</a> &nbsp;·&nbsp; <a href="https://open.kakao.com/o/sPb2dMfi">오픈채팅</a>
+</div>
+
+<div class="note-banner">프로토타입 v3 — 관점·통찰 카피 + 상세(서비스·프로세스·FAQ·결과물). 실명/단가 익명화, Partners 동의 후. 정교한 디자인은 클로드 디자인/Figma에서.</div>
+
+<script>
+  const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}})},{threshold:.1});
+  document.querySelectorAll('.fade').forEach(el=>io.observe(el));
+  document.querySelectorAll('.faq-q').forEach(q=>q.addEventListener('click',()=>q.parentElement.classList.toggle('open')));
+</script>
+</body>
+</html>

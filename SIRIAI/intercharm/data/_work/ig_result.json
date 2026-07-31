@@ -1,0 +1,1004 @@
+{
+  "count": 142,
+  "tally": {
+    "found": 117,
+    "uncertain": 12,
+    "notfound": 13
+  },
+  "results": [
+    {
+      "company": "TREEANNSEA 트리앤씨",
+      "instagram": "treeannsea_official",
+      "status": "found",
+      "source": "https://www.treeannsea.com/",
+      "note": "공식 웹사이트(treeannsea.com) 소셜 메뉴에서 @treeannsea_official 링크 확인"
+    },
+    {
+      "company": "(주)더제이알",
+      "instagram": "beverlyhillspoloclub_kr",
+      "status": "found",
+      "source": "https://www.polocosmetic.com",
+      "note": "polocosmetic.com에서 운영 브랜드 Beverly Hills Polo Club의 공식 Instagram으로 @beverlyhillspoloclub_kr 링크 명시 확인"
+    },
+    {
+      "company": "(주)본플렉스",
+      "instagram": "bonplex_official",
+      "status": "found",
+      "source": "https://www.instagram.com/bonplex_official/",
+      "note": "웹검색에서 instagram.com/bonplex_official이 '본플렉스' 계정으로 직접 색인됨. 공식 사이트(bonplex.co.kr) 보유 확인"
+    },
+    {
+      "company": "㈜프롬비건",
+      "instagram": "chorokchorong.official",
+      "status": "found",
+      "source": "https://www.chorokchorong.com",
+      "note": "chorokchorong.com에서 @chorokchorong.official 링크 및 Instagram 피드 삽입 확인. 운영 브랜드명 '초록초록' 기준 계정"
+    },
+    {
+      "company": "벨플라워",
+      "instagram": "bellflower_kor",
+      "status": "found",
+      "source": "https://bellflowercos.com/",
+      "note": "bellflowercos.com 하단 'Follow us' 섹션에서 @bellflower_kor 링크 직접 확인"
+    },
+    {
+      "company": "주식회사 보타닉센스",
+      "instagram": "botanicsens",
+      "status": "found",
+      "source": "https://www.botanicsens.com/",
+      "note": "botanicsens.com 푸터에 @botanicsens(글로벌)와 @botanicsens.korea(한국) 두 계정 링크됨. 글로벌 대표 계정 @botanicsens 채택"
+    },
+    {
+      "company": "누셀리크",
+      "instagram": "nuselique_official",
+      "status": "found",
+      "source": "https://www.instagram.com/nuselique_official/",
+      "note": "Instagram 페이지 타이틀에서 '누셀리크 NUSELIQUE (@nuselique_official)' 직접 확인. 공식 사이트(nuselique.co.kr)의 Instagram 링크는 플레이스홀더여서 페이지 직접 접근으로 대체 검증"
+    },
+    {
+      "company": "CLAIRLISSE",
+      "instagram": "",
+      "status": "uncertain",
+      "source": "",
+      "note": "제공된 웹사이트 없음. 브랜드명 검색 결과에서 한국 화장품 브랜드 CLAIRLISSE를 특정하는 공식 사이트 또는 Instagram 계정을 확인할 수 없었음. @clairlisse 핸들이 Instagram에 존재하나 해당 계정이 이 브랜드 것임을 입증하는 근거 확보 불가"
+    },
+    {
+      "company": "DEWVERO",
+      "instagram": "dewvero_official",
+      "status": "found",
+      "source": "http://www.dewvero.com (footer 소셜 링크)",
+      "note": "공식 웹사이트 푸터에 @dewvero_official 표기"
+    },
+    {
+      "company": "LANNUE",
+      "instagram": "lannue.official",
+      "status": "found",
+      "source": "https://lannue.co.kr/ (footer 소셜 링크)",
+      "note": "공식 웹사이트 푸터에 @lannue.official 반복 표기"
+    },
+    {
+      "company": "celebon",
+      "instagram": "celebon_kr",
+      "status": "found",
+      "source": "https://www.celebon.co.kr (footer Instagram 링크)",
+      "note": "공식 웹사이트 푸터에 instagram.com/celebon_kr 링크 확인"
+    },
+    {
+      "company": "matthew chang perfumes",
+      "instagram": "matthewchangperfumes",
+      "status": "found",
+      "source": "https://matthewchangperfumes.com/ (footer Social Media 섹션)",
+      "note": "공식 웹사이트 Social Media 섹션에 instagram.com/matthewchangperfumes 링크 확인"
+    },
+    {
+      "company": "주식회사 랑벨",
+      "instagram": "lanbelle.official",
+      "status": "found",
+      "source": "https://lanbelle.com/ (footer 소셜 링크)",
+      "note": "공식 웹사이트 푸터에 @lanbelle.official 링크 확인"
+    },
+    {
+      "company": "주식회사 바이잇",
+      "instagram": "luvum_official",
+      "status": "found",
+      "source": "https://luvum.co.kr/ (footer 소셜 링크)",
+      "note": "공식 웹사이트 푸터에 한국 공식 계정 @luvum_official 확인 (글로벌: luvum_global, 일본: luvum_japan)"
+    },
+    {
+      "company": "안탈라",
+      "instagram": "antala_official",
+      "status": "found",
+      "source": "https://antala.kr/ (footer Instagram 링크)",
+      "note": "공식 웹사이트 푸터에 instagram.com/antala_official 링크 확인"
+    },
+    {
+      "company": "스튜디오17",
+      "instagram": "studio17_official",
+      "status": "found",
+      "source": "https://www.instagram.com/studio17_official/ (웹 검색 결과 - Seoul 위치 표기 공식 계정)",
+      "note": "웹사이트 파싱 불가로 검색 경유 확인. IG 프로필에 '스튜디오17 | Studio17 Official'·Seoul 명시, studio17.co.kr과 브랜드 일치"
+    },
+    {
+      "company": "(주)더엘그룹",
+      "instagram": "",
+      "status": "uncertain",
+      "source": "https://www.instagram.com/spatheel/ / https://theelstore.com/",
+      "note": "대표 이미나의 개인+브랜드 혼합 계정 @spatheel(66K)과 스파 공식 @spatheel_official(2K)이 존재하나, '더엘스토어' 또는 '더엘그룹' 명의의 독립 브랜드 공식 IG는 확인되지 않음. @spatheel은 대표 개인계정 성격이 강해 브랜드 공식으로 채택하기 불확실."
+    },
+    {
+      "company": "(주)씨케이리제온",
+      "instagram": "ckregeon",
+      "status": "uncertain",
+      "source": "https://www.instagram.com/ckregeon/",
+      "note": "검색에서 @ckregeon 확인. 단, 이 계정이 dermaregeon 소비자 브랜드 공식인지 법인(씨케이리제온) 계정인지 바이오 확인 불가. 공식 웹사이트(dermaregeon.com)에는 IG 링크 없음."
+    },
+    {
+      "company": "CETERA",
+      "instagram": "cetera.official",
+      "status": "found",
+      "source": "https://www.instagram.com/cetera.official/",
+      "note": "검색 결과 제목에 '세테라 CETERA (@cetera.official)'로 명시. cetera.co.kr 브랜드와 동일명."
+    },
+    {
+      "company": "(주)섬섬바이오",
+      "instagram": "searce_official",
+      "status": "found",
+      "source": "https://searce.shop/",
+      "note": "공식 웹사이트 searce.shop에서 instagram.com/searce_official 링크 직접 확인."
+    },
+    {
+      "company": "(주)알에이치앤비브랜즈",
+      "instagram": "pretty_actually",
+      "status": "found",
+      "source": "https://www.instagram.com/pretty_actually/",
+      "note": "Pretty Actually 브랜드 공식 IG @pretty_actually 확인(검색결과 제목 '𝑷𝑹𝑬𝑻𝑻𝒀 𝑨𝑪𝑻𝑼𝑨𝑳𝑳𝒀 (프리티액츄얼리)'). 운영사 레이티드그린의 @rated_green은 별도 모브랜드 계정."
+    },
+    {
+      "company": "브에노메디텍",
+      "instagram": "bueno.official",
+      "status": "found",
+      "source": "https://www.bueno9.com/",
+      "note": "공식 웹사이트 bueno9.com 하단 SNS 링크에서 instagram.com/bueno.official 직접 확인."
+    },
+    {
+      "company": "쥬네뷰",
+      "instagram": "dewdap.official",
+      "status": "found",
+      "source": "https://www.dewdap.com/",
+      "note": "공식 웹사이트 dewdap.com에서 @dewdap.official 핸들 반복 확인."
+    },
+    {
+      "company": "컬러딥",
+      "instagram": "colordeep_korea",
+      "status": "found",
+      "source": "https://colordeep-lab.com/",
+      "note": "브랜드 공식 사이트 colordeep-lab.com 푸터 SNS 섹션에서 instagram.com/colordeep_korea 직접 확인."
+    },
+    {
+      "company": "주식회사 반다비앤에이치",
+      "instagram": "kiwiglow.official",
+      "status": "found",
+      "source": "https://kiwiglow.co.kr/ — 사이트 내 'JOIN US ON SOCIAL' 섹션에 @kiwiglow.official 명시",
+      "note": "공식 사이트에서 직접 확인"
+    },
+    {
+      "company": "주식회사 정림에프앤에이치",
+      "instagram": "vanava_cosmetics",
+      "status": "found",
+      "source": "https://www.vanava.co.kr/ — CONTACT US 섹션에 '인스타그램 - vanava_cosmetics' 명시",
+      "note": "운영사 계정 vmcompany.official도 존재하나, 브랜드 소비자 계정은 vanava_cosmetics로 사이트에서 명시"
+    },
+    {
+      "company": "주식회사 웰컴이엔앰",
+      "instagram": "",
+      "status": "notfound",
+      "source": "https://welcomesgroup.com/ — 푸터에 instagram.com 일반 링크만 존재, 브랜드 핸들 없음",
+      "note": "YouTube @welcomemsgroup 확인됨. 웹사이트에 인스타그램 핸들 미기재, 검색으로도 공식 계정 미확인"
+    },
+    {
+      "company": "닥터바이오 & 티블레스",
+      "instagram": "dr.bio_official",
+      "status": "found",
+      "source": "https://www.instagram.com/dr.bio_official/ — 검색결과 '닥터바이오 공식계정' 타이틀로 노출; 공식 온라인몰 en.doctorbio.kr 연동 확인",
+      "note": "닥터바이오 공식 계정은 dr.bio_official. 티블레스(TEABLESS)는 별도 브랜드로 teabless_official이 공식 계정(teabless.co.kr 및 검색결과 '티블레스 공식 계정'으로 확인). 두 브랜드가 하나의 company로 입력되어 닥터바이오 핸들만 기재; 티블레스 핸들: teabless_official"
+    },
+    {
+      "company": "Y.N.M",
+      "instagram": "ynmbeauty_official",
+      "status": "found",
+      "source": "https://ynmcosmetic.co.kr/ — 사이트 푸터 및 소셜미디어 섹션에 instagram.com/ynmbeauty_official 다수 기재",
+      "note": "공식 사이트에서 직접 확인"
+    },
+    {
+      "company": "헤트라스",
+      "instagram": "hetras.official",
+      "status": "found",
+      "source": "https://www.instagram.com/hetras.official/ — 검색결과 '헤트라스 hetras. (@hetras.official)' 타이틀로 노출; 67K 팔로워, JP/US 서브계정 존재로 본계정 확인",
+      "note": "hetras_official(dot 없음)도 검색되나, 본계정은 hetras.official. Facebook도 hetrasofficial로 연동"
+    },
+    {
+      "company": "세이션",
+      "instagram": "",
+      "status": "notfound",
+      "source": "https://xation.co.kr/ — 사이트에 인스타그램 링크 없음; 검색으로도 세이션/XATION 사명 계정 미확인",
+      "note": "세이션이 운영하는 브랜드 계정(grafen_official 32K, jul7me 등)은 존재하나, '세이션' 또는 'XATION' 명의 공식 기업 인스타그램은 확인 불가"
+    },
+    {
+      "company": "(주)비앤케이",
+      "instagram": "tambeautyme",
+      "status": "found",
+      "source": "https://tambeauty.me/ — 사이트 푸터 및 소셜미디어 섹션에 instagram.com/tambeautyme 다수 기재",
+      "note": "공식 사이트에서 직접 확인"
+    },
+    {
+      "company": "줄라이 모닝",
+      "instagram": "wearejulymorning",
+      "status": "found",
+      "source": "https://www.instagram.com/wearejulymorning/ — 검색 결과에서 july-morning.co.kr과 함께 노출, Facebook·YouTube도 동일 핸들 사용",
+      "note": "@julymorning2021은 별도 계정(음악 관련 추정)으로 구분됨. @wearejulymorning이 브랜드 공식 핸들로 판단."
+    },
+    {
+      "company": "센티카",
+      "instagram": "scentica_official",
+      "status": "found",
+      "source": "https://scentica.co.kr/ — 공식 웹사이트 footer 소셜 섹션에 직접 링크 확인",
+      "note": "공식 웹사이트에서 직접 추출, 신뢰도 최상."
+    },
+    {
+      "company": "EBIN KOREA",
+      "instagram": "ebinkorea",
+      "status": "found",
+      "source": "https://www.instagram.com/ebinkorea/ — 웹검색 상위 결과, 브랜드명과 완전 일치하는 계정",
+      "note": "linktr.ee/ebinkorea 접근 불가(403). 검색 결과에서 에빈코리아 공식 계정으로 명확히 식별됨."
+    },
+    {
+      "company": "(주)탠코리아",
+      "instagram": "jamie_bronze",
+      "status": "found",
+      "source": "https://www.instagram.com/p/C4cnqJurbZC/ — '탠코리아 @jamie_bronze ♥2024 코스모뷰티서울 참가사' 인스타그램 게시물에서 직접 언급",
+      "note": "jamiebronze.com 도메인과 @jamie_bronze 계정이 검색 전반에서 일관되게 연결됨."
+    },
+    {
+      "company": "디어메이",
+      "instagram": "dearmay.official",
+      "status": "found",
+      "source": "https://www.instagram.com/dearmay.official/ — 검색 상위, Linktree(linktr.ee/dearmay.official)·TikTok·Facebook·YouTube 모두 동일 핸들 확인",
+      "note": "공식 웹사이트(en.dearmay.co.kr)에 IG 직접 링크는 없었으나 크로스 채널 일관성으로 공식 확인."
+    },
+    {
+      "company": "(주)바이옵트",
+      "instagram": "venderma_official",
+      "status": "found",
+      "source": "https://venderma.com/ — 공식 웹사이트 '인스타 바로가기' 링크에서 직접 확인 (URL: instagram.com/venderma_official)",
+      "note": "공식 웹사이트에서 직접 추출, 신뢰도 최상."
+    },
+    {
+      "company": "TROIAREUKE",
+      "instagram": "troiareuke_global",
+      "status": "found",
+      "source": "https://www.troiareuke.com/ — 공식 웹사이트 footer에서 직접 확인",
+      "note": "글로벌 계정(@troiareuke_global)이 공식 웹사이트에 등록됨. TikTok도 동일 브랜드명 사용."
+    },
+    {
+      "company": "오미티드",
+      "instagram": "omittedofficial",
+      "status": "found",
+      "source": "https://omitted.kr — 공식 웹사이트 footer Instagram 아이콘 링크(instagram.com/omittedofficial)에서 직접 확인",
+      "note": "공식 웹사이트에서 직접 추출, 신뢰도 최상."
+    },
+    {
+      "company": "DAILY WEEKLY",
+      "instagram": "dailyweekly.official",
+      "status": "found",
+      "source": "https://www.dailyweekly.co.kr/ (공식 웹사이트 푸터 및 본문에 반복 링크)",
+      "note": "공식 웹사이트에 @dailyweekly.official로 다수 언급·링크됨"
+    },
+    {
+      "company": "(주)아트페이스",
+      "instagram": "tenzero_official",
+      "status": "found",
+      "source": "https://www.instagram.com/tenzero_official/ (웹검색 결과, tenzero.co.kr 브랜드 공식 계정 확인)",
+      "note": "아트페이스 운영 브랜드 TENZERO의 소비자 공식 계정. 글로벌 계정(tenzero_global)도 존재하나 국내 브랜드 계정 우선"
+    },
+    {
+      "company": "KOCOSTAR",
+      "instagram": "kocostar",
+      "status": "found",
+      "source": "https://kocostar.com/ (공식 웹사이트 헤더·푸터에 instagram.com/kocostar 링크 반복 확인)",
+      "note": "공식 웹사이트에서 직접 링크된 계정"
+    },
+    {
+      "company": "채널스완",
+      "instagram": "oavo.global",
+      "status": "found",
+      "source": "https://www.instagram.com/oavo.global/ (웹검색 결과, oavo.global 공식 K-뷰티 브랜드 계정)",
+      "note": "채널스완의 뷰티 브랜드 OAVO 공식 계정. 채널스완 운영사 계정(@channelswan.official)도 존재하나 질문 웹사이트가 oavo.global이므로 OAVO 브랜드 계정 채택"
+    },
+    {
+      "company": "CELLEA/BELLADIA",
+      "instagram": "",
+      "status": "uncertain",
+      "source": "https://cellea.co.kr/ (웹사이트 접근 시 인스타그램 링크가 일반 도메인만 노출, 핸들 미확인)",
+      "note": "공식 웹사이트에 instagram.com 링크는 있으나 핸들이 표시되지 않음. 웹검색에서도 CELLEA/BELLADIA 공식 IG 핸들 확인 불가"
+    },
+    {
+      "company": "포뉴레브",
+      "instagram": "fonewlev.official",
+      "status": "found",
+      "source": "https://fonewlev.com/ (공식 웹사이트 인스타그램 섹션 및 웹검색 https://www.instagram.com/fonewlev.official/ 재확인)",
+      "note": "공식 웹사이트와 검색 모두 fonewlev.official 확인. @fonewlev 계정도 존재하나 웹사이트 링크 기준 fonewlev.official 채택"
+    },
+    {
+      "company": "제이크리컴퍼니",
+      "instagram": "lefilleo.official",
+      "status": "found",
+      "source": "https://www.instagram.com/lefilleo.official/ (웹검색 결과, 제이크리컴퍼니 운영 브랜드 레필레오 공식 계정)",
+      "note": "제이크리컴퍼니(J.CRI Company) 공식 브랜드 레필레오(Lefilleo)의 국내 공식 계정. 운영사 웹사이트(lefilleo.com)에서도 확인됨. 글로벌 계정(lefilleo.global)도 존재"
+    },
+    {
+      "company": "웰본",
+      "instagram": "cheongdamstyleshop_official",
+      "status": "found",
+      "source": "https://cheongdamstyle.co.kr/ (공식 웹사이트 푸터 인스타그램 섹션에 링크 확인)",
+      "note": "웰본 운영 헤어 브랜드 청담스타일의 공식 계정. 웹페이지 fetch 결과 (주)웰본 운영 계정으로 재확인됨"
+    },
+    {
+      "company": "SHINAN COSMETICS Co., Ltd.",
+      "instagram": "shionle",
+      "status": "found",
+      "source": "https://www.shionle.com/",
+      "note": "공식 웹사이트 푸터 SNS 섹션에 @shionle로 명시, instagram.com/shionle/ 링크 확인"
+    },
+    {
+      "company": "주식회사 일레븐코퍼레이션",
+      "instagram": "",
+      "status": "uncertain",
+      "source": "https://11corp.co.kr/brand",
+      "note": "법인(@11corp.co.kr, 팔로워 19명)은 존재하나 소비자 브랜드 계정이 5개(PARNELL @parnell.official, GROWUS @growus.kr, a ddct @addctfragrances, LUMMIR @lummir_makeup, La dens @ladens.kr)로 분리 운영됨. '일레븐코퍼레이션' 단일 브랜드 IG 없음 — 어느 브랜드가 대상인지 특정 불가"
+    },
+    {
+      "company": "주식회사 더마라인",
+      "instagram": "dermaline_korea",
+      "status": "found",
+      "source": "https://en.dermaline.co.kr",
+      "note": "공식 웹사이트 푸터 소셜 미디어 섹션에 @dermaline_korea로 명시"
+    },
+    {
+      "company": "로그인 포레스트 (유나뷰티랩)",
+      "instagram": "loginforest_official",
+      "status": "found",
+      "source": "https://www.instagram.com/loginforest_official/",
+      "note": "검색 결과에서 'LOGiN FOREST 로그인 포레스트 (@loginforest_official)' 공식 계정 확인. 팔로워 3,387명, 브랜드 콘텐츠 운영 중"
+    },
+    {
+      "company": "디유코스메틱",
+      "instagram": "",
+      "status": "uncertain",
+      "source": "http://www.ducos.co.kr",
+      "note": "공식 웹사이트에서 @JOA_Official 언급되나 해당 핸들 계정이 실제로 디유코스메틱 브랜드 계정임을 독립적으로 확인 불가. 동명 타계정 충돌 가능성 있어 확정 보류"
+    },
+    {
+      "company": "지구의 온도 G9ONDO",
+      "instagram": "g9ondo_beauty",
+      "status": "found",
+      "source": "https://g9ondo.com/",
+      "note": "공식 웹사이트 푸터 소셜 채널 섹션에 instagram.com/g9ondo_beauty 링크로 명시"
+    },
+    {
+      "company": "(주)한국쉬즈라인",
+      "instagram": "toolif.official",
+      "status": "found",
+      "source": "https://toolif.co.kr",
+      "note": "공식 웹사이트 푸터 'Follow us' 섹션에 instagram.com/toolif.official 링크 반복 명시"
+    },
+    {
+      "company": "아이프로덕트",
+      "instagram": "dr.percent_official",
+      "status": "found",
+      "source": "https://www.instagram.com/dr.percent_official/",
+      "note": "검색 결과에서 '닥터퍼센트 (@dr.percent_official)' 공식 계정 확인. INTERCHARM 전시업체 상세 페이지에서도 Dr.Percent 브랜드 = 아이프로덕트 운영사 확인"
+    },
+    {
+      "company": "(주)코비스타",
+      "instagram": "solep_scalp",
+      "status": "found",
+      "source": "https://www.solepkorea.com/",
+      "note": "공식 웹사이트 푸터 소셜 링크에서 instagram.com/solep_scalp/ 직접 확인"
+    },
+    {
+      "company": "LINDSAY&COS Inc.",
+      "instagram": "lindsay_shop",
+      "status": "found",
+      "source": "https://www.instagram.com/lindsay_shop/",
+      "note": "구글 검색 결과 '린제이 (LINDSAY) @lindsay_shop · Seoul, Beauty brand by Lindsay&Cos Inc.' 명시. 웹사이트(lindsaycos.com) 직접 페치 시 콘텐츠 로드 실패로 사이트 내 링크는 미확인이나 검색 결과에서 브랜드-회사 연결 명시"
+    },
+    {
+      "company": "주식회사 스타힐스코스메틱",
+      "instagram": "moo100_life",
+      "status": "found",
+      "source": "https://moo100.com/",
+      "note": "공식 웹사이트 푸터 SNS 섹션에서 instagram.com/moo100_life/ 직접 확인"
+    },
+    {
+      "company": "MAKE SOUL",
+      "instagram": "makesoul_official",
+      "status": "found",
+      "source": "https://www.seoulbeautyhub.kr/en/brands/make-soul-makeup",
+      "note": "Seoul Beauty Hub 브랜드 디렉토리에서 @makesoul_official 확인, 구글 site:instagram.com 검색에서도 '메크쏘울 MAKE SOUL (@makesoul_official)' 이중 확인"
+    },
+    {
+      "company": "휴션",
+      "instagram": "",
+      "status": "notfound",
+      "source": "https://www.huceane.com",
+      "note": "웹사이트 내 인스타그램 아이콘은 존재하나 실제 계정 URL 비공개(placeholder). 구글 검색 및 site:instagram.com 검색 모두 일치 계정 없음"
+    },
+    {
+      "company": "SKINISGOOD",
+      "instagram": "lissederm_official",
+      "status": "found",
+      "source": "https://www.instagram.com/lissederm_official/",
+      "note": "lissederm.co.kr 운영 브랜드명은 LISSEDERM(리쎄덤). 구글 검색에서 '리쎄덤 LISSEDERM (@lissederm_official)' 공식 계정 확인. 소비자 브랜드 계정 우선 원칙에 따라 쇼핑몰 계정(skinisgood_official)이 아닌 브랜드 계정 채택"
+    },
+    {
+      "company": "솔테라피",
+      "instagram": "saltherapy.official",
+      "status": "found",
+      "source": "https://saltherapy.us",
+      "note": "공식 웹사이트 푸터 'Follow Us' 섹션에서 instagram.com/saltherapy.official/ 직접 확인"
+    },
+    {
+      "company": "어룸",
+      "instagram": "aroomskin",
+      "status": "found",
+      "source": "https://aroomskin.com/",
+      "note": "공식 웹사이트 푸터 소셜 링크에서 instagram.com/aroomskin/ 직접 확인"
+    },
+    {
+      "company": "ANOETIC BEAUTY",
+      "instagram": "anoetic_beauty",
+      "status": "uncertain",
+      "source": "https://www.instagram.com/anoetic_beauty/",
+      "note": "계정 @anoetic_beauty 존재 확인(검색 인덱싱). anoeticbeauty.com 웹사이트 footer에 IG 링크가 placeholder('#')로만 존재해 직접 연결 미확인. @anoetic_kr은 한남동 소재 패션/액세서리 브랜드로 별개 엔티티로 판단됨. 핸들 명칭이 브랜드명과 일치하나 공식 연결 미검증."
+    },
+    {
+      "company": "(주) 유나이티드앤글로벌",
+      "instagram": "ohave.official",
+      "status": "found",
+      "source": "https://ohavecosmetic.com/ (웹사이트 footer 직접 확인)",
+      "note": "ohavecosmetic.com 공식 사이트 footer에 instagram.com/ohave.official 링크 명시."
+    },
+    {
+      "company": "(주)리쎄코리아",
+      "instagram": "dumidang_official",
+      "status": "found",
+      "source": "https://www.dumidang.com (웹사이트 직접 확인)",
+      "note": "dumidang.com 사이트 내 footer 및 커뮤니티 메뉴에 @dumidang_official 반복 명시."
+    },
+    {
+      "company": "헤아림코스메틱",
+      "instagram": "hearimcosmetic",
+      "status": "found",
+      "source": "https://www.instagram.com/hearimcosmetic/",
+      "note": "검색 결과에서 'HE:ARIM l 헤아림 (@hearimcosmetic)' 확인. 계정에 헤아림코스메틱 신제품 소식 등 브랜드 콘텐츠 존재."
+    },
+    {
+      "company": "뷰가닉",
+      "instagram": "",
+      "status": "notfound",
+      "source": "http://www.dongbangbnh.com (접속 불가/리다이렉트), https://beauganic.co.kr/",
+      "note": "입력 website(dongbangbnh.com)가 관련 없는 페이지로 리다이렉트됨. beauganic.co.kr에서도 IG 링크 미발견. 뷰가닉 브랜드 공식 IG 계정 웹검색으로 확인 불가."
+    },
+    {
+      "company": "TWOK INTERNATIONAL Co.,Ltd.",
+      "instagram": "gelyours_global",
+      "status": "found",
+      "source": "https://www.instagram.com/gelyours_global/",
+      "note": "검색에서 gelyours.com 제품 페이지와 @gelyours_global 계정이 함께 인덱싱됨. TWOK INTERNATIONAL(경기도 화성시) 소재 젤 네일 스트립 브랜드 'Gel yours'의 공식 글로벌 계정으로 확인."
+    },
+    {
+      "company": "LK company",
+      "instagram": "",
+      "status": "notfound",
+      "source": "https://rutiin7.com/",
+      "note": "rutiin7.com 사이트 footer에 SNS 링크가 placeholder로만 존재. 복수 웹검색에서도 rutiin7/LK company 브랜드와 연결된 IG 계정 발견 불가. lkcos.com의 LK COSMETICS는 별개 법인."
+    },
+    {
+      "company": "유앤미코스매틱",
+      "instagram": "celliocosmetic_official",
+      "status": "found",
+      "source": "https://www.instagram.com/celliocosmetic_official/",
+      "note": "검색 결과에서 'YOU&ME cosmetic | 유앤미코스메틱 (@celliocosmetic_official)' 계정 직접 확인. cellio.net(유앤미코스매틱 공식몰)과 연결된 브랜드 계정."
+    },
+    {
+      "company": "채운",
+      "instagram": "chaewun.official",
+      "status": "found",
+      "source": "https://www.chaewun.com/ (공식 사이트 네비게이션·푸터 직접 링크)",
+      "note": "공식 웹사이트 다수 위치에서 instagram.com/chaewun.official 링크 확인"
+    },
+    {
+      "company": "파인월드 / 라비엘",
+      "instagram": "raviel.official",
+      "status": "found",
+      "source": "https://raviel.co.kr/ (공식 사이트 푸터 직접 링크)",
+      "note": "공식 사이트 푸터 SNS 섹션에서 instagram.com/raviel.official 링크 확인"
+    },
+    {
+      "company": "주식회사 두봄",
+      "instagram": "doobom_official",
+      "status": "uncertain",
+      "source": "https://doobommall.com/ (공식 쇼핑몰 SNS 섹션)",
+      "note": "doobommall.com 하단 SNS 링크로 @doobom_official 확인. 단, IG 프로필 페이지에서 브랜드 명칭을 텍스트로 재확인 불가(이미지 전용 렌더링). 사이트 귀속 근거는 충분하나 직접 프로필 교차검증 미완"
+    },
+    {
+      "company": "(주)참존엔씨원",
+      "instagram": "labonita_korea",
+      "status": "found",
+      "source": "https://labonita-nc1.co.kr/33 (라보니따 공식 사이트 푸터 'SNS 바로가기' 직접 링크)",
+      "note": "참존엔씨원 운영 브랜드 라보니따(LABONITA) 공식 사이트에서 instagram.com/labonita_korea 링크 직접 확인. 입력 사이트(labonita-global-en.imweb.me)는 글로벌 영문 페이지로 SNS 링크 미노출이었으나 한국 공식 도메인(labonita-nc1.co.kr)에서 확인"
+    },
+    {
+      "company": "(주)코스모어플러스",
+      "instagram": "revcell_official",
+      "status": "found",
+      "source": "https://www.instagram.com/revcell_official/ (검색결과 직접 노출: '리브이셀 공식 인스타그램')",
+      "note": "검색결과에서 '리브이셀 공식 인스타그램 (@revcell_official)'로 명시 확인. revcell.co.kr 공식 사이트는 이미지 기반 SNS 링크로 텍스트 추출 불가였으나 검색으로 공식 계정 특정"
+    },
+    {
+      "company": "주식회사 라콤 (CELL29)",
+      "instagram": "cell29.official",
+      "status": "found",
+      "source": "https://cell29.com/ (공식 사이트 SNS 섹션 직접 링크)",
+      "note": "cell29.com 하단 SNS 섹션에서 @cell29.official 링크 직접 확인"
+    },
+    {
+      "company": "주식회사 넥슨화장품",
+      "instagram": "",
+      "status": "notfound",
+      "source": "http://nexxencosmetic.com, https://m.nexxencosmetic.com/ (공식 사이트 2곳 확인), 복수 웹검색",
+      "note": "공식 사이트(PC·모바일 모두) SNS 섹션이 이미지 전용으로 텍스트 핸들 추출 불가. 'nexxen cosmetic instagram', '넥슨화장품 공식 인스타그램' 등 다수 검색에서도 해당 브랜드 IG 계정 미확인. Twitter(@nexxen_mina) 흔적은 있으나 공식 IG 확인 불가"
+    },
+    {
+      "company": "주식회사 드림코스",
+      "instagram": "",
+      "status": "uncertain",
+      "source": "https://camihouse.co.kr/ (공식몰 푸터), https://www.dreamcos.co.kr/",
+      "note": "camihouse.co.kr 푸터에는 @celebrity_korea_official(셀러비티코리아, 별도 브랜드) 링크만 존재. CAMIHOUSE 브랜드 자체의 공식 IG는 확인 불가. dreamcos.co.kr에도 CAMIHOUSE IG 링크 미확인. @camihousevn은 베트남 유통 계정으로 추정되어 공식 한국 브랜드 계정으로 채택 불가"
+    },
+    {
+      "company": "자민경",
+      "instagram": "jaminkyung_official",
+      "status": "found",
+      "source": "https://jaminkyung.com/ (공식 사이트 INSTAGRAM 섹션 및 푸터에서 직접 확인)",
+      "note": "공식 사이트에서 @jaminkyung_official 링크 직접 노출"
+    },
+    {
+      "company": "파믹",
+      "instagram": "farmic.official",
+      "status": "found",
+      "source": "https://www.farmic.co.kr/ (공식 사이트 내비게이션 및 푸터에서 직접 확인)",
+      "note": "공식 사이트에서 instagram.com/farmic.official/ 링크 직접 노출"
+    },
+    {
+      "company": "From:Cella / DASHU / Daleaf (ChromaX Co., Ltd)",
+      "instagram": "dashu_official",
+      "status": "found",
+      "source": "https://chromax.co.kr/en/ 푸터(DASHU); @daleaf_korea: instagram.com/daleaf_korea/ 검색 확인; From:Cella는 확인 불가",
+      "note": "DASHU(@dashu_official, 팔로워 9만, 공식 확인). Daleaf(@daleaf_korea, 달리프 공식 계정 검색 확인). From:Cella 공식 IG 핸들은 웹사이트 및 검색 어디서도 확인되지 않음. 3개 브랜드를 하나의 항목으로 표시하되 확인된 것만 기재: dashu_official / daleaf_korea. fromcella는 uncertain."
+    },
+    {
+      "company": "주식회사 사계절",
+      "instagram": "",
+      "status": "notfound",
+      "source": "Google 검색 다수 시도 — 일치하는 결과 없음",
+      "note": "웹사이트 미제공, 검색으로도 뷰티/코스메틱 분야 '주식회사 사계절'의 공식 IG 계정을 확인할 수 없음"
+    },
+    {
+      "company": "다빈홀딩스",
+      "instagram": "davinnature_kiddums",
+      "status": "found",
+      "source": "https://davinnature.com/ (공식 사이트에서 '키덤스 공식 인스타그램' 링크로 직접 확인)",
+      "note": "운영 브랜드 Kiddums(키덤스)의 공식 소비자 브랜드 계정. 법인명 다빈홀딩스 계정은 별도 없고 브랜드 계정이 공식 채널"
+    },
+    {
+      "company": "심플레",
+      "instagram": "simplete_official",
+      "status": "found",
+      "source": "https://www.simpleteglobal.com (공식 사이트 내 @simplete_official 핸들 명시)",
+      "note": "공식 사이트에서 @simplete_official 핸들 직접 노출. instagram.com URL은 별도 미기재이나 브랜드명+핸들이 사이트에서 명시됨"
+    },
+    {
+      "company": "레보아미",
+      "instagram": "",
+      "status": "notfound",
+      "source": "공식 사이트 http://www.amies2.co.kr 확인 및 검색 — IG 링크 없음",
+      "note": "공식 사이트에 SNS 링크 없음. K-EXPO 브랜드 전시관 페이지에도 인스타그램 정보 없음. 계정 존재 여부 확인 불가"
+    },
+    {
+      "company": "(주)제이코모",
+      "instagram": "benetus_official",
+      "status": "found",
+      "source": "instagram.com/benetus_official/ 검색으로 직접 확인 — 베네투스 공식 계정 다수 게시물 확인",
+      "note": "제이코모 운영 소비자 브랜드 Benetus(베네투스)의 공식 IG. 서울 인디뷰티쇼 IBS 2025 참가 게시물 등 브랜드 활동 확인됨"
+    },
+    {
+      "company": "주식회사 퍼플링크",
+      "instagram": "not4u_korea",
+      "status": "found",
+      "source": "http://not4u.kr (footer 소셜미디어 링크: instagram.com/not4u_korea)",
+      "note": "공식 웹사이트 푸터에서 직접 링크 확인"
+    },
+    {
+      "company": "핑키코스메틱",
+      "instagram": "pinkycosmetic_official",
+      "status": "found",
+      "source": "https://www.pinkycosmetic.kr/ (내비게이션 SOCIAL MEDIA 및 footer: instagram.com/pinkycosmetic_official)",
+      "note": "공식 웹사이트 내비게이션·푸터 양쪽에서 직접 링크 확인"
+    },
+    {
+      "company": "모메이",
+      "instagram": "momeii_official",
+      "status": "found",
+      "source": "https://momeii.com/ (INSTAGRAM 섹션 및 footer: instagram.com/momeii_official)",
+      "note": "공식 웹사이트 메인 페이지 및 푸터에서 직접 링크 확인"
+    },
+    {
+      "company": "에이치앤와이 상사",
+      "instagram": "dr.misimou",
+      "status": "found",
+      "source": "http://www.hycoporation.com 및 https://en.hycoporation.com/ (브랜드 Dr. Miss Mow 공식 계정: instagram.com/dr.misimou)",
+      "note": "운영사(HY Corporation) 계정이 아닌 소비자 브랜드 Dr. Miss Mow 공식 계정. 웹사이트에서 직접 링크 확인"
+    },
+    {
+      "company": "(주) 록키스",
+      "instagram": "rokkiss_official",
+      "status": "found",
+      "source": "https://www.rokkiss.co.kr (footer 소셜미디어 링크: instagram.com/rokkiss_official)",
+      "note": "공식 웹사이트 푸터 소셜미디어 섹션에서 직접 링크 확인"
+    },
+    {
+      "company": "HUEHEAL",
+      "instagram": "hueheal_global",
+      "status": "found",
+      "source": "https://www.instagram.com/p/DVxmOiUkrmu/ (포스트 게시자: @hueheal_global)",
+      "note": "공식 웹사이트 TLS 오류로 직접 접근 불가. Instagram 포스트에서 계정명 @hueheal_global 확인. 브랜드 명칭·컨텐츠 일치"
+    },
+    {
+      "company": "아이뽀",
+      "instagram": "aippo.official",
+      "status": "found",
+      "source": "https://www.aippo.co.kr/ (footer Instagram 아이콘 링크: instagram.com/aippo.official)",
+      "note": "공식 웹사이트 푸터에서 직접 링크 확인"
+    },
+    {
+      "company": "주식회사 링더벨",
+      "instagram": "resear_korea",
+      "status": "found",
+      "source": "https://ringthebell.kr/ (Follow 소셜미디어 섹션: instagram.com/resear_korea)",
+      "note": "운영사(Ring the Bell) 계정이 아닌 소비자 브랜드 resear(리써) 공식 계정. 웹사이트에서 직접 링크 확인"
+    },
+    {
+      "company": "ODSY",
+      "instagram": "",
+      "status": "notfound",
+      "source": "웹검색 다수 시도 (Google, Instagram 직접 조회)",
+      "note": "ODSY 한국 뷰티 브랜드 공식 인스타그램 확인 불가. @odsy_official 계정은 'Odsy_Store'라는 이름으로 존재하나 한국 뷰티 브랜드 여부 확인 안 됨. 공식 웹사이트 미제공으로 출처 교차검증 불가."
+    },
+    {
+      "company": "크레모랩",
+      "instagram": "cremorlab_kr",
+      "status": "found",
+      "source": "https://eng.cremorlab.co.kr/index.html (공식 사이트 푸터 소셜링크)",
+      "note": "공식 사이트에서 @cremorlab_kr(국내 한국어 계정)과 @cremorlab_global(글로벌 계정) 두 개 확인. 국내 소비자 브랜드 계정인 cremorlab_kr 채택."
+    },
+    {
+      "company": "제이앤지코스메틱(주)",
+      "instagram": "",
+      "status": "notfound",
+      "source": "https://www.gsley.co.kr (공식 사이트 다수 페이지 조회) + 웹검색",
+      "note": "공식 사이트(gsley.co.kr) 어디에서도 인스타그램 링크 미발견. 검색 결과에서도 GSLEY 브랜드 공식 인스타그램 계정 확인 불가. @jngcos는 187팔로워 개인/운영자 계정으로 공식 브랜드 계정 아님."
+    },
+    {
+      "company": "릴릴",
+      "instagram": "lylyl_official",
+      "status": "found",
+      "source": "https://lylyl.co.kr/index.html (공식 사이트 푸터 소셜링크)",
+      "note": "공식 사이트 푸터에서 instagram.com/lylyl_official 링크 직접 확인."
+    },
+    {
+      "company": "(주)승건코스메틱스",
+      "instagram": "loobee_official",
+      "status": "found",
+      "source": "https://www.loobee.co.kr/ (공식 사이트 푸터 소셜링크)",
+      "note": "공식 사이트 푸터에서 instagram.com/loobee_official 링크 직접 확인."
+    },
+    {
+      "company": "주식회사 라오가닉",
+      "instagram": "foellie_official",
+      "status": "found",
+      "source": "https://www.instagram.com/foellie_official/ + 웹검색 (Google → Instagram 직접 조회 일치)",
+      "note": "검색 결과에서 @foellie_official이 '포엘리에' 공식 계정으로 다수 확인. Instagram 페이지 제목 '포엘리에 (@foellie_official)'로 직접 확인. @foellie_global(해외 계정)도 존재하나 브랜드 소비자 계정은 foellie_official."
+    },
+    {
+      "company": "주식회사 씨앤씨플래닛",
+      "instagram": "cnc_planet",
+      "status": "found",
+      "source": "https://www.cncplanet.co.kr/ (공식 사이트 상단 소셜링크)",
+      "note": "공식 사이트 상단 소셜미디어 섹션에서 @cnc_planet 직접 확인."
+    },
+    {
+      "company": "NUNA",
+      "instagram": "nuna_beautylab",
+      "status": "found",
+      "source": "https://nunabeautylab.com (공식 사이트 푸터·메인메뉴 다수 노출)",
+      "note": "공식 사이트 푸터 및 메인메뉴에서 @nuna_beautylab 반복 확인."
+    },
+    {
+      "company": "에브리데이 클랩스",
+      "instagram": "claps__official",
+      "status": "found",
+      "source": "https://www.claps.co.kr (footer FOLLOW US 링크)",
+      "note": "공식 웹사이트 footer에서 https://www.instagram.com/claps__official/ 직접 링크 확인"
+    },
+    {
+      "company": "주식회사 해피웍스컴퍼니",
+      "instagram": "bubblemonkey_official",
+      "status": "found",
+      "source": "https://www.bubblemonkey.co.kr (footer SNS 바로가기 링크)",
+      "note": "공식 웹사이트 footer에서 https://www.instagram.com/bubblemonkey_official/ 직접 링크 확인"
+    },
+    {
+      "company": "픽셀퓨어",
+      "instagram": "pixelpure_official",
+      "status": "found",
+      "source": "https://www.pixelpure.com/ (FOLLOW OUR FEED 섹션 및 footer)",
+      "note": "공식 웹사이트에서 https://www.instagram.com/PIXELPURE_OFFICIAL 직접 링크 확인. 대소문자 표기는 pixelpure_official로 통일"
+    },
+    {
+      "company": "아로다",
+      "instagram": "aroda.official",
+      "status": "uncertain",
+      "source": "https://www.instagram.com/aroda.official/ (Google 검색 결과)",
+      "note": "Instagram 계정 타이틀이 'ARODA 아로다'로 명시되어 있고 뷰티 브랜드로 확인되나, 공식 웹사이트 footer의 IG 링크가 generic placeholder(instagram.com/)여서 사이트에서 직접 연결 확인 불가"
+    },
+    {
+      "company": "터치인솔",
+      "instagram": "touchinsol.official",
+      "status": "found",
+      "source": "https://touchinsol.com/ (footer FOLLOW US 섹션)",
+      "note": "공식 웹사이트 footer에서 @touchinsol.official 및 https://www.instagram.com/touchinsol.official/ 직접 링크 확인"
+    },
+    {
+      "company": "OFBASE",
+      "instagram": "ofbase_official",
+      "status": "found",
+      "source": "http://www.ofbase.co.kr (footer 링크)",
+      "note": "공식 웹사이트 footer에서 https://www.instagram.com/ofbase_official 직접 링크 확인"
+    },
+    {
+      "company": "데이셀코스메틱 주식회사",
+      "instagram": "daycell.official",
+      "status": "found",
+      "source": "https://www.instagram.com/daycell.official/ (Google 검색 결과 + Instagram 페이지 타이틀 확인)",
+      "note": "Instagram 페이지 타이틀 '데이셀코스메틱 (@daycell.official)'으로 브랜드 일치 확인. 공식 웹사이트(daycellglobal.com) footer에는 IG 링크 미노출"
+    },
+    {
+      "company": "WONDER BATH (CSA COSMIC Co., Ltd.)",
+      "instagram": "wonderbath_official",
+      "status": "found",
+      "source": "https://www.wonderbath.com/ (footer SOCIAL 섹션)",
+      "note": "공식 웹사이트 footer에서 https://www.instagram.com/wonderbath_official/ 직접 링크 확인"
+    },
+    {
+      "company": "fmk 에프엠케이",
+      "instagram": "fmkbeauty_kr",
+      "status": "found",
+      "source": "https://fmkcos.com/ (footer 소셜 링크)",
+      "note": "공식 웹사이트 푸터에 instagram.com/fmkbeauty_kr 링크 확인"
+    },
+    {
+      "company": "리꼼 코스메틱",
+      "instagram": "licorne_cosmetics",
+      "status": "found",
+      "source": "https://licorne.co.kr/ (네비게이션·푸터 소셜 링크)",
+      "note": "메인 네비 'INSTAGRAM' 및 푸터 모두 licorne_cosmetics 연결. licorne_kr은 하단 보조 링크로 부계정으로 추정"
+    },
+    {
+      "company": "FORMECELL(포미셀)",
+      "instagram": "formecell_official",
+      "status": "found",
+      "source": "https://formecell.com (footer 소셜 링크)",
+      "note": "공식 웹사이트 푸터에 instagram.com/formecell_official 링크 확인"
+    },
+    {
+      "company": "페이블",
+      "instagram": "fableperfume",
+      "status": "found",
+      "source": "https://fableperfume.com/ (footer Sociales 섹션)",
+      "note": "공식 웹사이트 푸터 소셜 섹션에 instagram.com/fableperfume 링크 확인"
+    },
+    {
+      "company": "뷰핸",
+      "instagram": "",
+      "status": "notfound",
+      "source": "https://beauhanmall.com/, https://m.beauhanmall.com/page/about.html",
+      "note": "웹사이트 전체(PC·모바일·어바웃 페이지)에서 인스타그램 아이콘이 instagram.com 홈페이지로만 연결되어 계정 핸들 미기재. 검색에서도 공식 계정 확인 불가"
+    },
+    {
+      "company": "주식회사 라피끄",
+      "instagram": "plentyplant.official",
+      "status": "found",
+      "source": "https://plentyplant.co.kr/ (footer 소셜 링크)",
+      "note": "공식 웹사이트 푸터에 instagram.com/plentyplant.official 링크 확인. 운영 브랜드 PlentyPlant 계정"
+    },
+    {
+      "company": "고요이 GOYOYI",
+      "instagram": "goyoyi.official",
+      "status": "found",
+      "source": "https://goyoyi.com/ (footer 소셜 링크)",
+      "note": "공식 웹사이트 푸터에 instagram.com/goyoyi.official 링크 확인"
+    },
+    {
+      "company": "피에이치하비",
+      "instagram": "phhubby_official",
+      "status": "found",
+      "source": "https://en.phhubby.com/ (footer Follow us 섹션)",
+      "note": "공식 웹사이트 푸터 'Follow us' 섹션에 instagram.com/phhubby_official 링크 확인"
+    },
+    {
+      "company": "EYECANDY (아이캔디)",
+      "instagram": "eyecandy_co_kr",
+      "status": "found",
+      "source": "https://www.instagram.com/eyecandy_co_kr/",
+      "note": "웹 검색 결과 eye-candy.co.kr 연관 계정으로 확인됨. 아이캔디 헤어브러쉬 계정명 일치. 공식 웹사이트에 IG 링크 직접 표기 없어 검색으로 확인."
+    },
+    {
+      "company": "닥터펩티",
+      "instagram": "dr.pepti",
+      "status": "found",
+      "source": "https://www.instagram.com/dr.pepti/",
+      "note": "공식 웹사이트(jncoceu.com/en) 내 소셜 링크에서 직접 확인. 검색에서도 '닥터펩티 공식 인스타그램' 제목으로 표시됨."
+    },
+    {
+      "company": "(주)카푸네인터내셔널",
+      "instagram": "teamcafune.official",
+      "status": "found",
+      "source": "https://www.instagram.com/teamcafune.official/",
+      "note": "cafuneglobal.com 공식 사이트에 IG 직접 링크 없어 검색으로 확인. 검색 결과에서 cafuneglobal.com과 연결된 공식 계정으로 '카푸네(cafune)공식 계정' 명시."
+    },
+    {
+      "company": "주식회사 오버랩스",
+      "instagram": "overlaps.official",
+      "status": "found",
+      "source": "https://overlaps.co.kr/",
+      "note": "공식 웹사이트 하단 푸터에 @overlaps.official 직접 표기 및 링크 확인."
+    },
+    {
+      "company": "올어바웃아이즈",
+      "instagram": "madamelash_official",
+      "status": "found",
+      "source": "https://madame-lash.com/",
+      "note": "공식 웹사이트(madame-lash.com)에 INSTAGRAM 섹션과 함께 @madamelash_official 링크 직접 확인."
+    },
+    {
+      "company": "브라이트",
+      "instagram": "brightbrushofficial",
+      "status": "uncertain",
+      "source": "https://www.instagram.com/brightbrushofficial/",
+      "note": "웹 검색으로 @brightbrushofficial 계정 발견. 단, 네이버 스마트스토어(smartstore.naver.com/brightbrush) 페이지가 WebFetch 불가하여 공식 사이트에서 직접 교차 확인 불가. 동명 타 브랜드 가능성 배제 못함."
+    },
+    {
+      "company": "오오유 주식회사",
+      "instagram": "bfou.official",
+      "status": "found",
+      "source": "https://www.bfou.kr",
+      "note": "공식 웹사이트(bfou.kr) 'VISIT OUR INSTAGRAM' 섹션 및 푸터 소셜미디어 링크에서 @bfou.official 직접 확인."
+    },
+    {
+      "company": "올웨이즈비퓨어",
+      "instagram": "alwaysbepure_global",
+      "status": "found",
+      "source": "http://www.alwaysbepure.com",
+      "note": "공식 웹사이트(alwaysbepure.com) 푸터 소셜미디어 링크에서 @alwaysbepure_global 직접 확인. YouTube, TikTok과 함께 표기됨."
+    },
+    {
+      "company": "리타",
+      "instagram": "liita.official",
+      "status": "found",
+      "source": "https://www.liita-seoul.com (웹사이트 푸터 SNS 링크)",
+      "note": "공식 웹사이트 푸터에 instagram.com/liita.official 링크 직접 확인"
+    },
+    {
+      "company": "바루쟈",
+      "instagram": "varuza_official",
+      "status": "found",
+      "source": "https://www.thevaruza.com (웹사이트 푸터/네비게이션 SNS 링크)",
+      "note": "공식 웹사이트 푸터 및 네비게이션에 instagram.com/varuza_official 링크 직접 확인"
+    },
+    {
+      "company": "주식회사 바이비카",
+      "instagram": "inbutim_official",
+      "status": "found",
+      "source": "https://inbutim.com (웹사이트 푸터 SNS 링크)",
+      "note": "공식 웹사이트 푸터 인스타그램 아이콘에서 instagram.com/inbutim_official 링크 직접 확인"
+    },
+    {
+      "company": "(주)유에스티",
+      "instagram": "truthofbeauty_official",
+      "status": "found",
+      "source": "https://www.truthofbeauty.kr (웹사이트 내 인스타그램 섹션)",
+      "note": "공식 웹사이트 하단 인스타그램 섹션에 truthofbeauty_official 핸들 직접 확인"
+    },
+    {
+      "company": "지비알아이디어",
+      "instagram": "vah_korea",
+      "status": "found",
+      "source": "https://en.vah.co.kr (영문 공식 사이트 푸터 Follow us 섹션)",
+      "note": "영문 공식 웹사이트 푸터 'Follow us' SNS 아이콘에서 instagram.com/vah_korea 링크 직접 확인"
+    },
+    {
+      "company": "부드와서울",
+      "instagram": "grandidier_official",
+      "status": "found",
+      "source": "http://www.grandidier.kr (웹사이트 SNS 링크)",
+      "note": "공식 웹사이트에서 instagram.com/grandidier_official 링크 직접 확인"
+    },
+    {
+      "company": "(주)벤치컴퍼니 Bench company Inc",
+      "instagram": "fitroot",
+      "status": "found",
+      "source": "https://www.fitroot.kr (웹사이트 내 @fitroot 핸들 명시)",
+      "note": "공식 웹사이트 내 @fitroot 핸들이 여러 곳에 명시됨. 별도 URL 링크는 미확인이나 브랜드 핸들로 반복 표기"
+    },
+    {
+      "company": "셀릭사",
+      "instagram": "celixa_official",
+      "status": "found",
+      "source": "https://celixa.co.kr (웹사이트 푸터 BRAND 섹션)",
+      "note": "공식 웹사이트 푸터 BRAND 섹션에 instagram.com/celixa_official 링크 직접 확인"
+    },
+    {
+      "company": "L-E03: Tender garden 텐더가든 / L-E04: BELDORA 벨도라",
+      "instagram": "tender_garden_official",
+      "status": "found",
+      "source": "https://vplatform.kr/ — 페이지 내 Instagram 섹션에 @tender_garden_official 직접 링크됨",
+      "note": "텐더가든은 tender_garden_official 확인. 벨도라(BELDORA)는 별도 공식 브랜드 사이트 beldora.net 및 vplatform.kr 브랜드 페이지에서 @beldora299_official 확인. 두 브랜드가 한 입력으로 묶여 있어 대표 핸들로 텐더가든을 기재하고, 벨도라는 note에 병기: beldora299_official"
+    },
+    {
+      "company": "주식회사 더연",
+      "instagram": "theyeon_official",
+      "status": "found",
+      "source": "https://theyeon.kr/ — 페이지 푸터 및 본문에 https://www.instagram.com/theyeon_official/ 직접 링크 확인",
+      "note": "공식 웹사이트에서 직접 링크된 계정으로 신뢰도 높음"
+    },
+    {
+      "company": "셀비오코스메틱(주)",
+      "instagram": "cellvio_offlcial",
+      "status": "found",
+      "source": "https://www.cellviocosmetic.co.kr/ — 헤더 내비게이션 Instagram 아이콘이 https://www.instagram.com/cellvio_offlcial/ 로 링크됨",
+      "note": "핸들 철자 주의: 'official'이 아닌 'offlcial' (l과 c 순서 바뀜). 공식 웹사이트에서 직접 링크한 계정이므로 그대로 채택"
+    },
+    {
+      "company": "유니티",
+      "instagram": "",
+      "status": "notfound",
+      "source": "https://luxevo.co.kr — 웹사이트 접근 가능하나 회사명·브랜드명 미노출, SNS 링크 없음. 추가 웹검색에서도 이 도메인과 연결되는 브랜드 Instagram 확인 불가",
+      "note": "luxevo.co.kr은 이커머스 쇼핑몰 형태이나 회사명 '유니티'와 연결되는 공식 IG 계정을 어떤 경로로도 확인하지 못함. 추측 생성 불가"
+    },
+    {
+      "company": "이아이오(L-H02) / 누이브(L-H03)",
+      "instagram": "eiio_official",
+      "status": "uncertain",
+      "source": "이아이오: https://www.instagram.com/eiio_official/ — 검색 결과 민감성 피부 스킨케어 브랜드 이아이오 공식 계정으로 확인. 누이브: eiio.co.kr 사이트에서 누이브 언급 없음, use.nuive 계정은 검색에서 나타나나 eiio.co.kr 운영사(코스메티나)와 누이브 브랜드 공식 연결 미확인",
+      "note": "이아이오 핸들(eiio_official)은 found 수준이나 누이브 핸들 불확인으로 전체 항목을 uncertain 처리. 누이브 공식 IG는 별도 확인 필요"
+    },
+    {
+      "company": "주식회사 씨에이치바이오",
+      "instagram": "",
+      "status": "notfound",
+      "source": "https://chbio.net/ — SSL 인증서 만료로 직접 접근 실패. 검색 결과 운영 브랜드(Sweet Love, MelaRegen, Gosun, DanielMedi, Flor Saera, 바디팩토리)의 공식 IG 계정이 어느 것도 씨에이치바이오 법인과 명확히 연결되어 INTERCHARM 참가 브랜드 계정으로 확인되지 않음",
+      "note": "바디팩토리 관련 계정(@bodyfactoryskincare 등)이 검색되나 공식 여부·법인 귀속 불명확. 씨에이치바이오가 INTERCHARM에 어떤 브랜드로 참가하는지 확인 후 해당 브랜드 IG를 별도 조회 권장"
+    }
+  ]
+}

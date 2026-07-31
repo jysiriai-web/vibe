@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <!-- ▼ 메타/OG 태그는 applyBrand()에서 BRAND.meta·BRAND.share 기준으로 런타임 주입됩니다 -->
+    <title>SIRIAI Proposal</title>
+    <meta name="description" content="">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="">
+    <meta property="og:description" content="">
+    <meta property="og:image" content="">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- SIRIAI 브랜드 폰트: Pretendard(국문) · Arimo(헬베티카 대체) · JetBrains Mono(라벨) · Bodoni Moda(에디토리얼 악센트) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+    /* ════════════════════════════════════════════════════════════════
+       1. DESIGN TOKENS  (색·폰트는 applyBrand가 :root에 런타임 주입)
+       ════════════════════════════════════════════════════════════════ */
+    :root {
+        /* ── SIRIAI 브랜드 코어 (고정 하우스 스타일) ── */
+        --paper: #F3EEE2;                  /* 기본 배경: 따뜻한 크림 종이 */
+        --ink: #211A33;                    /* 기본 텍스트 · CTA */
+        --ink-2: rgba(33,26,51,.66);
+        --ink-3: rgba(33,26,51,.46);
+        --line: rgba(33,26,51,.13);
+        --line-2: rgba(33,26,51,.24);
+        --accent-blue: #2A6FDB;            /* 텍스트 링크 전용, 극히 드물게 */
+        /* 웜 워시 글로우 — 색감은 여기서 나온다 */
+        --wash-peach: rgba(246,201,168,.5);
+        --wash-lilac: rgba(221,208,239,.45);
+        --wash-cream: rgba(255,224,196,.42);
+        --glass: rgba(255,255,255,.55);
+
+        /* ── 컴포넌트 매핑 (변수명 유지 → 엔진/컴포넌트 호환) ── */
+        --brand-primary: var(--ink);
+        --brand-primary-deep: #16111F;
+        --brand-accent: #B27B53;           /* 절제된 웜 클레이 악센트 (config가 덮음) */
+        --brand-accent-soft: #C9A07B;
+        --bg: var(--paper);
+        --surface: #FBF8F1;                /* 따뜻한 카드 면 (순백 금지) */
+        --surface-2: #ECE5D6;
+        --border: var(--line);
+        --img-placeholder: #E7DFCF;
+        --text-main: var(--ink);
+        --text-sub: var(--ink-2);
+        --on-accent: var(--paper);         /* 잉크 알약 위 텍스트 = 종이색 */
+
+        /* Semantic status (잉크 기반 절제 팔레트) */
+        --st-done: #2E7D58;  --st-done-bg: rgba(46,125,88,.10);
+        --st-pend: #B0791F;  --st-pend-bg: rgba(176,121,31,.10);
+        --st-warn: #B03B3B;  --st-warn-bg: rgba(176,59,59,.10);
+        --st-info: #2C5F9E;  --st-info-bg: rgba(44,95,158,.10);
+
+        /* Elevation (부드러운 그림자) */
+        --shadow-sm: 0 10px 30px rgba(33,26,51,.06);
+        --shadow-md: 0 16px 44px rgba(33,26,51,.13);
+        --shadow-lg: 0 30px 60px rgba(33,26,51,.16);
+
+        /* Geometry / motion */
+        --radius-card: 18px;
+        --radius-sm: 12px;
+        --radius-pill: 100px;
+        --nav-height: 76px;
+        --ease-out: cubic-bezier(.16,1,.3,1);
+
+        /* Fonts (SIRIAI 5종 고정) */
+        --font-display: 'Helvetica Neue','Helvetica','Arimo','Pretendard',Arial,sans-serif;
+        --font-body: 'Pretendard', system-ui, sans-serif;
+        --font-num: 'Helvetica Neue','Helvetica','Arimo','Pretendard',sans-serif;
+        --font-label: 'JetBrains Mono', ui-monospace, monospace;
+        --font-editorial: 'Bodoni Moda', Georgia, serif;
+    }
+
+    ::selection { background: var(--ink); color: var(--paper); }
+
+    /* ════════════════════════════════════════════════════════════════
+       2. BASE
+       ════════════════════════════════════════════════════════════════ */
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+    body {
+        font-family: var(--font-body);
+        background: var(--bg);
+        color: var(--text-main);
+        overflow: hidden;
+    }
+    .serif { font-family: var(--font-display); font-optical-sizing: auto; }
+    .num   { font-family: var(--font-num); font-feature-settings: 'tnum' 1; }
+    a { color: inherit; }
+
+    /* 키보드 포커스 가시화 (접근성) */
+    :focus-visible { outline: 2px solid var(--brand-accent); outline-offset: 2px; border-radius: 4px; }
+    .nav-btn:focus-visible, .btn:focus-visible, .tool-btn:focus-visible { outline-offset: 3px; }
+
+    /* 모션 최소화 선호 사용자 대응 */
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+        .fade-up { opacity: 1 !important; transform: none !important; }
+    }
+
+    #app { width: 100vw; height: 100vh; position: relative; }
+
+    /* ──────── slide shell ──────── */
+    .slide {
+        position: absolute; inset: 0;
+        padding: 34px 40px 100px;
+        opacity: 0; pointer-events: none;
+        transition: opacity .6s ease;
+        display: flex; flex-direction: column; align-items: center;
+        overflow-y: auto; overflow-x: hidden;
+    }
+    .slide.active { opacity: 1; pointer-events: auto; z-index: 10; }
+    .container { width: 100%; max-width: 1200px; margin: auto 0; }
+    .center { text-align: center; }
+
+    /* ──────── entrance animation ──────── */
+    .fade-up { opacity: 0; transform: translateY(28px); transition: opacity .9s ease, transform .9s ease; }
+    .slide.active .fade-up { opacity: 1; transform: translateY(0); }
+    .d1 { transition-delay: .10s; } .d2 { transition-delay: .20s; }
+    .d3 { transition-delay: .30s; } .d4 { transition-delay: .40s; }
+
+    /* ──────── typography helpers ──────── */
+    .eyebrow {
+        font-family: var(--font-label); font-size: 11px; font-weight: 500;
+        letter-spacing: .2em; text-transform: uppercase; color: var(--brand-accent);
+        margin-bottom: 16px;
+    }
+    .slide-title {
+        font-family: var(--font-display); font-weight: 600;
+        font-size: clamp(32px, 4vw, 58px); letter-spacing: -.02em;
+        color: var(--text-main); margin-bottom: 14px; word-break: keep-all;
+    }
+    .slide-sub { font-size: clamp(14px,1.1vw,17px); color: var(--text-sub); margin-bottom: 44px; word-break: keep-all; }
+    .divider { width: 48px; height: 1px; background: var(--ink-3); }
+
+    /* ════════════════════════════════════════════════════════════════
+       3. TOOLBAR (PDF / 테마 / 모드) — 화면에만, 인쇄 시 숨김
+       ════════════════════════════════════════════════════════════════ */
+    .toolbar {
+        position: fixed; top: 16px; right: 18px; z-index: 150;
+        display: flex; gap: 8px; align-items: center;
+    }
+    .tool-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: var(--surface); color: var(--text-sub);
+        border: 1px solid var(--border); border-radius: var(--radius-pill);
+        padding: 7px 13px; font-family: var(--font-body); font-size: 12.5px; font-weight: 500;
+        cursor: pointer; transition: all .25s; white-space: nowrap;
+        box-shadow: var(--shadow-sm);
+    }
+    .tool-btn:hover { color: var(--brand-primary); border-color: var(--brand-accent); }
+    .tool-btn svg { width: 15px; height: 15px; }
+    .mode-tag {
+        font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+        padding: 5px 10px; border-radius: var(--radius-pill);
+        background: var(--st-warn-bg); color: var(--st-warn);
+    }
+    .mode-tag.public { background: var(--st-done-bg); color: var(--st-done); }
+
+    /* ════════════════════════════════════════════════════════════════
+       4. BOTTOM NAV
+       ════════════════════════════════════════════════════════════════ */
+    .bottom-nav {
+        position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-height);
+        background: color-mix(in srgb, var(--bg) 82%, transparent);
+        backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        border-top: 1px solid var(--border);
+        display: flex; justify-content: center; align-items: center; gap: 8px;
+        z-index: 100; padding-bottom: env(safe-area-inset-bottom);
+    }
+    .nav-brand {
+        position: absolute; left: 28px; top: 50%; transform: translateY(-50%);
+        display: flex; align-items: center; gap: 9px; opacity: .9;
+        font-family: var(--font-display); font-size: 15px; font-weight: 500; letter-spacing: .02em;
+    }
+    .nav-brand .x { font-size: 11px; color: var(--text-sub); font-family: var(--font-body); font-weight: 600; letter-spacing: .1em; }
+    .nav-btn {
+        background: none; border: none; font-family: var(--font-body);
+        font-size: clamp(12.5px,.95vw,15px); font-weight: 500; color: var(--text-sub);
+        cursor: pointer; padding: 9px 18px; border-radius: var(--radius-pill); transition: all .3s; white-space: nowrap;
+    }
+    .nav-btn.active, .nav-btn:hover { color: var(--on-accent); background: var(--brand-primary); }
+    [data-theme='dark'] .nav-btn.active, [data-theme='dark'] .nav-btn:hover { color: #0C0C0C; background: var(--brand-accent); }
+
+    /* ════════════════════════════════════════════════════════════════
+       5. COVER
+       ════════════════════════════════════════════════════════════════ */
+    .cover-slide {
+        background:
+          radial-gradient(58% 50% at 15% 6%, var(--wash-peach), transparent 60%),
+          radial-gradient(48% 44% at 90% 16%, var(--wash-lilac), transparent 62%),
+          radial-gradient(74% 60% at 62% 104%, var(--wash-cream), transparent 60%),
+          var(--paper);
+        color: var(--ink);
+    }
+    .cover-layout { display: grid; grid-template-columns: 1.08fr .92fr; gap: 60px; align-items: center; }
+    .cover-text { display: flex; flex-direction: column; }
+    .cover-eyebrow { font-family: var(--font-label); font-size: 11px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: var(--brand-accent); margin-bottom: 22px; }
+    .cover-wordmark { font-family: var(--font-display); font-size: clamp(48px,6vw,84px); font-weight: 600; line-height: .98; letter-spacing: -.028em; color: var(--ink); }
+    .cover-wordmark img { width: clamp(260px,30vw,420px); height: auto; }
+    .cover-cross { font-family: var(--font-display); font-size: clamp(22px,2.4vw,36px); font-weight: 400; color: var(--ink-2); margin-top: 10px; letter-spacing: -.01em; }
+    .cover-cross span { color: var(--brand-accent); }
+    .cover-divider { width: 48px; height: 1px; background: var(--ink-3); margin: 24px 0; }
+    .cover-tagline { font-family: var(--font-editorial); font-size: clamp(18px,1.6vw,27px); font-style: italic; font-weight: 500; color: var(--ink-2); line-height: 1.4; margin-bottom: 26px; word-break: keep-all; }
+    .cover-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 26px; }
+    .cover-badge { font-family: var(--font-label); background: transparent; border: 1px solid var(--line-2); color: var(--ink-2); padding: 8px 16px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
+    .cover-desc { font-size: 14px; color: var(--ink-3); font-weight: 400; line-height: 1.7; }
+    .cover-figure { position: relative; border-radius: var(--radius-card); overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow-md); aspect-ratio: 4/5; max-height: 76vh; }
+    .cover-figure img { width: 100%; height: 100%; object-fit: cover; }
+    .cover-figure .placeholder {
+        width: 100%; height: 100%;
+        background:
+          radial-gradient(72% 56% at 26% 20%, var(--wash-peach), transparent 60%),
+          radial-gradient(60% 50% at 82% 82%, var(--wash-lilac), transparent 62%),
+          var(--surface-2);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .cover-figure .placeholder span { font-family: var(--font-editorial); font-style: italic; font-size: 24px; color: var(--ink-3); }
+    .cover-figure::after {
+        content: attr(data-caption); position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+        font-family: var(--font-label); font-size: 10px; font-weight: 500; letter-spacing: .26em; color: var(--ink-2);
+        white-space: nowrap;
+    }
+    .sample-flag {
+        position: absolute; top: 26px; left: 40px; z-index: 20;
+        font-family: var(--font-label); font-size: 10px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase;
+        color: var(--ink-2); border: 1px solid var(--line-2); padding: 5px 12px; border-radius: var(--radius-pill);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       6. FEATURE CARDS
+       ════════════════════════════════════════════════════════════════ */
+    .feature-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 22px; }
+    .feature-card {
+        text-align: left; padding: 30px 26px; background: var(--surface);
+        border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow-sm);
+        transition: transform .4s, box-shadow .4s, border-color .4s;
+    }
+    .feature-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-md); border-color: var(--line-2); }
+    .feature-icon { width: 46px; height: 46px; border-radius: 50%; background: color-mix(in srgb, var(--ink) 6%, transparent); border: 1px solid var(--line); color: var(--ink); display: flex; align-items: center; justify-content: center; margin-bottom: 22px; }
+    .feature-icon svg { width: 20px; height: 20px; }
+    .feature-no { font-family: var(--font-label); font-size: clamp(14px,1.2vw,18px); color: var(--brand-accent); font-weight: 500; letter-spacing: .1em; margin-bottom: 12px; }
+    .feature-title { font-size: clamp(16px,1.4vw,21px); font-weight: 700; margin-bottom: 10px; word-break: keep-all; }
+    .feature-desc { font-size: clamp(13px,1.02vw,15.5px); color: var(--text-sub); line-height: 1.7; word-break: keep-all; }
+
+    /* ════════════════════════════════════════════════════════════════
+       7. COMPARE BAR (ER)
+       ════════════════════════════════════════════════════════════════ */
+    .compare { width: 100%; max-width: 640px; margin: 0 auto 22px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow-sm); padding: 16px 24px; }
+    .compare-label { font-size: 13px; font-weight: 700; color: var(--text-sub); margin-bottom: 16px; text-align: left; }
+    .compare-row { display: flex; align-items: center; margin-bottom: 13px; }
+    .compare-row:last-child { margin-bottom: 0; }
+    .compare-name { width: 150px; font-size: 13px; color: var(--text-sub); text-align: left; line-height: 1.3; }
+    .compare-row.ours .compare-name { font-weight: 700; color: var(--text-main); }
+    .compare-track { flex-grow: 1; background: var(--surface-2); height: 12px; border-radius: 6px; overflow: hidden; }
+    .compare-fill { width: 0; height: 100%; background: var(--border); border-radius: 6px; transition: width 1.4s cubic-bezier(.2,.8,.2,1); }
+    .compare-row.ours .compare-fill { background: var(--brand-primary); transition-delay: .25s; }
+    [data-theme='dark'] .compare-row.ours .compare-fill { background: var(--brand-accent); }
+    .compare-val { width: 64px; font-size: 13px; color: var(--text-sub); text-align: right; font-weight: 600; }
+    .compare-row.ours .compare-val { font-size: 16px; color: var(--brand-accent); font-weight: 700; }
+
+    /* ════════════════════════════════════════════════════════════════
+       8. CURATION CARDS
+       ════════════════════════════════════════════════════════════════ */
+    .curation-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 22px; width: 100%; margin-bottom: 26px; }
+    .cur-card { transition: transform .3s; }
+    .cur-card:hover { transform: translateY(-5px); }
+    .cur-avatar { width: 100%; aspect-ratio: 1; border-radius: 6px; margin-bottom: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--img-placeholder); }
+    .cur-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .cur-avatar .ini { font-family: var(--font-display); font-size: 30px; color: #fff; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+    .cur-name { font-size: clamp(15px,1.3vw,20px); font-weight: 700; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+    .cur-link { color: var(--text-sub); text-decoration: none; font-size: 15px; transition: color .2s; }
+    .cur-link:hover { color: var(--brand-accent); }
+    .cur-stat { font-size: clamp(12.5px,1vw,14px); color: var(--text-sub); margin-bottom: 3px; }
+
+    /* ════════════════════════════════════════════════════════════════
+       9. BUTTONS
+       ════════════════════════════════════════════════════════════════ */
+    .btn { display: inline-flex; align-items: center; gap: 8px; background: var(--brand-primary); color: var(--on-accent); border: none; padding: 13px 34px; border-radius: var(--radius-pill); font-family: var(--font-body); font-size: 14.5px; font-weight: 500; cursor: pointer; transition: transform .2s, box-shadow .3s; }
+    [data-theme='dark'] .btn { background: var(--brand-accent); color: #0C0C0C; }
+    .btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text-sub); }
+    .btn-ghost:hover { color: var(--text-main); border-color: var(--brand-accent); }
+    .note { font-size: 12px; color: var(--text-sub); margin-top: 14px; word-break: keep-all; }
+
+    /* ════════════════════════════════════════════════════════════════
+       10. REFERENCE STRIP
+       ════════════════════════════════════════════════════════════════ */
+    .ref-strip { width: 100%; margin-top: 16px; padding: 15px 26px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center; gap: 16px; box-shadow: var(--shadow-sm); flex-wrap: wrap; }
+    .ref-info { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .ref-badge { font-family: var(--font-label); background: var(--ink); color: var(--paper); padding: 6px 13px; border-radius: var(--radius-pill); font-size: 10px; font-weight: 500; letter-spacing: .1em; white-space: nowrap; }
+    .ref-items { font-size: 14px; color: var(--ink-2); }
+    .ref-items strong { color: var(--ink); font-weight: 700; }
+    .ref-cta { color: var(--ink); text-decoration: none; font-weight: 600; font-size: 13.5px; border: 1px solid var(--line-2); padding: 9px 18px; border-radius: var(--radius-pill); transition: all .3s; white-space: nowrap; }
+    .ref-cta:hover { background: var(--ink); color: var(--paper); }
+
+    /* ════════════════════════════════════════════════════════════════
+       11. SIMULATOR
+       ════════════════════════════════════════════════════════════════ */
+    .sim { width: 100%; margin-top: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-sm); padding: 16px 28px; text-align: left; }
+    .sim-head { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
+    .sim-eyebrow { font-family: var(--font-label); font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--brand-accent); margin-bottom: 4px; }
+    .sim-title { font-size: 18px; font-weight: 700; }
+    .sim-budget { font-family: var(--font-num); font-size: 24px; font-weight: 500; color: var(--text-main); }
+    .sim-slider { width: 100%; margin-bottom: 16px; accent-color: var(--brand-primary); cursor: pointer; }
+    [data-theme='dark'] .sim-slider { accent-color: var(--brand-accent); }
+    .sim-metrics { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+    .sim-cell { background: var(--surface-2); padding: 15px 12px; border-radius: 8px; text-align: center; }
+    .sim-cell.hl { background: var(--brand-primary); }
+    [data-theme='dark'] .sim-cell.hl { background: var(--surface-2); border: 1px solid var(--brand-accent); }
+    .sim-cell .k { font-size: 12px; color: var(--text-sub); margin-bottom: 8px; }
+    .sim-cell.hl .k { color: rgba(255,255,255,.75); }
+    [data-theme='dark'] .sim-cell.hl .k { color: var(--text-sub); }
+    .sim-cell .v { font-family: var(--font-num); font-size: 23px; font-weight: 600; }
+    .sim-cell.hl .v { color: #fff; }
+    [data-theme='dark'] .sim-cell.hl .v { color: var(--brand-accent); }
+    .sim-cell .v .u { font-size: 12px; font-weight: 500; }
+    .sim-cell .v .a { color: var(--brand-accent); font-weight: 800; }
+    .sim-note { margin-top: 12px; font-size: 11px; color: var(--text-sub); line-height: 1.5; }
+
+    /* ════════════════════════════════════════════════════════════════
+       12. PROCESS / TABS / TIMELINE
+       ════════════════════════════════════════════════════════════════ */
+    .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 36px; }
+    .tab-btn { background: transparent; border: 1px solid var(--border); padding: 9px 28px; border-radius: var(--radius-pill); font-size: 13.5px; cursor: pointer; transition: all .3s; color: var(--text-sub); font-family: var(--font-body); }
+    .tab-btn.active { background: var(--brand-primary); color: var(--on-accent); border-color: var(--brand-primary); font-weight: 500; }
+    [data-theme='dark'] .tab-btn.active { background: var(--brand-accent); color: #0C0C0C; border-color: var(--brand-accent); }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; animation: fadeIn .4s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .timeline { display: grid; grid-template-columns: repeat(4,1fr); gap: 18px; margin-bottom: 26px; }
+    .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 24px 22px; text-align: left; cursor: pointer; transition: all .3s; box-shadow: var(--shadow-sm); }
+    .step-card:hover { transform: translateY(-8px); border-color: var(--brand-accent); box-shadow: var(--shadow-md); }
+    .step-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .step-no { font-family: var(--font-label); font-size: 19px; font-weight: 500; color: var(--ink-3); letter-spacing: .04em; transition: color .3s; }
+    .step-card:hover .step-no { color: var(--brand-accent); }
+    .step-ic { color: var(--text-sub); }
+    .step-ic svg { width: 22px; height: 22px; }
+    .step-title { font-size: clamp(15px,1.3vw,20px); font-weight: 700; margin-bottom: 8px; word-break: keep-all; }
+    .step-sum { font-size: clamp(12.5px,1vw,15px); color: var(--text-sub); line-height: 1.55; word-break: keep-all; }
+    .step-hint { font-size: 12.5px; font-weight: 600; color: var(--brand-accent); opacity: 0; transform: translateX(-8px); transition: all .3s; margin-top: 16px; }
+    .step-card:hover .step-hint { opacity: 1; transform: translateX(0); }
+    .process-footer { display: inline-block; margin-top: 6px; background: var(--surface); padding: 11px 30px; border-radius: var(--radius-pill); border: 1px solid var(--border); box-shadow: var(--shadow-sm); font-weight: 700; color: var(--brand-accent); }
+
+    /* ════════════════════════════════════════════════════════════════
+       13. PACKAGES + CONTACT
+       ════════════════════════════════════════════════════════════════ */
+    .pkg-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; width: 100%; margin-bottom: 34px; }
+    .pkg-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 26px 24px; text-align: left; box-shadow: var(--shadow-sm); transition: transform .3s, box-shadow .3s; position: relative; }
+    .pkg-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-md); }
+    .pkg-card.featured { border-color: var(--brand-accent); box-shadow: 0 16px 40px color-mix(in srgb, var(--brand-accent) 25%, transparent); }
+    .pkg-featured-tag { position: absolute; top: -11px; right: 20px; background: var(--brand-accent); color: var(--brand-primary); font-size: 10.5px; font-weight: 700; letter-spacing: .1em; padding: 4px 12px; border-radius: var(--radius-pill); }
+    .pkg-letter { font-family: var(--font-editorial); font-size: 44px; font-weight: 600; color: var(--brand-accent); line-height: 1; margin-bottom: 12px; }
+    .pkg-name { font-size: 19px; font-weight: 700; margin-bottom: 8px; }
+    .pkg-desc { font-size: 13.5px; color: var(--text-sub); line-height: 1.6; margin-bottom: 16px; word-break: keep-all; }
+    .pkg-items { list-style: none; }
+    .pkg-items li { font-size: 13px; color: var(--text-main); padding: 6px 0 6px 20px; position: relative; border-top: 1px solid var(--border); }
+    .pkg-items li:first-child { border-top: none; }
+    .pkg-items li::before { content: ''; position: absolute; left: 4px; top: 13px; width: 5px; height: 5px; border-radius: 50%; background: var(--brand-accent); }
+    .pkg-target { margin-top: 14px; font-size: 12px; color: var(--text-sub); }
+    .pkg-target b { color: var(--brand-accent); }
+
+    .contact { width: 100%; border-radius: var(--radius-card); padding: 34px 40px; display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; border: 1px solid var(--line);
+        background:
+          radial-gradient(60% 90% at 8% 10%, var(--wash-peach), transparent 62%),
+          radial-gradient(56% 90% at 96% 90%, var(--wash-lilac), transparent 62%),
+          var(--surface-2); }
+    .contact-l .ct-eyebrow { font-family: var(--font-label); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--brand-accent); margin-bottom: 8px; }
+    .contact-l .ct-title { font-family: var(--font-display); font-size: clamp(22px,2.4vw,34px); color: var(--ink); font-weight: 600; letter-spacing: -.02em; word-break: keep-all; }
+    .contact-r { display: flex; flex-direction: column; gap: 8px; }
+    .contact-item { display: flex; align-items: center; gap: 10px; color: var(--ink-2); font-size: 14.5px; text-decoration: none; }
+    .contact-item svg { width: 17px; height: 17px; color: var(--brand-accent); }
+    .contact-item:hover { color: var(--ink); }
+
+    .cap-list { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 30px; }
+    .cap-chip { font-size: 13px; color: var(--text-main); background: var(--surface); border: 1px solid var(--border); padding: 8px 16px; border-radius: var(--radius-pill); }
+    .cap-chip b { color: var(--brand-accent); }
+
+    /* ════════════════════════════════════════════════════════════════
+       14. MODAL + DATA TABLE
+       ════════════════════════════════════════════════════════════════ */
+    .modal-overlay { position: fixed; inset: 0; background: color-mix(in srgb, var(--brand-primary) 45%, transparent); backdrop-filter: blur(10px); display: flex; justify-content: center; align-items: center; z-index: 200; opacity: 0; pointer-events: none; transition: opacity .4s; }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal { background: var(--surface); border-radius: 12px; width: 92%; max-width: 820px; max-height: 84vh; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); transform: translateY(20px); transition: transform .4s var(--ease-out); }
+    .modal-overlay.active .modal { transform: translateY(0); }
+    .modal-header { padding: 22px 28px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .modal-title { font-family: var(--font-display); font-size: 21px; font-weight: 500; }
+    .modal-tools { display: flex; gap: 12px; align-items: center; }
+    .modal-close { background: none; border: none; font-size: 26px; cursor: pointer; color: var(--text-sub); line-height: 1; }
+    .modal-close:hover { color: var(--text-main); }
+    .modal-body { overflow: auto; }
+
+    .modal-stats { display: flex; gap: 14px; padding: 22px; background: var(--surface-2); border-bottom: 1px solid var(--border); }
+    .stat-box { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; text-align: center; }
+    .stat-box .k { font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
+    .stat-box .v { font-family: var(--font-num); font-size: 22px; font-weight: 600; }
+    .stat-box .v.accent { color: var(--brand-accent); }
+
+    .table-tools { display: flex; gap: 10px; padding: 16px 22px 0; align-items: center; flex-wrap: wrap; }
+    .search-box { display: flex; align-items: center; gap: 8px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 8px 16px; flex: 1; min-width: 180px; }
+    .search-box svg { width: 15px; height: 15px; color: var(--text-sub); }
+    .search-box input { background: none; border: none; outline: none; color: var(--text-main); font-family: var(--font-body); font-size: 14px; width: 100%; }
+    .table-count { font-size: 12.5px; color: var(--text-sub); white-space: nowrap; }
+
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th, .data-table td { padding: 13px 18px; text-align: center; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .data-table th { background: var(--surface); font-family: var(--font-label); font-weight: 500; font-size: 11px; text-transform: uppercase; color: var(--text-sub); letter-spacing: .08em; position: sticky; top: 0; z-index: 10; cursor: pointer; user-select: none; }
+    .data-table th.sorted { color: var(--brand-accent); }
+    .data-table td.name-col { font-weight: 700; text-align: left; }
+    .data-table tr:hover td { background: var(--surface-2); }
+    .data-table a { color: var(--text-sub); text-decoration: none; }
+    .data-table a:hover { color: var(--brand-accent); }
+    .empty-row td { padding: 40px; color: var(--text-sub); }
+
+    /* process modal */
+    .modal.bare { background: transparent; box-shadow: none; max-width: 680px; align-items: center; }
+    .modal.bare .modal-body { width: 100%; }
+    .proc-text { background: var(--surface); padding: 34px 40px; border-radius: 14px; box-shadow: var(--shadow-lg); }
+    .proc-text h3 { font-family: var(--font-display); font-size: 22px; font-weight: 500; color: var(--text-main); border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px; }
+    .proc-text ul { padding-left: 20px; }
+    .proc-text li { font-size: 15px; line-height: 1.8; color: var(--text-main); }
+    .proc-img { max-width: 100%; max-height: 64vh; object-fit: contain; border-radius: var(--radius-sm); box-shadow: var(--shadow-lg); background: var(--surface); padding: 18px; }
+    .proc-links { display: flex; gap: 10px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+    .proc-note { margin-top: 12px; font-size: 13px; color: var(--text-sub); text-align: center; }
+
+    /* ════════════════════════════════════════════════════════════════
+       15. SIMPLE SHEET (간단 PDF 전용 — 화면에선 숨김)
+       ════════════════════════════════════════════════════════════════ */
+    .simple-sheet { display: none; }
+
+    /* ════════════════════════════════════════════════════════════════
+       16. RESPONSIVE (모바일)
+       ════════════════════════════════════════════════════════════════ */
+    @media (max-width: 860px) {
+        .slide { padding: 30px 18px 96px; }
+        .cover-layout { grid-template-columns: 1fr; gap: 30px; text-align: center; }
+        .cover-text { align-items: center; }
+        .cover-figure { aspect-ratio: 16/10; max-height: 34vh; }
+        .sample-flag { left: 50%; transform: translateX(-50%); }
+        .feature-grid { grid-template-columns: 1fr; gap: 16px; }
+        .curation-grid { grid-template-columns: repeat(2,1fr); gap: 16px; }
+        .timeline { grid-template-columns: 1fr; gap: 14px; }
+        .pkg-grid { grid-template-columns: 1fr; }
+        .sim-metrics { grid-template-columns: repeat(2,1fr); }
+        .ref-strip, .contact { flex-direction: column; align-items: flex-start; }
+        .modal-stats { flex-direction: column; }
+        .nav-brand { display: none; }
+        .bottom-nav { justify-content: flex-start; gap: 5px; overflow-x: auto; padding: 0 12px; -webkit-overflow-scrolling: touch; }
+        .bottom-nav::-webkit-scrollbar { display: none; }
+        .nav-btn { flex: 0 0 auto; padding: 8px 13px; font-size: 12.5px; }
+        .toolbar { top: 10px; right: 10px; gap: 6px; }
+        .tool-btn span.lbl { display: none; }
+        .tool-btn { padding: 8px; }
+        .data-table th, .data-table td { padding: 10px 12px; font-size: 12.5px; }
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       17. PRINT — 전체 PDF (화면 그대로 펼침)
+       ════════════════════════════════════════════════════════════════ */
+    @media print {
+        @page { size: A4 landscape; margin: 10mm; }
+        .toolbar, .bottom-nav, .step-hint, .modal-overlay { display: none !important; }
+        body { overflow: visible !important; background: var(--paper) !important; }
+        #app { height: auto !important; width: auto !important; }
+        .slide {
+            position: static !important; opacity: 1 !important; height: auto !important;
+            page-break-after: always; page-break-inside: avoid; overflow: visible !important;
+            padding: 18px 10px !important; min-height: 92vh; justify-content: center;
+        }
+        .slide:last-child { page-break-after: auto; }
+        .fade-up { opacity: 1 !important; transform: none !important; }
+        .cover-slide { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .feature-card, .step-card, .pkg-card, .sim, .compare, .ref-strip, .contact { break-inside: avoid; box-shadow: none; }
+
+        /* 간단 PDF 모드: 슬라이드 숨기고 요약 시트만 */
+        body.print-simple #app { display: none !important; }
+        body.print-simple .simple-sheet { display: block !important; }
+    }
+    /* 색 보존 (인쇄) */
+    @media print {
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    }
+
+    /* SIMPLE SHEET 레이아웃 (인쇄 시) */
+    .simple-sheet { font-family: var(--font-body); color: var(--text-main); padding: 4mm; }
+    .ss-head { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid var(--brand-primary); padding-bottom: 12px; margin-bottom: 16px; }
+    .ss-brand { font-family: var(--font-display); font-size: 30px; }
+    .ss-brand .x { font-size: 15px; color: var(--text-sub); }
+    .ss-meta { text-align: right; font-size: 11px; color: var(--text-sub); line-height: 1.5; }
+    .ss-tagline { font-family: var(--font-display); font-style: italic; font-size: 16px; color: var(--brand-primary); margin-bottom: 16px; }
+    .ss-kpi { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 16px; }
+    .ss-kpi .cell { border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; }
+    .ss-kpi .cell .v { font-family: var(--font-num); font-size: 22px; font-weight: 600; color: var(--brand-primary); }
+    .ss-kpi .cell .k { font-size: 10.5px; color: var(--text-sub); margin-top: 3px; }
+    .ss-cols { display: grid; grid-template-columns: 1.1fr 1fr; gap: 18px; }
+    .ss-box h4 { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--brand-accent); margin-bottom: 8px; }
+    .ss-pkg { font-size: 12px; line-height: 1.7; }
+    .ss-pkg b { color: var(--brand-primary); }
+    .ss-scenario { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .ss-scenario td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
+    .ss-scenario td:last-child { text-align: right; font-family: var(--font-num); font-weight: 600; color: var(--brand-primary); }
+    .ss-contact { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 12px; font-size: 12px; color: var(--text-sub); display: flex; gap: 18px; flex-wrap: wrap; }
+    .ss-contact b { color: var(--brand-primary); }
+    </style>
+</head>
+<body>
+
+    <!-- ════════ TOOLBAR ════════ -->
+    <div class="toolbar" id="toolbar"></div>
+
+    <!-- ════════ SLIDES (대부분 JS 렌더) ════════ -->
+    <div id="app">
+        <section class="slide active cover-slide" id="slide-1">
+            <div class="sample-flag" id="sampleFlag">Sample · 가상 레퍼런스</div>
+            <div class="container cover-layout">
+                <div class="cover-text fade-up" id="coverText"></div>
+                <div class="cover-figure fade-up d1" id="coverFigure"></div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-2">
+            <div class="container center">
+                <div class="eyebrow fade-up" id="s2-eyebrow"></div>
+                <h2 class="slide-title fade-up" id="s2-title"></h2>
+                <div class="feature-grid" id="whyGrid"></div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-3">
+            <div class="container center" style="max-width:1060px">
+                <div class="eyebrow fade-up" id="s3-eyebrow"></div>
+                <h2 class="slide-title fade-up" id="s3-title" style="margin-bottom:24px"></h2>
+                <div class="fade-up d1" id="compareMount"></div>
+                <div class="curation-grid fade-up d2" id="curationGrid"></div>
+                <div class="fade-up d3" style="display:flex;flex-direction:column;align-items:center;gap:10px">
+                    <button class="btn" id="openListBtn"></button>
+                    <p class="note" id="s3-note"></p>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-4">
+            <div class="container center">
+                <div class="eyebrow fade-up" id="s4-eyebrow"></div>
+                <h2 class="slide-title fade-up" id="s4-title" style="margin-bottom:28px"></h2>
+                <div class="feature-grid" id="strategyGrid"></div>
+                <div class="fade-up d2" id="refMount"></div>
+                <div class="fade-up d3" id="simMount"></div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-5">
+            <div class="container center">
+                <div class="eyebrow fade-up" id="s5-eyebrow"></div>
+                <h2 class="slide-title fade-up" id="s5-title" style="margin-bottom:24px"></h2>
+                <div class="tabs fade-up" id="procTabs"></div>
+                <div id="procPanes"></div>
+            </div>
+        </section>
+
+        <section class="slide" id="slide-6">
+            <div class="container center">
+                <div class="eyebrow fade-up" id="s6-eyebrow"></div>
+                <h2 class="slide-title fade-up" id="s6-title"></h2>
+                <p class="slide-sub fade-up" id="s6-sub"></p>
+                <div class="cap-list fade-up d1" id="capList"></div>
+                <div class="pkg-grid fade-up d2" id="pkgGrid"></div>
+                <div class="fade-up d3" id="contactMount"></div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ════════ BOTTOM NAV ════════ -->
+    <nav class="bottom-nav" id="bottomNav"></nav>
+
+    <!-- ════════ MODALS ════════ -->
+    <div class="modal-overlay" id="modal-list" onclick="if(event.target===this)closeModal('modal-list')">
+        <div class="modal" role="dialog" aria-modal="true" aria-label="인플루언서 전체 리스트">
+            <div class="modal-header">
+                <h3 class="modal-title" id="listModalTitle"></h3>
+                <div class="modal-tools" id="listModalTools"></div>
+            </div>
+            <div class="modal-body">
+                <div class="modal-stats" id="listStats"></div>
+                <div class="table-tools">
+                    <div class="search-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="text" id="searchInput" placeholder="이름·핸들 검색…" aria-label="인플루언서 검색">
+                    </div>
+                    <div class="table-count" id="tableCount"></div>
+                </div>
+                <table class="data-table" id="dataTable">
+                    <thead id="tableHead"></thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-proc" onclick="if(event.target===this)closeModal('modal-proc')">
+        <div class="modal bare" role="dialog" aria-modal="true">
+            <div style="display:flex;justify-content:flex-end;width:100%;padding-bottom:12px">
+                <button class="modal-close" style="color:#fff;font-size:38px;text-shadow:0 2px 6px rgba(0,0,0,.5)" onclick="closeModal('modal-proc')" aria-label="닫기">&times;</button>
+            </div>
+            <div class="modal-body" id="procBody"></div>
+        </div>
+    </div>
+
+    <!-- ════════ SIMPLE SHEET (간단 PDF 전용) ════════ -->
+    <div class="simple-sheet" id="simpleSheet"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         ▼▼▼  여기만 수정하세요 — 브랜드 1개 = config 1개  ▼▼▼
+         새 브랜드: 이 BRAND 객체만 갈아끼우면 대시보드 전체가 재생성됩니다.
+         (집계 KPI·테마·PDF·마스킹은 엔진이 자동 처리)
+         ════════════════════════════════════════════════════════════════ -->
+    <script id="brand-config">
+    const BRAND = {
+        meta: {
+            name: 'AURELLE',
+            agency: 'SIRIAI',
+            mode: 'public',          // 'public'(대외 공유) | 'internal'(원가·실명 노출)  ※ URL ?mode=internal 로도 전환
+            theme: 'light',          // 'light' | 'dark'
+            preparedAt: '2026.06',
+            confidential: '대외비 · Confidential',
+            docTitle: 'AURELLE × SIRIAI | Global Short-form Campaign',
+            sample: true             // 가상 레퍼런스 플래그(표지 'Sample' 배지). 실제 브랜드면 false
+        },
+        brandKit: {
+            // SIRIAI 하우스 스타일(Paper/Ink/Helvetica·Pretendard·JetBrains Mono)은 엔진에 고정.
+            // 여기선 클라이언트 '악센트'만 절제해서 지정(웜 클레이/브랜드색). 폰트·베이스는 건드리지 않음.
+            colors: { accent: '#B27B53', accentSoft: '#C9A07B' },  // wash: '...' 로 표지 웜워시 톤도 지정 가능
+            logo:   null,            // 예: 'assets/aurelle/logo.svg' (없으면 이름 워드마크 — Helvetica)
+            coverImage: null,        // 예: 'assets/aurelle/atelier.jpg' (없으면 웜워시 플레이스홀더)
+            coverCaption: 'SEOUL · LOS ANGELES'
+        },
+        copy: {
+            eyebrow: 'Global Short-form Campaign Proposal',
+            tagline: '맑게 비치되 흔들리지 않는, 투명한 깊이.',
+            coverDesc: '한국 비건 포뮬러의 정직함을 글로벌 숏폼으로.<br>Prepared by SIRIAI · 2026.06',
+            badges: ['국내 · Instagram Reels', '북미 · TikTok'],
+            shareDesc: 'AURELLE 글로벌 숏폼 인플루언서 캠페인 제안 — SIRIAI'
+        },
+        whyUs: {
+            eyebrow: 'Why SIRIAI',
+            title: '하이엔드 브랜드를 위한 파트너',
+            items: [
+                { icon: 'search', no: '01', title: '데이터 기반 최적화 매칭', desc: '가입 풀에 갇히지 않고 플랫폼 전체 데이터를 탐색해, 브랜드 결에 맞는 인원을 새롭게 발굴합니다.' },
+                { icon: 'user',   no: '02', title: '전담 매니저 밀착 관리', desc: '단순 매칭이 해결 못하는 2차 활용 협상·콘텐츠 가이드 조율을 전담 매니저가 밀착 관리합니다.' },
+                { icon: 'trend',  no: '03', title: '거품 없는 합리적 예산', desc: '거대 플랫폼 유지비를 걷어내, 합리적 예산으로 하이엔드 수준의 결과물을 제공합니다.' }
+            ]
+        },
+        domestic: {
+            eyebrow: 'Domestic · Instagram Reels',
+            title: '핵심 인플루언서 제안',
+            note: '* 본 리스트는 레퍼런스(예시)용 데이터이며, 실제 진행 시 브랜드 핏에 맞춰 인원을 새롭게 구성·제안합니다.',
+            listButton: '전체 리스트 보기 →',
+            featuredNos: [13, 2, 9, 18],   // 큐레이션 카드로 띄울 no (없으면 상위 4명 자동)
+            comparison: {
+                label: '평균 인게이지먼트(ER) 비교',
+                baseline: { label: '일반 뷰티 평균', value: 1.5 },
+                ours:     { label: '제안 리스트 평균', value: 3.4 },
+                maxScale: 4.5
+            },
+            // 정규화 스키마 — 카드·모달 테이블·집계 KPI 단일 소스. (가상 더미 데이터)
+            influencers: [
+                { no: 1,  name: 'Yuna L.',    followers: 17100, views: 2200,  er: 2.46, ig: '@yuna.l',     costKRW: 600000 },
+                { no: 2,  name: 'Hailey K.',  followers: 20200, views: 17000, er: 4.58, ig: '@hailey.k',   costKRW: 800000 },
+                { no: 3,  name: 'Jin.7',      followers: 52200, views: 18300, er: 1.71, ig: '@jin.7',      costKRW: 1500000 },
+                { no: 4,  name: 'Rina Y.',    followers: 35500, views: 10300, er: 1.95, ig: '@rina.y',     costKRW: 1100000 },
+                { no: 5,  name: 'Soov',       followers: 59300, views: 22500, er: 2.00, ig: '@soov',       costKRW: 1700000 },
+                { no: 6,  name: 'Crystal',    followers: 2300,  views: 2200,  er: 3.12, ig: '@crystal.xo', costKRW: 250000 },
+                { no: 7,  name: 'Mill',       followers: 3100,  views: 3500,  er: 4.55, ig: '@mill.you',   costKRW: 300000 },
+                { no: 8,  name: 'Daon',       followers: 8100,  views: 6200,  er: 3.39, ig: '@daon._',     costKRW: 450000 },
+                { no: 9,  name: 'Hyun.0',     followers: 5900,  views: 5000,  er: 5.12, ig: '@hyun.0',     costKRW: 400000 },
+                { no: 10, name: 'Joo',        followers: 3600,  views: 6800,  er: 3.77, ig: '@imjoo.o',    costKRW: 300000 },
+                { no: 11, name: 'Seul',       followers: 2100,  views: 2200,  er: 3.08, ig: '@yoon.sri',   costKRW: 220000 },
+                { no: 12, name: 'Chammy',     followers: 1200,  views: 1300,  er: 4.50, ig: '@chammy',     costKRW: 180000 },
+                { no: 13, name: 'Weonny',     followers: 3200,  views: 4600,  er: 7.81, ig: '@weonny',     costKRW: 350000 },
+                { no: 14, name: 'Coco',       followers: 2200,  views: 1900,  er: 2.89, ig: '@ia.coco',    costKRW: 220000 },
+                { no: 15, name: 'Minjoo S.',  followers: 3000,  views: 2200,  er: 2.90, ig: '@mzu',        costKRW: 280000 },
+                { no: 16, name: 'Shinna',     followers: 5100,  views: 3300,  er: 2.89, ig: '@shinna',     costKRW: 380000 },
+                { no: 17, name: 'Miyul',      followers: 1300,  views: 1300,  er: 2.10, ig: '@sophi.yool', costKRW: 180000 },
+                { no: 18, name: 'Chun',       followers: 11400, views: 7900,  er: 3.93, ig: '@chunworld',  costKRW: 700000 },
+                { no: 19, name: 'Namu',       followers: 7800,  views: 4200,  er: 2.41, ig: '@namu.nm',    costKRW: 500000 },
+                { no: 20, name: 'Minseo P.',  followers: 4800,  views: 5700,  er: 6.27, ig: '@minseo.p',   costKRW: 380000 }
+            ]
+        },
+        overseas: {
+            eyebrow: 'North America · TikTok',
+            title: '북미 TikTok 캠페인 전략',
+            footnote: '* 리스트는 진행 확정 후 5~7일 이내 별도 제공됩니다.',
+            strategy: [
+                { no: '01', title: '국내 최저가 수준 시딩', desc: '무가시딩 노하우를 바탕으로, 북미 현지 크리에이터 섭외·콘텐츠 제작을 건당 합리가에 진행합니다.' },
+                { no: '02', title: '후불 청구',           desc: '실제 업로드된 건수만 청구해, 캠페인 진행 시 브랜드의 로스 리스크를 최소화합니다.' },
+                { no: '03', title: 'Amazon MCF 연동',     desc: '부운영자 권한 부여 시, 복잡한 해외 물류 대행까지 원스톱으로 관리합니다.' }
+            ],
+            reference: {
+                badge: 'PROVEN REFERENCE',
+                items: [
+                    { name: '글로벌 스킨케어 A', detail: '북미 운영' },
+                    { name: '코스메틱 B',        detail: '월 200건 진행 중' },
+                    { name: '뷰티 디바이스 C',   detail: '2,000건 누적' }
+                ],
+                cta: { label: '레퍼런스 채널 보기 →', url: '#' }
+            },
+            simulator: {
+                eyebrow: 'Budget Scale-up Simulator',
+                title: '예산별 예상 퍼포먼스',
+                min: 200, max: 1500, step: 50, initial: 600,   // 단위: 만원
+                unitCostKRW: 50000, contentsPerUnit: 5,
+                reachPerContent: 5000, viewsPerContent: 500, engRate: 0.05,
+                note: '북미 시딩 단가(건당 5만원) 기반 산출치입니다. <b>+α(바이럴 포텐셜)</b>: 틱톡 알고리즘 특성상 1~2개 영상만 터져도 전체 뷰·반응이 기하급수적으로 상승합니다.'
+            }
+        },
+        process: {
+            eyebrow: 'Process',
+            title: '캠페인 진행 과정',
+            tabs: [
+                {
+                    id: 'domestic', label: '국내 (IG Reels)', footer: '총 예상 소요 기간: 약 4~5주',
+                    steps: [
+                        { icon: 'list', title: '리스트 확정', summary: '7일 소요\n내부 검토 후 최종 선정',
+                          detail: { type: 'text', heading: '리스트 확정', bullets: ['플랫폼 전체 데이터에서 브랜드 핏 후보 발굴', '예상 성과·단가 정리 후 내부 검토', '최종 명단 시트로 공유'] } },
+                        { icon: 'box', title: '가이드 & 발송', summary: '2~3일 소요\n가이드라인 전달 및 제품 발송',
+                          detail: { type: 'text', heading: '가이드 & 발송', bullets: ['브랜드 레퍼런스 + 핵심 방향성 중심 가이드라인 전달', '과도한 스크립트 지양 → 자연스러운 콘텐츠 유도', '주소 수령 확인 후 제품 발송 (국내 2~3일)'] } },
+                        { icon: 'sparkle', title: '제작 & 검수', summary: '2~3주 소요\n업로드 전 사전 검수',
+                          detail: { type: 'text', heading: '콘텐츠 제작 & 검수', bullets: ['SIRIAI가 제작 진행 상황 직접 팔로업', '업로드 전 톤앤매너·제품 노출·필수 태그 사전 검수', '수정 필요 시 인플루언서와 직접 조율'] } },
+                        { icon: 'chart', title: '업로드 & 리포트', summary: '순차 발행\n퍼포먼스 리포트 제공',
+                          detail: { type: 'text', heading: '업로드 & 리포트', bullets: ['최적 시점에 순차 업로드', '조회수·저장·반응률 집계', '캠페인 종합 퍼포먼스 리포트 제공'] } }
+                    ]
+                },
+                {
+                    id: 'na', label: '북미 (TikTok)', footer: '장기적인 브랜드 자산 구축 파트너십',
+                    steps: [
+                        { icon: 'handshake', title: '권한 부여 & 기획', summary: 'Amazon MCF 연동 및\n미국 시장 맞춤 시딩 기획',
+                          detail: { type: 'text', heading: '권한 부여 & 기획', bullets: ['Amazon 부운영자 권한 부여 → MCF 물류 연동', '타겟 분석 기반 북미 맞춤형 틱톡 시딩 기획'] } },
+                        { icon: 'plane', title: '시딩 & 물류 대행', summary: '현지 크리에이터 발굴 및\n원스톱 제품 발송',
+                          detail: { type: 'text', heading: '시딩 & 물류 대행', bullets: ['브랜드 핏 북미 현지 크리에이터 발굴·섭외', 'MCF 활용 원스톱 발송 및 배송 트래킹'] } },
+                        { icon: 'mobile', title: '콘텐츠 축적', summary: '무가시딩 중심\n꾸준한 업로드 관리',
+                          detail: { type: 'text', heading: '콘텐츠 축적', bullets: ['현지 무가시딩으로 퀄리티 UGC 다량 확보', 'TikTok 가이드라인 준수 + 꾸준한 업로드 모니터링'] } },
+                        { icon: 'card', title: '후불 청구', summary: '실제 업로드 건수 기준\n정산 및 성과 리포팅',
+                          detail: { type: 'text', heading: '후불 청구', bullets: ['실제 업로드된 건수만 집계해 투명 정산', '최종 조회수·반응률 성과 리포트 제공'] } }
+                    ]
+                }
+            ]
+        },
+        closing: {
+            eyebrow: 'Packages',
+            title: '역량 & 마케팅 패키지',
+            sub: '실증된 실행력을 브랜드 단계에 맞는 패키지로 제안합니다.',
+            capabilities: [
+                { label: '인플루언서 DB', value: '191명+' },
+                { label: '방문 이행률', value: '94.6%' },
+                { label: '협업 에이전시', value: '8곳' },
+                { label: '글로벌 운영', value: '북미 TikTok' }
+            ],
+            packages: [
+                { letter: 'A', name: '시딩 베이직', desc: '국내 나노·마이크로 시딩으로 초기 콘텐츠 자산 확보', items: ['인플루언서 10~15인', '제품 발송 대행', '기본 성과 리포트'], target: '신규 진입', featured: false },
+                { letter: 'B', name: '리치 부스터', desc: '미들 인플루언서 중심 도달 극대화', items: ['미들 인플루언서 믹스', 'ER 최적화 큐레이션', '2차 활용 협의'], target: '인지도 확장', featured: false },
+                { letter: 'C', name: '글로벌 시딩', desc: '북미 TikTok 무가/후불 시딩', items: ['현지 크리에이터 섭외', 'Amazon MCF 물류', '후불 정산'], target: '해외 진출', featured: false },
+                { letter: 'D', name: '콘텐츠 패키지', desc: '브랜드 핏 UGC 대량 제작', items: ['숏폼 30~50개', '톤앤매너 검수', '2차 광고 소재화'], target: '소재 확보', featured: false },
+                { letter: 'E', name: '오프라인 연계', desc: '팝업·VIP 행사 + 인플루언서 운영', items: ['행사 기획·운영', 'QR 방문 관리', '미디어 협업'], target: '브랜드 경험', featured: false },
+                { letter: 'F', name: '글로벌 풀패키지', desc: '국내+북미 통합 운영 + 전담 매니저', items: ['국내 IG + 북미 TikTok', '전담 매니저 밀착', '월간 통합 리포트'], target: '스케일업', featured: true }
+            ],
+            contact: {
+                eyebrow: "Let's work together",
+                title: '다음 캠페인, 함께 만들어요.',
+                items: [
+                    { icon: 'user',   label: 'Jun Yong Cho · Sales Manager', url: '#' },
+                    { icon: 'mail',   label: 'jysiriai@gmail.com', url: 'mailto:jysiriai@gmail.com' },
+                    { icon: 'mobile', label: 'M. 010-7552-4320', url: 'tel:+821075524320' }
+                ]
+            }
+        },
+        nav: ['표지', 'Why SIRIAI', '인플루언서 큐레이션', '북미 틱톡 전략', '진행 과정', '패키지 & 컨택'],
+        share: { image: '' }   // 예: 'assets/aurelle/share.jpg' (카톡/OG 썸네일)
+    };
+    </script>
+    <!-- ▲▲▲  config 끝 — 아래 엔진은 수정 불필요  ▲▲▲ -->
+
+    <!-- ════════════════════════════════════════════════════════════════
+         ENGINE — applyBrand(BRAND) 가 토큰 주입 + 전 슬라이드 렌더
+         ════════════════════════════════════════════════════════════════ -->
+    <script>
+    /* ── SVG 아이콘 세트 (currentColor 상속 — 이모지 폐기) ── */
+    const ICONS = {
+        search:'<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+        user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+        trend:'<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
+        list:'<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
+        box:'<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
+        sparkle:'<path d="M12 3l1.9 5.8L20 10l-6.1 1.2L12 17l-1.9-5.8L4 10l6.1-1.2z"/>',
+        chart:'<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
+        handshake:'<path d="M11 17l2 2a1 1 0 0 0 3-3"/><path d="M18 12l-3-3a2 2 0 0 0-3 0l-3 3"/><path d="M2 12l4-4 4 4"/><path d="M22 12l-4 4"/>',
+        plane:'<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/>',
+        mobile:'<rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>',
+        card:'<rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>',
+        mail:'<path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><polyline points="22,6 12,13 2,6"/>',
+        globe:'<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+        download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+        file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+        theme:'<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"/><line x1="18.4" y1="18.4" x2="19.8" y2="19.8"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.2" y1="19.8" x2="5.6" y2="18.4"/><line x1="18.4" y1="5.6" x2="19.8" y2="4.2"/>'
+    };
+    function icon(name, cls='') { return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]||''}</svg>`; }
+
+    /* ── 숫자 포맷 ── */
+    const fmt = n => n.toLocaleString('en-US');
+    function fmtK(n){ if(n>=10000) return (n/10000).toFixed(n%10000===0?0:1)+'만'; if(n>=1000) return (n/1000).toFixed(1)+'K'; return fmt(n); }
+    function maskCost(krw, mode){ if(mode!=='internal') return '협의'; return '₩'+fmt(krw); }
+
+    /* ── 상태 ── */
+    let MODE='public', state={ slide:1, total:6, scrolling:false, sortKey:'no', sortDir:1, search:'' };
+
+    /* ════════ applyBrand ════════ */
+    function applyBrand(B){
+        // URL ?mode=internal 오버라이드
+        const urlMode = new URLSearchParams(location.search).get('mode');
+        MODE = urlMode || B.meta.mode || 'public';
+
+        // 토큰 주입 — SIRIAI 하우스 스타일(Paper/Ink/폰트)은 :root에 고정.
+        // config는 클라이언트 악센트(웜 클레이/브랜드색)만 절제해서 덮는다. 베이스는 항상 중립.
+        const r = document.documentElement;
+        const c = (B.brandKit && B.brandKit.colors) || {};
+        if (c.accent)     r.style.setProperty('--brand-accent', c.accent);
+        if (c.accentSoft) r.style.setProperty('--brand-accent-soft', c.accentSoft);
+        if (c.wash)       r.style.setProperty('--wash-peach', c.wash);  // 선택: 클라 톤 웜워시
+        // 폰트는 SIRIAI 5종 고정(Helvetica/Pretendard/JetBrains Mono/Bodoni) — config로 바꾸지 않음.
+
+        // 메타/OG
+        document.title = B.meta.docTitle;
+        setMeta('name','description', B.copy.shareDesc);
+        setMeta('property','og:title', B.meta.docTitle);
+        setMeta('property','og:description', B.copy.shareDesc);
+        if(B.share && B.share.image){ setMeta('property','og:image', B.share.image); setMeta('name','twitter:image', B.share.image); }
+
+        state.total = (B.nav||[]).length || 6;
+        renderToolbar(B);
+        renderNav(B);
+        renderCover(B);
+        renderWhy(B);
+        renderDomestic(B);
+        renderOverseas(B);
+        renderProcess(B);
+        renderClosing(B);
+        renderSimpleSheet(B);
+
+        document.getElementById('sampleFlag').style.display = B.meta.sample ? '' : 'none';
+        triggerAnim(1);
+    }
+    function setMeta(attr, key, val){
+        let el=document.querySelector(`meta[${attr}="${key}"]`);
+        if(!el){ el=document.createElement('meta'); el.setAttribute(attr,key); document.head.appendChild(el); }
+        el.setAttribute('content', val);
+    }
+
+    /* ════════ 집계 (reduce 파생 — 하드코딩 금지) ════════ */
+    function kpis(B){
+        const a = B.domestic.influencers;
+        return {
+            count: a.length,
+            followers: a.reduce((s,i)=>s+i.followers,0),
+            views: a.reduce((s,i)=>s+i.views,0),
+            avgEr: (a.reduce((s,i)=>s+i.er,0)/a.length)
+        };
+    }
+
+    /* ════════ TOOLBAR ════════ */
+    function renderToolbar(B){
+        const modeLabel = MODE==='internal' ? 'Internal' : 'Public';
+        document.getElementById('toolbar').innerHTML = `
+            <span class="mode-tag ${MODE==='public'?'public':''}" title="현재 노출 모드 (URL ?mode=internal 로 전환)">${modeLabel}</span>
+            <button class="tool-btn" onclick="exportPDF('full')" title="화면 그대로 전체 PDF">${icon('file')}<span class="lbl">전체 PDF</span></button>
+            <button class="tool-btn" onclick="exportPDF('simple')" title="핵심 요약 1장 PDF">${icon('download')}<span class="lbl">간단 PDF</span></button>`;
+    }
+
+    /* ════════ NAV ════════ */
+    function renderNav(B){
+        const nav=document.getElementById('bottomNav');
+        nav.innerHTML = `<div class="nav-brand"><span class="serif">${B.meta.name}</span><span class="x">× ${B.meta.agency}</span></div>` +
+            B.nav.map((label,i)=>`<button class="nav-btn ${i===0?'active':''}" ${i===0?'aria-current="page"':''} onclick="goToSlide(${i+1})">${label}</button>`).join('');
+    }
+
+    /* ════════ COVER ════════ */
+    function renderCover(B){
+        const logo = B.brandKit.logo
+            ? `<img src="${B.brandKit.logo}" alt="${B.meta.name}">`
+            : `<span>${B.meta.name}</span>`;
+        document.getElementById('coverText').innerHTML = `
+            <div class="cover-eyebrow">${B.copy.eyebrow}</div>
+            <div class="cover-wordmark serif">${logo}</div>
+            <div class="cover-cross serif">× <span>${B.meta.agency}</span></div>
+            <div class="cover-divider"></div>
+            <p class="cover-tagline">“${B.copy.tagline}”</p>
+            <div class="cover-badges">${B.copy.badges.map(b=>`<span class="cover-badge">${b}</span>`).join('')}</div>
+            <p class="cover-desc">${B.copy.coverDesc}</p>`;
+        const fig=document.getElementById('coverFigure');
+        fig.setAttribute('data-caption', B.brandKit.coverCaption||'');
+        fig.innerHTML = B.brandKit.coverImage
+            ? `<img src="${B.brandKit.coverImage}" alt="${B.meta.name}">`
+            : `<div class="placeholder"><span>${B.meta.name}</span></div>`;
+    }
+
+    /* ════════ WHY ════════ */
+    function renderWhy(B){
+        document.getElementById('s2-eyebrow').textContent=B.whyUs.eyebrow;
+        document.getElementById('s2-title').textContent=B.whyUs.title;
+        document.getElementById('whyGrid').innerHTML = B.whyUs.items.map((it,i)=>`
+            <div class="feature-card fade-up d${i+1}">
+                <div class="feature-icon">${icon(it.icon)}</div>
+                <div class="feature-no num">${it.no}</div>
+                <h3 class="feature-title">${it.title}</h3>
+                <p class="feature-desc">${it.desc}</p>
+            </div>`).join('');
+    }
+
+    /* ════════ DOMESTIC (큐레이션) ════════ */
+    function renderDomestic(B){
+        const D=B.domestic, k=kpis(B);
+        document.getElementById('s3-eyebrow').textContent=D.eyebrow;
+        document.getElementById('s3-title').textContent=D.title;
+        document.getElementById('s3-note').textContent=D.note;
+        document.getElementById('openListBtn').textContent=D.listButton;
+        document.getElementById('openListBtn').onclick=()=>openModal('modal-list');
+
+        // compare bar
+        const cmp=D.comparison, ms=cmp.maxScale;
+        document.getElementById('compareMount').innerHTML=`
+            <div class="compare">
+                <div class="compare-label">${cmp.label}</div>
+                <div class="compare-row base">
+                    <span class="compare-name">${cmp.baseline.label}</span>
+                    <div class="compare-track"><div class="compare-fill" data-target="${(cmp.baseline.value/ms*100).toFixed(0)}%"></div></div>
+                    <span class="compare-val">${cmp.baseline.value}%</span>
+                </div>
+                <div class="compare-row ours">
+                    <span class="compare-name">${cmp.ours.label}<br><span style="font-size:11px;color:var(--text-sub);font-weight:500">(전체 ${k.count}인 기준)</span></span>
+                    <div class="compare-track"><div class="compare-fill" data-target="${(cmp.ours.value/ms*100).toFixed(0)}%"></div></div>
+                    <span class="compare-val num">${cmp.ours.value}%</span>
+                </div>
+            </div>`;
+
+        // featured cards
+        const byNo = Object.fromEntries(D.influencers.map(i=>[i.no,i]));
+        let feat = (D.featuredNos||[]).map(n=>byNo[n]).filter(Boolean);
+        if(feat.length<4) feat = [...D.influencers].sort((a,b)=>b.er-a.er).slice(0,4);
+        feat = feat.slice(0,4);
+        document.getElementById('curationGrid').innerHTML = feat.map(i=>`
+            <div class="cur-card">
+                <div class="cur-avatar">${i.img?`<img src="${i.img}" alt="${i.name}">`:`<div class="ini" style="background:linear-gradient(150deg, var(--brand-primary), var(--brand-accent))">${i.name.charAt(0)}</div>`}</div>
+                <div class="cur-name">${maskName(i.name)}<a class="cur-link" href="https://instagram.com/${i.ig.replace('@','')}" target="_blank" rel="noopener">↗</a></div>
+                <div class="cur-stat">Followers ${fmtK(i.followers)}</div>
+                <div class="cur-stat">ER ${i.er}%</div>
+            </div>`).join('');
+
+        // modal stats + tools + table
+        document.getElementById('listModalTitle').textContent=`인플루언서 리스트 (${k.count}명)`;
+        document.getElementById('listModalTools').innerHTML=`<button class="modal-close" onclick="closeModal('modal-list')" aria-label="닫기">&times;</button>`;
+        document.getElementById('listStats').innerHTML=`
+            <div class="stat-box"><div class="k">총 섭외 인원</div><div class="v accent">${k.count}<span style="font-size:13px;color:var(--text-main)"> 명</span></div></div>
+            <div class="stat-box"><div class="k">총 합산 팔로워</div><div class="v">${fmt(k.followers)}<span style="font-size:13px"> +</span></div></div>
+            <div class="stat-box"><div class="k">총 예상 조회수</div><div class="v">${fmt(k.views)}<span style="font-size:13px;color:var(--brand-accent)"> +α</span></div></div>
+            <div class="stat-box"><div class="k">평균 ER</div><div class="v accent">${k.avgEr.toFixed(2)}%</div></div>`;
+        renderTable(B);
+        document.getElementById('searchInput').oninput=(e)=>{ state.search=e.target.value.toLowerCase(); renderTable(B); };
+    }
+    function maskName(name){ return name; } // public에서도 가상 더미라 노출. 실데이터 마스킹 필요 시 여기서 이니셜화.
+
+    function renderTable(B){
+        const cols=[
+            {key:'no',label:'No.'},{key:'name',label:'이름',name:true},
+            {key:'followers',label:'팔로워'},{key:'views',label:'예상 조회수'},
+            {key:'er',label:'ER'}
+        ];
+        if(MODE==='internal') cols.push({key:'costKRW',label:'예상 단가'});
+        cols.push({key:'ig',label:'Instagram'});
+
+        document.getElementById('tableHead').innerHTML='<tr>'+cols.map(c=>{
+            const on=state.sortKey===c.key;
+            const aria=on?(state.sortDir>0?'ascending':'descending'):'none';
+            return `<th class="${on?'sorted':''}" role="columnheader" aria-sort="${aria}" tabindex="0" onclick="sortTable('${c.key}', window.__B)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();sortTable('${c.key}', window.__B);}">${c.label}${on?(state.sortDir>0?' ▲':' ▼'):''}</th>`;
+        }).join('')+'</tr>';
+
+        let rows=B.domestic.influencers.filter(i=>{
+            if(!state.search) return true;
+            return i.name.toLowerCase().includes(state.search)||i.ig.toLowerCase().includes(state.search);
+        });
+        const sk=state.sortKey;
+        rows.sort((a,b)=>{
+            let va=a[sk], vb=b[sk];
+            if(typeof va==='string') return state.sortDir*va.localeCompare(vb);
+            return state.sortDir*(va-vb);
+        });
+        document.getElementById('tableCount').textContent=`${rows.length}명 표시`;
+        const tb=document.getElementById('tableBody');
+        if(!rows.length){ tb.innerHTML=`<tr class="empty-row"><td colspan="${cols.length}">검색 결과가 없습니다.</td></tr>`; return; }
+        tb.innerHTML=rows.map(i=>'<tr>'+cols.map(c=>{
+            if(c.name) return `<td class="name-col">${maskName(i.name)}</td>`;
+            if(c.key==='followers') return `<td>${fmtK(i.followers)}</td>`;
+            if(c.key==='views') return `<td>${fmtK(i.views)}</td>`;
+            if(c.key==='er') return `<td>${i.er}%</td>`;
+            if(c.key==='costKRW') return `<td>${maskCost(i.costKRW,MODE)}</td>`;
+            if(c.key==='ig') return `<td><a href="https://instagram.com/${i.ig.replace('@','')}" target="_blank" rel="noopener">${i.ig} ↗</a></td>`;
+            return `<td>${i[c.key]}</td>`;
+        }).join('')+'</tr>').join('');
+    }
+    function sortTable(key,B){ if(state.sortKey===key) state.sortDir*=-1; else { state.sortKey=key; state.sortDir=1; } renderTable(B); }
+
+    /* ════════ OVERSEAS (전략 + 레퍼런스 + 시뮬레이터) ════════ */
+    function renderOverseas(B){
+        const O=B.overseas;
+        document.getElementById('s4-eyebrow').textContent=O.eyebrow;
+        document.getElementById('s4-title').textContent=O.title;
+        document.getElementById('strategyGrid').innerHTML=O.strategy.map((s,i)=>`
+            <div class="feature-card fade-up d${i+1}">
+                <div class="feature-no num">${s.no}</div>
+                <h3 class="feature-title" style="font-size:18px">${s.title}</h3>
+                <p class="feature-desc" style="font-size:13.5px">${s.desc}</p>
+            </div>`).join('');
+        const R=O.reference;
+        document.getElementById('refMount').innerHTML=`
+            <div class="ref-strip">
+                <div class="ref-info">
+                    <span class="ref-badge">${R.badge}</span>
+                    <span class="ref-items">${R.items.map(it=>`<strong>${it.name}</strong> ${it.detail}`).join(' &nbsp;|&nbsp; ')}</span>
+                </div>
+                <a class="ref-cta" href="${R.cta.url}" target="_blank" rel="noopener">${R.cta.label}</a>
+            </div>`;
+        renderSim(B);
+        if(!document.getElementById('s4-footnote')){
+            const p=document.createElement('p'); p.className='note fade-up d3'; p.id='s4-footnote'; p.textContent=O.footnote;
+            document.getElementById('simMount').after(p);
+        }
+    }
+    function renderSim(B){
+        const S=B.overseas.simulator;
+        document.getElementById('simMount').innerHTML=`
+            <div class="sim">
+                <div class="sim-head">
+                    <div><div class="sim-eyebrow">${S.eyebrow}</div><h3 class="sim-title">${S.title}</h3></div>
+                    <div class="sim-budget num" id="simBudget"></div>
+                </div>
+                <input type="range" class="sim-slider" id="simSlider" min="${S.min}" max="${S.max}" step="${S.step}" value="${S.initial}" aria-label="예산 슬라이더(만원)">
+                <div class="sim-metrics">
+                    <div class="sim-cell"><div class="k">콘텐츠 자산</div><div class="v"><span id="sim-c">0</span><span class="u"> 개+</span></div></div>
+                    <div class="sim-cell"><div class="k">잠재 노출 범위</div><div class="v"><span id="sim-r">0</span><span class="u"> 명+</span></div></div>
+                    <div class="sim-cell"><div class="k">예상 최소 오가닉 뷰</div><div class="v"><span id="sim-v">0</span><span class="u a"> +α</span></div></div>
+                    <div class="sim-cell hl"><div class="k">예상 최소 인게이지먼트</div><div class="v"><span id="sim-e">0</span><span class="u a"> +α</span></div></div>
+                </div>
+                <div class="sim-note">${S.note}</div>
+            </div>`;
+        const sl=document.getElementById('simSlider');
+        const calc=(val)=>{
+            const c=Math.floor(val/S.contentsPerUnit);
+            const r=c*S.reachPerContent, v=c*S.viewsPerContent, e=Math.floor(v*S.engRate);
+            document.getElementById('simBudget').textContent=fmt(val*10000)+' KRW';
+            document.getElementById('sim-c').textContent=fmt(c);
+            document.getElementById('sim-r').textContent=fmt(r);
+            document.getElementById('sim-v').textContent=fmt(v);
+            document.getElementById('sim-e').textContent=fmt(e);
+        };
+        sl.oninput=e=>calc(parseInt(e.target.value));
+        calc(parseInt(sl.value));
+    }
+
+    /* ════════ PROCESS ════════ */
+    function renderProcess(B){
+        const P=B.process;
+        document.getElementById('s5-eyebrow').textContent=P.eyebrow;
+        document.getElementById('s5-title').textContent=P.title;
+        document.getElementById('procTabs').innerHTML=P.tabs.map((t,i)=>
+            `<button class="tab-btn ${i===0?'active':''}" onclick="switchTab(event,'${t.id}')">${t.label}</button>`).join('');
+        document.getElementById('procPanes').innerHTML=P.tabs.map((t,i)=>`
+            <div class="tab-pane ${i===0?'active':''} fade-up d1" id="pane-${t.id}">
+                <p class="note" style="margin-bottom:20px">* 각 단계를 클릭하면 상세 안내를 볼 수 있습니다.</p>
+                <div class="timeline">
+                    ${t.steps.map((s,si)=>`
+                        <div class="step-card" onclick='showStep(${JSON.stringify(s).replace(/'/g,"&#39;")})'>
+                            <div class="step-head"><span class="step-no num">${String(si+1).padStart(2,'0')}</span><span class="step-ic">${icon(s.icon)}</span></div>
+                            <h3 class="step-title">${s.title}</h3>
+                            <p class="step-sum">${s.summary.replace(/\n/g,'<br>')}</p>
+                            <div class="step-hint">자세히 보기 →</div>
+                        </div>`).join('')}
+                </div>
+                <div class="process-footer">${t.footer}</div>
+            </div>`).join('');
+    }
+    function switchTab(ev,id){
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+        ev.currentTarget.classList.add('active');
+        document.getElementById('pane-'+id).classList.add('active');
+    }
+    function showStep(s){
+        const d=s.detail; let html='';
+        if(d.type==='image'){
+            html=`<img class="proc-img" src="${d.src}" alt="${s.title}">`;
+            if(d.links) html+=`<div class="proc-links">${d.links.map(l=>`<a class="btn" href="${l.url}" target="_blank" rel="noopener">${l.label}</a>`).join('')}</div>`;
+            if(d.note) html+=`<p class="proc-note">${d.note}</p>`;
+        } else {
+            html=`<div class="proc-text"><h3>${d.heading}</h3><ul>${d.bullets.map(b=>`<li>${b}</li>`).join('')}</ul>`;
+            if(d.links) html+=`<div class="proc-links">${d.links.map(l=>`<a class="btn" href="${l.url}" target="_blank" rel="noopener">${l.label}</a>`).join('')}</div>`;
+            html+=`</div>`;
+        }
+        document.getElementById('procBody').innerHTML=html;
+        openModal('modal-proc');
+    }
+
+    /* ════════ CLOSING (패키지 + 컨택) ════════ */
+    function renderClosing(B){
+        const C=B.closing;
+        document.getElementById('s6-eyebrow').textContent=C.eyebrow;
+        document.getElementById('s6-title').textContent=C.title;
+        document.getElementById('s6-sub').textContent=C.sub;
+        document.getElementById('capList').innerHTML=C.capabilities.map(c=>`<span class="cap-chip"><b>${c.value}</b> ${c.label}</span>`).join('');
+        document.getElementById('pkgGrid').innerHTML=C.packages.map(p=>`
+            <div class="pkg-card ${p.featured?'featured':''}">
+                ${p.featured?'<span class="pkg-featured-tag">RECOMMENDED</span>':''}
+                <div class="pkg-letter num">${p.letter}</div>
+                <h3 class="pkg-name">${p.name}</h3>
+                <p class="pkg-desc">${p.desc}</p>
+                <ul class="pkg-items">${p.items.map(it=>`<li>${it}</li>`).join('')}</ul>
+                <div class="pkg-target">For. <b>${p.target}</b></div>
+            </div>`).join('');
+        const ct=C.contact;
+        document.getElementById('contactMount').innerHTML=`
+            <div class="contact">
+                <div class="contact-l"><div class="ct-eyebrow">${ct.eyebrow}</div><div class="ct-title serif">${ct.title}</div></div>
+                <div class="contact-r">${ct.items.map(it=>`<a class="contact-item" href="${it.url}">${icon(it.icon)}<span>${it.label}</span></a>`).join('')}</div>
+            </div>`;
+    }
+
+    /* ════════ SIMPLE SHEET (간단 PDF) ════════ */
+    function renderSimpleSheet(B){
+        const k=kpis(B), S=B.overseas.simulator, C=B.closing;
+        const c=Math.floor(S.initial/S.contentsPerUnit);
+        const scenario=[
+            ['캠페인 예산', fmt(S.initial*10000)+' KRW'],
+            ['콘텐츠 자산', fmt(c)+' 개+'],
+            ['잠재 노출 범위', fmt(c*S.reachPerContent)+' 명+'],
+            ['예상 오가닉 뷰', fmt(c*S.viewsPerContent)+' +α'],
+            ['예상 인게이지먼트', fmt(Math.floor(c*S.viewsPerContent*S.engRate))+' +α']
+        ];
+        document.getElementById('simpleSheet').innerHTML=`
+            <div class="ss-head">
+                <div class="ss-brand serif">${B.meta.name} <span class="x">× ${B.meta.agency}</span></div>
+                <div class="ss-meta">${B.copy.eyebrow}<br>${B.meta.preparedAt} · ${B.meta.confidential}</div>
+            </div>
+            <div class="ss-tagline">“${B.copy.tagline}”</div>
+            <div class="ss-kpi">
+                <div class="cell"><div class="v num">${k.count}명</div><div class="k">제안 인플루언서</div></div>
+                <div class="cell"><div class="v num">${fmt(k.followers)}+</div><div class="k">합산 팔로워</div></div>
+                <div class="cell"><div class="v num">${k.avgEr.toFixed(2)}%</div><div class="k">평균 ER (업계 ${B.domestic.comparison.baseline.value}%)</div></div>
+                <div class="cell"><div class="v num">${fmt(k.views)}+</div><div class="k">예상 조회수</div></div>
+            </div>
+            <div class="ss-cols">
+                <div class="ss-box">
+                    <h4>대표 예산 시나리오</h4>
+                    <table class="ss-scenario"><tbody>${scenario.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</tbody></table>
+                </div>
+                <div class="ss-box">
+                    <h4>마케팅 패키지</h4>
+                    <div class="ss-pkg">${C.packages.map(p=>`<div><b>${p.letter}. ${p.name}</b> — ${p.desc}</div>`).join('')}</div>
+                </div>
+            </div>
+            <div class="ss-contact">
+                <span>${C.contact.title}</span>
+                ${C.contact.items.map(it=>`<span><b>${it.label}</b></span>`).join('')}
+            </div>`;
+    }
+
+    /* ════════ PDF EXPORT ════════ */
+    function exportPDF(kind){
+        // 인쇄 전 모든 막대 채우기 (빈 슬라이드 방지)
+        document.querySelectorAll('.compare-fill').forEach(b=>b.style.width=b.getAttribute('data-target'));
+        if(kind==='simple') document.body.classList.add('print-simple');
+        const cleanup=()=>{ document.body.classList.remove('print-simple'); window.removeEventListener('afterprint',cleanup); };
+        window.addEventListener('afterprint',cleanup);
+        setTimeout(()=>window.print(), 60);
+    }
+
+    /* ════════ NAV / ANIM ════════ */
+    function triggerAnim(index){
+        const slide=document.getElementById('slide-'+index);
+        if(!slide) return;
+        if(index===3){ setTimeout(()=>slide.querySelectorAll('.compare-fill').forEach(b=>b.style.width=b.getAttribute('data-target')),400); }
+    }
+    function goToSlide(index){
+        if(index<1||index>state.total) return;
+        state.slide=index;
+        document.querySelectorAll('.nav-btn').forEach((b,i)=>{ const on=i+1===index; b.classList.toggle('active',on); if(on) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
+        document.querySelectorAll('.slide').forEach((s,i)=>s.classList.toggle('active',i+1===index));
+        const active=document.getElementById('slide-'+index); if(active) active.scrollTop=0;
+        const nav=document.getElementById('bottomNav'), btn=document.querySelectorAll('.nav-btn')[index-1];
+        if(nav&&btn&&nav.scrollWidth>nav.clientWidth+1) nav.scrollTo({left:btn.offsetLeft-nav.clientWidth/2+btn.offsetWidth/2,behavior:'smooth'});
+        triggerAnim(index);
+    }
+    let _lastFocus=null, _trapEl=null;
+    function _focusables(el){ return [...el.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')].filter(n=>n.offsetParent!==null); }
+    function _trap(e){
+        if(e.key!=='Tab'||!_trapEl) return;
+        const f=_focusables(_trapEl); if(!f.length) return;
+        const first=f[0], last=f[f.length-1];
+        if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
+        else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
+    }
+    function openModal(id){
+        const m=document.getElementById(id);
+        _lastFocus=document.activeElement;
+        m.classList.add('active');
+        _trapEl=m.querySelector('.modal');
+        document.addEventListener('keydown',_trap);
+        const f=_focusables(_trapEl); if(f.length) setTimeout(()=>f[0].focus(),50);
+    }
+    function closeModal(id){
+        const m=document.getElementById(id); m.classList.remove('active');
+        document.removeEventListener('keydown',_trap); _trapEl=null;
+        if(_lastFocus){ _lastFocus.focus(); _lastFocus=null; }
+    }
+    function closeAnyModal(){ const o=document.querySelector('.modal-overlay.active'); if(o) closeModal(o.id); }
+
+    /* 키보드 / 휠 / 스와이프 */
+    document.addEventListener('keydown',e=>{
+        const open=document.querySelector('.modal-overlay.active');
+        if(e.key==='Escape'&&open){ closeAnyModal(); return; }
+        if(open) return;
+        if(e.key==='ArrowRight'||e.key==='ArrowDown'){ if(state.slide<state.total) goToSlide(state.slide+1); }
+        else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){ if(state.slide>1) goToSlide(state.slide-1); }
+        else if(e.key.toLowerCase()==='f'){ if(!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); }
+    });
+    window.addEventListener('wheel',e=>{
+        if(document.querySelector('.modal-overlay.active')) return;
+        const s=document.querySelector('.slide.active');
+        if(s&&s.scrollHeight>s.clientHeight+1){
+            const atTop=s.scrollTop<=0, atBot=s.scrollTop+s.clientHeight>=s.scrollHeight-1;
+            if(e.deltaY>0&&!atBot) return; if(e.deltaY<0&&!atTop) return;
+        }
+        if(Math.abs(e.deltaY)<12) return;
+        e.preventDefault();
+        if(state.scrolling) return; state.scrolling=true;
+        if(e.deltaY>0){ if(state.slide<state.total) goToSlide(state.slide+1); }
+        else if(state.slide>1) goToSlide(state.slide-1);
+        setTimeout(()=>state.scrolling=false,700);
+    },{passive:false});
+    let touchX=null;
+    window.addEventListener('touchstart',e=>{ if(!document.querySelector('.modal-overlay.active')) touchX=e.touches[0].clientX; });
+    window.addEventListener('touchend',e=>{
+        if(touchX===null||document.querySelector('.modal-overlay.active')) return;
+        const dx=e.changedTouches[0].clientX-touchX; touchX=null;
+        if(Math.abs(dx)<60) return;
+        if(dx<0){ if(state.slide<state.total) goToSlide(state.slide+1); }
+        else if(state.slide>1) goToSlide(state.slide-1);
+    });
+
+    /* ════════ INIT ════════ */
+    window.__B = BRAND;
+    document.addEventListener('DOMContentLoaded',()=>applyBrand(BRAND));
+    </script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "(주)비앤케이",
+      "verdict": "적합",
+      "own_brand": "TAM BEAUTY",
+      "reason": "자사몰(tambeauty.me)에서 TAM BEAUTY 브랜드로 메이크업 제품(Cloud Line·Jelly Line 등)을 소비자에 직접 판매. (출처: tambeauty.me)"
+    },
+    {
+      "company": "줄라이 모닝",
+      "verdict": "적합",
+      "own_brand": "줄라이모닝 (July Morning)",
+      "reason": "자사몰(july-morning.co.kr)에서 줄라이모닝 브랜드 헤어·바디·향수 제품을 소비자에 직접 판매. (출처: july-morning.co.kr)"
+    },
+    {
+      "company": "센티카",
+      "verdict": "적합",
+      "own_brand": "SCENTICA",
+      "reason": "자사몰(scentica.co.kr)에서 SCENTICA 브랜드로 향수·핸드·바디·헤어케어 제품을 소비자에 직접 판매, 오프라인 매장도 운영. (출처: scentica.co.kr)"
+    },
+    {
+      "company": "EBIN KOREA",
+      "verdict": "적합",
+      "own_brand": "Gorilla Waxing, DIVINE",
+      "reason": "EBIN KOREA는 Gorilla Waxing·DIVINE 등 자체 PB 보유, 미국·글로벌 뷰티 매장에 자기 브랜드명으로 판매. (출처: ebinkorea.com 검색결과·trademarkia.com)"
+    },
+    {
+      "company": "(주)탠코리아",
+      "verdict": "적합",
+      "own_brand": "JAMIE BRONZE (제이미 브론즈)",
+      "reason": "2005년 론칭한 자체 태닝 브랜드 JAMIE BRONZE로 국내외 소비자에 직접 판매. (출처: kr.aving.net, intercharmkorea.com)"
+    },
+    {
+      "company": "디어메이",
+      "verdict": "적합",
+      "own_brand": "DEARMAY",
+      "reason": "자사몰(dearmay.co.kr)에서 DEARMAY 브랜드 색조·스킨케어 제품을 소비자에 직접 판매(B2B 수출 병행이나 자체 브랜드 명확). (출처: en.dearmay.co.kr)"
+    },
+    {
+      "company": "(주)바이옵트",
+      "verdict": "적합",
+      "own_brand": "VENDERMA",
+      "reason": "자사몰(venderma.com)에서 VENDERMA 브랜드로 EXO REJUVA·RED CALMING CICA 등 스킨케어 제품을 소비자에 직접 판매. (출처: venderma.com)"
+    },
+    {
+      "company": "TROIAREUKE",
+      "verdict": "적합",
+      "own_brand": "TROIAREUKE, ACSEN, VVS FOR PROFESSIONALS",
+      "reason": "troiareuke.com에서 자체 브랜드 스킨케어·색조 제품을 소비자에 직접 판매, 전문가 아카데미 병행. (출처: troiareuke.com)"
+    },
+    {
+      "company": "오미티드",
+      "verdict": "적합",
+      "own_brand": "Omitted (오미티드)",
+      "reason": "자사몰(omitted.kr)에서 Omitted 브랜드 고기능성 스킨케어 제품을 소비자에 직접 판매. (출처: omitted.kr)"
+    },
+    {
+      "company": "DAILY WEEKLY",
+      "verdict": "적합",
+      "own_brand": "DAILYWEEKLY",
+      "reason": "자사몰(dailyweekly.co.kr)에서 DAILYWEEKLY 브랜드 스킨케어 제품을 소비자에 직접 판매(B2B문의 병행이나 자체 브랜드 명확). (출처: dailyweekly.co.kr)"
+    }
+  ]
+}

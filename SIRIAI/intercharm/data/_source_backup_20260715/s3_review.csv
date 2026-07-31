@@ -1,0 +1,161 @@
+#,구분,회사명,카테고리,이메일,웹사이트,전화,부스번호,메모
+1,이메일확인,CLAIRLISSE,대상(인터참),,,,,"다수 검색 시도에도 'CLAIRLISSE'라는 브랜드를 공식 웹사이트·전시 디렉터리·사업자 정보 어디서도 확인 불가. 유사명(Klairs, Clarins, Cla"
+2,이메일확인,휴션,대상(인터참),,https://www.huceane.com,,,"huceane.com 공식 사이트 직접 방문(메인, About, Contact 페이지 확인). 문의 폼·물리 주소만 있고 이메일 주소는 공개되어 있지 않음. 채용"
+3,이메일확인,주식회사 사계절,대상(인터참),,,,,"웹사이트 정보 없음. 동명 업체 다수(쇼핑몰 운영사, 가방류 업체 등) 존재. 화장품·뷰티 업체로 특정할 수 없고 이메일도 확인 불가. 오귀속 방지를 위해 unc"
+4,이메일확인,브라이트,대상(인터참),,https://smartstore.naver.com/brightbrush,,,스마트스토어 직접 접근 불가(WebFetch 차단). brightbrush.xyz는 404 오류. 브랜드명 '브라이트'만으로는 동명 업체 다수. 공식 이메일 확인
+5,이메일확인,주식회사 아가파월드,대상(인터참),,https://www.wechat.com/Afgfguknnn,-14122,,"공식 웹사이트(agafar.com) 및 사업자정보(moneypin.biz, 114.co.kr) 전수 확인. 모든 채널에서 이메일 미노출 — 전화(070-4942-"
+6,이메일확인,Beaufirst Global Company Limited,대상(인터참),,,,,웹사이트 정보 없음. 'Beaufirst Global Company Limited'로 검색 시 이 회사를 특정할 수 있는 공식 홈페이지·사업자 정보·전시 디렉터리
+7,이메일확인,주식회사 메조팜,대상(인터참),purple9260@hnamail.net,https://mesopharm.co.kr/,010-9938-2525,,"공식 사이트(mesopharm.co.kr, mesopharm20.cafe24.com, 구 사이트)에서 이메일 미노출. bizno.net 조회 이메일(cosmocn"
+8,이메일확인,(주)미성메탈,대상(인터참),jkhan@misunggc.co.k,https://smartstore.naver.com/misunggc,415546334,,current_email 도메인 'misunggc.co.k'는 'misunggc.co.kr' 오타로 보임(공식 도메인 misunggc.co.kr은 tradekor
+9,이메일확인,㈜3일애,대상(인터참),sales@3dayslove.kr,https://www.3dayslove.kr/,215771586,,공식 글로벌몰(en.3dayslove.shop) footer에서 공식 이메일로 cgen@hanmail.net 확인됨. sales@3dayslove.kr는 공식 웹
+10,이메일확인,"BiOBiO Co.,Ltd.",대상(인터참),,https://www.biobiokorea.com/,-3124,,biobiokorea.com 홈페이지 접근은 됐으나 footer/회사정보 페이지(404)에서 이메일을 확인 불가. 인스타(@biobio_cosmetics) 및 사
+11,이메일확인,미영씨앤씨,대상(인터참),,https://hesolmall.com/,051-808-2778,,"hesolmall.com footer에는 운영사가 (주)에코마인(대표 문외숙, 사업자 605-81-90117, haesol@ecomine.co.kr)으로 명시돼 "
+12,이메일확인,VINACEUTICALS,대상(인터참),,https://vinaceuticals.vn,84901288809,,vinaceuticals.vn 홈페이지 및 /contact 페이지 모두 콘텐츠 없이 회사명만 표시. LinkedIn·구글 검색에서도 VINACEUTICALS Vi
+13,이메일확인,성림 BNC,대상(인터참),sunglimbnc@naver.com,http://www.sunglimbnc.com,02-413-1945,,sunglimbnc.com은 SSL 인증서 만료로 접근 불가(인증서 오류). 따라서 공식 웹사이트에서 sunglimbnc@naver.com이 이 회사 것임을 직접
+14,이메일확인,(주) 엠디무역,대상(인터참),,https://www.mdwig.co.kr/,010-9403-1281,,제공된 current_email mdtrad@naver.com은 공식 웹사이트(mdwig.co.kr) 어디에도 확인되지 않음. 사이트 footer에 표시된 이메일
+15,이메일확인,JDN CORPORATION LIMITED,대상(OEM),,,,,"검색 결과 확인된 jdnpackaging.com의 JDN Corporation Limited는 중국계 화장품 포장재 회사(광저우)로, INTERCHARM Kore"
+16,이메일확인,제너랩,대상(OEM),,,,,"bizno.net 및 다수 검색에서 '제너랩'으로 등록된 화장품 회사 확인 불가. 유사명 '제나랩(Genalab, grace@genalab.co.kr)'이 존재하"
+17,이메일확인,주식회사 에코마인,대상(OEM),,,,,"에코마인(ecomine.co.kr, 부산 강서구, 두발화장품 전문, 대표 문외숙) 존재 확인. 그러나 공식사이트 SSL 오류로 직접 접근 불가, tradekore"
+18,이메일확인,에이치알메디텍,대상(OEM),,,,,"에이치알메디텍(hrmeditech.co.kr, 인천 서구 가좌동, 대표 이현철, 미용기기·의료기기 OEM ODM) 존재 확인. FOB B2B 디렉터리에 ryu06"
+19,이메일확인,(주)바라보니화장품,대상(OEM),,,,,"공식 이메일을 확인할 수 있는 출처를 찾지 못함. 공식 홈페이지 확인 불가, INTERCHARM Korea 전시 디렉토리 site: 검색에서 해당사 페이지 미노출"
+20,이메일확인,(주)순바이오팜,대상(OEM),,,,,"웹 검색 결과에서 orca218@soonbiopharm.com이 반복 등장하나, 이 주소가 실제 공식 사이트 페이지(footer·contact 등)에서 직접 노출"
+21,이메일확인,뉴런,대상(OEM),,,,,"여러 검색을 시도했으나 '뉴런'이라는 이름의 화장품·뷰티 회사를 특정할 수 없음. 동명의 다른 업종 회사(교육, IT 등)만 검색됨. 공식 웹사이트·사업자 정보·"
+22,이메일확인,Symphony Cosmetic Inc.,대상(OEM),,,,,한국 기반 'Symphony Cosmetic Inc.'를 공식 출처에서 특정하지 못함. symphonybeauty.com은 별개의 미국 계열 브랜드이며 동일 회사
+23,이메일확인,비컨,대상(OEM),,,,,"동명 회사 충돌 주의: '비컨'으로 검색 시 ①비컨/becon(beconx.com, 삼성 C-Lab 스핀오프 AI 피부·두피 분석 뷰티테크) ②비컨코리아(beac"
+24,이메일확인,(주)아이오쓰리,대상(OEM),,,,,"뷰티·화장품 사업체로서의 (주)아이오쓰리를 특정할 수 있는 공식 웹사이트, 사업자 정보, INTERCHARM 디렉터리 페이지를 어떤 검색 경로로도 확인하지 못함."
+25,타겟검토,(주)와이셀바이오메디칼,,info@ycellbio.com,http://www.ycellbio.com,,A-A06,"PRP 세포재생 치료 전문 의료기기 회사(국내 PRP 점유율 1위), 소비자 뷰티 브랜드 아님."
+26,타겟검토,(주)씨피코스메틱,,jamessohn@cpcosmetic.co.kr,https://formulier.co.kr/,,A-A07,R&D 기반으로 3000여 스킨케어 처방을 개발·수출하는 제형 개발사로 자체 소비자 브랜드·D2C 언급 없음(formulier는 ODM 사이트)
+27,타겟검토,에시컬코리아 코스메틱 (EK COS),,butiq99@naver.com,http://www.instragram.com/ethicalkorea,,A-A10,OEM/ODM 맞춤형 제품개발·규제대응 지원하는 제조 파트너로 자체 소비자 브랜드 없음.
+28,타겟검토,(주)에스엠지유럽,,info@smgkorea.or.kr,https://youtu.be/iIv5q-pIwT4,,A-A14,"인증·클린룸 밸리데이션 등 의료기기 기업 인증서비스 제공 B2B, 소비자 브랜드 없음."
+29,타겟검토,아이셀메디텍,,www.icelmedi@naver.com,http://www.icelmedi.com,,A-A16,desc가 뷰티 디바이스·메디컬 제품·에스테틱 통합교육 중심 B2B(OEM/ODM 포함)로 소비자 직판 자체 브랜드 언급 없음.
+30,타겟검토,휴비스랩,,info@hubislab.com,https://hubislab.com/,,A-A22,desc가 에스테틱 클리닉·살롱·스파·뷰티스쿨 전용 프로 브랜드라고 명시하고 소비자 리테일·D2C 언급이 전혀 없어 B2B 전문가 채널 브랜드로
+31,타겟검토,MEDI SECTION NO.,,global@inot-meditech.com,https://www.inot-meditech.com/,,A-B32,"INOT은 1,000여 병원에 7,000개 제품을 공급하는 의료기기 제조·수입·유통사로 MEDISECTION No. 화장품도 병원·B2B 의료 "
+32,타겟검토,플래닛147,,hello@planit147.com,https://www.planit147.com/?lang=en,,"A-B43,
+C-N56","콜마코리아의 브랜드 인큐베이션 플랫폼·ODM 서비스로 창업자 지원, 자사 소비자 완제품 브랜드 아님."
+33,타겟검토,(주) 진코스텍,,lsw@jincostech.com,https://link.inpock.co.kr/amocosplus,,A-B46,"desc는 하이드로겔 1억개 수출·DDS 제형기술 등 제조·수출만 언급하고 자체 소비자 브랜드 서술 전무, 인포크 링크는 근거 약함(검증변경)."
+34,타겟검토,(주)온궁,,leesanghoong@naver.com,https://www.need-on.com,,A-C36,"스파·입욕제 전문 OEM/ODM 제조기업, 온천수 처방으로 제품 개발하나 자체 소비자 브랜드 없음."
+35,타겟검토,"Caregen Co., Ltd.",,sales@caregen.co.kr,http://caregen.co.kr/eng/,,A-D11,"펩타이드 바이오 상장사로 원료·특허·코스메슈티컬 B2B 중심, 자사 소비자 브랜드 없음."
+36,타겟검토,(주)오래온라이프사이언스,,info@oreon.co.kr,,,A-D23,HA 필러·리프팅 실 등 미용의료기기 개발·제조사로 소비자 브랜드 아님.
+37,타겟검토,스턴메디칼,,bjpark@mediforet.com,https://stunmedical.kr/,,A-D31,스킨부스터·필러 등 미용의료기기 OEM 제조 및 수출 100% B2B 회사로 자체 소비자 브랜드 없음.
+38,타겟검토,더마밀,,sales@dermameal.com,http://dermameal.com/,,A-E37,화장품 수탁제조(OEM/ODM) 전문으로 자체 소비자 브랜드 없음.
+39,타겟검토,주식회사 셀락바이오,,cellarkbio@cellarkbio.com,,,A-E41,"desc·website·category 모두 비어 있어 소비자 브랜드 확인 불가, 보수적 제외."
+40,타겟검토,주식회사 레드바이오컴퍼니,,info@redbiocp.com,https://www.redbiocp.com,,A-F31,"지방분해·스킨부스터·보툴리눔·필러·엑소좀 등 의료미용 제품과 OEM/ODM 중심, HYALSKIN은 시술계열 독자브랜드로 소비자완제품 근거 없음"
+41,타겟검토,에이치앤비바이오,,hnb.biomask@gmail.com,https://www.hnbbio.co.kr,,A-F32,시트마스크·토너 등 스킨케어 OEM/ODM 수탁제조사로 자체 소비자 브랜드 없음.
+42,타겟검토,(주)프리모리스인터내셔널,,hnkim@primoris.co.kr,https://primorisintl.com/,,A-F46,엑소좀 줄기세포 원천기술·국제특허·R&D 클러스터 중심 바이오 기업으로 원료~코스메틱 언급뿐 자사 소비자 브랜드명·판매채널 근거 없음.
+43,타겟검토,팜스비앤비,,marketing@pamsbnb.com,https://www.pamseshop.co.kr,,A-G21,23년간 전문 에스테틱·피부과 클리닉에 스킨케어를 공급하는 B2B 프로페셔널 채널 전용이며 자체 소비자 브랜드·D2C 언급이 전무함.
+44,타겟검토,프랜드,,pland1590@naver.com,http://pland-pure.com/en/,,A-G26,"화장품 소재(원료)·OEM/ODM R&D 전문기업으로 고객사 생산 대행만 언급, 자체 소비자 브랜드 없음."
+45,타겟검토,THESERA,,mrinno@mrinno.com,http://www.thesera.co.kr,,A-H18,"desc가 '전문가용 화장품 브랜드', 비침습 리프팅·스피큘 재생 등 에스테틱 시술 프로그램과 65개국 전문가 양성 중심이라 일반 소비자 D2C"
+46,타겟검토,(주)스킨솔루션,,naluke@naver.com,http://www.skinsolution.co.kr,,A-H22,"desc에서 스스로 '기술 기반 소재 기업', 자동화 대량생산 공정·소모품 공급으로 자처, 하이드로콜로이드 패치 OEM·소재 사업으로 자체 소비"
+47,타겟검토,욜리 메이크업툴,,nicholas@yolybrush.com,https://www.yolybrush.com/,,A-H36,"메이크업 브러시·퍼프 글로벌 OEM/ODM 수탁제조사로 100개 브랜드에 공급, 자체 소비자 브랜드 없음."
+48,타겟검토,"GUANGZHOU LVFANGZHOU INDUSTRIAL CO.,LTD",,lvfangzhou@126.com,https://www.lfz-nonwoven.com,,A-H43,"마스크시트 원단·부직포 소재 OEM 제조(500+ OEM·3000+ 브랜드 납품), 소재공급으로 소비자 브랜드 없음."
+49,타겟검토,한방미인화장품 HBMIC,,hbmic@hbmic.com,https://www.hbmic.com/default/,,A-I03,"스킨·헤어케어 OEM/ODM 전문 제조업체로 맞춤형 수탁 생산 서비스 제공, 자체 소비자 브랜드 없음."
+50,타겟검토,MELKA,,woojinkim88@daum.net,https://thedameul.co.kr/,,A-I07,고기능 성분 처방을 개발하나 유통채널 기반 기획의 시장지향 개발사(OEM/ODM)로 자체 소비자 브랜드 판매 근거 없음.
+51,타겟검토,에이치제이코퍼레이션즈 주식회사,,info@hjcorporations.kr,https://www.hjcorporations.kr/,,A-I18,"desc가 다분야 솔루션·매출만 언급하고 카테고리에 OEM/ODM 포함, 자체 소비자 브랜드 근거 없음."
+52,타겟검토,주식회사 케이원파마,,konepharma@konepharma.co.kr,https://konepharma.co.kr/,,A-I26,파트너 네트워크 통해 의약품·의료기기·뷰티 제품을 공급하는 유통상으로 자체 소비자 브랜드 없음.
+53,타겟검토,(주) 네오제네시스,,info@neogenesis.co.kr,http://www.neotox-cn.com,,A-I31,자가유래 세포치료 의료기기 개발·공급 전문으로 소비자 뷰티 브랜드 아님.
+54,타겟검토,에코문도 코리아,,korea@ecomundo.eu,https://kr.ecomundo.eu,,A-I36,글로벌 화장품 규제 컨설팅(CPNP·MoCRA 등) 전문 B2B 서비스기업으로 소비자 브랜드 없음.
+55,타겟검토,"K.BEAUTY ACCESSORY CO.,LTD",,sunjing@k.beautychina.com,http://www.kbeautychina.com/,,A-I37,"뷰티 툴 OEM/ODM 수탁 제조 전문, 글로벌 브랜드 대행으로 자체 소비자 브랜드 없음."
+56,타겟검토,JDN CORPORATION LIMITED,,,,,A-I48,"desc·category·website 모두 비어있고 사명도 사업 단서 없는 일반 법인명, 판단 근거 없어 보수적 제외."
+57,타겟검토,제너랩,,,,,A-J01,category·website·desc가 모두 비어 있어 뷰티 소비자 브랜드 보유 근거가 없어 보수적으로 제외.
+58,타겟검토,주식회사 에코마인,,,,,A-J03,"category·website·desc 모두 비어 사업 판단 불가, 정보 부재로 보수 제외."
+59,타겟검토,실리스카(주),,info@silisca.com,http://www.silisca.com,,A-J11,desc가 클리닉·에스테틱 전문가 대상 프로페셔널 스킨케어 포뮬러만 언급하고 소비자 D2C/리테일 채널이 없어 자사 소비자 브랜드 성격 부재.
+60,타겟검토,에이치알메디텍,,,,,A-J13,desc·카테고리 전부 비어있고 사명상 메디텍(의료기기) 추정으로 소비자 브랜드 근거 없어 보수적 제외.
+61,타겟검토,(주)제이티,,contact@jtcosmetic.com,https://jtcosmetics.imweb.me/,,A-J36,"하이드로겔 전문 ODM/OEM 수탁제조사로 고객 브랜드용 제조만 제공, 자체 소비자 브랜드 없음."
+62,타겟검토,(주)에스엠에코랩,,smecolab@naver.com,,,A-J37,"category·website·desc 모두 비어 있어 사업 확인 불가, 보수적으로 제외."
+63,타겟검토,"TAIZHOU HUADI ELECTRIC CO.,LTD",,info@huadicn.com,http://www.huadicn.com/,,A-J46,"전기 제품 제조사로 품질·가격만 언급, 자체 뷰티 소비자 브랜드 근거 없음."
+64,타겟검토,"SHAANXI FAIRIR BIOTECH CO.,LTD",,,,,A-J47,"desc 없음, 사명에 Biotech로 보아 원료·바이오 공급사로 보수적 추정, 자사 소비자 브랜드 없음."
+65,타겟검토,"Yaxi Daily Necessities Co.,Ltd",,118183863@qq.com,https://gzaishi.en.alibaba.com/,,A-K41,마스크용 부직포 베이스 원단 OEM/ODM 공급사로 자체 소비자 브랜드 없음.
+66,타겟검토,메타폴라아로마(주),,inform@orlic.co.kr,https://orlic.co.kr,,A-L01,"클린뷰티·차별화 제형 R&D·OEM/ODM 제조 기업으로 글로벌 바이어 대상, 자체 소비자 브랜드 언급 없음."
+67,타겟검토,홈앤쇼핑,,,,,A-L01,desc·website 모두 비어있고 명칭상 홈쇼핑 유통 채널 사업자로 추정되어 자체 소비자 뷰티 브랜드 보유 근거가 없음.
+68,타겟검토,(주)톨리코리아,,sales@toly.kr,,,A-M01,"category·website·desc 모두 비어 사업 정보가 전무, 자사 소비자 브랜드 근거 없어 보수적 제외(재검토 권장)."
+69,타겟검토,LECOS,,sales@lecospack.com,,,A-M33,desc·category·website 모두 비어있고 사명도 사업 단서 없어 판단 근거 없으므로 보수적 제외.
+70,타겟검토,"BELLE CRAFT MANUFACTURING CO.,LTD.",,marketing@belleglas.com,,,A-M38,"사명에 Manufacturing 포함·나머지 정보 전무로 수탁 제조사 추정, 자사 소비자 브랜드 근거 없어 보수적 제외."
+71,타겟검토,"DONGGUAN KINWONG TECHNOLOGY CO.,LTD",,miko@jingwangtop.com,https://kinwongtechnology.en.alibaba.com,,A-N18,"뷰티 마사지·화장 도구(스패출러, 괄사, 롤러) 제조사로 OEM 공급. 자사 소비자 브랜드 없음."
+72,타겟검토,"ZHEJIANG CHENYANG NONWOVEN CO., LTD",,,,,A-N24,"desc 없으나 사명에 Nonwoven(부직포) 명시, 마스크 원단 등 소재 공급사로 추정되어 소비자 브랜드 없음."
+73,타겟검토,"A&H INTERNATIONAL COSMETICS CO., LTD",,info-sales@a-hcosmetics.com,https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MzkzMzM5NzM5Mw==,,A-N26,"색조·스킨케어 완제품 및 원료 공장 운영 OEM/ODM 제조사, 자체 소비자 브랜드 없음."
+74,타겟검토,"GUANGZHOU SIYU NON-WOVEN PRODUCTS CO., LTD.",,1102020670@qq.com,https://mp.weixin.qq.com/s/-m0lLrx2r1luNZ5JQuEmYw,,A-N28,"기능성 부직포 소재 제조 하이테크 기업, 마스크시트 원단 소재공급으로 소비자 브랜드 없음."
+75,타겟검토,유니엔코리아,,info@unienkorea.com,http://unienkorea.com,,A-O11,desc가 '건강·미용 제품을 유통·판매하는 토탈 헬스케어사'로 자체 검수만 언급할 뿐 자사 브랜드·완제품이 전무한 유통상. (검증변경)
+76,타겟검토,디자인바른,,db@designbarun.com,https://www.wechat.com/airapha,,A-O15,화장품 로고·패키지 브랜딩 디자인 스튜디오로 자체 소비자 완제품 없음.
+77,타겟검토,와이에스메디,,beauty@ysmedi.kr,https://xe-lha.com/en,,A-O22,피부과·의료기관 대상 메디컬 에스테틱 솔루션(XE-LHA) 공급으로 일반 소비자 브랜드 아님.
+78,타겟검토,(주)나노바이오시스템,,mkt@nanobiosystem.co.kr,https://www.nanobiosystem.co.kr/,,A-O33,"재생의료 원천기술 기반 의료기기·바이오 기업으로 코스메틱은 기술 적용 개발 단계, 병원·파트너 대상이고 자사 소비자 브랜드 언급 없음."
+79,타겟검토,파란네일,,,,,A-P04,"desc/category/website 모두 공란이며 명칭상 네일 상품·유통 추정, 자사 소비자 브랜드 근거 없음."
+80,타겟검토,이연물산,,kkim09@nate.com,,,A-P05,category·website·desc가 모두 비어 있어 뷰티 소비자 브랜드 보유 근거가 전무하여 보수적으로 제외.
+81,타겟검토,(주) 코스모더마,,comikorea@gmail.com,https://www.cosmoderma.kr/,,A-P08,"카테고리에 실리프팅·필러 포함, desc가 R&D 기반 고품질 원자재 사용 추상적 표현뿐이고 자사 소비자 브랜드 언급 없어 시술기기·B2B 성격"
+82,타겟검토,케이투메디텍,,info@k2meditech.com,,,A-P10,"desc/category/website 모두 공란이며 명칭상 메디텍(의료기기) 추정, 자사 소비자 브랜드 근거 전무."
+83,타겟검토,주식회사 미팜,,support@maypharm.co.kr,https://maypharm.net,,A-P16,보툴리눔 톡신·필러·엑소좀 메디컬 에스테틱 전문사로 나드레쥬 등 브랜드도 시술용 제품이라 소비자완제품 아님.
+84,타겟검토,(주)바라보니화장품,,,,,A-P17,"category/website/desc 모두 비어 사업실체 근거 전무, 자사 소비자 브랜드 증거 없어 보수적 제외(검증변경)"
+85,타겟검토,"SKINNPLUS CO.,LTD",,skinnplus@naver.com,https://brand.naver.com/saintfran,,A-P19,TV홈쇼핑 인큐베이팅·ODM 파트너가 본업이고 자체 브랜드는 부수적 언급이라 소비자 브랜드성 약함.
+86,타겟검토,주식회사 위즈켐,,mjlee@wizchem.com,http://www.wizchem.com,,A-R01,스킨부스터·필러 R&D/제조 OEM/ODM으로 클리닉·유통·브랜드 파트너 대상 B2B.
+87,타겟검토,(주)순바이오팜,,,,,A-R03,"desc·website·category 모두 비어 있어 사업 확인 불가, 보수적 제외."
+88,타겟검토,라즐라 뷰티(P.M.U),,bpflkhss@gmail.com,https://www.wechat.com/wxid_6d25szebr2ox22,,A-R04,필링세럼+피그먼트코팅크림+페더니들 등 반영구(PMU) 시술 전용 제품으로 시술자·전문가 대상 B2B이며 소비자 자체 브랜드 근거 없음.
+89,타겟검토,"BAIHUA CO.,LTD",,joan@baihuawipes.com,https://gzbhryp.1688.com,,A-R13,"물티슈 전문 제조사로 OEM/ODM 위주, 자체 소비자 브랜드 없음."
+90,타겟검토,아롬컴퍼니,,florencekim04@gmail.com,https://www.wechat.com/Flofounder,,A-R15,desc·category 모두 비어있고 위챗 링크만 있어 사업 실체와 소비자 브랜드 확인 불가(보수적 제외).
+91,타겟검토,GMC Med,,info@gmcmed.co.kr,http://www.gmcmed.co.kr,,A-R16,"에스테틱 제품·피부과 의료기기 개발/제조 중심, 자체 소비자 브랜드 불명확한 B2B 수출형."
+92,타겟검토,(주)케이피티,,mhs@starpheres.com,http://www.starpheres.com/,,A-R18,"입자기술·비드에멀젼 소재 전문기업으로 아모레·로레알 등에 원료/제형 공급하는 B2B 소재기업, 소비자 브랜드 없음."
+93,타겟검토,(주)라파스,,sales@raphas.com,https://www.raphas.com/en/,,A-R19,"desc가 마이크로니들 DEN기술·제조공정·인증만 설명, 소비자 브랜드명·D2C·리테일 언급 전무한 B2B 기술/OEM사. (검증변경)"
+94,타겟검토,(주)뉴트리케어,,global2m@nutricare.co.kr,https://nutricare.co.kr/,,A-R22,건기식·뷰티 OEM/ODM/OBM/JDM 전문 제조사로 자체 소비자 브랜드 없음.
+95,타겟검토,뉴런,,,,,A-R24,"desc·website 전무, 명칭만으로 소비자 뷰티 브랜드 판단 불가하여 보수적 제외."
+96,타겟검토,차모스코스메틱,,1992@chamos.co.kr,https://en.chamos.co.kr,,A-R26,"30년 기능성 화장품 OEM/ODM 수탁·수출 중심, 자사 소비자 브랜드 언급 없음."
+97,타겟검토,(주)디와이코스메틱,,dy-cos@daum.net,https://dy-cos.com,,A-R32,마스크팩·기능성 화장품 전문 OEM/ODM 제조 기업. 자사 소비자 브랜드 언급 없음.
+98,타겟검토,유한코스메틱,,dh.son@yuhancosmetics.co.kr,https://yuhancosmetics.co.kr/,,C-I01,"유한양행 계열 화장품 OEM/ODM 제조사로 고객사 브랜드 생산, 자체 소비자 브랜드 없음."
+99,타겟검토,후택,,biz@whotag.ai,https://whotag.ai,,C-I14,"인플루언서 발굴·캠페인 대행 AI 인텔리전스 플랫폼(바이브컴퍼니)으로, 자사 소비자 뷰티 브랜드가 아닌 마케팅 서비스 공급자(경쟁/파트너군)."
+100,타겟검토,주식회사 리더스코스메틱,,odem@leaderscosmetics.com,https://leaderscosmetics.com,,C-I17,"desc가 고객 브랜드 위한 맞춤형 ODM/OEM 솔루션만 명시, 자체 소비자 브랜드 언급 없음."
+101,타겟검토,(주)에이로마플라붐,,info@aromaflavum.com,https://en.aromaflavum.com/,,C-J32,"향료 원료 개발·공급 B2B 조향 기업으로 화장품·퍼퓸사에 향료 솔루션 제공, 소비자 완제품 브랜드 아님."
+102,타겟검토,"NATUZEN CO., LTD.,",,natuzensales@natuzen.net,https://www.natuzen.net/?language=kor,,C-J41,기초·기능성·바디헤어·의약외품 등 전문 OEM/ODM 제조사로 자체 소비자 브랜드 언급 없음.
+103,타겟검토,BODYYA HEALTH,,bodyya@naver.com,,,C-J42,"2010년 설립 화장품 제조업체로 소량 OEM 생산 제안(마스크팩·샴푸 등), 자체 소비자 브랜드 없음."
+104,타겟검토,리봄화장품,,overseas@rebom.kr,http://www.rebom.kr/,,C-J52,"화장품 R&D 및 ODM 수출 전문기업으로 고객 맞춤형 제조 제공, 자체 소비자 브랜드 언급 없음."
+105,타겟검토,오프뷰티,,offbeauty@qandbintl.com,https://offbeauty-percent.com/,,C-K01,여러 브랜드 제품을 모아 파는 뷰티 아울렛 플랫폼/유통상으로 자사 소비자 완제품 브랜드 없음.
+106,타겟검토,"HEBEI BEYRON BIOTECH CO., LTD.",,jason@beyron.cn,http://www.beyron.cn/,,C-K16,"세라마이드·나이아신아마이드 등 화장품 원료 전문 기업, 순수 원료공급으로 소비자 브랜드 없음."
+107,타겟검토,그린코스 주식회사,,help@green-cos.com,,,C-K33,"desc·website 전무, 명칭상 코스(코스메틱 OEM 추정)이나 자체 소비자 브랜드 근거 없어 보수적 제외."
+108,타겟검토,(주)죠이라이프,,export@jlife1.com,http://joylifekorea.com/,,C-K41,"화장품·건강식품 OEM/ODM 전문기업으로 고객사 브랜드 제조 지원만, 자체 소비자 브랜드 없음."
+109,타겟검토,주식회사 피에프네이처,,marketing@pfnature.com,https://www.pfnature.com/,,C-K51,R&D·제조·QC 원스톱 ODM/OEM 전문 수탁제조 기업으로 자사 소비자 브랜드 없음.
+110,타겟검토,Symphony Cosmetic Inc.,,,,,C-K52,성형외과·피부과가 운영하는 에스테틱·전문가용 제품 브랜드로 소비자 완제품 브랜드로 보기 어려움.
+111,타겟검토,주식회사 엔스,,enthsales@enth.co.kr,https://enth.co.kr/,,C-K56,"네일·컬러코스메틱 OEM/ODM 수탁제조사로 글로벌 브랜드 대상 공급, 자체 소비자 브랜드 없음."
+112,타겟검토,"LINK METOO BIO-TECHNOLOGY DALIAN CO.,LTD",,1013636360@qq.com,http://www.linkmetoo.com.cn,,C-L16,"category는 Skin Care이나 desc는 바이오복합소재 R&D·생산·자원 재활용만 언급, 소비자 제품·브랜드 없는 소재 공급사로 판단되"
+113,타겟검토,(주)일진코스메틱,,,,,C-L21,"desc가 향료·제형·원료 연구개발 및 고객사 대상 제품 개발만 언급, 자체 소비자 브랜드·D2C 근거 전무."
+114,타겟검토,유씨엘 주식회사,,UCL.Global@e-ucl.co.kr,http://www.e-ucl.co.kr/eng,,C-L23,"1980년 원료 생산으로 시작한 화장품·의약외품 ODM/OEM 전문사로 desc가 클라이언트 제품 개발 강조, 자체 소비자 브랜드 없음."
+115,타겟검토,(주)화인글로벌랩,,midilcos@gmail.com,https://whaingloballab.com/,,C-L26,"1979년부터 화장품 연구개발·생산 전문 OEM/ODM으로 고객사 공급, 자체 소비자 브랜드 없음."
+116,타겟검토,(주)리베코스,,tim@saenggreen.com,http://www.liebecos.com/,,C-L31,스킨케어·퍼스널케어 OEM/ODM 수탁제조사(38년)로 자체 소비자 브랜드 없음.
+117,타겟검토,(주)우신화장품,,marketing@woosincos.co.kr,https://www.woosincos.co.kr/,,C-L38,"기초·바디·헤어 화장품 전문 OEM/ODM 제조사, 자체 소비자 브랜드 언급 없음."
+118,타겟검토,주식회사 에스겔코스메틱,,ezekielcos@hanmail.net,https://ezekielcos.com/,,C-L41,"CGMP 인증 화장품 OEM/ODM 전문 제조사로 고객사 브랜드 생산 원스톱 서비스, 자체 소비자 브랜드 없음."
+119,타겟검토,주식회사 베스트솔루션,,sales@bestsolution1.co.kr,https://www.bestsolution1.co.kr/,,C-L46,Private-label·OEM·ODM 토탈 뷰티 솔루션 제공사로 자체 소비자 브랜드 언급 없음.
+120,타겟검토,"주식회사 씨아이티 (CIT Co., Ltd)",,andrew@citcosmetic.co.kr,https://citcosmetic.com/kr/,,C-M11,"화장품 ODM 토탈서비스 전문 기업, 고객맞춤형 처방·제조 수탁으로 자체 소비자 브랜드 없음."
+121,타겟검토,(주)아우딘퓨쳐스(K-Beauty ODM/OEM),,kmpark@outinco.com,https://youtu.be/r58RnimqKbM?si=42bhi3wzbVdjsPVW,,C-M16,"K-뷰티 선도 글로벌 화장품 ODM 전문기업, 파트너사에 토탈 솔루션 제공으로 자체 소비자 브랜드 없음."
+122,타겟검토,ASIABNC (주식회사 아시아비엔씨),,export@asiabnc.co.kr,https://www.asiabnc.co.kr,,C-M26,rom&nd 등 타사 브랜드를 위한 유통·이커머스·마케팅·OEM/ODM 대행이 본업으로 자체 소비자 브랜드 아님.
+123,타겟검토,(주)세리화장품,,must@sericos.co.kr,http://sericos.co.kr/en,,C-M33,"1998년 설립 화장품 제조사(manufacturer)로 R&D·생산 수탁, 자체 소비자 브랜드 언급 없음."
+124,타겟검토,(주)아로마뱅크,,aromabank@aroma-bank.co.kr,http://www.aroma-bank.co.kr/,,C-M36,향료·에센셜오일 개발 공급 및 향수·디퓨저 OEM/ODM B2B 서비스로 자체 소비자 브랜드 없음.
+125,타겟검토,서울화장품,,sarah.k@seoulcos.co.kr,http://www.seoulcos.co.kr/,,C-M41,"44년 경력 OEM/ODM 원스톱 제조사로 타 브랜드용 처방 개발, 자체 소비자 브랜드 언급 없음."
+126,타겟검토,주식회사 다산씨엔텍,,sales@dasancntech.com,https://www.dasancntech.com/,,C-M42,"CGMP 화장품 제조사로 원료·제형 개발 및 OEM/ODM·인증대행 제공, 자체 소비자 브랜드 없음."
+127,타겟검토,(주)지앤아이코스메틱,,gnicos@gnicos.co.kr,http://www.gnicos.co.kr/,,C-M51,"desc상 색조화장품 ODM 전문업체로 자사 소비자 브랜드 언급 없음, 수탁제조."
+128,타겟검토,AMORY LONDON LTD,,info@amorylondon.com,,,C-N06,"category·website·desc 모두 비어 정보 전무, 자사 소비자 브랜드 근거 없어 보수적 제외(재검토 권장)."
+129,타겟검토,"HUAXIN BIOTECHNOLOGY CO., LIMITED",,olwen_z@foxmail.com,https://huaxinguoji.en.alibaba.com/company_profile.html,,C-N11,"Alibaba company_profile 기반에 브랜드명 없이 '저가·중가·고가 전 가격대 풀라인업'을 내세운 수탁 제조사 카탈로그 어법, 자"
+130,타겟검토,Nuon LLC,,info@nuonmedical.com,https://www.nuonmedical.com,,C-N16,"18년 의료기술 기반으로 코스메틱 효능을 높이는 액티브 애플리케이터(기기 부품)를 개발하는 B2B 의료기술 기업, 자사 소비자 브랜드 없음."
+131,타겟검토,주식회사 이든팜,,eden@edencos.co.kr,http://edencos.co.kr/,,C-N31,"스킨/헤어/바디 OEM/ODM 제조기업으로 고객사 맞춤 제형 개발, 자체 소비자 브랜드 없음."
+132,타겟검토,BonitoLab,,bonitolab@bonitolab.com,https://www.bonitolab.com,,C-N32,"화장품 기획부터 처방·양산까지 지원하는 개발 전문 OEM/ODM 기업, 자체 소비자 브랜드 언급 없음."
+133,타겟검토,해피엘앤비,,happy@happylnb.com,https://www.happylnb.com/eng/cosmetic/index.php,,C-N41,"화장품 OEM 기업으로 비건·할랄 인증 수탁 제조·수출 중심, 자체 소비자 브랜드 없음."
+134,타겟검토,(주) 정동산업,,duzon@jungdong.biz,https://www.jungdongcos.com/,,C-N47,"마스크팩·여드름패치 전문 글로벌 OEM/ODM 제조사로 파트너사 공급, 소비자 브랜드 없음."
+135,타겟검토,(주) 에이바이오머티리얼즈,,master@a-bio.co.kr,https://celexo.co.kr/home/index.php?ps_language_type=english,,C-O31,엑소좀 스킨부스터와 전문가용 프리/포스트케어 화장품을 클리닉에 공급하는 바이오텍으로 소비자 자체 브랜드 없음.
+136,타겟검토,씨앤텍(주),,sbeom1@cntechcorp.co.kr,https://www.cntechcorp.co.kr/,,C-P01,스킨케어·마스크·패치 등 외주 없는 자체생산 OEM/ODM 수탁제조사로 자체 소비자 브랜드 언급 없음.
+137,타겟검토,㈜세레코,,celleco@celleco.co.kr,https://www.celleco.co.kr/en,,C-P03,"피부과학 기반 화장품 OEM/ODM 전문 기업, 원스톱 수탁제조로 자체 소비자 브랜드 없음."
+138,타겟검토,(주)미진화장품,,mijin_kor@mjcare.co.kr,https://www.mjcare.co.kr/,,C-P16,"마스크팩 OEM/ODM 전문업체로 desc에 자체 소비자 브랜드 언급 없음, 수탁제조 중심."
+139,타겟검토,주식회사 제이에스사이언스,,,,,C-P22,GSC·안티에이징랩의 피부 임상시험·인증 컨설팅 B2B 서비스 제공 기업으로 자체 소비자 브랜드 없음.
+140,타겟검토,퓨어앤텍(주),,sales@purentechkorea.com,https://purentechkorea.com/,,C-P31,GMP 기반 OEM/ODM 전문 글로벌 화장품 제조사로 자체 소비자 브랜드 없이 수탁 생산·수출 중심.
+141,타겟검토,에이치앤엘바이오,,connect@drschiller.kr,https://www.drschiller.kr/,,C-P37,"동결건조 마스크팩 ODM/OEM 원스톱 수탁제조·대량 생산능력 중심, 소비자 브랜드 아님."
+142,타겟검토,지와이바이오,,INFO@GYBIO.CO.KR,https://WWW.GYBIO.CO.KR,,C-P51,NAD+/PDRN 항노화 제조·유통(실리프팅/필러 포함) 전문 제조사로 자사 소비자 브랜드 없음.
+143,타겟검토,(주) 씨케이앤비,,sales@cknb.co.kr,,,C-P52,디지털 콘텐츠·정품인증 플랫폼 ICT 서비스 기업으로 뷰티 소비자 브랜드 아님.
+144,타겟검토,주식회사 더마솔루션,,hello@derma-solution.co.kr,https://www.derma-solution.co.kr/,,C-Q02,"리프팅실·필러·뷰티디바이스 39개국 수출 B2B, 시술기기 중심으로 소비자 브랜드 아님."
+145,타겟검토,exomera,,miocid@widemore.co.kr,,,C-Q08,desc·website·category 모두 비어 사업 실체를 판단할 근거가 전무하여 보수적 제외.
+146,타겟검토,비티랩,,btylab8082@naver.com,http://www.btylab.net/theme/bty/en/,,C-Q09,"비타민 뷰티 샤워필터를 20여국에 OEM 수출하고 약국·살롱 등에 공급, 자체 소비자 브랜드 아닌 B2B 공급."
+147,타겟검토,(주) 엘림텍,,sales@elimtek.co.kr,http://www.elimtek.co.kr,,C-Q12,피부관리 의료/에스테틱 기기 개발·제조사로 자체 소비자 브랜드 명시 없음.
+148,타겟검토,로가,,,,,C-Q15,식물성 기능성 원료(VC-H1)·이너뷰티 원료 개발 B2B 바이오 원료기업으로 자체 소비자 브랜드 없음.
+149,타겟검토,㈜나산기업,,nasan@nscolor.com,https://nallshopping.cafe24.com/,,C-Q19,헤어컬러차트·살롱액세서리 OEM/ODM 수탁제조사로 자체 소비자 브랜드 없음.
+150,타겟검토,비컨,,,,,C-Q20,"category·website·desc 모두 비어 있어 사업 확인 불가, 소비자 브랜드 근거 없어 보수적 제외."
+151,타겟검토,주식회사 모티프커뮤니케이션,,,,,C-R01,desc·category·website 전부 비어있고 사명상 커뮤니케이션 업체로 추정되어 뷰티 소비자 브랜드 근거 없음.
+152,타겟검토,"Trendyproducts Co.,Ltd.",,info@trendyproducts.co.kr,https://www.trendyproducts.co.kr/,,C-R08,미용소도구·화장품 OEM/ODM 수출 전문 기업으로 '자체 브랜드 수출 가능'은 역량 언급 수준일 뿐 소비자 대상 자사 브랜드 운영 근거 없음.
+153,타겟검토,(주)아이테크,,nurieye@daum.net,https://nurieye.com/,,C-R20,"안과 임상검증 안구건조증 치료 의료기기(누리아이) 제조가 본업, 얼굴마사지기 누리아이2U는 파생품으로 소비자 뷰티 브랜드성 약함."
+154,타겟검토,아이스링커 주식회사,,icelinker@icelinker.com,http://www.icelinker.com/,,L-A17,삼성 C-LAB 분사 디지털 냉각기술 기반 의료·웰니스 기기 회사로 뷰티 소비자 브랜드가 아님.
+155,타겟검토,네이처파마,,rejucell@naver.com,https://www.naturepharma.co.kr,,L-B12,"피부과·성형외과·메디컬에스테틱 대상 전문의약품·의료기기·병원전용 화장품 공급사로 REJUCELL도 병원유통·시술전용, 소비자 D2C 아님(검증변"
+156,타겟검토,(주)아이오쓰리,,,,,L-C05,"category·website·desc 모두 비어 있어 사업 확인 불가, 보수적으로 제외."
+157,타겟검토,㈜제이디바이오,,info@jdbio.com,http://www.jdbio.com,,L-D02,HA필러·스킨부스터·톡신 등 메디컬 에스테틱 시술제품 수출사로 소비자 브랜드 아님.
+158,타겟검토,(주)에이스피부임상연구소,,aceskin@acescri.com,http://www.acescri.com/front/views/main/,,L-E01,"피부 인체적용시험·해외인증(MoCRA·CPNP) 대행 전문기관으로 B2B 서비스, 소비자 브랜드 없음."
+159,타겟검토,주식회사 나노실리칸첨단소재,,info@nanobrick.co.kr,https://kr.linkedin.com/company/nanosilikhan,,L-G01,"자석인증 등 차별화 솔루션을 타사 제품·브랜드에 적용하는 소재·기술 B2B, 소비자 브랜드 없음."

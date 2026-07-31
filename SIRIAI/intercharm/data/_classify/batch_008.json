@@ -1,0 +1,66 @@
+[
+  {
+    "code": "GFC2498",
+    "cat": "기타",
+    "intro": "마이크로바이옴·엑소좀 등 화장품 원료 개발과 임상시험 전문 기업",
+    "verdict": "제외",
+    "basis": "원료·ODM·임상 사업 중심",
+    "homepage": ""
+  },
+  {
+    "code": "GLA5123",
+    "cat": "기타",
+    "intro": "",
+    "verdict": "불명",
+    "basis": "홈페이지 접속불가·검색 근거 없음",
+    "homepage": ""
+  },
+  {
+    "code": "GLS4364",
+    "cat": "스킨케어",
+    "intro": "러브에델리스 등 자체 브랜드를 운영하는 마스크팩 중심 스킨케어 기업",
+    "verdict": "타겟",
+    "basis": "자체 3개 브랜드 완제품 판매",
+    "homepage": ""
+  },
+  {
+    "code": "GCT8960",
+    "cat": "기타",
+    "intro": "화장품 플라스틱 용기·튜브를 만드는 중국 광둥 소재 패키징 제조사",
+    "verdict": "제외",
+    "basis": "화장품 용기·패키징 제조",
+    "homepage": ""
+  },
+  {
+    "code": "GYB9418",
+    "cat": "기타",
+    "intro": "NAD+ 스킨부스터와 시술 장비를 병원·클리닉에 공급하는 메디컬뷰티 기업",
+    "verdict": "제외",
+    "basis": "의료기기 도매·병원 전용 유통",
+    "homepage": ""
+  },
+  {
+    "code": "HAN1256",
+    "cat": "기타",
+    "intro": "보네타 필러·비쥬톡스 등 의료미용 제품을 개발·유통하는 기업",
+    "verdict": "제외",
+    "basis": "필러·톡신 의료미용 B2B",
+    "homepage": "https://hanchungmedical-en.com/"
+  },
+  {
+    "code": "HAN2699",
+    "cat": "기타",
+    "intro": "",
+    "verdict": "불명",
+    "basis": "그룹 공용 도메인, 계열사 특정 불가",
+    "homepage": ""
+  },
+  {
+    "code": "HAS5152",
+    "cat": "기타",
+    "intro": "중국산 화장품 펌프·용기·캡을 수입해 제조사에 공급하는 부자재 업체",
+    "verdict": "제외",
+    "basis": "화장품 용기·부자재 수입 공급",
+    "homepage": ""
+  }
+]

@@ -1,0 +1,66 @@
+[
+  {
+    "code": "OIO5202",
+    "cat": "스킨케어",
+    "intro": "전남 장성 마을기업, 아기 스킨케어 브랜드 모요모요 운영",
+    "verdict": "타겟",
+    "basis": "자체브랜드 모요모요 세럼 판매",
+    "homepage": "https://deunerang0210.cafe24.com"
+  },
+  {
+    "code": "ONE3267",
+    "cat": "홈디바이스",
+    "intro": "IPL 제모기·LED 마스크 등 홈뷰티 디바이스 제조·판매",
+    "verdict": "타겟",
+    "basis": "ICEX 등 자체브랜드 기기 판매",
+    "homepage": ""
+  },
+  {
+    "code": "ORP8397",
+    "cat": "기타",
+    "intro": "22년 경력 화장품 유리용기·부자재 전문 제조사",
+    "verdict": "제외",
+    "basis": "화장품 용기·패키징 전문",
+    "homepage": ""
+  },
+  {
+    "code": "PAL6828",
+    "cat": "색조",
+    "intro": "셀프 젤네일·네일스티커 브랜드 마브니(M'AVENIR) 운영사",
+    "verdict": "타겟",
+    "basis": "자체 네일 브랜드 D2C 판매",
+    "homepage": "https://mavenir.co.kr"
+  },
+  {
+    "code": "PAM7883",
+    "cat": "스킨케어",
+    "intro": "에스테틱 전문 스킨케어 브랜드 PAMS B&B·EMBECA 보유",
+    "verdict": "타겟",
+    "basis": "자체브랜드 스킨케어 라인 보유",
+    "homepage": "https://www.pamscosmetics.com"
+  },
+  {
+    "code": "PEO9710",
+    "cat": "헤어바디",
+    "intro": "더마클라센 탈모샴푸 등 자체 뷰티 브랜드 다수 보유",
+    "verdict": "타겟",
+    "basis": "공식몰서 자체브랜드 직판",
+    "homepage": "https://peoplenstore.com"
+  },
+  {
+    "code": "PIC2196",
+    "cat": "색조",
+    "intro": "30년 업력 국내 1위 메이크업 브러시·미용소품 브랜드",
+    "verdict": "타겟",
+    "basis": "자체 브러시브랜드 올영 유통",
+    "homepage": ""
+  },
+  {
+    "code": "PLA2690",
+    "cat": "기타",
+    "intro": "한국콜마 계열 뷰티 브랜드 인큐베이팅·소량 제조 서비스",
+    "verdict": "제외",
+    "basis": "브랜드 창업지원 B2B 서비스",
+    "homepage": "https://www.planit147.com"
+  }
+]

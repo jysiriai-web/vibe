@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "Bodycare Lab",
+      "verdict": "적합",
+      "own_brand": "DOSIÉ",
+      "reason": "bcl.kr에서 자체 브랜드 DOSIÉ 운영 확인, 플랫폼(VITNA·GLAM)도 병행하는 통합형 바디케어랩"
+    },
+    {
+      "company": "주식회사 텍스코",
+      "verdict": "적합",
+      "own_brand": "SOM (솜)",
+      "reason": "somsajang.co.kr에서 '엄마의 마음' 슬로건 자체 브랜드 SOM으로 클렌징 패드·화장솜 소비자 직판 확인"
+    },
+    {
+      "company": "JDN CORPORATION LIMITED",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "jdnpackaging.com 확인 결과 화장품 1차 포장재(패키징) 공급사 — 부자재/용기 B2B 사업, 자체 소비자 화장품 브랜드 없음"
+    },
+    {
+      "company": "제너랩",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "홈페이지 없음, 검색으로 동명 회사(제나랩·제너러티브랩 등) 혼동 — 실제 사업 내용 확인 불가"
+    },
+    {
+      "company": "주식회사 에코마인",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "홈페이지 없음, 검색에서 동사 관련 자체 브랜드·제조 정보 전혀 없음 — 정보 부족"
+    },
+    {
+      "company": "에이치알메디텍",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "hrmeditech.co.kr(인스타) 확인 결과 의료기기·미용기기 OEM/ODM 제조사(병원·살롱 전용 기기), 소비자 화장품 브랜드 없음"
+    },
+    {
+      "company": "(주)바라보니화장품",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "홈페이지 없음, 사명에 '화장품' 포함되나 자체 소비자 브랜드 여부 검색으로 확인 불가"
+    },
+    {
+      "company": "(주)순바이오팜",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "홈페이지 없음, 검색 결과 없음 — 자체 브랜드·제조 사업 구분 정보 부족"
+    },
+    {
+      "company": "뉴런",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "홈페이지 없음, '뉴런 화장품' 검색에서 특정 회사 정보 나오지 않음 — 정보 부족"
+    },
+    {
+      "company": "Symphony Cosmetic Inc.",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "홈페이지 없음, 검색에서 한국 소재 동명 화장품 회사 자체 브랜드 정보 확인 불가"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "celebon",
+      "verdict": "적합",
+      "own_brand": "세르본 (Celebon)",
+      "reason": "자체 스킨케어 브랜드 'Celebon(세르본)'으로 소비자에게 직접 판매, 운영사 (주)에이치엘엠씨 (celebon.co.kr 확인)"
+    },
+    {
+      "company": "matthew chang perfumes",
+      "verdict": "적합",
+      "own_brand": "메튜장 (Matthew Chang Perfumes)",
+      "reason": "자체 향수 브랜드 '메튜장' 공식 온라인 스토어로 다양한 향수·바디 제품 직판 (matthewchangperfumes.com 확인)"
+    },
+    {
+      "company": "주식회사 랑벨",
+      "verdict": "적합",
+      "own_brand": "LANBELLE (랑벨)",
+      "reason": "자체 브랜드 'LANBELLE'로 클렌징·앰플·토너·크림 등 소비자 직판 (lanbelle.com 확인)"
+    },
+    {
+      "company": "주식회사 바이잇",
+      "verdict": "적합",
+      "own_brand": "Luvum",
+      "reason": "자체 스킨케어 브랜드 'Luvum'으로 소비자 직판, 운영사 주식회사 뭉클 (luvum.co.kr 확인)"
+    },
+    {
+      "company": "안탈라",
+      "verdict": "적합",
+      "own_brand": "안탈라 (Antala)",
+      "reason": "자체 유기농 스킨케어 브랜드 '안탈라'로 소비자 직판, 운영사 주식회사 제이민인터내셔널 (antala.kr 확인)"
+    },
+    {
+      "company": "스튜디오17",
+      "verdict": "적합",
+      "own_brand": "스튜디오17 (Studio17)",
+      "reason": "자체 메이크업 브러쉬·도구 브랜드 '스튜디오17'로 소비자 직판, 운영사 주식회사 더비코 (studio17.co.kr 검색 확인)"
+    },
+    {
+      "company": "(주)더엘그룹",
+      "verdict": "적합",
+      "own_brand": "마리아벨, 블레싱랩, 아이아로, 블레싱랩+",
+      "reason": "마리아벨·블레싱랩·아이아로 등 복수 자체 브랜드 직접 운영·판매 (theelstore.com 확인)"
+    },
+    {
+      "company": "(주)씨케이리제온",
+      "verdict": "적합",
+      "own_brand": "HERIBON, HAIRREGEON",
+      "reason": "두피케어 자체 브랜드 'HERIBON'·'HAIRREGEON' 보유, 소비자 직판 (dermaregeon.com 확인)"
+    },
+    {
+      "company": "CETERA",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "홈페이지가 위챗(wechat.com/cetera1) 링크로 접근 불가, 자체 브랜드 여부 확인 불가"
+    },
+    {
+      "company": "(주)섬섬바이오",
+      "verdict": "적합",
+      "own_brand": "SEARCE",
+      "reason": "비건 퍼스널케어 자체 브랜드 'SEARCE'로 샴푸·스킨케어 소비자 직판 (searce.shop 확인)"
+    }
+  ]
+}

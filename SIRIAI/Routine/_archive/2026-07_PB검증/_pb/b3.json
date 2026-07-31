@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "(주)알에이치앤비브랜즈",
+      "verdict": "적합",
+      "own_brand": "RATED GREEN",
+      "reason": "ratedgreenglobal.com에서 자체 헤어케어 브랜드 RATED GREEN을 소비자에게 직접 판매 (RH&B BRANDS, INC. 운영)"
+    },
+    {
+      "company": "브에노메디텍",
+      "verdict": "적합",
+      "own_brand": "브에노 (Bueno)",
+      "reason": "bueno9.com에서 홈메디케어 전문 자체 브랜드 '브에노' 제품 판매. OEM/ODM도 병행하나 자체 소비자 브랜드 보유."
+    },
+    {
+      "company": "쥬네뷰",
+      "verdict": "적합",
+      "own_brand": "듀댑 (Dewdap)",
+      "reason": "dewdap.com에서 자체 스킨케어 브랜드 '듀댑' 세럼·선크림·마스크팩 등 소비자 직판 (주식회사 쥬네뷰 운영)"
+    },
+    {
+      "company": "컬러딥",
+      "verdict": "적합",
+      "own_brand": "MISKOS",
+      "reason": "miskos.co.kr에서 자체 브랜드 MISKOS로 메이크업·스킨케어 소비자 직판, D2C 뷰티 브랜드"
+    },
+    {
+      "company": "주식회사 반다비앤에이치",
+      "verdict": "적합",
+      "own_brand": "KIWIGLOW",
+      "reason": "kiwiglow.co.kr에서 비건 스킨케어 자체 브랜드 KIWIGLOW 소비자 직판, PETA 인증 보유"
+    },
+    {
+      "company": "주식회사 정림에프앤에이치",
+      "verdict": "적합",
+      "own_brand": "Vanava (바나바)",
+      "reason": "vanava.co.kr에서 자체 브랜드 바나바 크림·바디케어 소비자 직판 (주식회사 브이엠컴퍼니 운영)"
+    },
+    {
+      "company": "주식회사 웰컴이엔앰",
+      "verdict": "적합",
+      "own_brand": "WELBORN, LOEVIE",
+      "reason": "welcomesgroup.com에서 WELBORN·LOEVIE 등 다중 자체 뷰티 브랜드 보유·직접 기획생산 판매"
+    },
+    {
+      "company": "닥터바이오 & 티블레스",
+      "verdict": "적합",
+      "own_brand": "닥터바이오, 티블레스",
+      "reason": "로크(ROK Co.)가 운영하는 독립 소비자 브랜드 2종(패밀리더마 닥터바이오, 비건퍼퓸 티블레스), doctorbio.kr·teabless.co.kr 직판"
+    },
+    {
+      "company": "Y.N.M",
+      "verdict": "적합",
+      "own_brand": "YNM (You Need Me)",
+      "reason": "ynmcosmetic.co.kr에서 자체 컬러코스메틱 브랜드 YNM 립·아이 제품 소비자 직판 (주식회사 디럭스뷰티 운영)"
+    },
+    {
+      "company": "헤트라스",
+      "verdict": "적합",
+      "own_brand": "헤트라스 (HETRAS)",
+      "reason": "쑥쑥컴퍼니 운영 프리미엄 라이프스타일 자체 브랜드, 올리브영 입점·hetras.co.kr 직판. 2024년 매출 384억원."
+    }
+  ]
+}

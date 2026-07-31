@@ -1,0 +1,66 @@
+[
+  {
+    "code": "DEM3439",
+    "cat": "색조",
+    "intro": "벨레코가 운영하는 러블리 감성 색조 브랜드, 립·아이 중심",
+    "verdict": "타겟",
+    "basis": "자사몰서 립·아이 색조 직판",
+    "homepage": ""
+  },
+  {
+    "code": "DER1380",
+    "cat": "기타",
+    "intro": "2003년 설립, 천연물 기반 화장품 원료 소재 R&D 전문기업",
+    "verdict": "제외",
+    "basis": "원료 소재 B2B 공급 전문",
+    "homepage": "http://www.dermalab.co.kr/"
+  },
+  {
+    "code": "DER4625",
+    "cat": "스킨케어",
+    "intro": "홈에스테틱·클리닉용 더마 스킨케어 브랜드, PDRN 라인 보유",
+    "verdict": "타겟",
+    "basis": "자사몰 스킨케어 93종 판매",
+    "homepage": ""
+  },
+  {
+    "code": "DEH3113",
+    "cat": "기타",
+    "intro": "",
+    "verdict": "불명",
+    "basis": "웹에서 업체 실체 확인 불가",
+    "homepage": ""
+  },
+  {
+    "code": "DIA4614",
+    "cat": "색조",
+    "intro": "전문가용 젤네일·네일아트 브랜드 다이아미 운영, 대전 소재",
+    "verdict": "타겟",
+    "basis": "자사몰 젤네일 자체브랜드 판매",
+    "homepage": ""
+  },
+  {
+    "code": "DOC9840",
+    "cat": "스킨케어",
+    "intro": "피부과 협업 더마코스메틱 브랜드, 앰플·홈케어 라인 운영",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 스킨케어 직판",
+    "homepage": ""
+  },
+  {
+    "code": "DRP8618",
+    "cat": "스킨케어",
+    "intro": "펩타이드 스킨케어 '닥터펩티' 운영사, 이마트·해외 유통",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 닥터펩티 보유",
+    "homepage": "https://www.jncoceu.com/"
+  },
+  {
+    "code": "EKC9710",
+    "cat": "기타",
+    "intro": "K뷰티 화장품 OEM·ODM 제조 및 수출 파트너, 65개국 수출",
+    "verdict": "제외",
+    "basis": "OEM·ODM 수탁·수출 전문",
+    "homepage": "https://ek-cos.com/"
+  }
+]

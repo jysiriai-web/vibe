@@ -1,0 +1,66 @@
+[
+  {
+    "code": "JTC2993",
+    "cat": "기타",
+    "intro": "2006년 설립 하이드로겔 패치·마스크 전문 OEM/ODM 제조사",
+    "verdict": "제외",
+    "basis": "공식홈 하이드로겔 수탁제조, 자체 브랜드 없음",
+    "homepage": ""
+  },
+  {
+    "code": "JOY1793",
+    "cat": "기타",
+    "intro": "화장품·건강식품 OEM/ODM 전문기업, 서울 자체공장·연구소 보유",
+    "verdict": "제외",
+    "basis": "공식홈 스스로 OEM/ODM 전문기업 명시",
+    "homepage": ""
+  },
+  {
+    "code": "WHA4084",
+    "cat": "기타",
+    "intro": "1979년 설립 헤어살롱·스킨케어 화장품 OEM/ODM 제조사",
+    "verdict": "제외",
+    "basis": "브랜드메이킹 수탁 전문, 자사 소비자브랜드 미확인",
+    "homepage": ""
+  },
+  {
+    "code": "AHC1724",
+    "cat": "기타",
+    "intro": "상하이 소재 2006년 설립 화장품 ODM 종합서비스 기업",
+    "verdict": "제외",
+    "basis": "공식홈 ODM 통합서비스, 소비자브랜드 아님",
+    "homepage": "https://www.a-hcosmetics.com/"
+  },
+  {
+    "code": "AML2553",
+    "cat": "홈디바이스",
+    "intro": "영국 헤어 스타일링 기기 브랜드, 고데기·드라이어 D2C 판매",
+    "verdict": "타겟",
+    "basis": "자사몰서 자체 브랜드 헤어기기 직접 판매",
+    "homepage": "https://amorylondon.com/"
+  },
+  {
+    "code": "ASI6517",
+    "cat": "헤어바디",
+    "intro": "K뷰티 수출 유통사, 자체 브랜드 odiD(헤어·바디)·너리쉬 운영",
+    "verdict": "타겟",
+    "basis": "공식홈 자체브랜드 odiD·Nourish 보유 확인",
+    "homepage": ""
+  },
+  {
+    "code": "BAI9715",
+    "cat": "기타",
+    "intro": "2001년 설립 광저우 물티슈 제조사, 일 50만팩 생산 규모",
+    "verdict": "제외",
+    "basis": "1688 B2B 도매·물티슈 수탁생산, 자체브랜드 미확인",
+    "homepage": ""
+  },
+  {
+    "code": "BCM4029",
+    "cat": "기타",
+    "intro": "광저우 소재 화장품·향수용 고급 유리용기 제조사",
+    "verdict": "제외",
+    "basis": "공식홈 화장품 유리용기 OEM 부자재 제조",
+    "homepage": "https://www.belleglas.com/"
+  }
+]

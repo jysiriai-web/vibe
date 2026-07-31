@@ -1,0 +1,66 @@
+[
+  {
+    "code": "LUA6383",
+    "cat": "기타",
+    "intro": "국내외 10여개 지점을 운영하는 피부관리 에스테틱 프랜차이즈",
+    "verdict": "제외",
+    "basis": "에스테틱 서비스업, 완제품 없음",
+    "homepage": "https://luaaesthetic.com"
+  },
+  {
+    "code": "LUN3517",
+    "cat": "스킨케어",
+    "intro": "대성글로벌이 런칭한 프리미엄 나이트케어 스킨케어 브랜드",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 나이트크림·앰플 판매",
+    "homepage": ""
+  },
+  {
+    "code": "LUV6946",
+    "cat": "스킨케어",
+    "intro": "임산부도 쓰는 저자극 순한 데일리 스킨케어 브랜드",
+    "verdict": "타겟",
+    "basis": "자사몰서 자체 스킨케어 판매",
+    "homepage": "https://luvum.co.kr"
+  },
+  {
+    "code": "MAX2453",
+    "cat": "기타",
+    "intro": "하이드로겔 마스크·앰플 중심 화장품 OEM·ODM 제조사",
+    "verdict": "제외",
+    "basis": "화장품 OEM/ODM 수탁 전문",
+    "homepage": ""
+  },
+  {
+    "code": "MAY7254",
+    "cat": "스킨케어",
+    "intro": "필러·스킨부스터 등 에스테틱 제품사, 자체 화장품 라인 보유",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 마스크팩·크림 보유",
+    "homepage": ""
+  },
+  {
+    "code": "MED7986",
+    "cat": "홈디바이스",
+    "intro": "의료기기 기술 기반 HIFU·초음파 뷰티 디바이스 개발사",
+    "verdict": "타겟",
+    "basis": "자체 홈케어 뷰티기기 자사몰 판매",
+    "homepage": ""
+  },
+  {
+    "code": "MIE1829",
+    "cat": "기타",
+    "intro": "베트남 로부스타 커피·빈투바 초콜릿 브랜드",
+    "verdict": "제외",
+    "basis": "커피·초콜릿 식품, 비뷰티",
+    "homepage": ""
+  },
+  {
+    "code": "MIS7073",
+    "cat": "색조",
+    "intro": "젤네일·메이크업·미용소품 자체 브랜드 MISSMORE 운영",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 젤네일·색조 판매",
+    "homepage": ""
+  }
+]

@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "채널스완",
+      "verdict": "적합",
+      "own_brand": "OAVO",
+      "reason": "oavo.global에서 OAVO Cosmetics·OAVO Style Lab 등 자체 브랜드로 소비자에게 직접 스킨케어·메이크업 판매 확인"
+    },
+    {
+      "company": "CELLEA/BELLADIA",
+      "verdict": "적합",
+      "own_brand": "CELLEA",
+      "reason": "cellea.co.kr에서 NK 멀티부스터 솔루션 등 자사 브랜드 CELLEA로 직접 소비자 판매하는 쇼핑몰 운영 확인"
+    },
+    {
+      "company": "포뉴레브",
+      "verdict": "적합",
+      "own_brand": "Fonewlev(포뉴레브)",
+      "reason": "fonewlev.com에서 디퓨저·향 제품을 Fonewlev 브랜드로 소비자에게 직접 판매하는 자사몰 운영 확인"
+    },
+    {
+      "company": "제이크리컴퍼니",
+      "verdict": "적합",
+      "own_brand": "lefilleo(레필레오)",
+      "reason": "검색 결과(gukjenews, sisamagazine 등)에서 자체 더마코스메틱 브랜드 '레필레오' 보유·해외 수출 확인"
+    },
+    {
+      "company": "웰본",
+      "verdict": "적합",
+      "own_brand": "청담스타일, 프린세스메이커",
+      "reason": "cheongdamstyle.co.kr에서 '청담스타일' 염색샴푸·스타일러 등을 자사 쇼핑몰 및 네이버 스마트스토어로 직접 소비자 판매 확인"
+    },
+    {
+      "company": "SHINAN COSMETICS Co., Ltd.",
+      "verdict": "적합",
+      "own_brand": "Shionle",
+      "reason": "shionle.com에서 메이크업·스킨케어·선케어 제품을 Shionle 브랜드로 소비자에게 직접 판매하는 자사몰 운영 확인"
+    },
+    {
+      "company": "주식회사 일레븐코퍼레이션",
+      "verdict": "적합",
+      "own_brand": "PARNELL, GROWUS, ADDCT, LUMMIR, LA DENS",
+      "reason": "11corp.co.kr에서 파넬·그로우스 등 다수 자체 소비자 브랜드를 55개국에 직접 판매하는 브랜드사 확인"
+    },
+    {
+      "company": "주식회사 더마라인",
+      "verdict": "적합",
+      "own_brand": "DERMALINE, D'LEXO, PDX5",
+      "reason": "en.dermaline.co.kr에서 DERMALINE·D'LEXO 등 자체 브랜드로 앰플·토너·크림 등을 소비자에게 직접 판매 확인"
+    },
+    {
+      "company": "로그인 포레스트 (유나뷰티랩)",
+      "verdict": "적합",
+      "own_brand": "로그인 포레스트(LOGiN FOREST)",
+      "reason": "aving.net 기사 및 loginforest.com에서 유나뷰티랩이 '로그인 포레스트' 자체 클린뷰티 바디케어 브랜드를 보유·인터참 출품 확인"
+    },
+    {
+      "company": "디유코스메틱",
+      "verdict": "적합",
+      "own_brand": "JOA",
+      "reason": "ducos.co.kr에서 JOA 브랜드로 틴트·마스카라·아이라이너 등 색조 제품을 소비자에게 직접 판매하는 자사몰 운영 확인"
+    }
+  ]
+}

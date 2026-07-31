@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SIRIAI · 레퍼런스 대시보드</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{--paper:#F3EEE2;--surface:#fff;--ink:#211A33;--ink-2:rgba(33,26,51,.66);--ink-3:rgba(33,26,51,.46);--line:rgba(33,26,51,.13);
+    --lav:#cabce8;--lav-soft:#e9e3f3;--green-soft:#e4efe2;--sky-soft:#e3ecf4;--peach-soft:#f5e7d8;--amber-soft:#f3e8d2;
+    --f-en:'Helvetica Neue','Helvetica','Arimo','Pretendard',Arial,sans-serif;--f-kr:'Pretendard',system-ui,sans-serif;--f-mono:'JetBrains Mono',ui-monospace,monospace;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--f-kr);background:var(--paper);color:var(--ink);line-height:1.55;letter-spacing:-.005em;padding:40px clamp(16px,5vw,56px);max-width:1120px;margin:0 auto;}
+  .top{font-family:var(--f-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);}
+  h1{font-family:var(--f-en);font-size:clamp(26px,3.2vw,38px);font-weight:500;letter-spacing:-.022em;margin:5px 0 8px;}
+  .lead{font-family:var(--f-kr);color:var(--ink-2);font-size:14px;margin-bottom:8px;word-break:keep-all;line-height:1.6;}
+  .lead b{color:var(--ink);}
+  .rule{font-family:var(--f-kr);font-size:12.5px;color:#5a4a85;background:var(--lav-soft);border-radius:11px;padding:11px 15px;margin:14px 0 30px;word-break:keep-all;line-height:1.6;}
+  .rule b{color:var(--ink);}
+  h2{font-family:var(--f-kr);font-size:16px;font-weight:800;margin:34px 0 4px;display:flex;align-items:center;gap:8px;}
+  .h2sub{font-family:var(--f-kr);font-size:12.5px;color:var(--ink-3);margin-bottom:14px;word-break:keep-all;}
+  .cat{font-family:var(--f-mono);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#5a4a85;margin:22px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line);}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:11px;}
+  .ref{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;}
+  .ref .dismiss{position:absolute;top:8px;right:8px;width:23px;height:23px;border:1px solid var(--line);background:rgba(255,255,255,.75);border-radius:50%;font-size:11px;color:var(--ink-3);cursor:pointer;line-height:1;display:none;align-items:center;justify-content:center;padding:0;}
+  .ref:hover .dismiss{display:flex;}
+  .ref .dismiss:hover{border-color:#c9787f;color:#c9787f;background:#f6ecec;}
+  .restorebar{font-family:var(--f-kr);font-size:12.5px;color:var(--ink-2);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 15px;margin:0 0 8px;display:none;align-items:center;gap:10px;}
+  .restorebar.show{display:flex;}
+  .restorebar button{font-family:var(--f-kr);font-size:12px;font-weight:600;color:#5a4a85;background:var(--lav-soft);border:none;border-radius:100px;padding:6px 13px;cursor:pointer;}
+  .ref:hover{border-color:var(--lav);}
+  .ref .rt{font-family:var(--f-kr);font-weight:700;font-size:14px;}
+  .ref .rw{font-family:var(--f-kr);font-size:12px;color:var(--ink-2);word-break:keep-all;line-height:1.5;flex:1;}
+  .ref .star{color:#c79a3f;}
+  .ref a{font-family:var(--f-mono);font-size:10.5px;font-weight:500;letter-spacing:.02em;text-transform:uppercase;color:#5a4a85;text-decoration:none;background:var(--lav-soft);align-self:flex-start;padding:5px 11px;border-radius:100px;}
+  .ref a:hover{background:var(--lav);color:#2f2350;}
+  .ref.given a{background:var(--sky-soft);color:#2f4a66;}
+  /* 직접 추가 */
+  .add{background:var(--surface);border:1px solid var(--line);border-radius:15px;padding:18px 20px;display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end;}
+  @media(max-width:680px){.add{grid-template-columns:1fr;}}
+  .add label{font-family:var(--f-kr);font-size:11.5px;font-weight:600;color:var(--ink-2);display:block;margin-bottom:4px;}
+  .add input,.add textarea,.add select{width:100%;font-family:var(--f-kr);font-size:13px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fdfcfa;color:var(--ink);}
+  .add textarea{resize:vertical;min-height:38px;}
+  .add .full{grid-column:1/-1;}
+  .btn{font-family:var(--f-kr);font-weight:700;font-size:13.5px;padding:11px 18px;border:none;border-radius:100px;background:var(--ink);color:var(--paper);cursor:pointer;}
+  .btn.ghost{background:var(--surface);color:var(--ink-2);border:1px solid var(--line);}
+  .mine{margin-top:12px;}
+  .empty{font-family:var(--f-kr);font-size:13px;color:var(--ink-3);padding:18px;text-align:center;}
+  .gaps{font-family:var(--f-kr);font-size:12.5px;color:#8a6a25;background:var(--amber-soft);border:1px solid rgba(199,154,63,.3);border-radius:12px;padding:13px 16px;margin-top:14px;word-break:keep-all;line-height:1.7;}
+  .gaps b{color:var(--ink);}
+  dialog{border:none;border-radius:14px;padding:20px;max-width:560px;width:92%;background:var(--surface);color:var(--ink);}
+  dialog textarea{width:100%;min-height:240px;font-family:var(--f-mono);font-size:11.5px;border:1px solid var(--line);border-radius:10px;padding:11px;}
+</style>
+</head>
+<body>
+  <div class="top">SIRIAI · 사업소개서 — 레퍼런스</div>
+  <h1>레퍼런스 대시보드</h1>
+  <p class="lead"><b>클로드 역추천 총 54선</b>(1차 30 + 추가 24) — 내가 웹에서 찾은 것(증명형·레이어드·절제 톤 기준). <b>★</b>는 특히 우리 결에 가까운 것. 네가 보고 골라/버려줘. <b>준용 제공</b>은 네가 준 사이트, <b>직접 추가</b>는 발견한 걸 쌓는 칸(자동 저장).</p>
+  <div class="rule">📌 우리 deck = <b>고객이 hero인 '증명형' · 표면 간결→클릭 디테일(레이어드) · Paper·절제 톤.</b> 화려한 3D·과한 모션은 우리 결이 아니니 그 관점으로 봐줘.</div>
+
+  <div class="restorebar" id="restorebar"></div>
+  <h2>⭐ 클로드 역추천 <span style="font-family:var(--f-mono);font-size:11px;color:var(--ink-3);font-weight:500;">/ 웹 1차 발굴 · 카드 hover→✕로 버리기</span></h2>
+  <div class="h2sub">카테고리별. 클릭하면 새 탭. (구조·IA → 디자인·톤 → 케이스 → 전환 → 인터랙션 순)</div>
+
+  <div class="cat">구조 · IA (정보 배치·위계·레이어드)</div>
+  <div class="grid">
+    <div class="ref"><div class="rt"><span class="star">★</span> Stripe — Customers</div><div class="rw">고객=hero 증명형의 정석. 표면 카드+핵심 지표 → 클릭 시 풀 케이스. 산업/규모 필터로 '우리 같은 고객' 탐색. 우리 표면→디테일 골격 1순위.</div><a href="https://stripe.com/customers" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Linear</div><div class="rw">표면 간결→스크롤 디테일. 단계형 내러티브 + OpenAI 등 인용을 과장 없이. 두 기둥(실행+기술) 차분히 증명.</div><a href="https://linear.app" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Dock — B2B Sales Deck 24선</div><div class="rw">'로고월보다 대표 고객 1~2건 깊게'. 지표를 hero로 올리는 슬라이드 해부 — 우리 증명 전략과 정확히 일치.</div><a href="https://www.dock.us/library/sales-deck-examples" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">MetaLab (case study)</div><div class="rw">고객 목록 표면 최소(태그라인 한 줄)→호버/스크롤 시 프로젝트 상세 포털. 평소 절제, 인터랙션 시 레이어 공개.</div><a href="https://www.awwwards.com/metalab-com-case-study.html" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Locomotive</div><div class="rw">선언문→케이스 카드→문화 순 레이어드 에디토리얼 위계. 섹션 전환 리듬 참고.</div><a href="https://locomotive.ca/en" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">NN/g — Progressive Disclosure</div><div class="rw">우리 '레이어드'의 이론 근거. 2단(요약→클릭상세)까지만, 3단 중첩 금지의 가드레일.</div><a href="https://www.nngroup.com/articles/progressive-disclosure/" target="_blank">열기 ↗</a></div>
+  </div>
+
+  <div class="cat">디자인 · 톤 (절제·여백·타이포)</div>
+  <div class="grid">
+    <div class="ref"><div class="rt"><span class="star">★</span> imarketina</div><div class="rw">'1 font · 2 sizes · 3 colors' 극단 절제. 타이포·여백만으로 우아. 우리 토큰 절제 수위 검증용.</div><a href="https://imarketina.com/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Unseen — 2025 Report</div><div class="rw">자간 분해 헤더, [brand]식 대괄호 라벨, 스크롤 순차 공개. JetBrains Mono 모노라벨 토큰과 직결.</div><a href="https://2025.unseen.co/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">DixonBaxi</div><div class="rw">라벨만 노출+상세 클릭 위임. 표면 미니멀+내부 레이어드. 메뉴/섹션 라벨링 절제 기준.</div><a href="https://dixonbaxi.com/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Koto</div><div class="rw">클라이언트명→과제→본문→CTA outcome 스토리텔링. 사진 주도 여백. /work는 '전수 나열 대신 선별'.</div><a href="https://koto.com/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">COLLINS</div><div class="rw">선언 1문장→작업 썸네일 그리드. 작업이 스스로 말하게 하는 극단 절제. 표지/인덱스 패턴.</div><a href="https://www.wearecollins.com/work/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Mucho</div><div class="rw">갤러리 그리드+여백에 지표('250+ 브랜드·72% 재계약') 자연스럽게. 우리 실적 섹션 Paper톤 참고.</div><a href="https://wearemucho.com/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Prometheus Fuels</div><div class="rw">조용·진중 톤, 모노크롬+단일 액센트, 세로 스크롤리텔링으로 신뢰 전달. Hero 톤 모델.</div><a href="https://prometheusfuels.ai/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Awwwards — Minimal 컬렉션</div><div class="rw">Paper·Ink·여백 결의 미니멀 수상작 보드. 그리드·여백비율·타이포 스케일 벤치마킹.</div><a href="https://www.awwwards.com/awwwards/collections/minimal/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Awwwards — Editorial Layout</div><div class="rw">에디토리얼 활자 위계 수작 모음. 텍스트 많은 구간(철학·포지셔닝) 위계 레퍼런스.</div><a href="https://www.awwwards.com/inspiration/editorial-layout" target="_blank">열기 ↗</a></div>
+  </div>
+
+  <div class="cat">케이스 스터디 (증명·신뢰 배치)</div>
+  <div class="grid">
+    <div class="ref"><div class="rt"><span class="star">★</span> Toss — 브랜드 스토리 (국내)</div><div class="rw">'7년 전 vs 지금' 대비 카피로 문제→해결→임팩트 스크롤 전개. 국문 환경 레이어드·Pretendard 호흡의 직접 참고.</div><a href="https://toss.im/new-dimension/brand-story" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt"><span class="star">★</span> Porto Rocha</div><div class="rw">자화자찬 없이 제3자 인정(press/awards)으로 권위. 결과 중심 카피+하단 실적/언론/수상 아카이브 마감. 증명형 톤 일치.</div><a href="https://www.portorocha.com/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Cappen</div><div class="rw">challenge/solution 서사+서비스 태그+로고월+Awards를 한 페이지 단계 노출. 케이스 카드 내부 구성(문제→실행→결과) 교과서.</div><a href="https://cappen.com/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Pentagram — Work</div><div class="rw">타일=제목+1~2문장 태그라인+라벨만(표면 최소)→클릭 상세. 섹터 필터가 위계 대신. 사례 인덱스 패턴.</div><a href="https://www.pentagram.com/work" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Instrument</div><div class="rw">로스터·수상·프레스 다층으로 '약속 아닌 증명'. work 필터로 표면 깔끔. proof 섹션 위계.</div><a href="https://www.instrument.com/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Storydoc — Sales Deck 17선</div><div class="rw">표면 1줄→클릭 탭/스크롤로 깊이(탭 네비·결과 중심 절제형). 우리 레이어드 UX 패턴북.</div><a href="https://www.storydoc.com/blog/sales-deck-examples" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Heartbeat (case study)</div><div class="rw">홈은 정적·여백, 'Customer Story'에서만 스크롤 모션으로 서사 강화. 증명 구간만 포인트 모션 — 우리 방향.</div><a href="https://www.awwwards.com/case-study-heartbeat-agency-portfolio.html" target="_blank">열기 ↗</a></div>
+  </div>
+
+  <div class="cat">전환 · CTA · 신뢰 마감</div>
+  <div class="grid">
+    <div class="ref"><div class="rt">Figma — Pitch Deck 34선</div><div class="rw">텍스트 최소 hero + 고객 인용/데이터를 신뢰 장치로. Paper·절제 톤과 동일 결.</div><a href="https://www.figma.com/resource-library/pitch-deck-examples/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Huemor — Agency Web 모음</div><div class="rw">고객 로고·지표·결과를 하단에 숨기지 말고 첫 스크롤에. 호버는 '쿨함' 아닌 '다음 단계 명확히'.</div><a href="https://huemor.rocks/blog/best-agency-website-designs/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Humbleteam</div><div class="rw">신뢰 배지(Clutch 4.9·수상)+펼침 testimonial로 CTA 전 신뢰 마감. 톤은 우리보다 화려 — 패턴만 차용.</div><a href="https://humbleteam.com" target="_blank">열기 ↗</a></div>
+  </div>
+
+  <div class="cat">인터랙션 (레이어드·점진 공개)</div>
+  <div class="grid">
+    <div class="ref"><div class="rt">Webflow — Progressive Disclosure</div><div class="rw">아코디언/카드확장/모달 구현 관점 정리. 케이스 '클릭하면 펼침'을 무엇으로 할지 선택 기준.</div><a href="https://webflow.com/blog/the-art-of-progressive-disclosure-in-web-design" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Quoti</div><div class="rw">스크롤에 맞춰 대시보드 UI가 단계 조립·공개. 역량/기술 섹션의 점진적 증명 연출 실물 데모.</div><a href="https://www.getquoti.ai/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Eva Sánchez (case study)</div><div class="rw">인덱스 호버·두 뷰 토글·이미지 클릭 확장 — '같은 정보를 다른 깊이로'. 케이스 인덱스↔상세 토글 모델.</div><a href="https://www.awwwards.com/eva-sanchez-portfolio-the-result-of-a-collaboration-case-study.html" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Petralithe</div><div class="rw">텍스트 핀 고정+배경 슬라이드/패럴랙스로 깊이. 핵심 가치 인트로에서 1메시지를 과한 장식 없이.</div><a href="https://www.petralithe.com/en" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Malvah Studio</div><div class="rw">중립 팔레트+절제 마이크로 인터랙션. 이메일 복사 등 디테일. 절제 모션 양산 기준.</div><a href="https://malvah.co/" target="_blank">열기 ↗</a></div>
+  </div>
+
+  <h2>🆕 추가 발굴 <span style="font-family:var(--f-mono);font-size:11px;color:var(--ink-3);font-weight:500;">/ 2차 웹 발굴 · 24선</span></h2>
+  <div class="h2sub">gaps(국내·AI제품·에이전시·스튜디오) 보강. <b>★</b> = 우리 결에 특히 딱.</div>
+
+  <div class="cat">국내 — 브랜드·스타트업 (증명형 hero·국문 호흡)</div>
+  <div class="grid">
+    <div class="ref"><div class="rt"><span class="star">★</span> 삼쩜삼 / 자비스앤빌런즈</div><div class="rw">증명숫자 hero(가입 2,400만·환급 2조) + 연혁 '펼치기' 클릭 공개. <b>hero 직후 카운터 + 클릭 확장 타임라인</b>의 직접 모델. 국내 1순위.</div><a href="https://jobisnvillains.com/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt"><span class="star">★</span> 당근 (회사소개)</div><div class="rw">hero 슬로건 → 스토리 → 통계(4,000만·2,270억) → 문화 수직 레이어. <b>hero 직후 증명 지표</b> 순서 + 따뜻한 절제 톤.</div><a href="https://about.daangn.com/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">RIDI 코퍼레이트</div><div class="rw">철학 한 문장 + 미니멀 흑백 타이포 hero → 사업 카드 펼침. 'Ink on Paper' 무드 근접. 역량 3기둥 카드 레퍼.</div><a href="https://ridicorp.com/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Plus X (플러스엑스)</div><div class="rw">'207개 어워드·iF Top 10' 수상 실적 전면. 수상 수치로 전문성 정량 증명하는 hero 톤. (JS 렌더)</div><a href="https://www.plus-ex.com/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">우아한형제들</div><div class="rw">브랜드 보이스 hero — '우리는 어떤 관점의 회사인가' 정서적 내러티브. 오프닝 톤 레퍼.</div><a href="https://www.woowahan.com/" target="_blank">열기 ↗</a></div>
+  </div>
+
+  <div class="cat">AI 제품 (sa:ai 섹션용 — 증명 시퀀스)</div>
+  <div class="grid">
+    <div class="ref"><div class="rt"><span class="star">★</span> DeepJudge</div><div class="rw">증명형 시퀀스 교과서: hero(한 문장 가치) → 로펌 로고 → 문제 → 솔루션 3모듈 → 지표(+65h/년·85%) → 실명 인용. <b>상단 흐름 직접 모델.</b></div><a href="https://deepjudge.ai" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt"><span class="star">★</span> Rootly</div><div class="rw">표면 간결→레이어드 정석. hero+로고 캐러셀, 기능=펼침 카드(요약→확장 시 근거+사례). 우리 영역 카드 구조 모델.</div><a href="https://rootly.com" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Synthesia</div><div class="rw">hero에 평점(G2 4.7)·로고·인용을 한 묶음 + Create→Translate 탭형 단계 공개.</div><a href="https://www.synthesia.io" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Cartesia</div><div class="rw">채도 배제·여백·타이포 위계로 신뢰. <b>Paper 절제 팔레트 검증용</b> 정서 기준.</div><a href="https://cartesia.ai" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Otio</div><div class="rw">'구체성=증명' 카피(형용사 대신 수치·시나리오). 본문 카피 작법 + 직군별 use-case.</div><a href="https://otio.ai" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Markups.ai</div><div class="rw">신뢰 자산(고객 로고→팀 크레덴셜→보안 배지) 하단에 쌓는 순서 + 1포인트 일러스트.</div><a href="https://markups.ai" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">TwelveLabs</div><div class="rw">감성 hero('See the unseen')→정량지표로 받치는 'hook→proof' 전환. 후반 기술 딥다이브 점층.</div><a href="https://www.twelvelabs.io" target="_blank">열기 ↗</a></div>
+  </div>
+
+  <div class="cat">인플루언서·마케팅 에이전시 (02 비주얼콘텐츠 톤)</div>
+  <div class="grid">
+    <div class="ref"><div class="rt"><span class="star">★</span> Billion Dollar Boy</div><div class="rw">케이스 캐러셀(브랜드명만)→'Read more' 클릭 디테일 + 수상 절제 배치. 워크 인덱스+수상 배지 모델.</div><a href="https://www.billiondollarboy.com/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt"><span class="star">★</span> The Shelf</div><div class="rw">임팩트 수치(8,810만 노출 등)+'어떻게 만들었나' <b>결과→원인 스토리텔링.</b> 성과 슬라이드 직접 참고.</div><a href="https://www.theshelf.com/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt"><span class="star">★</span> Pepper</div><div class="rw">charcoal·cream·clay 뉴트럴+단일 포인트만(<b>Paper와 동일 철학</b>). 톤 가장 근접. 컬러·로고월 레이아웃 기준.</div><a href="https://www.pepperagency.com/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Brand Appart</div><div class="rw">off-white+블랙 대형헤드(Paper 무드 그대로). 케이스 메타(업종·연도·결과)+실명 인용.</div><a href="https://brandappart.com/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Going Bold Studio</div><div class="rw">누적 임팩트(팔로워 25만+·파트너십 160+) 통계 스트립. '실행력 한눈에' 슬라이드.</div><a href="https://www.goingboldstudio.com/social-media-portfolio" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Zorka.Agency <span style="color:var(--ink-3);">(구조만)</span></div><div class="rw">KPI 분해+expandable 케이스. ⚠️톤은 다크+네온(반대) — <b>구조/KPI만 차용, 컬러·모션은 회피.</b></div><a href="https://zorka.agency/" target="_blank">열기 ↗</a></div>
+  </div>
+
+  <div class="cat">디자인 스튜디오 (레이어드·에디토리얼 톤)</div>
+  <div class="grid">
+    <div class="ref"><div class="rt"><span class="star">★</span> 일상의실천 (국내)</div><div class="rw">타이포·여백 절제 에디토리얼 — <b>국내 스튜디오 중 Paper·절제 톤에 가장 근접.</b> deck 전체 톤 기준 + 카드 메타(연도·클라이언트·태그).</div><a href="https://everyday-practice.com/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Studio Dumbar / DEPT</div><div class="rw">work 미니멀 그리드→클릭 시 /work/&lt;프로젝트&gt; 전용 케이스 2단 레이어. 표면 클라이언트명 즉시 증명.</div><a href="https://studiodumbar.com/work" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Bakken &amp; Bæck</div><div class="rw">케이스 카드(서비스 태그 Strategy/Brand/Dev)→클릭 상세 + 가로 로고 스트립. 고객 hero+레이어드 정합.</div><a href="https://bakkenbaeck.com/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">Ordinary People (국내)</div><div class="rw">메이슨리 그리드+27개 카테고리 태그 필터. '훑다가 좁혀 들어가는' 레이어드 UX.</div><a href="https://ordinarypeople.info/work" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">CFC (국내)</div><div class="rw">텍스트 극단 축소 그리드(프로젝트명·연도)+클릭 진입. 29CM·올리브영 등 <b>작업 목록 자체를 증명으로.</b></div><a href="https://contentformcontext.com/" target="_blank">열기 ↗</a></div>
+    <div class="ref"><div class="rt">MYKC (국내)</div><div class="rw">텍스트 위계만으로 신뢰(철학·연혁·역량). About/스튜디오 소개 레이아웃 — 비주얼 최소.</div><a href="https://mykc.cargo.site/Information-3" target="_blank">열기 ↗</a></div>
+  </div>
+
+  <h2>📌 준용 제공 — 직접 준 사이트·갤러리</h2>
+  <div class="h2sub">네가 준 레퍼런스(#16·17). bpco는 1순위, 나머지는 탐색용 갤러리.</div>
+  <div class="grid">
+    <div class="ref given"><div class="rt">BPCO — Projects</div><div class="rw">준용 1순위 레퍼런스. 프로젝트 인덱스 구조·톤 직접 분석 대상.</div><a href="https://www.bpco.kr/projects" target="_blank">열기 ↗</a></div>
+    <div class="ref given"><div class="rt">godly.website</div><div class="rw">엄선된 모던 웹 갤러리. 절제·에디토리얼 사례 탐색.</div><a href="https://godly.website/" target="_blank">열기 ↗</a></div>
+    <div class="ref given"><div class="rt">CSS Design Awards — WOTD</div><div class="rw">데일리 수상작. 인터랙션·디자인 최신 트렌드.</div><a href="https://www.cssdesignawards.com/wotd-award-winners" target="_blank">열기 ↗</a></div>
+    <div class="ref given"><div class="rt">Behance</div><div class="rw">디자인 포트폴리오 — '사업소개서·브랜드 deck' 키워드 검색 추천.</div><a href="https://www.behance.net/" target="_blank">열기 ↗</a></div>
+    <div class="ref given"><div class="rt">Dribbble</div><div class="rw">UI/그래픽 샷 — 'pitch deck·case study·landing' 키워드로.</div><a href="https://dribbble.com/" target="_blank">열기 ↗</a></div>
+  </div>
+
+  <h2>➕ 직접 추가 <span style="font-family:var(--f-mono);font-size:11px;color:var(--ink-3);font-weight:500;">/ 발견한 거 쌓기</span></h2>
+  <div class="h2sub">레퍼런스 찾다가 좋은 거 보이면 여기 추가(자동 저장). 다 모으면 "복사"로 나한테 넘겨줘.</div>
+  <div class="add">
+    <div><label>이름</label><input id="a-name" placeholder="예: 어떤 스튜디오 / 사이트" /></div>
+    <div><label>URL</label><input id="a-url" placeholder="https://" /></div>
+    <div class="full"><label>왜 좋은지 / 어디에 쓸지 (한 줄)</label><textarea id="a-why" placeholder="예: 케이스 카드 펼치는 방식이 우리 02에"></textarea></div>
+    <div><label>카테고리</label><select id="a-cat"><option>구조·IA</option><option>디자인·톤</option><option>케이스</option><option>전환·CTA</option><option>인터랙션</option><option>기타</option></select></div>
+    <div style="display:flex;gap:8px;"><button class="btn" onclick="addRef()">추가</button><button class="btn ghost" onclick="copyMine()">📋 복사</button></div>
+  </div>
+  <div class="mine grid" id="mine"></div>
+
+  <div class="gaps">✅ <b>1·2차 발굴 = 54선</b> — 국내·AI제품·인플루언서 에이전시·스튜디오 gaps 다 보강. <b>제일 결 가까운 것(★):</b> 삼쩜삼·당근(국내 증명형) · DeepJudge·Rootly(AI 증명 시퀀스) · Pepper·일상의실천(Paper 톤). <br/><b>다음:</b> 네가 갤러리(godly·dribbble 등)서 본 것 '➕ 직접 추가'에 쌓아줘. 특정 영역(업종별 케이스·특정 인터랙션) 더 필요하면 말해주고. · 거를 땐 📌 기준(증명형·레이어드·절제)으로.</div>
+
+<script>
+  const KEY = 'siriai_ref_dash';
+  let mine = JSON.parse(localStorage.getItem(KEY) || '[]');
+  function save(){ localStorage.setItem(KEY, JSON.stringify(mine)); render(); }
+  function addRef(){
+    const n = document.getElementById('a-name').value.trim();
+    if(!n){ alert('이름은 넣어줘'); return; }
+    mine.unshift({ n, u: document.getElementById('a-url').value.trim(), w: document.getElementById('a-why').value.trim(), c: document.getElementById('a-cat').value });
+    document.getElementById('a-name').value = ''; document.getElementById('a-url').value = ''; document.getElementById('a-why').value = '';
+    save();
+  }
+  function del(i){ if(confirm('삭제?')){ mine.splice(i,1); save(); } }
+  function esc(s){ return (s||'').replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+  function render(){
+    const el = document.getElementById('mine');
+    if(!mine.length){ el.innerHTML = '<div class="empty" style="grid-column:1/-1;">아직 없음 — 위에서 추가해줘 👀</div>'; return; }
+    el.innerHTML = mine.map((r,i) => `<div class="ref"><div class="rt">${esc(r.n)} <span style="font-family:var(--f-mono);font-size:9px;color:var(--ink-3);">${esc(r.c)}</span></div>${r.w?`<div class="rw">${esc(r.w)}</div>`:''}${r.u?`<a href="${esc(r.u)}" target="_blank">열기 ↗</a>`:''}<button onclick="del(${i})" style="background:none;border:none;color:var(--ink-3);font-size:11px;cursor:pointer;align-self:flex-end;font-family:var(--f-kr);">삭제</button></div>`).join('');
+  }
+  function copyMine(){
+    if(!mine.length){ alert('추가한 게 없어'); return; }
+    let md = '# 준용이 추가한 레퍼런스\n\n';
+    mine.forEach(r => { md += `- **${r.n}** (${r.c})${r.u?' — '+r.u:''}\n${r.w?'  - '+r.w+'\n':''}`; });
+    navigator.clipboard.writeText(md).then(() => alert('복사됨! 클로드에게 붙여넣어줘'));
+  }
+  render();
+
+  // 클로드 추천 카드 '별로면 버리기' (준용 제공·직접추가 제외) — 준용 요청
+  const RKEY = 'ref_dismissed';
+  let dropped = new Set(JSON.parse(localStorage.getItem(RKEY) || '[]'));
+  const bar = document.getElementById('restorebar');
+  function refKey(card){ return (card.querySelector('.rt')?.textContent || '').replace(/★/g,'').replace(/\s+/g,' ').trim(); }
+  function updateBar(){
+    if(dropped.size){ bar.classList.add('show'); bar.innerHTML = '🗑 버린 레퍼런스 <b>' + dropped.size + '개</b> · <button onclick="restoreRefs()">전체 복원</button>'; }
+    else { bar.classList.remove('show'); bar.innerHTML=''; }
+  }
+  function applyDrops(){
+    document.querySelectorAll('.ref').forEach(card => {
+      if(card.classList.contains('given') || card.closest('#mine')) return;
+      const k = refKey(card);
+      if(dropped.has(k)){ card.style.display='none'; return; }
+      if(card.querySelector('.dismiss')) return;
+      const btn = document.createElement('button');
+      btn.className='dismiss'; btn.title='별로 — 버리기'; btn.textContent='✕';
+      btn.addEventListener('click', e => { e.stopPropagation(); dropped.add(k); localStorage.setItem(RKEY, JSON.stringify([...dropped])); card.style.display='none'; updateBar(); });
+      card.appendChild(btn);
+    });
+    updateBar();
+  }
+  window.restoreRefs = function(){ dropped.clear(); localStorage.setItem(RKEY,'[]'); location.reload(); };
+  applyDrops();
+</script>
+</body>
+</html>

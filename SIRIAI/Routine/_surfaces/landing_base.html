@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIRIAI — 인플루언서 매칭</title>
+<!-- 랜딩 초안 v1 (2026-06-15) · 폴더 위치 미정(우선 초안). 메일/DM 클릭 목적지.
+     개인화: URL ?b=브랜드명 → "안녕하세요 OO 담당자님". 표시규칙: 단가 비노출·해외 soft·미검증수치 배제. -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F3EEE2;--ink:#211A33;--ink2:rgba(33,26,51,.66);--ink3:rgba(33,26,51,.46);
+    --line:rgba(33,26,51,.13);--accent:#2A6FDB;
+    --disp:'Helvetica Neue','Helvetica','Arimo','Pretendard',Arial,sans-serif;
+    --sans:'Pretendard',sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.7;word-break:keep-all;
+    background-image:radial-gradient(60% 50% at 18% 0%,rgba(246,201,168,.5),transparent 60%),
+      radial-gradient(50% 45% at 92% 8%,rgba(221,208,239,.45),transparent 60%),
+      radial-gradient(45% 40% at 70% 100%,rgba(255,224,196,.4),transparent 60%);
+    background-attachment:fixed}
+  .wrap{max-width:680px;margin:0 auto;padding:56px 24px 90px}
+  .label{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3)}
+  .logo{font-family:var(--disp);font-size:22px;font-weight:700;letter-spacing:.02em;margin:6px 0 40px}
+  .greet{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--ink2);margin-bottom:14px}
+  h1{font-family:var(--disp);font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:1.25;margin-bottom:16px}
+  h1 .wash{background:linear-gradient(transparent 62%,rgba(246,201,168,.6) 0)}
+  .lead{font-size:16px;color:var(--ink2);max-width:30em;margin-bottom:36px}
+  .work{font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--ink3);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:14px 0;margin-bottom:44px}
+  h2{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);margin-bottom:18px}
+  .qa{border-top:1px solid var(--line)}
+  .q{width:100%;text-align:left;background:none;border:none;cursor:pointer;font-family:var(--sans);
+    font-size:16px;font-weight:600;color:var(--ink);padding:18px 36px 18px 0;position:relative;letter-spacing:-.01em}
+  .q::after{content:"+";position:absolute;right:6px;top:16px;font-size:20px;color:var(--ink3);font-weight:400;transition:.2s}
+  .qa.open .q::after{transform:rotate(45deg)}
+  .a{max-height:0;overflow:hidden;transition:max-height .3s ease;color:var(--ink2);font-size:14.5px}
+  .qa.open .a{max-height:320px}
+  .a p{padding:0 0 20px}
+  .cta-wrap{text-align:center;margin-top:56px}
+  .cta{display:inline-block;background:var(--ink);color:var(--paper);text-decoration:none;font-weight:600;font-size:16px;padding:16px 40px;border-radius:100px}
+  .cta:hover{opacity:.92}
+  .csub{font-size:13px;color:var(--ink3);margin-top:14px;font-family:var(--mono);letter-spacing:.04em}
+  footer{margin-top:60px;border-top:1px solid var(--line);padding-top:18px;color:var(--ink3);font-size:13px}
+  footer b{color:var(--ink2)}
+  @media(max-width:520px){h1{font-size:27px}.wrap{padding:40px 20px 70px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="label">SIRIAI · Influencer Matching</div>
+  <div class="logo">SIRIAI</div>
+
+  <div class="greet" id="greet">안녕하세요, 담당자님</div>
+  <h1>브랜드에 맞는 인플루언서,<br><span class="wash">리스트가 아니라 직접 선별</span>합니다.</h1>
+  <p class="lead">보유한 리스트를 돌리는 대신, 브랜드의 무드와 타겟에 맞는 인플루언서를 인스타그램 전체에서 찾아 제안합니다. 궁금하신 것만 아래에서 1분이면 확인하실 수 있어요.</p>
+  <div class="work">국내외 캠페인 경험 · 8DIVISION · COSRX · MUSINSA 외</div>
+
+  <h2>자주 묻는 것</h2>
+  <div id="qaList"></div>
+
+  <div class="cta-wrap">
+    <a class="cta" href="mailto:jysiriai@gmail.com?subject=[협업문의] SIRIAI 인플루언서 매칭" id="cta">SIRIAI에 협업 문의하기 →</a>
+    <div class="csub">방향만 알려주시면 맞춤 후보를 정리해 드립니다</div>
+  </div>
+
+  <footer><b>SIRIAI</b> · 조준용 Sales Manager · jysiriai@gmail.com</footer>
+</div>
+<script>
+// 개인화: ?b=브랜드명 → 인사말
+const b = new URLSearchParams(location.search).get('b');
+if (b) {
+  document.getElementById('greet').textContent = `안녕하세요, ${b} 담당자님`;
+  const cta = document.getElementById('cta');
+  cta.href = `mailto:jysiriai@gmail.com?subject=${encodeURIComponent('[협업문의] '+b+' × SIRIAI')}`;
+}
+// Q&A (표시규칙: 단가 비노출·해외 soft·미검증수치 배제)
+const QA = [
+  ['준비된 게 거의 없는데, 시작할 수 있나요?',
+   '네. 방향(브랜드 무드·타겟·원하는 결)만 알려주시면 인플루언서 선별부터 제안 정리까지 SIRIAI가 진행합니다. 준비가 많지 않은 단계일수록 함께 설계하는 편이 더 효과적입니다.'],
+  ['보유 리스트를 돌리는 것과 뭐가 다른가요?',
+   '고정된 리스트를 재활용하지 않습니다. 캠페인마다 브랜드의 무드·타겟에 맞춰 인스타그램 전체에서 새로 선별합니다. 그래서 브랜드 결에 맞는 후보가 나옵니다.'],
+  ['국내 인플루언서는 어떤 방식으로 진행되나요?',
+   '선별 → 후보 제안 → 컨택·조율 → 콘텐츠 진행 → 결과 정리의 흐름으로 진행됩니다. 각 단계에서 브랜드가 확인·결정할 수 있게 정리해 드립니다.'],
+  ['해외(글로벌) 캠페인도 가능한가요?',
+   '국내외 캠페인 경험이 있으며, 목표 시장에 맞는 인플루언서 풀로 확장해 제안할 수 있습니다. 시장·목표를 알려주시면 맞는 방식으로 안내드립니다.'],
+  ['비용은 어떻게 되나요?',
+   '캠페인 규모와 목표에 따라 달라져, 방향을 들은 뒤 맞춤으로 견적을 정리해 드립니다. 부담 없이 먼저 문의 주셔도 됩니다.'],
+  ['어떤 브랜드와 작업했나요?',
+   '8DIVISION·COSRX·MUSINSA 등 국내외 브랜드와 캠페인을 진행해 왔습니다. 포트폴리오는 문의 주시면 정리해 보내드립니다.'],
+];
+// 각 Q&A에 앵커 id (메일 딥링크 #different/#work/#how 대응)
+const IDS = ['start','different','how','global','cost','work'];
+document.getElementById('qaList').innerHTML = QA.map(([q,a],i)=>
+  `<div class="qa" id="${IDS[i]||'q'+i}"><button class="q">${q}</button><div class="a"><p>${a}</p></div></div>`).join('');
+document.querySelectorAll('.qa .q').forEach(btn=>btn.addEventListener('click',()=>btn.parentElement.classList.toggle('open')));
+// 메일/QR 딥링크: #앵커 → 해당 Q&A 자동 오픈 + 스크롤
+function openFromHash(){
+  if(!location.hash) return;
+  const el = document.querySelector(location.hash);
+  if(el && el.classList.contains('qa')){ el.classList.add('open'); el.scrollIntoView({behavior:'smooth',block:'center'}); }
+}
+openFromHash(); window.addEventListener('hashchange', openFromHash);
+</script>
+</body>
+</html>

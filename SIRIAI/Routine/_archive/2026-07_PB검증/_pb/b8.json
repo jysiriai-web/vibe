@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "(주)알에이치앤비브랜즈",
+      "verdict": "적합",
+      "own_brand": "RATED GREEN, Pretty Actually",
+      "reason": "ratedgreenglobal.com에서 RATED GREEN·Pretty Actually 자체 브랜드로 세럼·클렌저 등 직판 확인, 통신판매업 등록"
+    },
+    {
+      "company": "브에노메디텍",
+      "verdict": "적합",
+      "own_brand": "BUENO(브에노)",
+      "reason": "bueno9.com에서 '홈메디케어 전문 브랜드' 표방, 자체 스킨케어 제품 직판 확인 (OEM/ODM 병행이나 자체 PB 존재)"
+    },
+    {
+      "company": "쥬네뷰",
+      "verdict": "적합",
+      "own_brand": "DEWDAP(듀댑)",
+      "reason": "dewdap.com에서 쥬네뷰 법인이 DEWDAP 브랜드로 팩클렌저·세럼·선크림 등 자체 제품 직판 확인"
+    },
+    {
+      "company": "컬러딥",
+      "verdict": "적합",
+      "own_brand": "MISKOS(미스코스), 컬러딥, 무드매쳐",
+      "reason": "miskos.co.kr에서 컬러딥·무드매쳐·원더레그 등 자체 브랜드 제품 홈쇼핑·온라인몰 직판 확인"
+    },
+    {
+      "company": "주식회사 반다비앤에이치",
+      "verdict": "적합",
+      "own_brand": "KIWIGLOW(키위글로우)",
+      "reason": "kiwiglow.co.kr에서 반다비앤에이치 법인이 KIWIGLOW 브랜드로 토너패드·세럼·선케어 직판, 통신판매업 신고 확인"
+    },
+    {
+      "company": "주식회사 정림에프앤에이치",
+      "verdict": "적합",
+      "own_brand": "Vanava(바나바)",
+      "reason": "vanava.co.kr에서 브이엠컴퍼니(정림에프앤에이치 연관)가 Vanava 브랜드로 모이스처라이저·바디크림 등 자체 직판 확인"
+    },
+    {
+      "company": "주식회사 웰컴이엔앰",
+      "verdict": "적합",
+      "own_brand": "WELBORN, LOEVIE",
+      "reason": "welcomesgroup.com에서 WELBORN(뷰티), LOEVIE(스킨케어) 등 복수 자체 브랜드 직접 기획·생산·판매 확인"
+    },
+    {
+      "company": "닥터바이오 & 티블레스",
+      "verdict": "적합",
+      "own_brand": "닥터바이오(DOCTORBIO), 티블레스(TEABLESS)",
+      "reason": "doctorbio.kr·teabless.co.kr에서 두 브랜드 모두 자체 소비자 화장품 직판 확인, 올리브영 입점 및 해외 수출 전개 중"
+    },
+    {
+      "company": "Y.N.M",
+      "verdict": "적합",
+      "own_brand": "YNM(You Need Me)",
+      "reason": "ynmcosmetic.co.kr에서 (주)디럭스뷰티가 YNM 브랜드로 립·아이·페이스 제품 직판 확인, 자체 e커머스 운영"
+    },
+    {
+      "company": "헤트라스",
+      "verdict": "적합",
+      "own_brand": "HETRAS(헤트라스)",
+      "reason": "hetras.co.kr·올리브영 입점 확인, 쑥쑥컴퍼니 운영 자체 프래그런스·퍼스널케어 브랜드, 2024년 매출 384억원"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "siriai-us-seeding",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "레이티드그린 USA 시딩 — 틱톡 계정별 콘텐츠 업로드 확인 · 시트 O열 기입",
+  "scripts": {
+    "check": "node run.js",
+    "plan": "node run.js --plan"
+  },
+  "dependencies": {
+    "playwright": "^1.61.1"
+  }
+}

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIRIAI 영업 자동화 — 전체 흐름</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F3EEE2;--ink:#211A33;--soft:#5b5468;--line:rgba(33,26,51,.16);--card:#FBF8F1;
+    --ok:#2E7D5B;--okbg:rgba(46,125,91,.10);--warn:#B7791F;--warnbg:rgba(183,121,31,.10);
+    --idle:#9b93a3;--idlebg:rgba(155,147,163,.10);--accent:#6B4DE6;--accentbg:rgba(107,77,230,.08);
+    --mono:'JetBrains Mono',monospace;--sans:'Pretendard','Helvetica Neue',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.6;padding:34px 22px 90px}
+  .wrap{max-width:920px;margin:0 auto}
+  .top{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+  .home{font-size:13px;color:var(--accent);text-decoration:none;font-weight:500;padding:5px 11px;border:1px solid var(--line);border-radius:8px}
+  .home:hover{background:#fff}
+  .label{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--soft)}
+  h1{font-size:27px;font-weight:600;letter-spacing:-.02em;margin:8px 0 4px}
+  h1 .si{font-family:'Helvetica Neue',sans-serif}
+  .sub{color:var(--soft);font-size:14px;margin-bottom:30px}
+  h2{font-size:13px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--soft);
+     font-weight:600;margin:38px 0 16px;display:flex;align-items:center;gap:10px}
+  h2::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  /* 내가 하는 4가지 */
+  .touch{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .tcard{background:var(--accentbg);border:1px solid rgba(107,77,230,.22);border-radius:13px;padding:15px 14px}
+  .tcard .tn{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:600}
+  .tcard .tt{font-size:15px;font-weight:600;margin:5px 0 3px}
+  .tcard .td{font-size:12.5px;color:var(--soft)}
+  .tcard .tmod{font-family:var(--mono);font-size:10.5px;color:var(--accent);margin-top:8px;opacity:.8}
+
+  /* 파이프라인 세로 흐름 */
+  .flow{position:relative}
+  .step{display:flex;align-items:stretch;gap:14px;position:relative}
+  .rail{display:flex;flex-direction:column;align-items:center;width:40px;flex:none}
+  .node{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+        font-family:var(--mono);font-weight:700;font-size:16px;flex:none;border:1.5px solid var(--line);background:#fff;z-index:1}
+  .line{width:2px;flex:1;background:var(--line);min-height:14px}
+  .card{flex:1;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px 17px;margin-bottom:12px}
+  .card .hd{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .card .en{font-family:var(--mono);font-weight:600;font-size:15px}
+  .card .ko{font-size:14px;color:var(--soft)}
+  .card .desc{font-size:13px;color:var(--soft);margin-top:4px}
+  .badge{margin-left:auto;font-family:var(--mono);font-size:10.5px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap}
+  .b-ok{background:var(--okbg);color:var(--ok)} .b-warn{background:var(--warnbg);color:var(--warn)} .b-idle{background:var(--idlebg);color:var(--idle)}
+  .you{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--accent);background:var(--accentbg);
+       border:1px solid rgba(107,77,230,.3);border-radius:5px;padding:2px 7px}
+  .node.ok{border-color:var(--ok);color:var(--ok)} .node.warn{border-color:var(--warn);color:var(--warn)}
+  .node.idle{color:var(--ink)} .node.you{border-color:var(--accent);background:var(--accentbg);color:var(--accent)}
+
+  /* 분기 */
+  .forklabel{display:flex;align-items:center;gap:9px;margin:6px 0 12px 54px;font-size:13px;font-weight:600}
+  .forklabel .tag{font-family:var(--mono);font-size:11px;padding:3px 11px;border-radius:20px}
+  .tag-y{background:var(--okbg);color:var(--ok)} .tag-n{background:var(--warnbg);color:var(--warn)}
+  .branch{margin-left:54px;border-left:2px dashed var(--line);padding-left:18px}
+  .reflow{font-size:12.5px;color:var(--soft);margin:2px 0 16px 54px;font-family:var(--mono)}
+
+  /* 사이드 */
+  .side{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .scard{background:#fff;border:1px dashed var(--line);border-radius:13px;padding:14px 16px}
+  .scard .sn{font-family:var(--mono);font-weight:700;font-size:14px}
+  .scard .sd{font-size:12.5px;color:var(--soft);margin-top:3px}
+
+  /* 상태머신 */
+  .sm{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+  .smrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--mono);font-size:13px;font-weight:600}
+  .chip{padding:4px 12px;border-radius:8px;background:#fff;border:1px solid var(--line)}
+  .chip.gate{border-color:var(--accent);color:var(--accent)}
+  .chip.end{background:var(--okbg);color:var(--ok);border-color:transparent}
+  .arr{color:var(--idle);font-weight:700}
+  .smbranch{margin:14px 0 0 16px;display:flex;flex-direction:column;gap:9px}
+  .smbranch .smrow{font-size:12.5px}
+  .smnote{font-size:12.5px;color:var(--soft);margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+
+  .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--soft);margin-top:14px;font-family:var(--mono)}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .dot{width:10px;height:10px;border-radius:3px;border:1.5px solid}
+  @media(max-width:680px){.touch{grid-template-columns:1fr 1fr}.side{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="대시보드.html" class="home">← 홈</a><span class="label">Process Map</span></div>
+  <h1><span class="si">SIRIAI</span> 영업 자동화 — 전체 흐름</h1>
+  <div class="sub">복잡한 건 자동. 보라색 칸이 <b>네가 손대는 4곳</b>. 회신 오면 5→6→7, 안 오면 8 후속.</div>
+
+  <h2>내가 하는 것 — 4가지 딸깍</h2>
+  <div class="touch">
+    <div class="tcard"><div class="tn">STEP 1</div><div class="tt">브랜드 입력</div><div class="td">영업할 리스트 붙여넣기</div><div class="tmod">→ 0 intake</div></div>
+    <div class="tcard"><div class="tn">STEP 2</div><div class="tt">발송 검토</div><div class="td">초안 승인/보류 (추후 스킵)</div><div class="tmod">→ 3 send</div></div>
+    <div class="tcard"><div class="tn">STEP 3</div><div class="tt">회신 검토</div><div class="td">답장+제안 초안 확인</div><div class="tmod">→ 5·6</div></div>
+    <div class="tcard"><div class="tn">STEP 4</div><div class="tt">미팅 회신</div><div class="td">미팅 요청에 답</div><div class="tmod">→ 7 deal</div></div>
+  </div>
+
+  <h2>자동 파이프라인 — 메인 흐름</h2>
+  <div class="flow">
+    <div class="step"><div class="rail"><div class="node you">0</div><div class="line"></div></div>
+      <div class="card"><div class="hd"><span class="en">intake</span><span class="ko">소싱</span><span class="you">내 입력</span><span class="badge b-idle">설계</span></div>
+        <div class="desc">브랜드 리스트 입력 (지금 수기 → 추후 자동 소싱)</div></div></div>
+
+    <div class="step"><div class="rail"><div class="node ok">1</div><div class="line"></div></div>
+      <div class="card"><div class="hd"><span class="en">collect</span><span class="ko">검증·이메일</span><span class="badge b-ok">가동</span></div>
+        <div class="desc">회사명→브랜드 검증 · 이메일 확보 · 적합도 판정 · 안전장치(민감제품 경고)</div></div></div>
+
+    <div class="step"><div class="rail"><div class="node ok">2</div><div class="line"></div></div>
+      <div class="card"><div class="hd"><span class="en">compose</span><span class="ko">작성</span><span class="badge b-ok">완료</span></div>
+        <div class="desc">적합 브랜드별 개인화 초안 자동 작성 (브랜드명·훅만 교체)</div></div></div>
+
+    <div class="step"><div class="rail"><div class="node warn you">3</div><div class="line"></div></div>
+      <div class="card"><div class="hd"><span class="en">send</span><span class="ko">발송</span><span class="you">내 검토</span><span class="badge b-warn">OAuth 대기</span></div>
+        <div class="desc">승인한 것만 발송 · 3겹 안전선(야간금지·표기·워밍업) · <b>실발송은 Gmail OAuth 발급 후</b></div></div></div>
+
+    <div class="step"><div class="rail"><div class="node idle">4</div><div class="line"></div></div>
+      <div class="card"><div class="hd"><span class="en">track</span><span class="ko">추적</span><span class="badge b-idle">설계</span></div>
+        <div class="desc">회신 감지(확실) · 열람·클릭(참고) → 시트 동기화. 여기서 두 갈래로 갈림 ↓</div></div></div>
+  </div>
+
+  <div class="forklabel"><span class="tag tag-y">회신 옴</span> 관심 신호 → 제안·계약으로</div>
+  <div class="branch">
+    <div class="flow">
+      <div class="step"><div class="rail"><div class="node you idle">5</div><div class="line"></div></div>
+        <div class="card"><div class="hd"><span class="en">reply</span><span class="ko">회신·답장</span><span class="you">내 검토</span><span class="badge b-idle">설계</span></div>
+          <div class="desc">회신 즉시 <b>초동대응</b>(짧은 확인 답장, 자동초안→검토→발송) + 분류(관심/거절/문의)</div></div></div>
+      <div class="step"><div class="rail"><div class="node idle">6</div><div class="line"></div></div>
+        <div class="card"><div class="hd"><span class="en">proposal</span><span class="ko">제안 대시보드</span><span class="badge b-idle">설계</span></div>
+          <div class="desc"><b>1~2일 후</b> 그 브랜드 맞춤 대시보드 + 본 제안 발송 (초동대응 뒤, 정성껏)</div></div></div>
+      <div class="step"><div class="rail"><div class="node you idle">7</div></div>
+        <div class="card"><div class="hd"><span class="en">deal</span><span class="ko">미팅·계약</span><span class="you">내 회신</span><span class="badge b-idle">설계</span></div>
+          <div class="desc">미팅 일정 → 계약 → <b>성사</b></div></div></div>
+    </div>
+  </div>
+
+  <div class="forklabel"><span class="tag tag-n">회신 없음</span> 무응답 → 점잖게 한 번 더</div>
+  <div class="branch">
+    <div class="flow">
+      <div class="step"><div class="rail"><div class="node idle">8</div></div>
+        <div class="card"><div class="hd"><span class="en">follow-up</span><span class="ko">후속</span><span class="badge b-idle">설계</span></div>
+          <div class="desc">발송 <b>7일 뒤</b> 리마인드 <b>1회</b> → 다시 4 추적으로 (확정)</div></div></div>
+    </div>
+  </div>
+  <div class="reflow">↺ 다시 4 추적으로 돌아감 (콜드메일 성과의 대부분은 후속에서 나옴)</div>
+
+  <h2>옆에서 항상 도는 것 (순서 단계 아님)</h2>
+  <div class="side">
+    <div class="scard"><div class="sn">8 · follow-up</div><div class="sd">매일 시트 훑어 무응답·정체 건 챙김. 과도한 후속 금지(횟수상한·최소간격).</div></div>
+    <div class="scard"><div class="sn">9 · report</div><div class="sd">전체 퍼널 집계 현황판 (발송→회신→리드→미팅→계약 KPI).</div></div>
+  </div>
+
+  <h2>상태머신 — 6월 탭 <span style="font-family:var(--mono);text-transform:none;letter-spacing:0">발송단계</span> 열</h2>
+  <div class="sm">
+    <div class="smrow">
+      <span class="chip">초안</span><span class="arr">→</span>
+      <span class="chip gate">승인</span><span class="arr">→</span>
+      <span class="chip">발송</span><span class="arr">→</span>
+      <span class="chip">[열람·클릭]</span><span class="arr">→</span>
+      <span class="chip">회신</span>
+    </div>
+    <div class="smbranch">
+      <div class="smrow"><span class="arr">├</span><span class="chip">관심</span><span class="arr">→</span><span class="chip">리드</span><span class="arr">→</span><span class="chip">미팅</span><span class="arr">→</span><span class="chip">계약</span><span class="arr">→</span><span class="chip end">성사</span></div>
+      <div class="smrow"><span class="arr">├</span><span class="chip">거절</span><span class="arr">→</span><span class="chip">종료</span></div>
+      <div class="smrow"><span class="arr">├</span><span class="chip">무응답</span><span class="arr">→</span><span class="chip">8 후속 (7일 뒤 1회)</span><span class="arr">→</span><span class="chip">종료</span></div>
+      <div class="smrow"><span class="arr">└</span><span class="chip">수신거부</span><span class="arr">→</span><span class="chip">제외 (영구)</span></div>
+    </div>
+    <div class="smnote"><b>보류</b> = 발송 대상 아님 (<span style="font-family:var(--mono)">_보류</span> 탭으로 분리) · <b>승인</b>이 사람 게이트(보라)</div>
+    <div class="legend">
+      <span><span class="dot" style="border-color:var(--ok)"></span>가동/완료</span>
+      <span><span class="dot" style="border-color:var(--warn)"></span>대기</span>
+      <span><span class="dot" style="border-color:var(--idle)"></span>설계</span>
+      <span><span class="dot" style="border-color:var(--accent)"></span>내가 하는 것</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

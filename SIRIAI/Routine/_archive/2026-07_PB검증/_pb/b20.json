@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "센티카",
+      "verdict": "적합",
+      "own_brand": "SCENTICA(센티카)",
+      "reason": "자체 향수/바디/헤어 브랜드 SCENTICA를 자사몰에서 소비자에게 직접 판매 (scentica.co.kr)"
+    },
+    {
+      "company": "EBIN KOREA",
+      "verdict": "적합",
+      "own_brand": "코스유리, 고릴라왁싱, 인젝티어, 부엉이",
+      "reason": "코스유리(스킨케어)·고릴라왁싱·인젝티어 등 다수 자체 브랜드 보유, Amazon 및 자사몰 B2C 직판 (ebinkorea.com)"
+    },
+    {
+      "company": "(주)탠코리아",
+      "verdict": "적합",
+      "own_brand": "JAMIE BRONZE(제이미 브론즈)",
+      "reason": "2005년 론칭한 자체 태닝 전문 소비자 브랜드 JAMIE BRONZE 보유, 2025 인터참코리아 출품 확인 (aving.net 기사)"
+    },
+    {
+      "company": "디어메이",
+      "verdict": "적합",
+      "own_brand": "DEARMAY",
+      "reason": "자체 브랜드 DEARMAY로 립/아이/페이스 화장품 소비자 직판, 법인명 BELECO (en.dearmay.co.kr)"
+    },
+    {
+      "company": "(주)바이옵트",
+      "verdict": "적합",
+      "own_brand": "VENDERMA(벤더마)",
+      "reason": "자체 브랜드 VENDERMA, 자체제작·자체공급 표기, 스킨케어 B2C 직판 쇼핑몰 운영 (venderma.com)"
+    },
+    {
+      "company": "TROIAREUKE",
+      "verdict": "적합",
+      "own_brand": "TROIAREUKE, ACSEN",
+      "reason": "자체 브랜드 TROIAREUKE·ACSEN·VVS 등 보유, 소비자 직판 B2C 기업 (troiareuke.com)"
+    },
+    {
+      "company": "오미티드",
+      "verdict": "적합",
+      "own_brand": "오미티드(Omitted)",
+      "reason": "자체 브랜드 Omitted로 스킨케어 소비자 직판, 법인명 주식회사 벤처리스트 (omitted.kr)"
+    },
+    {
+      "company": "DAILY WEEKLY",
+      "verdict": "적합",
+      "own_brand": "DAILY WEEKLY(데일리위클리)",
+      "reason": "자체 브랜드 Daily Weekly로 선케어·스킨케어 소비자 직판, 법인명 (주)에스에이치네이처 (dailyweekly.co.kr)"
+    },
+    {
+      "company": "(주)아트페이스",
+      "verdict": "적합",
+      "own_brand": "TENZERO",
+      "reason": "자체 브랜드 TENZERO로 스킨케어·컬러 메이크업 소비자 직판 (tenzero.co.kr)"
+    },
+    {
+      "company": "KOCOSTAR",
+      "verdict": "적합",
+      "own_brand": "KOCOSTAR",
+      "reason": "퍼스트마켓이 운영하는 자체 K-뷰티 브랜드 KOCOSTAR, 20개 이상 자체 브랜드 포트폴리오 보유 (firstmarket.co.kr)"
+    }
+  ]
+}

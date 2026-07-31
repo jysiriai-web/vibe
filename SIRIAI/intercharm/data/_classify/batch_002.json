@@ -1,0 +1,66 @@
+[
+  {
+    "code": "ING2955",
+    "cat": "스킨케어",
+    "intro": "식물세포배양 바이오소재 기업, 자체 스킨케어 브랜드 Vegetology 운영",
+    "verdict": "타겟",
+    "basis": "자사 브랜드 베지톨로지 화장품 판매",
+    "homepage": ""
+  },
+  {
+    "code": "GNI8576",
+    "cat": "기타",
+    "intro": "립·아이 등 색조화장품 OEM/ODM 제조 전문기업",
+    "verdict": "제외",
+    "basis": "색조 OEM 수탁 전문, 자체 브랜드 근거 없음",
+    "homepage": ""
+  },
+  {
+    "code": "STA6417",
+    "cat": "기타",
+    "intro": "입자·캡슐화 기술 기반 화장품·식품 원료 소재 기업",
+    "verdict": "제외",
+    "basis": "스타피어스 등 원료 소재 B2B 공급",
+    "homepage": ""
+  },
+  {
+    "code": "TOL7601",
+    "cat": "기타",
+    "intro": "화장품 용기·패키징 전문 제조 수출기업(유럽 Toly 한국법인)",
+    "verdict": "제외",
+    "basis": "용기·부자재 제조사",
+    "homepage": ""
+  },
+  {
+    "code": "PRI9857",
+    "cat": "스킨케어",
+    "intro": "엑소좀·줄기세포 배양액 기반 스킨부스터·더마 스킨케어 브랜드 보유",
+    "verdict": "타겟",
+    "basis": "SKINPHILIA·GD11 리페어 등 자체 브랜드",
+    "homepage": ""
+  },
+  {
+    "code": "PDR2377",
+    "cat": "스킨케어",
+    "intro": "고순도 PDRN 앰플·토너·크림 중심의 병의원 전용 스킨케어 브랜드",
+    "verdict": "타겟",
+    "basis": "피더린 자체 브랜드 완제품 판매",
+    "homepage": "https://pyderin.com"
+  },
+  {
+    "code": "IMA1002",
+    "cat": "헤어바디",
+    "intro": "(주)일공일공의 Y존 케어 중심 퍼스널케어 브랜드",
+    "verdict": "타겟",
+    "basis": "이미지플러스 자체 브랜드, Y존케어 화장품 수상",
+    "homepage": ""
+  },
+  {
+    "code": "LBX9151",
+    "cat": "기타",
+    "intro": "PDO·PLLA 흡수성 리프팅 실·봉합사 제조기업(브랜드 LUNAQ)",
+    "verdict": "제외",
+    "basis": "의료기기(리프팅 실) 제조사",
+    "homepage": ""
+  }
+]

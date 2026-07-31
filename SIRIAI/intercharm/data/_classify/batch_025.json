@@ -1,0 +1,66 @@
+[
+  {
+    "code": "BOH3345",
+    "cat": "스킨케어",
+    "intro": "마스크팩·크림 등 화장품 제조사, 자사 브랜드 '아로마앳홈' 운영",
+    "verdict": "타겟",
+    "basis": "화장품 제조+아로마앳홈 자사몰 B2C",
+    "homepage": "http://www.bodyyahealth.com"
+  },
+  {
+    "code": "BON6795",
+    "cat": "기타",
+    "intro": "화장품 처방 연구개발과 OEM/ODM·브랜드 론칭 컨설팅 전문",
+    "verdict": "제외",
+    "basis": "화장품 R&D·OEM/ODM, 자체브랜드 없음",
+    "homepage": ""
+  },
+  {
+    "code": "CAR5812",
+    "cat": "스킨케어",
+    "intro": "바이오미메틱 펩타이드 기반 코스메슈티컬 브랜드 '더마힐' 보유",
+    "verdict": "타겟",
+    "basis": "자사몰서 더마힐·펠로바움 소비자 판매",
+    "homepage": ""
+  },
+  {
+    "code": "DKT4489",
+    "cat": "기타",
+    "intro": "괄사·페이스롤러 등 스킨케어 툴 OEM 제조·수출 업체",
+    "verdict": "제외",
+    "basis": "뷰티툴 OEM 제조, 브랜드사에 납품",
+    "homepage": ""
+  },
+  {
+    "code": "GMM2144",
+    "cat": "기타",
+    "intro": "HA·PLLA 스킨부스터와 더마 의료기기 개발·수출 기업",
+    "verdict": "제외",
+    "basis": "에스테틱 의료기기·시술재, 병의원 B2B",
+    "homepage": ""
+  },
+  {
+    "code": "ACC5576",
+    "cat": "기타",
+    "intro": "쑤저우 소재 메이크업 스펀지·퍼프·브러시 제조사",
+    "verdict": "제외",
+    "basis": "화장용구·퍼프 제조, B2B 공급",
+    "homepage": ""
+  },
+  {
+    "code": "LEC9555",
+    "cat": "기타",
+    "intro": "항저우 소재 화장품·향수 1차 패키징 용기 제조사",
+    "verdict": "제외",
+    "basis": "화장품 용기·패키징 전문 제조",
+    "homepage": "https://www.lecospack.com"
+  },
+  {
+    "code": "LMB5036",
+    "cat": "스킨케어",
+    "intro": "코코넛워터 발효 바이오셀룰로스 마스크 소재사, 브랜드 ULEEFON",
+    "verdict": "타겟",
+    "basis": "소재·OEM이나 자체 브랜드 ULEEFON 보유",
+    "homepage": ""
+  }
+]

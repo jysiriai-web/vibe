@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "와이에스메디",
+      "verdict": "부적합",
+      "own_brand": "XE-LHA(쎄라필)",
+      "reason": "XE-LHA(쎄라필) 자체 제품명 있으나 병원·클리닉 전문가 대상 B2B 유통 전용이며 소비자 직판 채널 없음 (xe-lha.com/en 확인)"
+    },
+    {
+      "company": "(주)나노바이오시스템",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "나노소재·줄기세포 기반 의료기기·치료제 개발 B2B 기업, 자체 소비자 화장품 브랜드 없음 (nanobiosystem.co.kr 확인)"
+    },
+    {
+      "company": "파란네일",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "홈페이지 없음, 웹 검색에서도 해당 기업 정보 확인 불가"
+    },
+    {
+      "company": "이연물산",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "홈페이지 없음, 웹 검색에서도 해당 기업 정보 확인 불가"
+    },
+    {
+      "company": "(주) 코스모더마",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "히알루론산 필러·스킨부스터 B2B 공급 및 OEM/ODM 제조사, 소비자 직판 자체 브랜드 채널 없음 (cosmoderma.kr 확인)"
+    },
+    {
+      "company": "케이투메디텍",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "홈페이지 없음, 웹 검색에서도 해당 기업 정보 확인 불가"
+    },
+    {
+      "company": "주식회사 미팜",
+      "verdict": "애매",
+      "own_brand": "Mayfill, Hyalmass, 헤어나",
+      "reason": "히알루론산 필러(Mayfill) 등 자체 브랜드 보유하나 주력이 의료미용 B2B 제품이며 일반 소비자 화장품 채널 여부 불명확 (RnDcircle, 인터참 디렉토리 확인)"
+    },
+    {
+      "company": "SKINNPLUS CO.,LTD",
+      "verdict": "적합",
+      "own_brand": "세인트프랑(SaintFran), Ultra Second Skin, Rinasita, Mamashoo, Coverline",
+      "reason": "세인트프랑 등 복수 자체 소비자 브랜드 보유, 네이버 스마트스토어 및 홈쇼핑 직판 운영 (saintfran.com, 잡코리아 기업정보 확인)"
+    },
+    {
+      "company": "주식회사 위즈켐",
+      "verdict": "적합",
+      "own_brand": "GluCA",
+      "reason": "자체 스킨케어 브랜드 GluCA 보유, 신세계·갤러리아·현대 등 백화점 및 면세점·온라인몰 소비자 판매 운영 (웹검색 k-expo.org, gobizkorea 확인)"
+    },
+    {
+      "company": "라즐라 뷰티(P.M.U)",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "PMU(반영구 화장) 관련 업체로 추정되나 WeChat 연락처만 있고 홈페이지·자체 브랜드 정보 확인 불가"
+    }
+  ]
+}

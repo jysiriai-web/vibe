@@ -1,0 +1,20 @@
+{
+  "_설명": "이 파일을 agent.config.json 으로 복사해 값을 바꾸면 적용됩니다. 없으면 아래 값이 기본으로 동작합니다.",
+  "bus": "local",
+  "sheet": {
+    "_설명": "bus 를 'sheet' 로 바꿀 때만 필요. worker_bus.gs 를 '별도 웹앱'으로 배포한 URL/토큰.",
+    "url": "",
+    "token": ""
+  },
+  "controlPort": 3939,
+  "idlePollMs": 10000,
+  "activePollMs": 2500,
+  "progressThrottleMs": 10000,
+  "campaigns": "all",
+  "schedule": {
+    "enabled": true,
+    "windows": ["19:30", "21:30"],
+    "mode": "upload",
+    "graceMs": 60000
+  }
+}

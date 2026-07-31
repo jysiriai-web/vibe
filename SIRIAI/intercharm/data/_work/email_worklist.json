@@ -1,0 +1,586 @@
+[
+  {
+    "company": "CLAIRLISSE",
+    "current_email": "",
+    "website": "",
+    "tier": "Tier A",
+    "confidence": "medium",
+    "reason": "빈칸"
+  },
+  {
+    "company": "제이크리컴퍼니",
+    "current_email": "jcre@jcrecompany.com",
+    "website": "https://linktr.ee/lefilleo?utm_source=linktree_profile_share&ltsid=4f7a3ca8-e2f2-41e8-8220-b04973100003",
+    "tier": "Tier A",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "SHINAN COSMETICS Co., Ltd.",
+    "current_email": "",
+    "website": "https://www.shionle.com/",
+    "tier": "Tier A",
+    "confidence": "medium",
+    "reason": "빈칸"
+  },
+  {
+    "company": "(주)한국쉬즈라인",
+    "current_email": "info@koreashesline.co.kr",
+    "website": "https://toolif.co.kr",
+    "tier": "Tier A",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "휴션",
+    "current_email": "",
+    "website": "https://www.huceane.com",
+    "tier": "Tier A",
+    "confidence": "high",
+    "reason": "빈칸"
+  },
+  {
+    "company": "주식회사 사계절",
+    "current_email": "",
+    "website": "",
+    "tier": "Tier A",
+    "confidence": "high",
+    "reason": "빈칸"
+  },
+  {
+    "company": "레보아미",
+    "current_email": "sun2268@naver.com",
+    "website": "https://youtu.be/A4i4Dnwy00c?si=6fGMH5PcQEhqVEEb",
+    "tier": "Tier A",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "ODSY",
+    "current_email": "deunerang@naver.com",
+    "website": "",
+    "tier": "Tier A",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "(주)승건코스메틱스",
+    "current_email": "",
+    "website": "https://www.loobee.co.kr/",
+    "tier": "Tier A",
+    "confidence": "high",
+    "reason": "빈칸"
+  },
+  {
+    "company": "브라이트",
+    "current_email": "",
+    "website": "https://smartstore.naver.com/brightbrush",
+    "tier": "Tier A",
+    "confidence": "high",
+    "reason": "빈칸"
+  },
+  {
+    "company": "리타",
+    "current_email": "liita@proving-grounds.co.kr",
+    "website": "https://www.liita-seoul.com",
+    "tier": "Tier A",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "지비알아이디어",
+    "current_email": "seo9009@hanmail.net",
+    "website": "https://www.vah.co.kr",
+    "tier": "Tier A",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "셀비오코스메틱(주)",
+    "current_email": "cellviocosmetic@naver.com",
+    "website": "https://www.cellviocosmetic.co.kr/",
+    "tier": "Tier A",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "이아이오(L-H02) / 누이브(L-H03)",
+    "current_email": "",
+    "website": "https://eiio.co.kr/",
+    "tier": "Tier A",
+    "confidence": "high",
+    "reason": "빈칸"
+  },
+  {
+    "company": "(주)케이비에이치케어",
+    "current_email": "kbhcare@naver.com",
+    "website": "https://kbhcare.com/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "주식회사 아가파월드",
+    "current_email": "info@agafar.com",
+    "website": "https://www.wechat.com/Afgfguknnn",
+    "tier": "Tier B",
+    "confidence": "low",
+    "reason": "저신뢰(low)"
+  },
+  {
+    "company": "(주)제노헬릭스",
+    "current_email": "xenohelix@xenohelix.com",
+    "website": "http://www.xenohelix.com",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "Beaufirst Global Company Limited",
+    "current_email": "Beaufirstglobal@gmail.com",
+    "website": "",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "메딕콘",
+    "current_email": "medicon@medicon.co.kr",
+    "website": "http://www.medicon.co.kr/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "피텐",
+    "current_email": "pms@pitenkorea.com",
+    "website": "https://www.drpiten.com",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "ILLON CO., LTD",
+    "current_email": "global@illon.co.kr",
+    "website": "https://theillon.com/en",
+    "tier": "Tier B",
+    "confidence": "low",
+    "reason": "저신뢰(low)"
+  },
+  {
+    "company": "리쥬멜라 코리아",
+    "current_email": "rejumela@naver.com",
+    "website": "https://www.rejumela.co.kr",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "BIO GLORIOUS CO.,LTD.",
+    "current_email": "bioglorious@naver.com",
+    "website": "https://palab.co.kr/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "㈜나인원코스메디",
+    "current_email": "OBD@91cosmedi.com",
+    "website": "https://www.wechat.com/nineone9179",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "에텔랑",
+    "current_email": "etelanc@naver.com",
+    "website": "https://www.etelanc.com",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "세포랩",
+    "current_email": "biz@fugenbio.co.kr",
+    "website": "https://cepolab.com/",
+    "tier": "Tier B",
+    "confidence": "low",
+    "reason": "저신뢰(low)"
+  },
+  {
+    "company": "주식회사 메조팜",
+    "current_email": "purple9260@hnamail.net",
+    "website": "https://mesopharm.co.kr/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "(주)미성메탈",
+    "current_email": "jkhan@misunggc.co.k",
+    "website": "https://smartstore.naver.com/misunggc",
+    "tier": "Tier B",
+    "confidence": "low",
+    "reason": "저신뢰(low)"
+  },
+  {
+    "company": "AESTHEIN",
+    "current_email": "aesthein_sy@naver.com",
+    "website": "http://aesthein.kr",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "㈜3일애",
+    "current_email": "sales@3dayslove.kr",
+    "website": "https://www.3dayslove.kr/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "더마퀸",
+    "current_email": "limta11@naver.com",
+    "website": "https://themaqueen.com/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "㈜바이오에프디엔씨",
+    "current_email": "biofdnc@global.com",
+    "website": "https:// www.biofdnc-global.com",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "(주)피노젠",
+    "current_email": "star@pinogen.com",
+    "website": "https://pinogen.com/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "BiOBiO Co.,Ltd.",
+    "current_email": "biobiocos@naver.com",
+    "website": "https://www.biobiokorea.com/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "(주)엠피컴퍼니",
+    "current_email": "jungye@medipair.co.kr",
+    "website": "https://www.medipair.co.kr/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "MLAY INTERNATIONAL LIMITED",
+    "current_email": "cml@mlays.com",
+    "website": "https://www.mlays.com",
+    "tier": "Tier B",
+    "confidence": "low",
+    "reason": "저신뢰(low)"
+  },
+  {
+    "company": "미영씨앤씨",
+    "current_email": "ecomine@ecomine.co.kr",
+    "website": "https://hesolmall.com/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "디오에스앤유니크",
+    "current_email": "monica.son@dosintl.com",
+    "website": "https://dosinternational.co.kr/en/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "엑소블랑",
+    "current_email": "sales1@linkusglobal.kr",
+    "website": "https://linkusglobal.kr/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "(주)새로핸즈",
+    "current_email": "jh.lee@saero.co.kr",
+    "website": "https://www.saerohands.com/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "(주)제이앤제이",
+    "current_email": "jnj_25@daum.net",
+    "website": "https://earthera01.cafe24.com/",
+    "tier": "Tier B",
+    "confidence": "low",
+    "reason": "저신뢰(low)"
+  },
+  {
+    "company": "VINACEUTICALS",
+    "current_email": "official@vinaceuticals.vn",
+    "website": "https://vinaceuticals.vn",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "비오아이",
+    "current_email": "jaypal_company@naver.com",
+    "website": "https://bringorganic.com",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "SHAAN HONQ INT'L COSMETICS CORP.",
+    "current_email": "liliya@shaanhonq.com.tw",
+    "website": "https://www.shaanhonq.com.tw/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "코이즈",
+    "current_email": "coizmkt@gmail.com",
+    "website": "https://oxygenceuticals.co.kr/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "(주)배쓰프로젝트",
+    "current_email": "office@bathproject.kr",
+    "website": "https://www.bathproject.kr/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "바이더퀄리티",
+    "current_email": "bythequality@gmail.com",
+    "website": "https://www.bythequality.com/en",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "epielle",
+    "current_email": "",
+    "website": "https://epielle.com/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "빈칸"
+  },
+  {
+    "company": "Korea Honey",
+    "current_email": "k-honey@naver.com",
+    "website": "https://www.sharp-be.com/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "주식회사 제트글로벌",
+    "current_email": "tomtittot.official@gmail.com",
+    "website": "https://tomtittot.com/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "MIMO CO., LTD.",
+    "current_email": "kkb0717@naver.com",
+    "website": "https://mimonail.com/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "JKOSMEC",
+    "current_email": "sales@jkosmec.com",
+    "website": "https://kr.linkedin.com/in/jkomecs-korea-a50a26259",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "성림 BNC",
+    "current_email": "sunglimbnc@naver.com",
+    "website": "http://www.sunglimbnc.com",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "(주)바이오센서연구소",
+    "current_email": "global@biosensorlab.com",
+    "website": "https://franzskincareusa.com/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "(주)씨유스킨",
+    "current_email": "jay@cuskin.com",
+    "website": "https://www.cueshop.co.kr",
+    "tier": "Tier B",
+    "confidence": "low",
+    "reason": "저신뢰(low)"
+  },
+  {
+    "company": "일공일공 이미지플러스",
+    "current_email": "1010master@naver.com",
+    "website": "https://www.tentengroup.net",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "주식회사 에이치피앤씨",
+    "current_email": "hpncmall@hpnc.co.kr",
+    "website": "http://hpnc.co.kr/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "주식회사 오션스인터내셔널",
+    "current_email": "sales@oseansint.com",
+    "website": "http://www.oseansint.com/kr/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "(주)필코코스팜",
+    "current_email": "pilko@pilko.org",
+    "website": "https://pilkocospharm.co.kr/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "INOPRO",
+    "current_email": "alexander@inopro.us",
+    "website": "https://inopro.us",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "(주)이레코스메틱",
+    "current_email": "holyleader@naver.com",
+    "website": "https://www.irecosmetic.co.kr",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "와더스킨",
+    "current_email": "info@whataskin.co.kr",
+    "website": "https://whataskin7.cafe24.com/shop3/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "KONAD코나드",
+    "current_email": "konadkorea@konadnail.com",
+    "website": "http://www.konadcosmetic.com",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "VIEWTEL Co., Ltd.",
+    "current_email": "marketing@view-tel.co.kr",
+    "website": "https://viewtel.cafe24.com/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "㈜상떼화장품",
+    "current_email": "drsantecosmetics@gmail.com",
+    "website": "https://santecosmetic.co.kr",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "주식회사 에스테르",
+    "current_email": "",
+    "website": "",
+    "tier": "Tier B",
+    "confidence": "low",
+    "reason": "빈칸"
+  },
+  {
+    "company": "(주)제이지에스헬스큐어",
+    "current_email": "jgshealthcure@gmail.com",
+    "website": "https://mayyoung.kr",
+    "tier": "Tier B",
+    "confidence": "low",
+    "reason": "저신뢰(low)"
+  },
+  {
+    "company": "(주) 엠디무역",
+    "current_email": "mdtrad@naver.com",
+    "website": "https://www.mdwig.co.kr/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "(주)코윈바이오",
+    "current_email": "mesablue@kowinbio.co.kr",
+    "website": "https://en.mesabluestore.com/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "HANJINEYMAY CO.,LTD",
+    "current_email": "",
+    "website": "",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "빈칸"
+  },
+  {
+    "company": "FACE FACTORY",
+    "current_email": "global@cubist.co.kr",
+    "website": "https://www.face-factory.com/",
+    "tier": "Tier B",
+    "confidence": "low",
+    "reason": "저신뢰(low)"
+  },
+  {
+    "company": "(주)뷰티앤팩토리",
+    "current_email": "global@beautynfactory.com",
+    "website": "https://beautynfactory.com/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  },
+  {
+    "company": "(주)시카젠",
+    "current_email": "cicagen@cicagen.com",
+    "website": "https://en.cicagen.com/",
+    "tier": "Tier B",
+    "confidence": "medium",
+    "reason": "저신뢰(medium)"
+  }
+]

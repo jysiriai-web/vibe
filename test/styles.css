@@ -1,0 +1,319 @@
+/* ============================================================
+   Cathy Dolle — clone
+   ============================================================ */
+
+:root {
+  --bg: #ffffff;
+  --ink: #171717;          /* active text */
+  --muted: #bcbcbc;        /* inactive text */
+  --hair: #e7e7e7;
+  --pad: 11px;             /* page edge padding */
+  --fs: 11px;              /* base type size */
+  --reel-w: 358px;         /* center image column width */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+  font-size: var(--fs);
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  cursor: none;
+}
+
+a, button {
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: none;
+}
+
+/* ---------- Links: subtle hover fade ---------- */
+.link {
+  color: var(--ink);
+  transition: opacity 0.35s var(--ease);
+}
+.link:hover {
+  opacity: 0.45;
+}
+
+/* ============================================================
+   Custom cursor
+   ============================================================ */
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--ink);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1000;
+  mix-blend-mode: difference;
+  border-color: #fff;
+  transition: width 0.3s var(--ease), height 0.3s var(--ease),
+              background-color 0.3s var(--ease);
+  will-change: transform;
+}
+.cursor.is-hover {
+  width: 16px;
+  height: 16px;
+  background: #fff;
+}
+@media (hover: none) {
+  body, a, button { cursor: auto; }
+  .cursor { display: none; }
+}
+
+/* ============================================================
+   Intro loader
+   ============================================================ */
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  pointer-events: none;
+}
+.loader__bar {
+  display: block;
+  width: 8px;
+  height: 44px;
+  background: var(--ink);
+  transform-origin: bottom;
+  transform: scaleY(0);
+  animation: barIn 0.7s var(--ease) 0.15s forwards;
+}
+.loader.is-done {
+  animation: loaderOut 0.6s var(--ease) forwards;
+}
+.loader.is-done .loader__bar {
+  animation: barOut 0.5s var(--ease) forwards;
+}
+@keyframes barIn  { to { transform: scaleY(1); } }
+@keyframes barOut { to { transform: scaleY(0); } }
+@keyframes loaderOut { to { opacity: 0; visibility: hidden; } }
+
+/* ============================================================
+   Header
+   ============================================================ */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: var(--pad);
+  z-index: 500;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  pointer-events: none;
+}
+.header > * { pointer-events: auto; }
+
+.header__logo {
+  justify-self: start;
+}
+
+/* List / Slider toggle sits just right of the logo, aligned to the
+   left column's second track */
+.header__toggle {
+  position: absolute;
+  left: calc(9% + 6px);
+  top: var(--pad);
+  display: flex;
+  gap: 16px;
+  pointer-events: auto;
+}
+.toggle-btn {
+  color: var(--muted);
+  transition: color 0.35s var(--ease);
+}
+.toggle-btn.is-active { color: var(--ink); }
+.toggle-btn:hover { color: var(--ink); }
+
+.header__nav {
+  grid-column: 3;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: clamp(40px, 9vw, 150px);
+}
+.nav__shop {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.nav__bag {
+  width: 15px;
+  height: 15px;
+  display: block;
+}
+
+/* ============================================================
+   Stage (main 3-column layout)
+   ============================================================ */
+.stage {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+}
+
+/* Project name columns */
+.projects {
+  position: absolute;
+  top: 168px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 88px;               /* row pitch ≈ 105px incl. line height */
+  z-index: 20;
+}
+.projects--left  { left: 9%;  }
+.projects--right { left: 66.8%; }
+
+.project {
+  display: flex;
+  gap: 88px;
+  color: var(--muted);
+  transition: color 0.4s var(--ease);
+}
+
+.project__num {
+  width: 40px;
+  flex-shrink: 0;
+}
+
+.project__name {
+  white-space: nowrap;
+}
+
+.project.is-active { color: var(--ink); }
+.project:hover { color: var(--ink); }
+
+/* ============================================================
+   Center reel (auto-scrolling image column)
+   ============================================================ */
+.reel {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  width: var(--reel-w);
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  z-index: 10;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, transparent 5%, #000 13%, #000 88%, transparent 98%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, transparent 5%, #000 13%, #000 88%, transparent 98%, transparent 100%);
+}
+.reel__track {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  will-change: transform;
+}
+.tile {
+  width: 100%;
+  overflow: hidden;
+  background: #ededed;
+  flex-shrink: 0;
+}
+.tile svg { display: block; width: 100%; height: 100%; }
+
+/* ============================================================
+   Footer
+   ============================================================ */
+.footer {
+  position: fixed;
+  right: var(--pad);
+  bottom: var(--pad);
+  z-index: 500;
+}
+
+/* ============================================================
+   About overlay
+   ============================================================ */
+.about {
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: 25.4%;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s var(--ease), visibility 0.5s var(--ease);
+}
+.about.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+.about__grid {
+  width: min(46vw, 470px);
+  display: grid;
+  gap: 40px;
+  transform: translateY(8px);
+  transition: transform 0.6s var(--ease);
+}
+.about.is-open .about__grid { transform: translateY(0); }
+
+.about__label { color: var(--ink); }
+.about__bio {
+  text-transform: none;
+  max-width: 470px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+.about__dev { color: var(--muted); }
+.about__contact {
+  display: flex;
+  gap: 44px;
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 900px) {
+  :root { --reel-w: 62vw; }
+  .header__toggle { position: static; }
+  .header {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 0;
+  }
+  .header__toggle { grid-column: 1; grid-row: 2; }
+  .header__nav { grid-column: 2; grid-row: 2; gap: 22px; }
+  .projects { display: none; }
+  .reel { z-index: 10; }
+  .about { padding-left: 0; justify-content: center; }
+  .about__grid { width: 84vw; }
+  .about__contact { flex-wrap: wrap; gap: 20px; }
+}

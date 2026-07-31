@@ -1,0 +1,66 @@
+[
+  {
+    "code": "ARN2405",
+    "cat": "기타",
+    "intro": "",
+    "verdict": "불명",
+    "basis": "동명 ARNE는 타법인, 연결근거 없음",
+    "homepage": ""
+  },
+  {
+    "code": "ARN3166",
+    "cat": "헤어바디",
+    "intro": "도고온천수 기반 스파·바디·헤어·스킨케어 자체브랜드(온궁·SPASSOM) 보유",
+    "verdict": "타겟",
+    "basis": "자체브랜드 온궁·SPASSOM 판매",
+    "homepage": ""
+  },
+  {
+    "code": "BAI5410",
+    "cat": "기타",
+    "intro": "선전 소재 뷰티·헬스 디바이스 OEM/ODM 제조사",
+    "verdict": "제외",
+    "basis": "공식몰상 OEM/ODM 전문, 자체브랜드 없음",
+    "homepage": "https://www.baichangtech.com/"
+  },
+  {
+    "code": "BEP2403",
+    "cat": "스킨케어",
+    "intro": "비건 지향 고기능성 스킨케어 브랜드 Be-Hope 운영",
+    "verdict": "타겟",
+    "basis": "자사몰서 토너·크림 직접 판매",
+    "homepage": "https://behopebeauty.com/"
+  },
+  {
+    "code": "BIJ6394",
+    "cat": "기타",
+    "intro": "K뷰티 브랜드의 해외 유통·수출을 대행하는 플랫폼 기업",
+    "verdict": "제외",
+    "basis": "유통·소싱 대행, 자체브랜드 없음",
+    "homepage": "https://www.bijugroup.com/"
+  },
+  {
+    "code": "BIO2642",
+    "cat": "기타",
+    "intro": "제주 자연물 기반 화장품 원료를 개발·생산하는 바이오 기업",
+    "verdict": "제외",
+    "basis": "완제품 아닌 원료 공급사",
+    "homepage": ""
+  },
+  {
+    "code": "BLA3556",
+    "cat": "스킨케어",
+    "intro": "'더랩 바이 블랑두' 스킨케어 브랜드, 자사몰 운영",
+    "verdict": "타겟",
+    "basis": "자사몰서 세럼·크림 직접 판매",
+    "homepage": ""
+  },
+  {
+    "code": "BOT5446",
+    "cat": "스킨케어",
+    "intro": "고농도 비타민C 앰플 중심의 K뷰티 스킨케어 브랜드",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 제품 소비자 판매",
+    "homepage": ""
+  }
+]

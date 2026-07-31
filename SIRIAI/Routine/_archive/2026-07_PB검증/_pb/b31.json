@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "주식회사 엔스",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "순수 OEM/ODM 제조사. 네일·색조화장품 위탁제조 전문, 자체 소비자 브랜드 없음. (출처: enth.co.kr)"
+    },
+    {
+      "company": "LINK METOO BIO-TECHNOLOGY DALIAN CO.,LTD",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "홈페이지(linkmetoo.com.cn) 접속 불가(ECONNREFUSED), 자체 브랜드 확인 불가. (출처: 접속 실패)"
+    },
+    {
+      "company": "(주)일진코스메틱",
+      "verdict": "적합",
+      "own_brand": "드끌레오, 호프만, 로자그라프, 마리아갈랑(독점수입)",
+      "reason": "OEM/ODM 제조사이지만 1992년부터 자체 브랜드 드끌레오 운영, 프랑스 마리아갈랑·아카데미 독점수입·유통. 에스테틱 채널 직접 보유. (출처: cosinkorea.com 기사)"
+    },
+    {
+      "company": "유씨엘 주식회사",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "순수 OEM/ODM 제조사. '원스톱 솔루션' B2B 위탁제조만 언급, 자체 소비자 브랜드 없음. (출처: e-ucl.co.kr/eng)"
+    },
+    {
+      "company": "(주)화인글로벌랩",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "순수 OEM/ODM/OBM 위탁제조사. 1979년 창립, 헤어살롱·스킨케어 전문 제조, 자체 소비자 브랜드 없음. (출처: whaingloballab.com)"
+    },
+    {
+      "company": "(주)리베코스",
+      "verdict": "적합",
+      "own_brand": "생그린",
+      "reason": "1987년 창립 OEM/ODM 제조사이나 자체 한방화장품 브랜드 '생그린' 방문판매 운영 확인. (출처: cosinkorea.com 기사)"
+    },
+    {
+      "company": "(주)우신화장품",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "순수 OEM/ODM 제조사. 스킨케어·바디케어·헤어케어 위탁생산 전문, 자체 소비자 브랜드 없음. (출처: woosincos.co.kr)"
+    },
+    {
+      "company": "주식회사 에스겔코스메틱",
+      "verdict": "적합",
+      "own_brand": "Lumiees 외 자체 PB",
+      "reason": "OEM/ODM 제조사이면서 SSG.com 등 온라인 몰에 자체 브랜드 제품(스네일·콜라겐 라인, Lumiees 샴푸 등) 직접 판매. (출처: ssg.com 브랜드샵, 검색결과)"
+    },
+    {
+      "company": "주식회사 베스트솔루션",
+      "verdict": "적합",
+      "own_brand": "BS ON:+, KUMERO, TEA TREE, REALMOIST",
+      "reason": "OEM/ODM 제조와 자체 브랜드 BS ON:+·KUMERO 등 B2C 직접 판매 병행하는 하이브리드 뷰티 기업. (출처: bestsolution1.co.kr)"
+    },
+    {
+      "company": "주식회사 씨아이티 (CIT Co., Ltd)",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "순수 OEM/ODM 제조사. CGMP·ISO22716 인증 보유, 자체 소비자 브랜드 없음, 순수 B2B 위탁제조업체. (출처: citcosmetic.com/kr)"
+    }
+  ]
+}

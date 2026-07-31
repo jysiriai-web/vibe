@@ -1,0 +1,66 @@
+[
+  {
+    "code": "HEA3559",
+    "cat": "스킨케어",
+    "intro": "임상·EWG 기반 저자극 고기능 스킨케어 자체 브랜드",
+    "verdict": "타겟",
+    "basis": "자사몰서 세럼·선케어 직판",
+    "homepage": "https://hearimcosmetic.com"
+  },
+  {
+    "code": "HET5633",
+    "cat": "향수",
+    "intro": "향수·디퓨저 중심 라이프스타일 브랜드(쑥쑥컴퍼니 운영)",
+    "verdict": "타겟",
+    "basis": "자사몰 D2C 향 제품 판매",
+    "homepage": ""
+  },
+  {
+    "code": "ICB7902",
+    "cat": "헤어바디",
+    "intro": "비건 바디케어 브랜드 '디어도어' 운영, 바디스크럽 주력",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 소비자 직판",
+    "homepage": "https://deardoer.kr"
+  },
+  {
+    "code": "INX1752",
+    "cat": "기타",
+    "intro": "화장품 원료·향료 공급 및 R&D 전문(심라이즈 등 파트너)",
+    "verdict": "제외",
+    "basis": "원료 B2B, 완제품 브랜드 없음",
+    "homepage": "http://www.in2bio.com"
+  },
+  {
+    "code": "INT8519",
+    "cat": "색조",
+    "intro": "인조속눈썹 제조사, 자체 아이메이크업 브랜드 '유누꼬' 보유",
+    "verdict": "타겟",
+    "basis": "OEM 겸업이나 자체 브랜드",
+    "homepage": ""
+  },
+  {
+    "code": "IPR4551",
+    "cat": "스킨케어",
+    "intro": "자체 브랜드 '에템'(기초)·'포르맨즈'(향) D2C 운영",
+    "verdict": "타겟",
+    "basis": "앰플·세럼 자사몰 직판",
+    "homepage": ""
+  },
+  {
+    "code": "JIN6197",
+    "cat": "스킨케어",
+    "intro": "하이드로겔 마스크팩 ODM/OEM 전문 제조사(코넥스 상장)",
+    "verdict": "불명",
+    "basis": "ODM 주력, 자체브랜드 판매 미확인",
+    "homepage": "http://jincostech.com"
+  },
+  {
+    "code": "JIN2855",
+    "cat": "스킨케어",
+    "intro": "한국 자연유래 원료 기반 비건 스킨케어 브랜드",
+    "verdict": "타겟",
+    "basis": "자사몰 자체 브랜드 판매",
+    "homepage": ""
+  }
+]

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIRIAI 사업소개서 · 작업 현황</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#111; --sub:#666; --line:#e8e8e8; --bg:#fff;
+    --ok:#1a7f4b; --okbg:#eaf6ef; --todo:#b4232a; --todobg:#fbeced; --warnbg:#fff7e6; --warn:#9a6b00;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Inter','Noto Sans KR',-apple-system,sans-serif;
+    line-height:1.7; letter-spacing:-0.01em; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:880px; margin:0 auto; padding:80px 28px 120px;}
+  .eyebrow{font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--sub); font-weight:600;}
+  h1{font-size:2.6rem; font-weight:500; letter-spacing:-0.03em; margin:14px 0 6px; line-height:1.1;}
+  .meta{color:var(--sub); font-size:.92rem; font-weight:300;}
+  .lede{font-size:1.12rem; color:#333; font-weight:300; word-break:keep-all; margin:28px 0 0; padding:22px 24px; background:#fafafa; border:1px solid var(--line); border-radius:10px;}
+  .lede b{font-weight:600; color:var(--ink);}
+  section{margin-top:64px;}
+  .sec-h{display:flex; align-items:baseline; gap:12px; border-bottom:1px solid var(--ink); padding-bottom:10px; margin-bottom:26px;}
+  .sec-h .num{font-size:.8rem; color:var(--sub); font-weight:600;}
+  .sec-h h2{font-size:1.18rem; font-weight:600; margin:0; letter-spacing:-0.01em;}
+  .sec-h .en{margin-left:auto; font-size:.74rem; letter-spacing:.14em; text-transform:uppercase; color:var(--sub); font-weight:500;}
+
+  .cards{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .card{border:1px solid var(--line); border-radius:10px; padding:18px 20px;}
+  .card .k{font-size:.74rem; letter-spacing:.1em; text-transform:uppercase; color:var(--sub); font-weight:600; margin-bottom:8px;}
+  .card .v{font-size:1.02rem; font-weight:500;}
+  .card .d{font-size:.9rem; color:var(--sub); font-weight:300; margin-top:6px; word-break:keep-all;}
+
+  .docs{list-style:none; padding:0; margin:0;}
+  .docs li{display:flex; gap:16px; padding:16px 0; border-bottom:1px solid var(--line); align-items:flex-start;}
+  .docs li:last-child{border-bottom:none;}
+  .docs .file{font-family:'Inter',monospace; font-size:.86rem; font-weight:500; color:var(--ink); min-width:240px; word-break:break-all;}
+  .docs .desc{font-size:.95rem; color:var(--sub); font-weight:300; word-break:keep-all;}
+  .tag{display:inline-block; font-size:.66rem; letter-spacing:.08em; text-transform:uppercase; padding:2px 8px; border-radius:20px; font-weight:600; margin-left:8px; vertical-align:middle;}
+  .tag.main{background:var(--ink); color:#fff;}
+  .tag.new{background:var(--okbg); color:var(--ok);}
+
+  .highlight{background:#0d0d0d; color:#f4f4f4; border-radius:14px; padding:30px 30px;}
+  .highlight .eyebrow{color:#888;}
+  .highlight h3{font-size:1.5rem; font-weight:500; margin:10px 0 14px; letter-spacing:-0.02em; line-height:1.25;}
+  .highlight p{font-size:1rem; color:#cfcfcf; font-weight:300; word-break:keep-all; margin:0 0 10px;}
+  .highlight .flow{font-size:.92rem; color:#9a9a9a; font-family:'Inter',monospace; margin-top:16px; line-height:1.9;}
+  .highlight b{color:#fff; font-weight:600;}
+
+  .status{display:grid; grid-template-columns:1fr 1fr; gap:24px;}
+  .status .col h4{font-size:.78rem; letter-spacing:.1em; text-transform:uppercase; margin:0 0 12px; font-weight:600;}
+  .status ul{list-style:none; padding:0; margin:0;}
+  .status li{font-size:.94rem; padding:7px 0; font-weight:300; word-break:keep-all; display:flex; gap:9px; align-items:flex-start;}
+  .status li .ic{flex-shrink:0; font-size:.8rem; margin-top:3px;}
+  .chip{font-size:.66rem; padding:1px 7px; border-radius:5px; font-weight:600; flex-shrink:0; margin-top:2px;}
+  .chip.ok{background:var(--okbg); color:var(--ok);}
+  .chip.todo{background:var(--todobg); color:var(--todo);}
+
+  .next{counter-reset:step; list-style:none; padding:0; margin:0;}
+  .next li{position:relative; padding:14px 0 14px 44px; border-bottom:1px solid var(--line); font-size:1rem; word-break:keep-all;}
+  .next li:last-child{border-bottom:none;}
+  .next li::before{counter-increment:step; content:counter(step); position:absolute; left:0; top:12px; width:28px; height:28px; border:1px solid var(--ink); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.82rem; font-weight:600;}
+  .next b{font-weight:600;}
+  .next .q{color:var(--todo); font-weight:600;}
+
+  .foot{margin-top:80px; padding-top:24px; border-top:1px solid var(--line); font-size:.84rem; color:var(--sub); font-weight:300;}
+  @media(max-width:680px){
+    .cards,.status{grid-template-columns:1fr;}
+    h1{font-size:2rem;}
+    .docs li{flex-direction:column; gap:4px;}
+    .docs .file{min-width:0;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">SIRIAI · Business Deck — Working Status</div>
+    <h1>사업소개서 작업 현황</h1>
+    <div class="meta">2026-06-01 · 작업 정리본 (※ 사업소개서 시안이 아니라, 지금까지 진행 요약입니다)</div>
+    <p class="lede">PRD v0.1을 <b>야심찬 확장</b> 방향으로 전면 재설계했고, <b>팀장님 홈을 분석</b>해 방향을 검증했습니다. 콘텐츠 원천도 드라이브에서 대거 수집했어요. Deck은 홈의 <b>#deck 자리</b>로 확정 → 다음은 IA를 '증명형'으로 다듬어 → 시각화 순서입니다.</p>
+  </header>
+
+  <!-- 1. 핵심 결정 -->
+  <section>
+    <div class="sec-h"><span class="num">01</span><h2>확정된 핵심 결정</h2><span class="en">Decisions</span></div>
+    <div class="cards">
+      <div class="card">
+        <div class="k">Positioning</div>
+        <div class="v">야심찬 확장</div>
+        <div class="d">"마케팅 회사가 아니라, 브랜드의 비즈니스 구조를 설계하는 기술 그룹. 마케팅은 그 입구."</div>
+      </div>
+      <div class="card">
+        <div class="k">Visitor</div>
+        <div class="v">semi-warm</div>
+        <div class="d">이미 관심 생긴 방문자. 기초 신뢰 증명보다 '함께 가면 멀리 간다'는 확신을 줌.</div>
+      </div>
+      <div class="card">
+        <div class="k">Role of the Deck</div>
+        <div class="v">'소개'가 아니라 '증명'</div>
+        <div class="d">팀장님 홈에 이미 소개가 있음 → 소개서는 "진짜 이렇게 한다"는 증거여야 함.</div>
+      </div>
+      <div class="card">
+        <div class="k">Naming</div>
+        <div class="v">"Deck" (잠정)</div>
+        <div class="d">'사업소개서'는 딱딱 → 팀장님 홈의 #deck과 맞춰 'Deck'으로.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 만든 문서 -->
+  <section>
+    <div class="sec-h"><span class="num">02</span><h2>만든 문서</h2><span class="en">Deliverables</span></div>
+    <ul class="docs">
+      <li><span class="file">PRD_SIRIAI_v0.2.md<span class="tag main">main</span></span><span class="desc">야심찬 확장 방향 전면 재설계 — 포지셔닝·IA·섹션 전략·Decision Points. 기준 문서.</span></li>
+      <li><span class="file">홈페이지_분석.md<span class="tag new">new</span></span><span class="desc">팀장님 netlify 홈 풀 캡처 + featpaper(on170)·notion·monopo 분석, 우리 소개서와의 정렬·충돌.</span></li>
+      <li><span class="file">사업소개서_필요사항.md<span class="tag new">new</span></span><span class="desc">PRD 부족분 + 필요사항을 🔴🟡⚪ 우선순위로. "소개 아닌 증명" 관점 전환 포함.</span></li>
+      <li><span class="file">레퍼런스_해부.md</span><span class="desc">monopo·12랩스·8division·cosmos·on170·토코보 실제 웹 분석 + 7가지 차용 원칙.</span></li>
+      <li><span class="file">카피뱅크.md</span><span class="desc">Manifesto 3안 / Practices 헤드라인 / Contact 3안 / FAQ 풀버전 / 톤 가이드.</span></li>
+    </ul>
+  </section>
+
+  <!-- 3. 팀장님 홈 발견 -->
+  <section>
+    <div class="sec-h"><span class="num">03</span><h2>가장 큰 발견 — 팀장님 홈</h2><span class="en">Key Insight</span></div>
+    <div class="highlight">
+      <div class="eyebrow">netlify 1차 초안 분석</div>
+      <h3>팀장님 홈은 이미 "AI consulting studio"였다.</h3>
+      <p>"Insight isn't found. It's designed." — 우리가 잡은 <b>야심찬 확장이 검증</b>됐고, 오히려 홈이 더 야심참. Four Practices 구조·화이트톤·monopo식 도시시계(Seoul·SF·Tokyo)까지 우리 방향과 일치.</p>
+      <p>그래서 소개서의 역할이 분명해집니다 —</p>
+      <div class="flow">[홈] "관점 멋진데?" <b>(비전)</b><br>&nbsp;&nbsp;└→ #deck<br>[소개서] "오, 진짜 이렇게 하네?" <b>(증거·실체)</b><br>&nbsp;&nbsp;&nbsp;&nbsp;└→ "같이 해보자" <b>(전환)</b></div>
+    </div>
+  </section>
+
+  <!-- 4. 진행 상황 -->
+  <section>
+    <div class="sec-h"><span class="num">04</span><h2>진행 상황</h2><span class="en">Status</span></div>
+    <div class="status">
+      <div class="col">
+        <h4>✅ 정해졌거나 채워진 것</h4>
+        <ul>
+          <li><span class="chip ok">done</span>포지셔닝 야심찬 확장 · 방문자 semi-warm</li>
+          <li><span class="chip ok">done</span>콘텐츠 원천 대거 수집(드라이브)</li>
+          <li><span class="chip ok">done</span>레퍼런스 6종 분석 + 7원칙</li>
+          <li><span class="chip ok">done</span>팀장님 홈 분석 → 방향 검증</li>
+          <li><span class="chip ok">done</span>Partners = 8division 형식 확정</li>
+          <li><span class="chip ok">done</span>R&R 제작 분담 파악</li>
+          <li><span class="chip ok">done</span>PB = 대표님 기획 중 / sa:ai = Figma 존재</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h4>🔴 아직 정할 것</h4>
+        <ul>
+          <li><span class="chip todo">open</span>소개서 = 홈의 #deck인가, 별도인가</li>
+          <li><span class="chip todo">open</span>메일·도메인 통일 (.studio/.io/gmail)</li>
+          <li><span class="chip todo">open</span>sa:ai 한 줄 정의 (Figma는 디자인 단계)</li>
+          <li><span class="chip todo">open</span>미팅 예약 방식 (서드파티 1차 권장)</li>
+          <li><span class="chip todo">open</span>IA를 '증명형'으로 재구성</li>
+          <li><span class="chip todo">open</span>디테일(케이스·정량근거) — 나중에</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. 다음 단계 -->
+  <section>
+    <div class="sec-h"><span class="num">05</span><h2>다음 단계</h2><span class="en">Next</span></div>
+    <ol class="next">
+      <li><span class="q">[먼저 정할 것]</span> <b>사업소개서가 팀장님 홈의 #deck 자리</b>에 들어가는지 / 따로 도는지 — 이게 "새로 시작 vs 홈 톤 이어받기"를 가름.</li>
+      <li><b>IA를 '증명형'으로 재구성</b> — 홈과 중복되는 '소개'를 빼고, 케이스·프로세스·sa:ai 실체 중심으로.</li>
+      <li><b>카피뱅크에서 Manifesto·Contact 안 선택</b> + 홈 톤("Insight isn't found…")과 잇기.</li>
+      <li><b>확정되면 시각화</b> — 깨끗한 새 프로토타입 → 클로드 디자인 이관.</li>
+    </ol>
+  </section>
+
+  <div class="foot">
+    이 페이지는 작업 정리용 대시보드입니다. 상세는 같은 폴더의 PRD_SIRIAI_v0.2.md 외 문서를 참고하세요.<br>
+    SIRIAI · Precision meets creativity — working doc, not the final deck.
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SIRIAI · 02 디자인 시안 비교</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{--cream:#faf7f2;--ink:#1c1a17;--ink2:#6f6960;--line:rgba(28,26,23,.12);--lav:#cabce8;--mono:'IBM Plex Mono',monospace;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Pretendard',sans-serif;background:var(--cream);color:var(--ink);line-height:1.5;padding:7vh 6vw;}
+  .head{max-width:760px;margin-bottom:50px;}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink2);margin-bottom:16px;}
+  h1{font-size:clamp(28px,3.6vw,46px);font-weight:700;letter-spacing:-.02em;margin-bottom:14px;}
+  .head p{color:var(--ink2);font-size:16px;word-break:keep-all;}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;max-width:1100px;}
+  .card{border:1px solid var(--line);border-radius:14px;padding:28px;background:#fff;text-decoration:none;color:inherit;transition:.18s;display:block;}
+  .card:hover{box-shadow:0 22px 44px -22px rgba(28,26,23,.22);transform:translateY(-3px);border-color:var(--lav);}
+  .card .v{font-family:var(--mono);font-size:13px;color:var(--lav);font-weight:500;}
+  .card h2{font-size:22px;font-weight:700;margin:8px 0 4px;letter-spacing:-.01em;}
+  .card .en{font-family:var(--mono);font-size:12px;color:var(--ink2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px;}
+  .card .desc{font-size:14.5px;color:var(--ink2);word-break:keep-all;margin-bottom:14px;}
+  .card .imp{font-size:13px;color:var(--ink);border-top:1px solid var(--line);padding-top:12px;}
+  .card .imp b{color:var(--lav);}
+  .open{margin-top:16px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--ink);}
+  .open::after{content:" →";}
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="eyebrow">SIRIAI · 02 Practices · Design Exploration</div>
+    <h1>02 분야 디자인 시안 — 4가지 방향</h1>
+    <p>같은 deck(내용·인터랙션)을 어떤 '디자인 언어'로 입힐지 후보 4개. 카드를 클릭해 풀사이즈로 보고, 스크롤하면 4개 분야(아키텍팅·콘텐츠·sa:ai·PB)가 차례로 나와.</p>
+  </div>
+  <div class="grid">
+    <a class="card" href="field-variations-v1.html" target="_blank">
+      <div class="v">v1</div>
+      <h2>분야별 레이아웃 변주</h2>
+      <div class="en">Layout-per-field</div>
+      <div class="desc">분야마다 레이아웃 문법 자체를 바꿈 — 좌우분할 → 다크 모자이크 → 네트워크 → 센터 여백.</div>
+      <div class="imp">인상: <b>정보 + 개성 균형.</b> 처음 합의한 방향.</div>
+      <div class="open">열기</div>
+    </a>
+    <a class="card" href="field-variations-v2.html" target="_blank">
+      <div class="v">v2</div>
+      <h2>에디토리얼 / 아카이브 매거진</h2>
+      <div class="en">Editorial Magazine</div>
+      <div class="desc">큰 세리프 번호 · 괘선 · 박스 카드 그리드. 잡지/아카이브 스튜디오 무드.</div>
+      <div class="imp">인상: <b>격조 · 지적.</b> 박스형 포함. monopo·PAF 정합.</div>
+      <div class="open">열기</div>
+    </a>
+    <a class="card" href="field-variations-v3.html" target="_blank">
+      <div class="v">v3</div>
+      <h2>소프트 오가닉</h2>
+      <div class="en">Soft / Organic Pastel</div>
+      <div class="desc">파스텔 그라데이션 메시 · 둥근 카드 · pill · 글로우 orb. 부드럽고 따뜻.</div>
+      <div class="imp">인상: <b>따뜻 · 세련.</b> 홈 톤과 제일 가까움.</div>
+      <div class="open">열기</div>
+    </a>
+    <a class="card" href="field-variations-v4.html" target="_blank">
+      <div class="v">v4</div>
+      <h2>제품 스테이지 (애플식)</h2>
+      <div class="en">Product Stage</div>
+      <div class="desc">중앙 큰 비주얼 · 다크 AI 코어 · 미니멀 텍스트. 프리미엄 제품 발표 무드.</div>
+      <div class="imp">인상: <b>임팩트 · 프리미엄.</b> 텍스트 적음(정보형엔 약할 수).</div>
+      <div class="open">열기</div>
+    </a>
+    <a class="card" href="pb-mystery-variations.html" target="_blank" style="grid-column:span 2;border-color:var(--lav);">
+      <div class="v">04 신비 · 4종</div>
+      <h2>PB 신비 변주 — Nightfall · Mist · Sealed · Stage</h2>
+      <div class="en">Private Brand · Mystery</div>
+      <div class="desc">04만 톤을 달리해 '준비 중'을 실루엣·여백·어둠으로. 다크(Nightfall·Stage) 포함 — 01·02·03 밝은 톤과 대비.</div>
+      <div class="imp">인상: <b>신비 · 프리미엄.</b> 스크롤하면 4종이 차례로 나와.</div>
+      <div class="open">4종 비교 열기</div>
+    </a>
+  </div>
+</body>
+</html>

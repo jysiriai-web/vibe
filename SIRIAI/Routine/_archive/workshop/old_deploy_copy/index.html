@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>영업 자동화 — 워크샵 · SIRIAI</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#F3EEE2; --ink:#211A33; --ink2:rgba(33,26,51,.68); --ink3:rgba(33,26,51,.46);
+    --line:rgba(33,26,51,.14);
+    --mono:'JetBrains Mono',ui-monospace,monospace; --kr:'Pretendard',system-ui,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{font-family:var(--kr);color:var(--ink);overflow:hidden;-webkit-font-smoothing:antialiased;
+    letter-spacing:-.006em;word-break:keep-all;
+    background:
+      radial-gradient(52% 44% at 11% 6%, rgba(246,201,168,.36), transparent 60%),
+      radial-gradient(44% 48% at 92% 10%, rgba(221,208,239,.30), transparent 62%),
+      radial-gradient(58% 54% at 86% 96%, rgba(255,224,196,.26), transparent 60%),
+      var(--paper);
+    background-attachment:fixed;}
+  ::selection{background:var(--ink);color:var(--paper)}
+
+  .topbar{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;
+    padding:24px clamp(34px,5vw,60px);font-family:var(--mono);font-size:13px;letter-spacing:.14em;color:var(--ink3);z-index:20}
+  .topbar .sec{color:var(--ink2)}
+  .acts{display:flex;gap:14px}.acts span{color:var(--ink3);transition:color .3s}.acts span.on{color:var(--ink);font-weight:600}
+
+  .stage{position:fixed;inset:0}
+  .slide{position:absolute;inset:0;display:flex;align-items:center;
+    padding:clamp(64px,8vh,92px) clamp(38px,5vw,76px);opacity:0;pointer-events:none;transition:opacity .45s ease}
+  .slide.on{opacity:1;pointer-events:auto}
+  .grid{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:clamp(36px,4.4vw,72px);width:100%;align-items:center}
+
+  .pill{align-self:flex-start;background:var(--ink);color:var(--paper);font-family:var(--mono);
+    font-size:13.5px;font-weight:500;letter-spacing:.04em;padding:7px 16px;border-radius:100px;margin-bottom:clamp(18px,2.4vh,26px)}
+  .head{font-weight:600;font-size:clamp(34px,3.5vw,56px);line-height:1.13;letter-spacing:-.026em;max-width:20ch}
+  .key{margin-top:clamp(16px,2.2vh,26px);font-size:clamp(19px,1.6vw,26px);font-weight:600;line-height:1.42;max-width:28ch}
+  .note{margin-top:13px;font-size:clamp(15px,1.2vw,18px);color:var(--ink2);line-height:1.6;max-width:34ch}
+
+  /* 우측 시각 */
+  .viz{display:flex;flex-direction:column;justify-content:center;gap:14px}
+  .vtitle{font-family:var(--mono);font-size:13px;letter-spacing:.14em;color:var(--ink3)}
+  .glass{background:rgba(255,255,255,.52);backdrop-filter:blur(18px) saturate(1.35);-webkit-backdrop-filter:blur(18px) saturate(1.35);
+    border:1px solid var(--line);border-radius:18px;box-shadow:0 18px 50px rgba(33,26,51,.09)}
+
+  .vnums{display:flex;flex-wrap:wrap;gap:26px 42px}
+  .vnums .v{font-family:var(--mono);font-weight:700;font-size:clamp(38px,4vw,60px);line-height:1;letter-spacing:-.02em}
+  .vnums .v .s{color:var(--ink3);font-weight:400}.vnums .k{margin-top:11px;color:var(--ink2);font-size:16px;line-height:1.45;max-width:18ch}
+
+  .chart{display:flex;flex-direction:column;gap:26px}
+  .barlbl{display:flex;justify-content:space-between;font-size:16px;color:var(--ink2);margin-bottom:10px}.barlbl b{color:var(--ink);font-weight:600}
+  .track{height:52px;display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:rgba(33,26,51,.05)}
+  .fillp{background:var(--ink);color:var(--paper);display:flex;align-items:center;padding:0 18px;font-family:var(--mono);font-weight:600;font-size:16px;white-space:nowrap}
+  .restp{display:flex;align-items:center;padding:0 18px;color:var(--ink3);font-family:var(--mono);font-size:15px;white-space:nowrap}
+
+  .vgrid{display:grid;gap:15px}.vgrid.c2{grid-template-columns:1fr 1fr}.vgrid.c3{grid-template-columns:repeat(3,1fr)}.vgrid.c4{grid-template-columns:1fr 1fr}
+  .vc{padding:23px}.vc .ci{font-family:var(--mono);font-size:12.5px;letter-spacing:.05em;color:var(--ink3);margin-bottom:11px}
+  .vc h4{font-size:18.5px;font-weight:700;margin-bottom:8px;line-height:1.3}.vc p{font-size:15px;color:var(--ink2);line-height:1.55}
+  .vc .big{font-family:var(--mono);font-weight:700;font-size:clamp(30px,3vw,42px);line-height:1;margin-bottom:8px}
+
+  .gsheet{border:1px solid var(--line);border-radius:13px;overflow:hidden;box-shadow:0 16px 44px rgba(33,26,51,.08);background:#FBF8F1}
+  .gsheet .gr{display:grid;grid-template-columns:34px 84px 1.3fr 1.8fr;border-top:1px solid var(--line)}.gsheet .gr:first-child{border-top:none}
+  .gsheet .gc{padding:13px 14px;font-size:15.5px;border-left:1px solid var(--line)}
+  .gsheet .gc:first-child{border-left:none;color:var(--ink3);font-family:var(--mono);font-size:12px;text-align:center;background:rgba(33,26,51,.04)}
+  .gsheet .colrow .gc{background:rgba(33,26,51,.05);font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--ink3);text-align:center;padding:8px 14px}
+  .gsheet .hdr .gc{background:rgba(33,26,51,.03);font-weight:600;font-size:14.5px}
+  .gsheet .tag{font-family:var(--mono);font-size:10px;color:var(--ink3);margin-left:7px}
+  .gsheet .email{font-family:var(--mono);font-size:14px}.gsheet .miss,.gsheet .empty{color:var(--ink3)}
+  .gsheet.mini .gc{padding:10px 12px;font-size:14px}
+  .sheetcap{font-family:var(--mono);font-size:12.5px;color:var(--ink3);text-align:center;margin-top:9px}
+
+  .term{background:var(--ink);border-radius:16px;padding:26px 28px;font-family:var(--mono);box-shadow:0 18px 50px rgba(33,26,51,.18)}
+  .term .dots{display:flex;gap:7px;margin-bottom:18px}.term .dots i{width:11px;height:11px;border-radius:50%;background:rgba(243,238,226,.28)}
+  .term .line{color:var(--paper);font-size:16px;line-height:1.9}.term .pr{color:rgba(243,238,226,.5)}.term .o{color:rgba(243,238,226,.62);font-size:14.5px}
+
+  .modwrap{display:flex;flex-direction:column;gap:13px}.modrow{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
+  .mod{border:1px solid var(--line);border-radius:12px;padding:18px 8px;text-align:center;font-size:15px;font-weight:600;background:rgba(255,255,255,.45)}
+  .mod.fut{border-style:dashed;color:var(--ink3);font-weight:500;background:transparent}
+  .core{border:1.5px solid var(--ink);border-radius:13px;padding:18px;text-align:center;font-weight:600;font-size:16.5px;background:rgba(255,255,255,.4)}
+  .core small{display:block;font-family:var(--mono);font-size:12px;letter-spacing:.05em;color:var(--ink3);margin-top:6px;font-weight:400}
+
+  .vsteps{display:flex;align-items:stretch;gap:12px}.vstep{flex:1;border:1px solid var(--line);border-radius:15px;padding:22px;background:rgba(255,255,255,.45)}
+  .vstep .si{font-family:var(--mono);font-size:13px;color:var(--ink3);margin-bottom:10px}.vstep .st{font-size:18px;font-weight:600;line-height:1.4}
+  .vssep{align-self:center;color:var(--ink3);font-size:22px}
+
+  /* 이미지 카드 (스샷 넣는 곳) */
+  .imgcard{border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 18px 50px rgba(33,26,51,.12);background:#fff}
+  .imgcard img{display:block;width:100%;height:auto}
+  .imgph{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:300px;
+    color:var(--ink3);font-size:16px;text-align:center;background:rgba(33,26,51,.03)}
+  .imgph small{font-family:var(--mono);font-size:12px;color:var(--ink3)}
+
+  /* 커버 (PONPISH 스타일) */
+  .slide.cover .eyebrow2{font-family:var(--mono);font-size:13px;letter-spacing:.2em;color:var(--ink3);margin-bottom:22px}
+  .slide.cover .ctitle{font-weight:600;font-size:clamp(46px,5vw,86px);line-height:1.06;letter-spacing:-.035em}
+  .slide.cover .cdiv{width:54px;height:2px;background:var(--ink);opacity:.5;margin:26px 0}
+  .slide.cover .cquote{font-size:clamp(20px,1.9vw,28px);font-weight:600;line-height:1.45;max-width:24ch}
+  .slide.cover .cdesc{margin-top:16px;font-size:clamp(15px,1.2vw,18px);color:var(--ink2);line-height:1.6;max-width:32ch}
+  .slide.cover .cmeta{margin-top:24px;font-family:var(--mono);font-size:13px;letter-spacing:.1em;color:var(--ink3)}
+  .brandcard{background:var(--ink);color:var(--paper);border-radius:22px;padding:clamp(30px,3vw,46px);box-shadow:0 24px 60px rgba(33,26,51,.22)}
+  .brandcard .bl{font-family:var(--mono);font-size:12px;letter-spacing:.16em;color:rgba(243,238,226,.55);margin-bottom:22px}
+  .brandcard .bin{font-size:17px;color:rgba(243,238,226,.7)}
+  .brandcard .barrow{font-size:26px;margin:14px 0;color:rgba(243,238,226,.5)}
+  .brandcard .bout{font-size:clamp(24px,2.3vw,34px);font-weight:700;line-height:1.3}
+
+  /* 애니메이션 (잔잔) */
+  .slide>*{opacity:0;transform:translateY(8px);transition:opacity .5s ease,transform .5s ease}
+  .slide.on>*{opacity:1;transform:none}
+  .slide.on .grid{transition:none;opacity:1;transform:none}
+  .slide.on .grid>.left>*{opacity:0;animation:rise .55s ease forwards}
+  .slide.on .grid>.left>:nth-child(1){animation-delay:.05s}.slide.on .grid>.left>:nth-child(2){animation-delay:.12s}
+  .slide.on .grid>.left>:nth-child(3){animation-delay:.19s}.slide.on .grid>.left>:nth-child(4){animation-delay:.26s}
+  .slide.on .grid>.left>:nth-child(5){animation-delay:.33s}.slide.on .grid>.left>:nth-child(6){animation-delay:.40s}
+  .slide.on .grid>.viz{opacity:0;animation:rise .6s ease .2s forwards}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+  .pager{position:fixed;bottom:22px;right:clamp(34px,5vw,60px);font-family:var(--mono);font-size:13px;color:var(--ink3);letter-spacing:.1em;z-index:20}
+  .arrows{position:fixed;bottom:18px;left:clamp(34px,5vw,60px);display:flex;gap:9px;z-index:20}
+  .arrows button{font-family:var(--mono);width:36px;height:36px;border:1px solid var(--line);background:rgba(255,255,255,.5);
+    backdrop-filter:blur(10px);color:var(--ink2);border-radius:10px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}
+  .arrows button:disabled{opacity:.32;cursor:default}
+  .arrows button:not(:disabled):hover{border-color:var(--ink3);color:var(--ink)}
+  @media (max-width:880px){.grid{grid-template-columns:1fr;gap:28px}.modrow{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="topbar"><span class="sec">영업 자동화 워크샵</span>
+  <div class="acts"><span data-a="0">현황</span><span data-a="1">구조</span><span data-a="2">확장</span></div></div>
+
+<div class="stage" id="stage">
+
+  <!-- 1 표지 -->
+  <section class="slide cover on" data-act="0"><div class="grid">
+    <div class="left">
+      <div class="eyebrow2">SALES AUTOMATION · 내부 공유</div>
+      <h1 class="ctitle">영업 자동화</h1>
+      <div class="cdiv"></div>
+      <div class="cquote">“반복은 자동으로, 영업은 꾸준하게.”</div>
+      <div class="cdesc">브랜드 리스트만 넣으면, 이메일 확보까지 자동으로.</div>
+      <div class="cmeta">SIRIAI · 2026.06.10</div>
+    </div>
+    <div class="viz"><div class="brandcard">
+      <div class="bl">INPUT → AUTO</div>
+      <div class="bin">시트에 브랜드명만</div>
+      <div class="barrow">↓</div>
+      <div class="bout">구분 · 이메일 · 정리<br>자동으로.</div>
+    </div></div>
+  </div></section>
+
+  <!-- 2 문제 -->
+  <section class="slide" data-act="0"><div class="grid">
+    <div class="left">
+      <div class="pill">문제</div>
+      <h2 class="head">제일 어려운 건<br>‘꾸준히’.</h2>
+      <div class="key">한 번 하려면 큰맘을 먹어야 하고, 다른 일 생기면 바로 뒷전.</div>
+      <div class="note">방법을 몰라서가 아니라, 매번 손이 많이 가서 며칠 하다 멈춘다.</div>
+    </div>
+    <div class="viz">
+      <div class="vtitle">매번 반복되는 손작업</div>
+      <div class="glass" style="padding:26px 28px">
+        <div style="display:flex;flex-direction:column">
+          <div style="display:flex;gap:14px;align-items:baseline;padding:11px 0"><span style="font-family:var(--mono);color:var(--ink3)">01</span><span style="font-size:18px;font-weight:600">리스트업</span></div>
+          <div style="display:flex;gap:14px;align-items:baseline;padding:11px 0;border-top:1px solid var(--line)"><span style="font-family:var(--mono);color:var(--ink3)">02</span><span style="font-size:18px;font-weight:600">공식몰 뒤져 이메일 찾기</span></div>
+          <div style="display:flex;gap:14px;align-items:baseline;padding:11px 0;border-top:1px solid var(--line)"><span style="font-family:var(--mono);color:var(--ink3)">03</span><span style="font-size:18px;font-weight:600">브랜드·제조사 구분</span></div>
+          <div style="display:flex;gap:14px;align-items:baseline;padding:11px 0;border-top:1px solid var(--line)"><span style="font-family:var(--mono);color:var(--ink3)">04</span><span style="font-size:18px;font-weight:600">이미 보낸 곳 거르기</span></div>
+        </div>
+      </div>
+      <div class="glass" style="padding:20px 26px;display:flex;align-items:baseline;gap:16px">
+        <span style="font-family:var(--mono);font-weight:700;font-size:clamp(32px,3.2vw,46px)">≈ 2시간</span>
+        <span style="color:var(--ink2);font-size:16px">브랜드 50개 서칭 + 이메일 찾기</span>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- 3 만드는 것 -->
+  <section class="slide" data-act="0"><div class="grid">
+    <div class="left">
+      <div class="pill">만드는 것</div>
+      <h2 class="head">브랜드명만<br>넣으면 끝.</h2>
+      <div class="key">구분·이메일·중복 정리가 자동으로 채워진다.</div>
+    </div>
+    <div class="viz">
+      <div class="vtitle">예시 — 월별 탭</div>
+      <div style="display:grid;grid-template-columns:34px 84px 1.3fr 1.8fr;margin-bottom:7px">
+        <span></span><span></span>
+        <span style="text-align:center;font-family:var(--mono);font-size:12.5px;color:var(--ink);font-weight:600">↓ 내가 적는 칸</span>
+        <span></span>
+      </div>
+      <div class="gsheet">
+        <div class="gr colrow"><div class="gc"></div><div class="gc">A</div><div class="gc">B</div><div class="gc">C</div></div>
+        <div class="gr hdr"><div class="gc">1</div><div class="gc">구분<span class="tag">자동</span></div><div class="gc" style="background:rgba(246,201,168,.5)">브랜드명<span class="tag">입력</span></div><div class="gc">연락처<span class="tag">자동</span></div></div>
+        <div class="gr"><div class="gc">2</div><div class="gc">뷰티</div><div class="gc" style="background:rgba(246,201,168,.38);font-weight:600">라카코스메틱스</div><div class="gc email">k-sales@laka.co.kr</div></div>
+        <div class="gr"><div class="gc">3</div><div class="gc">뷰티</div><div class="gc" style="background:rgba(246,201,168,.38);font-weight:600">페렌벨</div><div class="gc email">global@somebymi.com</div></div>
+        <div class="gr"><div class="gc">4</div><div class="gc">뷰티</div><div class="gc" style="background:rgba(246,201,168,.38);font-weight:600">어뮤즈코리아</div><div class="gc email">help_amuse@amusemakeup.com</div></div>
+        <div class="gr"><div class="gc">5</div><div class="gc">리빙</div><div class="gc" style="background:rgba(246,201,168,.38);font-weight:600">피죤</div><div class="gc email miss">미확보 · 문의폼</div></div>
+      </div>
+      <div class="sheetcap">강조된 칸(브랜드명)만 적으면, 구분·연락처는 자동</div>
+    </div>
+  </div></section>
+
+  <!-- 4 사용법 -->
+  <section class="slide" data-act="0"><div class="grid">
+    <div class="left">
+      <div class="pill">사용법</div>
+      <h2 class="head">사람이 할 건<br>하나뿐.</h2>
+      <div class="key">시트에 브랜드 리스트를 적는다. 그게 끝.</div>
+    </div>
+    <div class="viz"><div class="vgrid c2">
+      <div class="vc glass"><div class="ci">사람이 할 것</div><h4>브랜드명 입력</h4><p>시트에 회사·브랜드 이름을 적는다.</p></div>
+      <div class="vc glass"><div class="ci">자동으로 되는 것</div><h4>나머지 전부</h4><p>제조사 거르기 · 구분 분류 · 이메일 찾기 · 중복 표시 · 백업.</p></div>
+    </div></div>
+  </div></section>
+
+  <!-- 5 실행 -->
+  <section class="slide" data-act="0"><div class="grid">
+    <div class="left">
+      <div class="pill">실행</div>
+      <h2 class="head">명령은 딱<br>한 줄.</h2>
+      <div class="key">탭 이름만 바꿔 매달 같은 명령을 친다.</div>
+      <div class="note">먼저 미리보기로 확인하고, 괜찮으면 실제 반영.</div>
+    </div>
+    <div class="viz">
+      <div class="vtitle">실제 명령</div>
+      <div class="term"><div class="dots"><i></i><i></i><i></i></div>
+        <div class="line"><span class="pr">›</span> run --tab 7월 <span class="o">＃ 미리보기</span></div>
+        <div class="line o">　 358행 처리 예정 · 이메일 64개 확보</div>
+        <div class="line"><span class="pr">›</span> run --tab 7월 --apply <span class="o">＃ 실제 반영</span></div>
+        <div class="line o">　 백업 완료 · 기록 완료 ✓</div>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- 6 구성 -->
+  <section class="slide" data-act="0"><div class="grid">
+    <div class="left">
+      <div class="pill">구성</div>
+      <h2 class="head">구성 요소는<br>세 가지.</h2>
+      <div class="key">시트 · 파이썬 · AI(Claude) 가 맞물려 돈다.</div>
+    </div>
+    <div class="viz"><div class="vgrid c3">
+      <div class="vc glass"><div class="ci">01</div><h4>구글시트</h4><p>브랜드 데이터가 모이는 곳.</p></div>
+      <div class="vc glass"><div class="ci">02</div><h4>파이썬</h4><p>시트를 안전하게 읽고·쓰고·백업.</p></div>
+      <div class="vc glass"><div class="ci">03</div><h4>AI (Claude)</h4><p>회사·브랜드 판별, 이메일 검색.</p></div>
+    </div></div>
+  </div></section>
+
+  <!-- 7 방식 -->
+  <section class="slide" data-act="0"><div class="grid">
+    <div class="left">
+      <div class="pill">방식</div>
+      <h2 class="head">함부로<br>지우지 않는다.</h2>
+      <div class="key">쓰기 전에 백업하고, 무엇을 바꿀지 먼저 보여준다.</div>
+      <div class="note">자동으로 지우는 일은 없고, 잘못 지운 행은 0건.</div>
+    </div>
+    <div class="viz">
+      <div class="vtitle">처리 순서</div>
+      <div class="glass" style="padding:26px 28px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column">
+          <div style="font-size:18px;font-weight:600;padding:9px 0;border-bottom:1px solid var(--line)">1 · 정제</div>
+          <div style="font-size:18px;font-weight:600;padding:9px 0;border-bottom:1px solid var(--line)">2 · 중복</div>
+          <div style="font-size:18px;font-weight:600;padding:9px 0;border-bottom:1px solid var(--line)">3 · 제조사</div>
+          <div style="font-size:18px;font-weight:600;padding:9px 0;border-bottom:1px solid var(--line)">4 · 구분</div>
+          <div style="font-size:18px;font-weight:600;padding:9px 0">5 · 이메일</div>
+        </div>
+        <div style="background:var(--ink);color:var(--paper);border-radius:11px;padding:15px;text-align:center;font-weight:600">백업 · 미리보기 · 기록</div>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- 8 결과 -->
+  <section class="slide" data-act="0"><div class="grid">
+    <div class="left">
+      <div class="pill">결과 · 6월</div>
+      <h2 class="head">돌려보니,<br>이런 그림.</h2>
+      <div class="key">595개 → 358개 정리, 이메일 188개(53%) 확보.</div>
+      <div class="note">제조사(자체 브랜드 없는 OEM·화학사)는 영업 대상이 아니라 자동 제외. 못 찾은 건 지우지 않고 ‘미확보’로 표시만 한다.</div>
+    </div>
+    <div class="viz"><div class="glass" style="padding:28px">
+      <div class="chart">
+        <div><div class="barlbl"><span>붙여넣은 595개</span><b>358 남김</b></div>
+          <div class="track"><div class="fillp" style="width:60.2%">358 영업 대상</div><div class="restp" style="width:39.8%">237 제조사·중복</div></div></div>
+        <div><div class="barlbl"><span>남은 358개 이메일</span><b>188 확보 · 53%</b></div>
+          <div class="track"><div class="fillp" style="width:52.5%">188 확보</div><div class="restp" style="width:47.5%">170 미확보</div></div></div>
+      </div>
+      <div style="border-top:1px solid var(--line);margin-top:20px;padding-top:16px">
+        <div style="font-family:var(--mono);font-size:12px;color:var(--ink3);margin-bottom:11px">미확보 170개는 왜?</div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:14.5px">
+          <div><b>대기업</b> — 공개 메일 없이 문의폼만</div>
+          <div><b>소형사</b> — 개인메일(naver·gmail)만 노출</div>
+          <div><b>애매</b> — 동명이인·정보 부족으로 불확실</div>
+        </div>
+        <div style="margin-top:13px;font-size:14px;color:var(--ink2)">→ 추측해서 넣지 않고, ‘미확보’로 남겨 사람이 확인</div>
+      </div>
+    </div></div>
+  </div></section>
+
+  <!-- 9 실제 화면 -->
+  <section class="slide" data-act="0"><div class="grid">
+    <div class="left">
+      <div class="pill">실제 화면</div>
+      <h2 class="head">이름만 있던 시트가,<br>이렇게 채워진다.</h2>
+      <div class="key">입력 직후 → 실행 후.</div>
+    </div>
+    <div class="viz" style="gap:13px">
+      <div><div class="sheetcap" style="text-align:left;margin:0 0 8px">입력 직후 — 브랜드명만</div>
+        <div class="gsheet mini">
+          <div class="gr hdr"><div class="gc"> </div><div class="gc">구분</div><div class="gc">브랜드명</div><div class="gc">연락처</div></div>
+          <div class="gr"><div class="gc">2</div><div class="gc empty">·</div><div class="gc">라카코스메틱스</div><div class="gc empty">·</div></div>
+          <div class="gr"><div class="gc">3</div><div class="gc empty">·</div><div class="gc">페렌벨</div><div class="gc empty">·</div></div>
+        </div></div>
+      <div style="text-align:center;color:var(--ink3);font-family:var(--mono);font-size:13px">↓ 실행</div>
+      <div><div class="sheetcap" style="text-align:left;margin:0 0 8px">실행 후 — 구분·연락처 자동</div>
+        <div style="display:grid;grid-template-columns:34px 84px 1.3fr 1.8fr;margin-bottom:5px">
+          <span></span><span style="text-align:center;font-family:var(--mono);font-size:11px;color:var(--ink);font-weight:600">↓ 자동</span><span></span><span style="text-align:center;font-family:var(--mono);font-size:11px;color:var(--ink);font-weight:600">↓ 자동</span>
+        </div>
+        <div class="gsheet mini">
+          <div class="gr hdr"><div class="gc"> </div><div class="gc">구분</div><div class="gc">브랜드명</div><div class="gc">연락처</div></div>
+          <div class="gr"><div class="gc">2</div><div class="gc" style="background:rgba(221,208,239,.45)">뷰티</div><div class="gc">라카코스메틱스</div><div class="gc email" style="background:rgba(221,208,239,.45)">k-sales@laka.co.kr</div></div>
+          <div class="gr"><div class="gc">3</div><div class="gc" style="background:rgba(221,208,239,.45)">뷰티</div><div class="gc">페렌벨</div><div class="gc email" style="background:rgba(221,208,239,.45)">global@somebymi.com</div></div>
+        </div></div>
+    </div>
+  </div></section>
+
+  <!-- 10 임팩트 -->
+  <section class="slide" data-act="0"><div class="grid">
+    <div class="left">
+      <div class="pill">임팩트</div>
+      <h2 class="head">시간이<br>이만큼 준다.</h2>
+      <div class="key">손으로 2시간 걸리던 50개가, 명령 한 줄 + 검토 10분.</div>
+    </div>
+    <div class="viz">
+      <div class="vgrid c2">
+        <div class="vc glass"><div class="ci">기존 · 손으로</div><div class="big">2시간+</div><p>50개 서칭 + 이메일 찾기</p></div>
+        <div class="vc glass"><div class="ci">지금 · 자동으로</div><div class="big">10분</div><p>명령 한 줄 + 결과 검토</p></div>
+      </div>
+      <div class="note" style="margin-top:14px;max-width:none">야간 자동 실행으로 돌리면, 그 10분조차 ‘아침에 시트 확인’으로 끝.</div>
+    </div>
+  </div></section>
+
+  <!-- 11 루틴 -->
+  <section class="slide" data-act="0"><div class="grid">
+    <div class="left">
+      <div class="pill">루틴</div>
+      <h2 class="head">잘하는 세일즈는<br>루틴이 만든다.</h2>
+      <div class="key">그래서 매일 밤 자동으로 돌린다 — PC가 꺼져 있어도.</div>
+      <div class="note">성과는 영감이 아니라 매일 같은 걸 반복하는 데서 나온다.</div>
+    </div>
+    <div class="viz"><div class="vsteps">
+      <div class="vstep"><div class="si">매일 밤</div><div class="st">새 브랜드를 알아서 처리 — 분류·이메일·백업</div></div>
+      <div class="vssep">→</div>
+      <div class="vstep"><div class="si">아침</div><div class="st">나는 시트만 열어 확인</div></div>
+    </div></div>
+  </div></section>
+
+  <!-- 12 비용 -->
+  <section class="slide" data-act="0"><div class="grid">
+    <div class="left">
+      <div class="pill">비용</div>
+      <h2 class="head">매일 돌릴 만한가?<br>그렇다.</h2>
+      <div class="key">브랜드 하나에 약 7천 토큰. 매일 새로 오는 건 몇 개뿐.</div>
+    </div>
+    <div class="viz"><div class="glass" style="padding:34px"><div class="vnums">
+      <div><div class="v">7천</div><div class="k">브랜드 1개 이메일</div></div>
+      <div><div class="v">70만</div><div class="k">100개 한 번에</div></div>
+      <div><div class="v">100만</div><div class="k">하루 한도(Max)</div></div>
+    </div></div></div>
+  </div></section>
+
+  <!-- 13 구조 -->
+  <section class="slide" data-act="1"><div class="grid">
+    <div class="left">
+      <div class="pill">구조</div>
+      <h2 class="head">모듈로 만들어<br>계속 얹는다.</h2>
+      <div class="key">공통 기능은 한 번만, 새 기능은 모듈로 붙인다.</div>
+      <div class="note">그래서 다음 확장은 처음부터 다시가 아니라 추가만 하면 된다.</div>
+    </div>
+    <div class="viz"><div class="glass" style="padding:28px"><div class="modwrap">
+      <div class="modrow"><div class="mod">① 이메일 확보</div><div class="mod fut">② 발송·추적</div><div class="mod fut">③ 회신 초안</div><div class="mod fut">④ 대시보드</div></div>
+      <div class="core">공유 코어<small>시트 접근 · 정리 · 백업 — 모든 기능이 함께 쓰는 토대</small></div>
+    </div></div></div>
+  </div></section>
+
+  <!-- 브랜드 발굴(소싱) 경계선 -->
+  <section class="slide" data-act="1"><div class="grid">
+    <div class="left">
+      <div class="pill">브랜드 발굴</div>
+      <h2 class="head">어디에 보낼지는,<br>아직 사람이 낫다.</h2>
+      <div class="key">성공 가능성 높은 브랜드를 고르는 건 사람의 안목.</div>
+      <div class="note">모든 걸 자동화하진 않는다. 발굴은 직접 하고, 그 다음 반복만 자동 — 후보 모으기 정도는 도울 수도(반자동, 고민 중).</div>
+    </div>
+    <div class="viz"><div class="vgrid c2">
+      <div class="vc glass"><div class="ci">사람이</div><h4>어디에 보낼지</h4><p>성공 가능성 높은 브랜드 발굴 — 안목·맥락이 중요.</p></div>
+      <div class="vc glass"><div class="ci">자동이</div><h4>그 다음 전부</h4><p>이메일 확보 · 정리 · 발송 같은 반복.</p></div>
+    </div></div>
+  </div></section>
+
+  <!-- 14 Claude 루틴 -->
+  <section class="slide" data-act="2"><div class="grid">
+    <div class="left">
+      <div class="pill">실행 방법</div>
+      <h2 class="head">매일 밤 돌리는 건<br>Claude 루틴.</h2>
+      <div class="key">정해둔 시간에 알아서 실행되는 기능. 이걸로 우리 자동화를 올린다.</div>
+      <div class="note">브리핑·이메일 정리·리포트… 다양한 루틴을 스케줄에 걸 수 있다.</div>
+    </div>
+    <div class="viz"><div class="imgcard">
+      <img src="images/claude_routines.png" alt="Claude 루틴 예시" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="imgph" style="display:none">Claude 루틴 화면 캡처<br><small>여기에 저장 → Routine/images/claude_routines.png</small></div>
+    </div></div>
+  </div></section>
+
+  <!-- 15 확장 로드맵 -->
+  <section class="slide" data-act="2"><div class="grid">
+    <div class="left">
+      <div class="pill">확장</div>
+      <h2 class="head">여기서<br>이어붙일 것들.</h2>
+      <div class="key">발송·추적 → 회신 초안 → 핫리드 → 대시보드.</div>
+    </div>
+    <div class="viz"><div class="vgrid c4">
+      <div class="vc glass"><div class="ci">01 · Mailsuite</div><h4>발송·열람·클릭 자동 기록</h4><p>메일 추적기 데이터를 시트로 동기화.</p></div>
+      <div class="vc glass"><div class="ci">02 · 회신 초안</div><h4>회신 오면 1차 초안</h4><p>AI가 읽고 맞춤 초안을 파일로.</p></div>
+      <div class="vc glass"><div class="ci">03 · 핫리드</div><h4>관심 높으면 2차</h4><p>여러 번 열람·클릭 감지해 발송.</p></div>
+      <div class="vc glass"><div class="ci">04 · 대시보드</div><h4>제안 대시보드 자동</h4><p>이름·홈피·예시만 주면 생성.</p></div>
+    </div></div>
+  </div></section>
+
+  <!-- 16 회신 초안 -->
+  <section class="slide" data-act="2"><div class="grid">
+    <div class="left">
+      <div class="pill">확장 · 회신 초안</div>
+      <h2 class="head">회신이 오면,<br>초안까지 미리.</h2>
+      <div class="key">AI가 회신을 읽고 맞춤 1차 초안을 파일로 적어둔다.</div>
+      <div class="note">나는 다듬어서 보내기만. 빈 화면에서 시작하지 않는다.</div>
+    </div>
+    <div class="viz" style="gap:14px">
+      <div class="glass" style="padding:20px 22px"><div style="font-family:var(--mono);font-size:12.5px;color:var(--ink3);margin-bottom:9px">회신 도착</div><div style="font-size:18px;font-weight:600">“샘플 단가랑 일정 알 수 있을까요?”</div></div>
+      <div style="text-align:center;color:var(--ink3);font-size:20px">↓ AI가 읽고 작성</div>
+      <div class="term" style="padding:22px"><div class="line o">초안_OOO브랜드.txt</div><div class="line" style="font-size:15px">안녕하세요, 문의 감사합니다.<br>샘플 단가와 진행 일정은…</div></div>
+    </div>
+  </div></section>
+
+  <!-- 17 대시보드 -->
+  <section class="slide" data-act="2"><div class="grid">
+    <div class="left">
+      <div class="pill">확장 · 대시보드</div>
+      <h2 class="head">제안 대시보드도<br>자동 제작.</h2>
+      <div class="key">브랜드명·홈페이지·예시만 주면 제안 페이지를 만든다.</div>
+      <div class="note">아래가 실제로 그렇게 만든 제안 페이지.</div>
+    </div>
+    <div class="viz" style="gap:13px">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:11px">
+        <div class="glass" style="padding:16px 10px;text-align:center"><div style="font-family:var(--mono);font-size:11px;color:var(--ink3);margin-bottom:7px">입력 01</div><div style="font-weight:600;font-size:15px">브랜드명</div></div>
+        <div class="glass" style="padding:16px 10px;text-align:center"><div style="font-family:var(--mono);font-size:11px;color:var(--ink3);margin-bottom:7px">입력 02</div><div style="font-weight:600;font-size:15px">홈페이지</div></div>
+        <div class="glass" style="padding:16px 10px;text-align:center"><div style="font-family:var(--mono);font-size:11px;color:var(--ink3);margin-bottom:7px">입력 03</div><div style="font-weight:600;font-size:15px">예시 리스트</div></div>
+      </div>
+      <div style="text-align:center;color:var(--ink3);font-size:18px">↓ 자동 생성</div>
+      <div class="imgcard">
+        <img src="images/dashboard_sample.png" alt="자동 제작된 제안 대시보드 예시" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="imgph" style="display:none">제안 대시보드 캡처<br><small>여기에 저장 → Routine/images/dashboard_sample.png</small></div>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- 18 더 넓게 -->
+  <section class="slide" data-act="2"><div class="grid">
+    <div class="left">
+      <div class="pill">더 넓게</div>
+      <h2 class="head">영업만의<br>이야기가 아니다.</h2>
+      <div class="key">‘리스트 + 반복 정리 + 확인’ 있는 일이면 다 대상.</div>
+      <div class="note">팀 누구든 반복되는 일 있으면 같이 자동화해요 — 생산성, 같이 올려봅시다.</div>
+    </div>
+    <div class="viz"><div class="vgrid c2">
+      <div class="vc glass"><h4>인플루언서 리스트 검증</h4><p>채널·팔로워·연락처 정리.</p></div>
+      <div class="vc glass"><h4>캠페인 결과 집계</h4><p>흩어진 수치를 한 시트로.</p></div>
+      <div class="vc glass"><h4>제안서 데이터 채우기</h4><p>브랜드 정보 자동 수집.</p></div>
+      <div class="vc glass"><h4>정기 리포트</h4><p>매주 같은 표를 자동으로.</p></div>
+    </div></div>
+  </div></section>
+
+  <!-- 19 전체 파이프라인 -->
+  <section class="slide" data-act="2"><div class="grid">
+    <div class="left">
+      <div class="pill">기대하는 그림</div>
+      <h2 class="head">결국, 영업 한 사이클<br>전체를 자동으로.</h2>
+      <div class="key">모듈을 하나씩 붙여, 반복 업무가 순차로 이어지길.</div>
+      <div class="note">지금은 ①까지 됐다. 나머지를 차례로 얹는다.</div>
+    </div>
+    <div class="viz"><div class="glass" style="padding:24px 26px"><div style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:12px;background:var(--ink);color:var(--paper)"><span style="font-family:var(--mono)">①</span><span style="font-weight:600;font-size:18px">메일 서칭 (이메일 확보)</span><span style="margin-left:auto;font-family:var(--mono);font-size:12px;opacity:.7">지금</span></div>
+      <div style="display:flex;align-items:center;gap:14px;padding:13px 18px;border-radius:12px;border:1px dashed var(--line);color:var(--ink2)"><span style="font-family:var(--mono)">②</span><span style="font-weight:600;font-size:18px">발송</span></div>
+      <div style="display:flex;align-items:center;gap:14px;padding:13px 18px;border-radius:12px;border:1px dashed var(--line);color:var(--ink2)"><span style="font-family:var(--mono)">③</span><span style="font-weight:600;font-size:18px">발송 열람 기록</span></div>
+      <div style="display:flex;align-items:center;gap:14px;padding:13px 18px;border-radius:12px;border:1px dashed var(--line);color:var(--ink2)"><span style="font-family:var(--mono)">④</span><span style="font-weight:600;font-size:18px">2차 메일 발송</span></div>
+      <div style="display:flex;align-items:center;gap:14px;padding:13px 18px;border-radius:12px;border:1px dashed var(--line);color:var(--ink2)"><span style="font-family:var(--mono)">⑤</span><span style="font-weight:600;font-size:18px">미팅까지</span></div>
+    </div></div></div>
+  </div></section>
+
+  <!-- 20 마무리 -->
+  <section class="slide" data-act="2"><div class="grid">
+    <div class="left">
+      <div class="pill">마무리</div>
+      <h2 class="head">반복은 자동에,<br>우리는 사람 몫에.</h2>
+      <div class="key">6월에 검증했고, 매일 밤 자동으로 굴릴 차례.</div>
+      <div class="note">손이 덜 가니 꾸준해지고, 아낀 시간은 더 중요한 일에 쓴다.</div>
+    </div>
+    <div class="viz"><div class="vgrid c3">
+      <div class="vc glass"><div class="ci">됐다</div><h4>이메일 확보</h4><p>6월 실데이터로 검증.</p></div>
+      <div class="vc glass"><div class="ci">준비됐다</div><h4>모듈 구조</h4><p>다음 기능을 얹을 토대.</p></div>
+      <div class="vc glass"><div class="ci">간다</div><h4>야간 자동화</h4><p>매일 밤 루틴부터.</p></div>
+    </div></div>
+  </div></section>
+
+</div>
+
+<div class="arrows">
+  <button id="prev" onclick="go(i-1)" title="이전 (←)">‹</button>
+  <button id="next" onclick="go(i+1)" title="다음 (→)">›</button>
+  <button onclick="fs()" title="전체화면 (F)" style="margin-left:6px">
+    <svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2.2 5V2.2H5M12 5V2.2H9.2M2.2 9v2.8H5M12 9v2.8H9.2"/></svg>
+  </button>
+</div>
+<div class="pager" id="pager">01 / 20</div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  const actEls=[...document.querySelectorAll('.acts span')];
+  let i=0;
+  function go(n){
+    if(n<0||n>=slides.length) return;            /* 루프 없음 */
+    i=n;
+    slides.forEach((s,k)=>s.classList.toggle('on',k===i));
+    const act=slides[i].dataset.act;
+    actEls.forEach(e=>e.classList.toggle('on',e.dataset.a===act));
+    document.getElementById('pager').textContent=String(i+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
+    document.getElementById('prev').disabled=(i===0);
+    document.getElementById('next').disabled=(i===slides.length-1);
+  }
+  function fs(){const el=document.documentElement;
+    if(!document.fullscreenElement){(el.requestFullscreen||el.webkitRequestFullscreen||(()=>{})).call(el);}
+    else{(document.exitFullscreen||document.webkitExitFullscreen||(()=>{})).call(document);}}
+  addEventListener('keydown',e=>{
+    if(['ArrowRight',' ','PageDown'].includes(e.key)){e.preventDefault();go(i+1);}
+    else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();go(i-1);}
+    else if(e.key==='f'||e.key==='F'){fs();}
+    else if(e.key==='Home')go(0); else if(e.key==='End')go(slides.length-1);
+  });
+  go(0);
+</script>
+</body>
+</html>

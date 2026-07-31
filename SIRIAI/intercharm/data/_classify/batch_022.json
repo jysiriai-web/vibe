@@ -1,0 +1,66 @@
+[
+  {
+    "code": "MJC1556",
+    "cat": "스킨케어",
+    "intro": "MJ CARE·SKIN PLANET 등 자체 브랜드를 보유한 시트 마스크팩 전문 기업",
+    "verdict": "타겟",
+    "basis": "자체브랜드 MJ CARE 마스크팩 판매",
+    "homepage": ""
+  },
+  {
+    "code": "BRB6836",
+    "cat": "기타",
+    "intro": "",
+    "verdict": "불명",
+    "basis": "화장품 도매·수출업, 자체브랜드 미확인",
+    "homepage": ""
+  },
+  {
+    "code": "SKI8337",
+    "cat": "기타",
+    "intro": "하이드로콜로이드 트러블 패치를 기획·개발·생산하는 B2B 전문 기업",
+    "verdict": "제외",
+    "basis": "패치 ODM·기획 B2B, 소비자 브랜드 없음",
+    "homepage": ""
+  },
+  {
+    "code": "ARO1176",
+    "cat": "기타",
+    "intro": "CPL Aromas·Bontoux 총판, 화장품·향수용 향료와 에센셜오일 공급사",
+    "verdict": "제외",
+    "basis": "향료 원료 공급·총판, 완제품 브랜드 없음",
+    "homepage": ""
+  },
+  {
+    "code": "ODM1757",
+    "cat": "기타",
+    "intro": "2000년 설립 코스닥 상장 화장품 ODM·패키지 디자인 전문 기업",
+    "verdict": "제외",
+    "basis": "공식사이트 ODM·디자인 전용, 자체브랜드 미표기",
+    "homepage": "http://www.outinco.com"
+  },
+  {
+    "code": "SRX8361",
+    "cat": "기타",
+    "intro": "인천 소재 화장품 플라스틱 성형용기 제조 기업",
+    "verdict": "제외",
+    "basis": "공공DB상 화장품 용기·금형 제조업",
+    "homepage": ""
+  },
+  {
+    "code": "NUR7809",
+    "cat": "기타",
+    "intro": "서동메디칼의 안구건조증 치료 의료기기 브랜드 누리아이 운영",
+    "verdict": "제외",
+    "basis": "식약처 인증 안구건조증 치료 의료기기",
+    "homepage": ""
+  },
+  {
+    "code": "SME7648",
+    "cat": "스킨케어",
+    "intro": "르베로(LEVERO)·LIZ 브랜드로 클렌징 파우더워시 등을 전개하는 뷰티 기업",
+    "verdict": "타겟",
+    "basis": "자체브랜드 르베로 클렌징 소비자 판매",
+    "homepage": "https://smecolab.com"
+  }
+]

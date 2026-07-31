@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "주식회사 이든팜",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "OEM/ODM 수탁제조 전문기업. 홈페이지·검색 결과 모두 '당신의 브랜드를 빛낼 파트너'로 소개, 자체 소비자 브랜드 없음 (edencos.co.kr, 서울인디뷰티쇼 참가사 목록)"
+    },
+    {
+      "company": "BonitoLab",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "화장품 컨설팅·OEM/ODM·프라이빗라벨 서비스 전문 B2B 기업. 자체 소비자 브랜드 없음 (bonitolab.com/cosmetic-consulting)"
+    },
+    {
+      "company": "해피엘앤비",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "OEM/ODM 수탁제조 전문기업으로 판단. 홈페이지에 소비자 직판 채널·자체 브랜드명 없음, 계열사 Hyezium·RexBio는 별도 법인 (happylnb.com)"
+    },
+    {
+      "company": "(주) 정동산업",
+      "verdict": "적합",
+      "own_brand": "IFONU(이프온유)",
+      "reason": "OEM/ODM 주력이나 자체 브랜드 IFONU(마스크팩·패치류) 보유 및 판매 확인 (jungdongcos.com/page/24)"
+    },
+    {
+      "company": "(주) 에이바이오머티리얼즈",
+      "verdict": "적합",
+      "own_brand": "Celexo(셀렉소)",
+      "reason": "엑소좀 기반 자체 브랜드 Celexo(Exo-Cica, Blacklabel, HG, AAPE 등) 보유, 자사몰 운영 및 소비자 직판 확인 (celexo.co.kr)"
+    },
+    {
+      "company": "씨앤텍(주)",
+      "verdict": "적합",
+      "own_brand": "Purederm(퓨어덤)",
+      "reason": "OEM/ODM 제조사이나 자체 소비자 브랜드 Purederm 보유·운영, 국내외 소비자 판매 확인 (purederm.com, purederm.co.kr)"
+    },
+    {
+      "company": "㈜세레코",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "홈페이지 TLS 오류로 접속 불가. 검색 결과상 R&D 전문기업·화장품 제조업체로 소개되나 자체 소비자 브랜드 유무 불명확 (celleco.co.kr 접속불가)"
+    },
+    {
+      "company": "(주)미진화장품",
+      "verdict": "적합",
+      "own_brand": "MJ CARE, SKIN PLANET, MUIRI",
+      "reason": "OEM/ODM 겸업이나 자체 브랜드 3개(MJ CARE·SKIN PLANET·MUIRI) 보유, 자사몰(mjcareshop.com) 통해 소비자 직판 확인 (mjcare.co.kr)"
+    },
+    {
+      "company": "주식회사 제이에스사이언스",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "홈페이지 정보 없음(URL 미제공). 검색 결과에서 자체 브랜드 유무 확인 불가"
+    },
+    {
+      "company": "퓨어앤텍(주)",
+      "verdict": "적합",
+      "own_brand": "LOYLY, ZeroBay, Dr.pepstory",
+      "reason": "OEM/ODM 겸업이나 자체 소비자 브랜드 LOYLY·ZeroBay·Dr.pepstory 보유 및 소비자 판매 확인 (purentechkorea.com)"
+    }
+  ]
+}

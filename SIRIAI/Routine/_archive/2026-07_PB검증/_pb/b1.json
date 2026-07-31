@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "celebon",
+      "verdict": "적합",
+      "own_brand": "세르본(Celebon)",
+      "reason": "자체 스킨케어 브랜드 세르본으로 공식 쇼핑몰 운영, 마스크·에센스·크림 등 직접 판매 (celebon.co.kr 확인)"
+    },
+    {
+      "company": "matthew chang perfumes",
+      "verdict": "적합",
+      "own_brand": "Matthew Chang Perfumes",
+      "reason": "메튜장 공식 온라인 스토어에서 자체 향수·바디 라인 직접 판매 (matthewchangperfumes.com 확인)"
+    },
+    {
+      "company": "주식회사 랑벨",
+      "verdict": "적합",
+      "own_brand": "LANBELLE",
+      "reason": "LANBELLE 브랜드로 클렌징·토너·앰플·크림 등 자체 스킨케어 제품 판매 (lanbelle.com 확인)"
+    },
+    {
+      "company": "주식회사 바이잇",
+      "verdict": "적합",
+      "own_brand": "Luvum",
+      "reason": "Luvum 브랜드로 마스크팩·토너패드·세럼·선케어 등 자체 소비자 판매 (luvum.co.kr 확인)"
+    },
+    {
+      "company": "안탈라",
+      "verdict": "적합",
+      "own_brand": "안탈라(Antala)",
+      "reason": "주식회사 제이민인터내셔널이 안탈라 브랜드로 크림·토너·마스크팩 등 직접 소비자 판매 (antala.kr 확인)"
+    },
+    {
+      "company": "스튜디오17",
+      "verdict": "적합",
+      "own_brand": "Studio17",
+      "reason": "Studio17 자체 메이크업 툴·브러쉬 브랜드로 올리브영·무신사 입점 및 공식몰 운영 (studio17.co.kr, 올리브영 검색 확인)"
+    },
+    {
+      "company": "(주)더엘그룹",
+      "verdict": "적합",
+      "own_brand": "마리아벨(MARYABEL), 블레싱랩(Blessing Lab), 아이아로(aeAro)",
+      "reason": "복수의 자체 소비자 브랜드로 스킨케어·건강기능식품 D2C 판매 (theelstore.com 확인)"
+    },
+    {
+      "company": "(주)씨케이리제온",
+      "verdict": "적합",
+      "own_brand": "HERIBON, HAIRREGEON",
+      "reason": "두피케어 자체 브랜드 HERIBON·HAIRREGEON을 소비자에게 직접 판매 (dermaregeon.com 확인)"
+    },
+    {
+      "company": "CETERA",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "홈페이지가 위챗 링크(wechat.com/cetera1)로 접근 불가, 자체 브랜드 여부 확인 불가 (정보 부족)"
+    },
+    {
+      "company": "(주)섬섬바이오",
+      "verdict": "적합",
+      "own_brand": "SEARCE(시어스)",
+      "reason": "SEARCE 브랜드로 비건 헤어케어·스킨케어 자체 제품 소비자 판매 (searce.shop 확인)"
+    }
+  ]
+}

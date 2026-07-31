@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "주식회사 바이비카",
+      "verdict": "적합",
+      "own_brand": "INBUTIM(인버팀)",
+      "reason": "두피·모발·속눈썹 케어 자체 브랜드 INBUTIM으로 D2C 판매 운영 중 (inbutim.com 직판몰 확인)"
+    },
+    {
+      "company": "(주)유에스티",
+      "verdict": "적합",
+      "own_brand": "Truth Of Beauty",
+      "reason": "자체 브랜드 Truth Of Beauty로 미백·진정·클렌징 등 화장품을 온라인몰 통해 소비자에게 직접 판매 (truthofbeauty.kr 확인)"
+    },
+    {
+      "company": "지비알아이디어",
+      "verdict": "적합",
+      "own_brand": "VAH(브이에이에이치)",
+      "reason": "자체 브랜드 VAH로 스킨케어·클렌징·바디·메이크업 제품 직판 쇼핑몰 운영 (vah.co.kr 확인)"
+    },
+    {
+      "company": "부드와서울",
+      "verdict": "적합",
+      "own_brand": "그란디디에(Grandidier)",
+      "reason": "부드와서울 주식회사가 자체 브랜드 그란디디에로 스킨케어 제품을 온라인 직판몰에서 소비자에게 판매 (grandidier.kr 확인)"
+    },
+    {
+      "company": "(주)벤치컴퍼니 Bench company Inc",
+      "verdict": "적합",
+      "own_brand": "피트루트(Fitroot)",
+      "reason": "자체 브랜드 피트루트(Fitroot)로 토너·세럼·크림 등 스킨케어 제품 소비자 직판 (fitroot.kr 확인)"
+    },
+    {
+      "company": "셀릭사",
+      "verdict": "적합",
+      "own_brand": "Celixa(셀릭사)",
+      "reason": "주식회사 케이앤에스컴퍼니 운영, Celixa 브랜드로 줄기세포배양액·PDRN 고함량 프리미엄 스킨케어 소비자 직판 (celixa.co.kr 확인)"
+    },
+    {
+      "company": "L-E03: Tender garden 텐더가든 / L-E04: BELDORA 벨도라",
+      "verdict": "적합",
+      "own_brand": "Tender Garden, BELDORA, MUCENT, VIRGANA",
+      "reason": "(주)브이플랫폼이 Tender Garden·BELDORA 등 복수 자체 화장품 브랜드를 온라인 공식몰에서 소비자 직판 (vplatform.kr 확인)"
+    },
+    {
+      "company": "주식회사 더연",
+      "verdict": "적합",
+      "own_brand": "더연(THE YEON)",
+      "reason": "시즈널 뷰티 코스메틱 더연 자체 브랜드로 스킨케어·클렌징·메이크업 직판몰 운영, 병원 입점 B2B 병행 (theyeon.kr 확인)"
+    },
+    {
+      "company": "셀비오코스메틱(주)",
+      "verdict": "적합",
+      "own_brand": "돌돌이 롤마스크팩",
+      "reason": "자체 브랜드 '돌돌이 롤마스크팩' 공식몰 운영하며 소비자 직판, OEM/ODM 수탁 겸업 (cellviocosmetic.co.kr 확인)"
+    },
+    {
+      "company": "유니티",
+      "verdict": "애매",
+      "own_brand": "럭세보(Luxevo)",
+      "reason": "럭세보(Luxevo) 쇼핑몰 구조(장바구니·로그인 UI) 확인되나 서브페이지 접근 불가로 자체 브랜드 여부 상세 확인 불충분 (luxevo.co.kr 접속 제한)"
+    }
+  ]
+}

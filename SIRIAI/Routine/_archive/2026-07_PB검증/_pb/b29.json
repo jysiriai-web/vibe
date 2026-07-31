@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "SHINAN COSMETICS Co., Ltd.",
+      "verdict": "적합",
+      "own_brand": "Shionle (션리)",
+      "reason": "자체 브랜드 Shionle로 스킨케어·메이크업·선케어 제품을 자사몰에서 소비자에게 직접 판매 (shionle.com)"
+    },
+    {
+      "company": "주식회사 일레븐코퍼레이션",
+      "verdict": "적합",
+      "own_brand": "PARNELL, GROWUS, ADDCT, LUMMIR, LA DENS",
+      "reason": "다수의 자체 소비자 브랜드 보유, 55개국 글로벌 판매 중 (11corp.co.kr)"
+    },
+    {
+      "company": "주식회사 더마라인",
+      "verdict": "적합",
+      "own_brand": "DERMALINE, D'LEXO, PDX5, Derma Solution",
+      "reason": "자체 더마코스메틱 브랜드로 스킨케어 제품을 소비자에게 직접 판매 (dermaline.co.kr)"
+    },
+    {
+      "company": "로그인 포레스트 (유나뷰티랩)",
+      "verdict": "적합",
+      "own_brand": "LOGiN FOREST",
+      "reason": "자체 클린뷰티 브랜드 LOGiN FOREST 보유, 자사몰·무신사 입점 소비자 직판 (loginforest.com)"
+    },
+    {
+      "company": "디유코스메틱",
+      "verdict": "적합",
+      "own_brand": "JOA",
+      "reason": "자체 브랜드 JOA로 립틴트·마스카라 등 메이크업 제품을 자사몰 및 190개국 배송으로 직판 (ducos.co.kr)"
+    },
+    {
+      "company": "지구의 온도 G9ONDO",
+      "verdict": "적합",
+      "own_brand": "지구의 온도 (G9ONDO)",
+      "reason": "자체 브랜드로 입욕제·향수·바디케어 제품 소비자 직판, 인천공항 면세점 입점 (g9ondo.com)"
+    },
+    {
+      "company": "(주)한국쉬즈라인",
+      "verdict": "적합",
+      "own_brand": "TOOLIF (툴리프)",
+      "reason": "자체 브랜드 TOOLIF로 메이크업 브러시·퍼프·헤어도구 소비자 직판, 네이버 스마트스토어 운영 (toolif.co.kr)"
+    },
+    {
+      "company": "아이프로덕트",
+      "verdict": "적합",
+      "own_brand": "Dr.Percent (닥터퍼센트)",
+      "reason": "자체 브랜드 Dr.Percent로 기능성 스킨케어 제품 소비자 직판, 자체 e-커머스 운영 (drpercent.co.kr)"
+    },
+    {
+      "company": "(주)코비스타",
+      "verdict": "적합",
+      "own_brand": "Solep (솔랩), Premier Higro",
+      "reason": "자체 브랜드 Solep로 두피케어 제품 소비자 직판, 올리브영 입점 (solepkorea.com)"
+    },
+    {
+      "company": "LINDSAY&COS Inc.",
+      "verdict": "적합",
+      "own_brand": "LINDSAY (린제이)",
+      "reason": "자체 브랜드 LINDSAY로 홈에스테틱 모델링팩·마스크팩 소비자 직판, 자사몰(lindsaymall.com) 및 유통채널 운영 (lindsaycos.com)"
+    }
+  ]
+}

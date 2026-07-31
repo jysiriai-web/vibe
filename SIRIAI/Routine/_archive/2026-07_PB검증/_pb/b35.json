@@ -1,0 +1,46 @@
+{
+  "results": [
+    {
+      "company": "주식회사 스타힐스코스메틱",
+      "verdict": "적합",
+      "own_brand": "무백(MOO100)",
+      "reason": "자체 헤어케어 브랜드 'MOO100(무백)'으로 공식 온라인 스토어에서 소비자 직판 운영 (moo100.com)"
+    },
+    {
+      "company": "MAKE SOUL",
+      "verdict": "적합",
+      "own_brand": "MAKE SOUL",
+      "reason": "주식회사 제이엘코스메틱이 운영하는 자체 비건 메이크업 브랜드, Cafe24 기반 자사몰에서 소비자 직판 (make-soul.co.kr)"
+    },
+    {
+      "company": "휴션",
+      "verdict": "적합",
+      "own_brand": "HUCEAN",
+      "reason": "해양유래 엑소좀 스킨케어 자체 브랜드 'HUCEAN'으로 B2C 출시 준비 중, 장바구니 기능 보유 (huceane.com)"
+    },
+    {
+      "company": "SKINISGOOD",
+      "verdict": "적합",
+      "own_brand": "LISSEDERM",
+      "reason": "주식회사 제이윤코스메틱의 자체 스킨케어 브랜드 'LISSEDERM'으로 온·오프라인 소비자 직판 운영 (lissederm.co.kr)"
+    },
+    {
+      "company": "솔테라피",
+      "verdict": "적합",
+      "own_brand": "SALTHERAPY",
+      "reason": "자체 브랜드 'SALTHERAPY'·'SALT DIFFERENT'로 보디스크럽 등 소비자 직판, 오프라인 매장 병행 (saltherapy.us)"
+    },
+    {
+      "company": "어룸",
+      "verdict": "적합",
+      "own_brand": "AROOM",
+      "reason": "서울 기반 자체 뷰티 브랜드 'AROOM'으로 클렌징폼 등 소비자 직판, Amazon 도매도 병행 (aroomskin.com)"
+    },
+    {
+      "company": "ANOETIC BEAUTY",
+      "verdict": "적합",
+      "own_brand": "ANOETIC BEAUTY",
+      "reason": "주식회사 아노에틱코스메틱의 자체 브랜드, 헤어·스킨·바디·향수 전 카테고리 소비자 직판 운영 (anoeticbeauty.com)"
+    }
+  ]
+}

@@ -1,0 +1,305 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="ko">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="format-detection" content="telephone=no,address=no,email=no,date=no" />
+<meta name="color-scheme" content="light only" />
+<meta name="supported-color-schemes" content="light only" />
+<title>SIRIAI</title>
+<!--[if mso]>
+<xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml>
+<![endif]-->
+<!-- ══════════════════════════════════════════════════════════════════════
+     SIRIAI · INTERCHARM 2026 사후 팔로업 — 발송용(프로덕션)
+     ────────────────────────────────────────────────────────────────────
+     ※ 이 파일은 "메일 클라이언트용"이다. 디자인 원본은
+       템플릿_인터참_사후팔로업.html (그쪽을 보고 이쪽에 옮긴다)
+
+     프로덕션 규칙
+       · 레이아웃 = <table> 만 사용 (flex/grid 금지 — Outlook은 Word 엔진)
+       · 모든 스타일 = 인라인 (Gmail 일부가 <style> 통째로 제거)
+       · <style>은 미디어쿼리 전용 = 있으면 좋고 없어도 깨지지 않는 것만
+       · CSS 변수·aspect-ratio·gap·position 사용 금지
+       · 배경 이미지 = bgcolor 폴백 필수 + Outlook은 VML
+       · 이미지 차단이 기본값 → alt 텍스트도 색을 지정한다
+
+     치환 슬롯 (5개)
+       주식회사 라콤 (CELL29)  브랜드/회사명   시트 B열   193/193
+       김종혁   담당자명        시트 C열   184/193  ← 없으면 브랜드용 문안 사용
+       (직책 슬롯 폐거 — 인사가 '담당자님'으로 통일됨)
+       CEL8769   전용코드        시트 K열   193/193
+       행사 종료 후 분주하셨을 줄로 압니다.<br />인터참에서 마주한 주식회사 라콤 (CELL29) 색깔에 맞춰, 하반기 마케팅에 활용하실 수 있는 인플루언서 <span style="font-weight:600;color:#000000;">100여명</span> 대시보드를 구축하여 공유해 드립니다.<br /><br />브랜드마다 따로 만들어야 해서, 인터참에서 직접 뵌 곳에만 드리고 있습니다.   오프닝 훅 본문  시트 L열     0/193  ← 미작성
+     ══════════════════════════════════════════════════════════════════════ -->
+<style type="text/css">
+  /* 클라이언트 리셋 */
+  body,table,td,a{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+  table,td{mso-table-lspace:0pt;mso-table-rspace:0pt}
+  img{-ms-interpolation-mode:bicubic;border:0;outline:none;text-decoration:none;display:block}
+  body{margin:0!important;padding:0!important;width:100%!important}
+  a{text-decoration:none}
+  /* 자동 링크화 방지 (iOS/Outlook이 전화·주소를 파랗게 만드는 것) */
+  a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important;font-size:inherit!important;font-family:inherit!important;font-weight:inherit!important;line-height:inherit!important}
+  u+#body a{color:inherit;text-decoration:none;font-size:inherit;font-family:inherit;font-weight:inherit;line-height:inherit}
+
+  /* 모바일 — 있으면 좋은 개선. 없어도 레이아웃은 성립한다 */
+  @media only screen and (max-width:600px){
+    .px{padding-left:22px!important;padding-right:22px!important}
+    .hero-px{padding-left:24px!important;padding-right:24px!important}
+    .big{font-size:27px!important;line-height:1.22!important}
+    .h3{font-size:22px!important}
+    .card-pad{padding:12px 9px!important}
+    .card-t{font-size:14px!important}
+    .card-d{font-size:11.5px!important}
+    .sig{display:block!important;width:100%!important;text-align:left!important;padding-top:16px!important}
+    .sig-l{text-align:left!important}
+  }
+  /* 다크모드에서 클라이언트가 색을 뒤집지 못하게 (지원 클라이언트 한정) */
+  @media (prefers-color-scheme:dark){
+    .paper{background-color:#f4f4f3!important}
+    .ink{color:#000000!important}
+  }
+  /* 모바일: 정사각 고정 해제 — 100px 폭에 정사각 3열은 글이 3줄로 쪼개져 제목이 어긋난다.
+     높이를 풀고 상단정렬로 흘려보내면 아이콘·제목 기준선이 저절로 맞는다. */
+  @media only screen and (max-width:600px){
+    .card-sq{height:146px!important;}
+    .card-pad{height:auto!important;padding:11px 8px!important;}
+    .card-ic{width:19px!important;height:19px!important}
+    .card-btm{vertical-align:top!important;}
+    /* 제목 nowrap 을 풀지 않으면 (제목53+아이콘22+패딩)x3 이 최소폭으로 굳어 가로가 넘친다 */
+    .card-t{white-space:normal!important;}
+    /* 라벨 인라인 nowrap 이 미디어쿼리를 이기므로 클래스로 덮는다 */
+    .card-lab{white-space:normal!important;}
+    /* 배경이 좌우로 잘리는 문제 — 모바일은 박스가 좁아 cover 가 "죽은 중앙"만 보여준다.
+       히어로는 색이 좌우에, 아웃트로는 우측에 있으므로 초점을 옮긴다.
+       (실측: 히어로 중앙크롭 밝기 2.4 → 12%지점 35.1 / 데스크톱 32.8) */
+    .hero-bg{background-position:12% center!important}
+    .outro-bg{background-position:88% center!important}
+    .card-d{font-size:11.5px!important;line-height:16px!important;}
+  }
+</style>
+<!--[if !mso]><!-->
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet" type="text/css" />
+<!--<![endif]-->
+</head>
+
+<body id="body" style="margin:0;padding:0;background-color:#E4E4E1;">
+
+<!-- ① 프리헤더 : 받은편지함 미리보기에 뜨는 한 줄. 본문에는 안 보인다.
+        뒤의 &#847;&zwnj; 반복은 프리헤더 뒤로 본문 첫 줄이 끌려오는 것을 막는 표준 트릭 -->
+<div style="display:none;font-size:1px;color:#f4f4f3;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">
+  주식회사 라콤 (CELL29) 전용으로 선별한 인플루언서 명단을 보내드립니다.
+  &#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;
+</div>
+
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#E4E4E1;">
+<tr><td align="center" style="padding:24px 12px 60px;">
+
+<!--[if mso]><table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" width="600"><tr><td><![endif]-->
+<!-- width는 100% + max-width:600 — 고정 600px로 잡으면 모바일에서 가로로 넘친다.
+     Outlook은 max-width를 무시하므로 위 MSO 고스트 테이블(600)이 폭을 담당한다. -->
+<table role="presentation" class="paper" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;max-width:600px;background-color:#f4f4f3;border-radius:14px;overflow:hidden;font-family:'Inter Tight','Noto Sans KR',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">
+
+  <!-- ════ ② 히어로 (검정 + 그라디언트) ════ -->
+  <tr>
+  <td background="https://siriai-mail-assets.vercel.app/hero_bg.png" bgcolor="#000000" valign="top" class="hero-px hero-bg"
+      style="background-color:#000000;background-image:url('https://siriai-mail-assets.vercel.app/hero_bg.png');background-repeat:no-repeat;background-position:center center;background-size:cover;padding:33px 40px 30px;">
+    <!--[if gte mso 9]>
+    <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:600px;height:320px;">
+      <v:fill type="frame" src="https://siriai-mail-assets.vercel.app/hero_bg.png" color="#000000" />
+      <v:textbox inset="40px,33px,40px,30px"><![endif]-->
+
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+      <!-- 마스트헤드 : 워드마크 로고(작게·중앙).
+           alt 에도 색·크기를 줘서 이미지 차단 시 흰 글씨 'Siriai' 로 읽히게 한다. -->
+      <tr><td align="center" style="padding:33px 0 0;">
+        <img src="https://siriai-mail-assets.vercel.app/siriai-word-white@2x.png" width="44" height="15" alt="Siriai"
+             style="display:inline-block;width:44px;height:15px;border:0;outline:none;color:#f4f4f3;font-size:13px;font-weight:700;letter-spacing:0.04em;font-family:Georgia,'Times New Roman',serif;" />
+      </td></tr>
+      <!-- 대형 타이포 : 홈페이지 히어로 하단 두 문장을 합친 오마주 -->
+      <tr><td align="center" height="158" valign="middle" style="height:158px;padding:0 0 51px;">
+        <div class="big" style="font-size:33px;line-height:39px;font-weight:300;letter-spacing:-0.01em;color:#f4f4f3;font-family:'Inter Tight','Noto Sans KR',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;word-break:keep-all;">
+          가장 감각적인 비주얼을<br />가장 쉽게 만나보세요
+        </div>
+      </td></tr>
+    </table>
+
+    <!--[if gte mso 9]></v:textbox></v:rect><![endif]-->
+  </td>
+  </tr>
+
+  <!-- ════ ③ 인사 ════
+       김종혁 없는 브랜드용(9건)은 아래 줄을 통째로 브랜드용 문안으로 교체한다 -->
+  <tr><td class="px ink" style="padding:30px 40px 0;font-size:15px;line-height:26px;letter-spacing:-0.005em;color:#000000;font-family:'Inter Tight','Noto Sans KR',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;word-break:keep-all;">
+    안녕하세요, 주식회사 라콤 (CELL29) 김종혁 담당자님,<br />2026 코엑스 인터참에서 인사드린 시리아이 조준용 매니저입니다.
+  </td></tr>
+
+  <!-- ════ ④ 오프닝 훅 ════
+       ⚠️ 하지 않은 대화를 따옴표로 인용하지 말 것. 실인용은 시트 L열이 채워진 건에만. -->
+  <tr><td class="px" style="padding:14px 40px 30px;font-size:15px;line-height:27px;letter-spacing:-0.005em;color:#5e5e5e;font-family:'Inter Tight','Noto Sans KR',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;word-break:keep-all;">
+    시리아이는 2026년 여름을 맞이해 무신사 PB팀, INNISFREE, TOCOBO 등의 뷰티 브랜드부터 하이브, JYPE, CJ ENM 등 기획사, 그리고 8DIVISION, OJOS 같은 패션 파트너사들과 고감도의 입체적인 캠페인을 전개하고 있습니다.<br /><br />박람회를 통해, 온&#183;오프라인 프로젝트 운영하며 얻은 인사이트를 브랜드와 나누고자 했으며, 그 중 주식회사 라콤 (CELL29) 전용으로 마케팅 핏이 가장 높은 인플루언서 명단을 선별했습니다.<br /><br />해당 데이터는 7~8월 시즌 한정으로 아래 전용 코드를 통해서만 제공드리고 있으니, 편하게 확인하시고 궁금한점 있으시면 편하게 문의주시길 바랍니다.
+  </td></tr>
+
+  <!-- ════ ⑤ 프로모션 리스트 + 코드 + CTA ════ -->
+  <tr><td style="padding:8px 16px 22px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#ffffff;border:1px solid #dedcd8;border-radius:16px;">
+    <tr><td class="px" style="padding:28px 30px 30px;">
+    <div style="font-size:13px;line-height:19px;font-weight:500;color:#a3a3a1;font-family:'Inter Tight',Helvetica,Arial,sans-serif;padding-bottom:12px;">Promotion</div>
+    <div class="h3" style="font-size:26px;line-height:33px;font-weight:500;letter-spacing:-0.02em;color:#000000;font-family:'Inter Tight','Noto Sans KR',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;padding-bottom:12px;word-break:keep-all;">
+      주식회사 라콤 (CELL29) 맞춤형 기간한정<br /><span style="font-weight:400;color:#666666;">인플루언서 리스트 100여명</span>
+    </div>
+    <div style="font-size:15px;line-height:26px;letter-spacing:-0.005em;color:#5e5e5e;font-family:'Inter Tight','Noto Sans KR',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;padding-bottom:18px;word-break:keep-all;">
+      브랜드의 감도와 카테고리에 맞는 크리에이터 라인업과 데이터를 한 화면에서 확인하실 수 있습니다.
+    </div>
+
+    <!-- 코드 박스 : 밝은 지면 위 어두운 패널 (welcome3 방식)
+         ⚠️ 메일에서는 JS가 동작하지 않으므로 '복사 버튼'은 만들 수 없다.
+            대신 CTA URL에 ?code= 를 실어 붙여넣기 없이 열리게 한다. -->
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#000000;border-radius:12px;">
+      <tr><td align="center" style="padding:24px 20px;">
+        <div style="font-size:12.5px;line-height:18px;font-weight:500;color:#8a8a89;font-family:'Inter Tight','Noto Sans KR',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;padding-bottom:14px;">주식회사 라콤 (CELL29) 전용 코드</div>
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="border:1px solid #8a8a89;border-radius:8px;padding:13px 22px;font-size:21px;line-height:26px;font-weight:600;letter-spacing:0.14em;color:#f4f4f3;font-family:'Inter Tight',Helvetica,Arial,monospace;">CEL8769</td>
+        </tr></table>
+      </td></tr>
+    </table>
+
+    <!-- CTA = 밑줄 텍스트 (바로 위 코드박스가 이미 강한 앵커라 솔리드 버튼을 겹치지 않는다)
+         탭 타겟 44px 확보를 위해 상하 패딩 -->
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr>
+      <td align="center" style="padding-top:14px;">
+        <a href="https://siriai-2026intercharmkorea-promotion.vercel.app/?code=CEL8769" style="display:inline-block;padding:13px 6px;font-size:15px;line-height:20px;font-weight:600;letter-spacing:-0.01em;color:#000000;text-decoration:none;border-bottom:2px solid #000000;font-family:'Inter Tight','Noto Sans KR',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">7월 한정 프로모션 리스트 받아보기 &#8594;</a>
+      </td>
+    </tr></table>
+  </td></tr>
+    </table>
+  </td></tr>
+
+  <!-- ════ ⑥ 강점 3박스 ════
+       aspect-ratio는 메일에서 미지원 → height 고정.
+       모바일에서도 스택하지 않고 3열 유지 (스택하면 카드 안이 텅 빈다) -->
+  <tr><td class="px" style="padding:30px 40px;border-top:1px solid #e0e0de;">
+    <div style="font-size:13px;line-height:19px;font-weight:500;color:#a3a3a1;font-family:'Inter Tight',Helvetica,Arial,sans-serif;padding-bottom:12px;">Strengths</div>
+    <div class="h3" style="font-size:26px;line-height:33px;font-weight:500;letter-spacing:-0.02em;color:#000000;font-family:'Inter Tight','Noto Sans KR',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;padding-bottom:18px;word-break:keep-all;">
+      다른 점은<br /><span style="font-weight:400;color:#666666;">세 가지입니다.</span>
+    </div>
+
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        <!-- 01 -->
+        <td width="33%" valign="top" style="width:33%;padding-right:5px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="card-sq" height="132" style="height:132px;background-color:#f7f7f6;border:1px solid #e0e0de;border-radius:10px;">
+            <tr><td class="card-pad" valign="top" height="104" style="height:104px;padding:14px 12px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" height="104" style="height:104px;">
+                <tr>
+                  <td valign="top" class="card-t" style="font-size:15.5px;line-height:21px;font-weight:600;letter-spacing:-0.02em;color:#000000;font-family:'Inter Tight','Noto Sans KR',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;white-space:nowrap;"><span style="color:#a3a3a1;font-weight:500;">01.</span> <span class="card-lab" style="white-space:nowrap;">기술 &amp; 감성</span></td>
+                  <td valign="top" align="right" width="22" style="width:22px;"><img src="https://siriai-mail-assets.vercel.app/ic_01_tech.png?v=2" width="22" height="22" alt="" class="card-ic" style="display:block;width:22px;height:22px;border:0;outline:none;" /></td>
+                </tr>
+                <tr>
+                  <td class="card-btm" colspan="2" valign="bottom" style="padding-top:14px;"><div class="card-d" style="font-size:12px;line-height:18px;color:#5e5e5e;font-family:'Inter Tight','Noto Sans KR',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;word-break:keep-all;">브랜드 맥락에 맞는 맞춤형 인플루언서 선별</div></td>
+                </tr>
+              </table>
+            </td></tr>
+          </table>
+        </td>
+        <!-- 02 -->
+        <td width="34%" valign="top" style="width:34%;padding:0 4px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="card-sq" height="132" style="height:132px;background-color:#f7f7f6;border:1px solid #e0e0de;border-radius:10px;">
+            <tr><td class="card-pad" valign="top" height="104" style="height:104px;padding:14px 12px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" height="104" style="height:104px;">
+                <tr>
+                  <td valign="top" class="card-t" style="font-size:15.5px;line-height:21px;font-weight:600;letter-spacing:-0.02em;color:#000000;font-family:'Inter Tight','Noto Sans KR',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;white-space:nowrap;"><span style="color:#a3a3a1;font-weight:500;">02.</span> <span class="card-lab" style="white-space:nowrap;">업무 유연성</span></td>
+                  <td valign="top" align="right" width="22" style="width:22px;"><img src="https://siriai-mail-assets.vercel.app/ic_02_flex.png?v=2" width="22" height="22" alt="" class="card-ic" style="display:block;width:22px;height:22px;border:0;outline:none;" /></td>
+                </tr>
+                <tr>
+                  <td class="card-btm" colspan="2" valign="bottom" style="padding-top:14px;"><div class="card-d" style="font-size:12px;line-height:18px;color:#5e5e5e;font-family:'Inter Tight','Noto Sans KR',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;word-break:keep-all;">변수에 따라 유연하고 입체적인 협업 가능</div></td>
+                </tr>
+              </table>
+            </td></tr>
+          </table>
+        </td>
+        <!-- 03 -->
+        <td width="33%" valign="top" style="width:33%;padding-left:5px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="card-sq" height="132" style="height:132px;background-color:#f7f7f6;border:1px solid #e0e0de;border-radius:10px;">
+            <tr><td class="card-pad" valign="top" height="104" style="height:104px;padding:14px 12px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" height="104" style="height:104px;">
+                <tr>
+                  <td valign="top" class="card-t" style="font-size:15.5px;line-height:21px;font-weight:600;letter-spacing:-0.02em;color:#000000;font-family:'Inter Tight','Noto Sans KR',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;white-space:nowrap;"><span style="color:#a3a3a1;font-weight:500;">03.</span> <span class="card-lab" style="white-space:nowrap;">비용 합리성</span></td>
+                  <td valign="top" align="right" width="22" style="width:22px;"><img src="https://siriai-mail-assets.vercel.app/ic_03_fit.png?v=2" width="22" height="22" alt="" class="card-ic" style="display:block;width:22px;height:22px;border:0;outline:none;" /></td>
+                </tr>
+                <tr>
+                  <td class="card-btm" colspan="2" valign="bottom" style="padding-top:14px;"><div class="card-d" style="font-size:12px;line-height:18px;color:#5e5e5e;font-family:'Inter Tight','Noto Sans KR',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;word-break:keep-all;">효율적인 구조로 브랜드 비용 감축</div></td>
+                </tr>
+              </table>
+            </td></tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+
+  <!-- ════ ⑦ Q&A → 사업소개서 ════
+       앵커 미사용 — 메인 잠깐 노출 후 점프하는 경험이 나빠 전부 덱 메인으로 보낸다. -->
+  <tr><td class="px" style="padding:30px 40px;border-top:1px solid #e0e0de;">
+    <div style="font-size:13px;line-height:19px;font-weight:500;color:#a3a3a1;font-family:'Inter Tight',Helvetica,Arial,sans-serif;padding-bottom:12px;">Questions</div>
+    <div class="h3" style="font-size:26px;line-height:33px;font-weight:500;letter-spacing:-0.02em;font-family:'Inter Tight','Noto Sans KR',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;padding-bottom:16px;word-break:keep-all;"><a href="https://siriai-business.vercel.app/" style="color:#000000;text-decoration:none;border-bottom:1.5px solid #000000;padding-bottom:3px;">SIRIAI와 어떻게 협업 할 수 있나요? &#8594;</a></div>
+
+    <!-- 질문(좌) / 화살표(우) 2열. <a>로 <td>를 감쌀 수 없으므로 두 칸 각각에 같은 링크를 건다. -->
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-top:1px solid #e0e0de;">
+      <tr>
+        <td style="border-bottom:1px solid #e0e0de;"><a href="https://siriai-business.vercel.app/#service" style="display:block;padding:15px 0;font-size:16px;line-height:22px;font-weight:500;letter-spacing:-0.01em;color:#000000;text-decoration:none;font-family:'Inter Tight','Noto Sans KR',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">어떤 서비스가 있나요?</a></td>
+        <td align="right" width="24" style="width:24px;border-bottom:1px solid #e0e0de;"><a href="https://siriai-business.vercel.app/#service" style="display:block;padding:15px 0;font-size:15px;line-height:22px;color:#a3a3a1;text-decoration:none;font-family:'Inter Tight',Helvetica,Arial,sans-serif;">&#8594;</a></td>
+      </tr>
+      <tr>
+        <td style="border-bottom:1px solid #e0e0de;"><a href="https://siriai-business.vercel.app/#price" style="display:block;padding:15px 0;font-size:16px;line-height:22px;font-weight:500;letter-spacing:-0.01em;color:#000000;text-decoration:none;font-family:'Inter Tight','Noto Sans KR',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">비용은 얼마나 드나요?</a></td>
+        <td align="right" width="24" style="width:24px;border-bottom:1px solid #e0e0de;"><a href="https://siriai-business.vercel.app/#price" style="display:block;padding:15px 0;font-size:15px;line-height:22px;color:#a3a3a1;text-decoration:none;font-family:'Inter Tight',Helvetica,Arial,sans-serif;">&#8594;</a></td>
+      </tr>
+      <tr>
+        <td style="border-bottom:1px solid #e0e0de;"><a href="https://siriai.co.kr" style="display:block;padding:15px 0;font-size:16px;line-height:22px;font-weight:500;letter-spacing:-0.01em;color:#000000;text-decoration:none;font-family:'Inter Tight','Noto Sans KR',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">SIRIAI 홈페이지를 둘러보고 싶어요</a></td>
+        <td align="right" width="24" style="width:24px;border-bottom:1px solid #e0e0de;"><a href="https://siriai.co.kr" style="display:block;padding:15px 0;font-size:15px;line-height:22px;color:#a3a3a1;text-decoration:none;font-family:'Inter Tight',Helvetica,Arial,sans-serif;">&#8594;</a></td>
+      </tr>
+    </table>
+  </td></tr>
+
+  <!-- ════ ⑧ 아웃트로 (히어로와 수미상관) ════ -->
+  <tr>
+  <td background="https://siriai-mail-assets.vercel.app/outro_glow.jpg" bgcolor="#000000" valign="top" class="hero-px outro-bg"
+      style="background-color:#000000;background-image:url('https://siriai-mail-assets.vercel.app/outro_glow.jpg');background-repeat:no-repeat;background-position:center center;background-size:cover;padding:36px 40px 30px;">
+    <!--[if gte mso 9]>
+    <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:600px;height:300px;">
+      <v:fill type="frame" src="https://siriai-mail-assets.vercel.app/outro_glow.jpg" color="#000000" />
+      <v:textbox inset="40px,36px,40px,30px"><![endif]-->
+    
+
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr><td style="font-size:19px;line-height:28px;font-weight:400;letter-spacing:0.01em;color:#f4f4f3;font-family:'Inter Tight',Helvetica,Arial,sans-serif;padding-bottom:30px;">Architecture For Insight, AI</td></tr>
+      <tr><td style="font-size:1px;line-height:1px;height:1px;background-color:#333332;">&nbsp;</td></tr>
+      <tr><td style="padding-top:22px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr>
+          <td class="sig sig-l" valign="top" align="left" style="width:50%;">
+            <img src="https://siriai-mail-assets.vercel.app/siriai-word-white@2x.png" width="84" height="29" alt="Siriai"
+                 style="display:block;width:84px;height:29px;color:#f4f4f3;font-size:17px;font-weight:700;font-family:Helvetica,Arial,sans-serif;" />
+          </td>
+          <td class="sig" valign="bottom" align="right" style="width:50%;text-align:right;">
+            <div style="font-size:14.5px;line-height:20px;font-weight:500;letter-spacing:-0.01em;color:#f4f4f3;font-family:'Inter Tight','Noto Sans KR',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;">조준용 &#183; SIRIAI Sales Manager</div>
+            <div style="font-size:13px;line-height:21px;color:#94938f;font-family:'Inter Tight','Noto Sans KR',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;padding-top:3px;">M (+82) 10-7552-4320<br />E jysiriai@gmail.com</div>
+          </td>
+        </tr></table>
+      </td></tr>
+      <tr><td style="font-size:12px;line-height:19px;color:#6f6e6c;font-family:'Inter Tight','Noto Sans KR',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;padding-top:24px;">
+        수신거부를 희망하는 경우 수신 거부로 회신
+      </td></tr>
+    </table>
+
+    <!--[if gte mso 9]></v:textbox></v:rect><![endif]-->
+  </td>
+  </tr>
+
+</table>
+<!--[if mso]></td></tr></table><![endif]-->
+
+</td></tr>
+</table>
+</body>
+</html>

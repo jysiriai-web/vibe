@@ -1,0 +1,1978 @@
+[
+  {
+    "company": "InterCHARM Korea",
+    "current_email": "",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "빈칸",
+    "근거": "전시회 주최 측 더미 항목으로 모든 카테고리 나열, 실제 화장품 회사 아님."
+  },
+  {
+    "company": "TUOCHENG EXHIBITION",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "desc 비어있고 사명상 전시·박람회 서비스 업체로 추정, 뷰티 소비자 브랜드 아님."
+  },
+  {
+    "company": "(주)와이셀바이오메디칼",
+    "current_email": "info@ycellbio.com",
+    "website": "http://www.ycellbio.com",
+    "seg": "불명",
+    "reason": "보유(확인용)",
+    "근거": "PRP 세포재생 치료 전문 의료기기 회사(국내 PRP 점유율 1위), 소비자 뷰티 브랜드 아님."
+  },
+  {
+    "company": "(주)씨피코스메틱",
+    "current_email": "jamessohn@cpcosmetic.co.kr",
+    "website": "https://formulier.co.kr/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "R&D 기반으로 3000여 스킨케어 처방을 개발·수출하는 제형 개발사로 자체 소비자 브랜드·D2C 언급 없음"
+  },
+  {
+    "company": "(주) 삼인케미칼",
+    "current_email": "samin@kita.net",
+    "website": "http://www.saminkorea.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "식품첨가물·헤어케어 원료(Ellaplex 등) 제조 공급사로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "에시컬코리아 코스메틱 (EK COS)",
+    "current_email": "butiq99@naver.com",
+    "website": "http://www.instragram.com/ethicalkorea",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "OEM/ODM 맞춤형 제품개발·규제대응 지원하는 제조 파트너로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "아이셀메디텍",
+    "current_email": "www.icelmedi@naver.com",
+    "website": "http://www.icelmedi.com",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "desc가 뷰티 디바이스·메디컬 제품·에스테틱 통합교육 중심 B2B(OEM/ODM 포함)로 소비자 직판 자체"
+  },
+  {
+    "company": "휴비스랩",
+    "current_email": "info@hubislab.com",
+    "website": "https://hubislab.com/",
+    "seg": "불명",
+    "reason": "보유(확인용)",
+    "근거": "desc가 에스테틱 클리닉·살롱·스파·뷰티스쿨 전용 프로 브랜드라고 명시하고 소비자 리테일·D2C 언급이 전"
+  },
+  {
+    "company": "(주)원웨이랩",
+    "current_email": "sales@onewaylab.kr",
+    "website": "https://www.onewaylab.kr/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "고주파·초음파 미용기기 제조사로 에스테틱·클리닉 대상 B2B 판매, 소비자 브랜드 없음."
+  },
+  {
+    "company": "MEDI SECTION NO.",
+    "current_email": "global@inot-meditech.com",
+    "website": "https://www.inot-meditech.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "INOT은 1,000여 병원에 7,000개 제품을 공급하는 의료기기 제조·수입·유통사로 MEDISECTION"
+  },
+  {
+    "company": "HUASHUO PACKAGING MATERIALS CO.,LTD",
+    "current_email": "949229906@qq.com",
+    "website": "https://shop1447931540635.168.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "플라스틱 패키징(펌프·스프레이어) 제조 전문, 부자재 공급사로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "플래닛147",
+    "current_email": "planit147@kolmar.co.kr",
+    "website": "https://www.planit147.com/?lang=en",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "콜마코리아의 브랜드 인큐베이션 플랫폼·ODM 서비스로 창업자 지원, 자사 소비자 완제품 브랜드 아님."
+  },
+  {
+    "company": "(주) 진코스텍",
+    "current_email": "lsw@jincostech.com",
+    "website": "https://link.inpock.co.kr/amocosplus",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "desc는 하이드로겔 1억개 수출·DDS 제형기술 등 제조·수출만 언급하고 자체 소비자 브랜드 서술 전무, "
+  },
+  {
+    "company": "(주)온궁",
+    "current_email": "leesanghoong@naver.com",
+    "website": "https://www.need-on.com",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "스파·입욕제 전문 OEM/ODM 제조기업, 온천수 처방으로 제품 개발하나 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "Caregen Co., Ltd.",
+    "current_email": "sales@caregen.co.kr",
+    "website": "http://caregen.co.kr/eng/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "펩타이드 바이오 상장사로 원료·특허·코스메슈티컬 B2B 중심, 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "(주)오래온라이프사이언스",
+    "current_email": "hero@oreon.co.kr",
+    "website": "",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "HA 필러·리프팅 실 등 미용의료기기 개발·제조사로 소비자 브랜드 아님."
+  },
+  {
+    "company": "스턴메디칼",
+    "current_email": "bjpark@mediforet.com",
+    "website": "https://stunmedical.kr/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "스킨부스터·필러 등 미용의료기기 OEM 제조 및 수출 100% B2B 회사로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "더마밀",
+    "current_email": "sales@dermameal.com",
+    "website": "http://dermameal.com/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "화장품 수탁제조(OEM/ODM) 전문으로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "주식회사 셀락바이오",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "desc·website·category 모두 비어 있어 소비자 브랜드 확인 불가, 보수적 제외."
+  },
+  {
+    "company": "샤허코리아",
+    "current_email": "msr9882@naver.com",
+    "website": "https://www.xiaheyw.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "단상자·박스·파우치 등 인쇄·패키징 부자재 제조사로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "주식회사 레드바이오컴퍼니",
+    "current_email": "info@redbiocp.com",
+    "website": "https://www.redbiocp.com",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "지방분해·스킨부스터·보툴리눔·필러·엑소좀 등 의료미용 제품과 OEM/ODM 중심, HYALSKIN은 시술계열"
+  },
+  {
+    "company": "에이치앤비바이오",
+    "current_email": "info@hnbbio.co.kr",
+    "website": "https://www.hnbbio.co.kr",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "시트마스크·토너 등 스킨케어 OEM/ODM 수탁제조사로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "씨메드",
+    "current_email": "cmedemi@naver.com",
+    "website": "http://www.cmed.co.kr",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "OEM/ODM/OBM 글로벌 프리미엄 화장품 제조 파트너, 25개국 브랜드 협업 수탁제조 중심."
+  },
+  {
+    "company": "(주)프리모리스인터내셔널",
+    "current_email": "hnkim@primoris.co.kr",
+    "website": "https://primorisintl.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "엑소좀 줄기세포 원천기술·국제특허·R&D 클러스터 중심 바이오 기업으로 원료~코스메틱 언급뿐 자사 소비자 브"
+  },
+  {
+    "company": "팜스비앤비",
+    "current_email": "alice@pamsbnb.com",
+    "website": "https://www.pamseshop.co.kr",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "23년간 전문 에스테틱·피부과 클리닉에 스킨케어를 공급하는 B2B 프로페셔널 채널 전용이며 자체 소비자 브랜"
+  },
+  {
+    "company": "프랜드",
+    "current_email": "pland1590@naver.com",
+    "website": "http://pland-pure.com/en/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 소재(원료)·OEM/ODM R&D 전문기업으로 고객사 생산 대행만 언급, 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "HUNAN MEIRI JIEBAO NON-WOVEN FABRIC CO.,LTD",
+    "current_email": "xh.van@mrjebmask.com",
+    "website": "https://mp.weixin.qq.com/s/ANYJYU16aCrQAp7uRMDaXA",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "마스크팩 원단·부직포 R&D·생산 전문 소재 공급사로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "SHENZHEN XIANSU TECHNOLOGY CO., LTD.",
+    "current_email": "787835542@qq.com",
+    "website": "https://www.xiansuplastic.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "립스틱 튜브·쿠션 케이스 등 화장품 용기 OEM/ODM 제조사로 소비자 브랜드 없음."
+  },
+  {
+    "company": "SHANTOU LIKE PLASTIC CO.,LTD.",
+    "current_email": "",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "빈칸",
+    "근거": "desc 없음, 사명에 Plastic으로 보아 플라스틱 용기·부자재 제조사로 보수적 추정, 자사 소비자 브랜"
+  },
+  {
+    "company": "NINGBO OUHUAN CONTAINER CO., LTD",
+    "current_email": "",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "빈칸",
+    "근거": "desc 없음, 사명에 Container로 보아 용기 제조사로 보수적 추정, 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "BOSHING MOULD&PLASTIC (ZHU HAI)CO.,LTD.",
+    "current_email": "Jacky@zhbaoli.com",
+    "website": "https://en.zhuhaibaoli.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "플라스틱 금형·펌프·용기 부자재 제조 수출기업, 소비자 브랜드 없음."
+  },
+  {
+    "company": "경북IT융합기술원",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "desc·website 전무, 명칭상 경북 IT융합 기술원으로 공공·연구기관이며 소비자 뷰티 브랜드 아님."
+  },
+  {
+    "company": "주식회사 정훈 / J COP KOREA",
+    "current_email": "nicejeonghun@hanmail.net",
+    "website": "http://www.jcopkorea.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "1990년 설립 화장품 패키징 전문 OEM/ODM 기업으로 부자재·용기 공급만 하며 자체 소비자 브랜드 없음"
+  },
+  {
+    "company": "THESERA",
+    "current_email": "mrinno@mrinno.com",
+    "website": "http://www.thesera.co.kr",
+    "seg": "불명",
+    "reason": "보유(확인용)",
+    "근거": "desc가 '전문가용 화장품 브랜드', 비침습 리프팅·스피큘 재생 등 에스테틱 시술 프로그램과 65개국 전문"
+  },
+  {
+    "company": "(주)스킨솔루션",
+    "current_email": "naluke@naver.com",
+    "website": "http://www.skinsolution.co.kr",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "desc에서 스스로 '기술 기반 소재 기업', 자동화 대량생산 공정·소모품 공급으로 자처, 하이드로콜로이드 "
+  },
+  {
+    "company": "(주)에프에스코리아",
+    "current_email": "news.sales@fskorea.com",
+    "website": "http://www.fskorea.com/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "1988년 설립 글로벌 브랜드에 고품질 제품 공급하는 OEM/ODM·툴/액세서리 제조사, 소비자 브랜드 없음"
+  },
+  {
+    "company": "(주)아크메디코리아",
+    "current_email": "sales@acmedikorea.com",
+    "website": "http://www.acmedikorea.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "클리닉·병원 대상 에스테틱/더마 의료제품 제조·수출사(필러·실리프팅), 소비자 자사 브랜드 아님."
+  },
+  {
+    "company": "셀아이콘랩",
+    "current_email": "",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "빈칸",
+    "근거": "펩타이드 기반 메디컬 에스테틱 스킨부스터(SenoXell) 시술 솔루션으로 소비자 완제품 브랜드 아님."
+  },
+  {
+    "company": "욜리 메이크업툴",
+    "current_email": "onggijonggi_cp@naver.com",
+    "website": "https://www.yolybrush.com/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "메이크업 브러시·퍼프 글로벌 OEM/ODM 수탁제조사로 100개 브랜드에 공급, 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "HAIFENG PACKAGING CO., LTD.",
+    "current_email": "",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "빈칸",
+    "근거": "몰드 개발·자동조립 설비 기반 패키징 제조 공장(유럽·미주 수출), 소비자 브랜드 없음."
+  },
+  {
+    "company": "FOSHAN JIEMINGYI PACKAGING MATERIALS CO., LTD",
+    "current_email": "370975349@qq.com",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "인쇄·패키징 자재 전문 제조사(종이상자 등). 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "GUANGZHOU LVFANGZHOU INDUSTRIAL CO.,LTD",
+    "current_email": "lvfangzhou@126.com",
+    "website": "https://www.lfz-nonwoven.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "마스크시트 원단·부직포 소재 OEM 제조(500+ OEM·3000+ 브랜드 납품), 소재공급으로 소비자 브랜"
+  },
+  {
+    "company": "TINDA (GUANGZHOU) PLASTIC CO., LTD",
+    "current_email": "",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "빈칸",
+    "근거": "desc·website 비어있고 사명이 광저우 플라스틱 제조사로 패키징·용기 제조사로 추정, 소비자 브랜드 "
+  },
+  {
+    "company": "GUANGZHOU TOCHISING PACKAGING PRODUCTS CO., LTD.",
+    "current_email": "627887495@qq.com",
+    "website": "http://www.tochising.cn/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "desc 비어있고 웹사이트 접속불가, 사명이 PACKAGING PRODUCTS로 용기/패키징 제조사라 자체 "
+  },
+  {
+    "company": "한방미인화장품 HBMIC",
+    "current_email": "hbmic@hbmic.com",
+    "website": "https://www.hbmic.com/default/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "스킨·헤어케어 OEM/ODM 전문 제조업체로 맞춤형 수탁 생산 서비스 제공, 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "MELKA",
+    "current_email": "woojinkim88@daum.net",
+    "website": "https://thedameul.co.kr/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "고기능 성분 처방을 개발하나 유통채널 기반 기획의 시장지향 개발사(OEM/ODM)로 자체 소비자 브랜드 판매"
+  },
+  {
+    "company": "봄텍전자",
+    "current_email": "bomtech@bomtech.net",
+    "website": "https://www.bomtech.net",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "레이저·IPL·진단기·반영구 등 의료·뷰티 장비 제조사, 70개국 수출 B2B 기기 중심으로 소비자 자체 브"
+  },
+  {
+    "company": "에이치제이코퍼레이션즈 주식회사",
+    "current_email": "hjcorporations@gmail.com",
+    "website": "https://www.hjcorporations.kr/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "desc가 다분야 솔루션·매출만 언급하고 카테고리에 OEM/ODM 포함, 자체 소비자 브랜드 근거 없음."
+  },
+  {
+    "company": "(주) 네오제네시스",
+    "current_email": "info@neogenesis.co.kr",
+    "website": "http://www.neotox-cn.com",
+    "seg": "불명",
+    "reason": "보유(확인용)",
+    "근거": "자가유래 세포치료 의료기기 개발·공급 전문으로 소비자 뷰티 브랜드 아님."
+  },
+  {
+    "company": "Daisho Co., Ltd.",
+    "current_email": "",
+    "website": "https://www.daisho-g.co.jp/index.html",
+    "seg": "혼합(검토)",
+    "reason": "빈칸",
+    "근거": "유리·플라스틱 용기 제조/판매 기업으로 화장품 등 패키징 공급. 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "K.BEAUTY ACCESSORY CO.,LTD",
+    "current_email": "sunjing@k.beautychina.com",
+    "website": "http://www.kbeautychina.com/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "뷰티 툴 OEM/ODM 수탁 제조 전문, 글로벌 브랜드 대행으로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "GUANGDONG SHENGWEI GLASS TECHNOLOGY CO.,LTD",
+    "current_email": "candylee@shengweiglass.com",
+    "website": "https://shengweiglass.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 1차 패키징(유리병) 전문 제조사. 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "DONGYANG OMI PLASTIC TECHNOLOGY CO., LTD",
+    "current_email": "director@ominatural.com",
+    "website": "https://www.ominatural.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 패키징 전문 제조사(사출·블로잉), 글로벌 브랜드 대상 수탁. 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "NINGBO SENG CZE MACROSPRAY CO.,LTD.",
+    "current_email": "market@sengcze.com",
+    "website": "https://www.sengcze.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "트리거 스프레이·펌프·미스트 스프레이어 등 부자재 제조사로 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "Shenzhen C&D Electronics Co., Ltd.",
+    "current_email": "yongbin@cn-cdrc.com",
+    "website": "https://cd88.en.alibaba.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "글로벌 홈뷰티 디바이스 브랜드의 수탁 제조 파트너(OEM)로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "JDN CORPORATION LIMITED",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "desc·category·website 모두 비어있고 사명도 사업 단서 없는 일반 법인명, 판단 근거 없어 "
+  },
+  {
+    "company": "재단법인 부산테크노파크",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "부산 산업진흥 공공 재단법인으로 자체 소비자 브랜드가 없는 공공 지원기관."
+  },
+  {
+    "company": "제너랩",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "category·website·desc가 모두 비어 있어 뷰티 소비자 브랜드 보유 근거가 없어 보수적으로 제"
+  },
+  {
+    "company": "주식회사 에코마인",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "category·website·desc 모두 비어 사업 판단 불가, 정보 부재로 보수 제외."
+  },
+  {
+    "company": "실리스카(주)",
+    "current_email": "info@silisca.com",
+    "website": "http://www.silisca.com",
+    "seg": "불명",
+    "reason": "보유(확인용)",
+    "근거": "desc가 클리닉·에스테틱 전문가 대상 프로페셔널 스킨케어 포뮬러만 언급하고 소비자 D2C/리테일 채널이 없"
+  },
+  {
+    "company": "에이치알메디텍",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "desc·카테고리 전부 비어있고 사명상 메디텍(의료기기) 추정으로 소비자 브랜드 근거 없어 보수적 제외."
+  },
+  {
+    "company": "CLASSIC PACKING LIMITED",
+    "current_email": "1273897444@qq.com",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "패키징·용기 OEM/ODM 제조사(사명·category 포장), 소비자 브랜드 없음."
+  },
+  {
+    "company": "YUHENG PLASTIC",
+    "current_email": "chenxiuping@yh-packing.cn",
+    "website": "https://www.yuhengpackage.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "PET/PETG/HDPE 병·캡·펌프·튜브 등 화장품 패키징 제조사로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "(주)제이티",
+    "current_email": "contact@jtcosmetic.com",
+    "website": "https://jtcosmetics.imweb.me/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "하이드로겔 전문 ODM/OEM 수탁제조사로 고객 브랜드용 제조만 제공, 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "(주)에스엠에코랩",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "category·website·desc 모두 비어 있어 사업 확인 불가, 보수적으로 제외."
+  },
+  {
+    "company": "ZHONGSHAN RONOVA PLASTIC CO., LTD",
+    "current_email": "sales-01@ronova.com.cn",
+    "website": "http://www.ronova.com.cn",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 패키징 제조사(금형·사출·표면처리·인쇄)로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "ZHEJIANG HAITONG PLASTIC INDUSTRY TECHNOLOGY CO., LTD.",
+    "current_email": "18857568397@163.com",
+    "website": "https://www.haitongpack.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 패키징 소재 제조(R&D·금형·사출·핫스탬핑) 전문으로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "TAIZHOU HUADI ELECTRIC CO.,LTD",
+    "current_email": "info@huadicn.com",
+    "website": "http://www.huadicn.com/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "전기 제품 제조사로 품질·가격만 언급, 자체 뷰티 소비자 브랜드 근거 없음."
+  },
+  {
+    "company": "HUIHONG PACKAGING COMPANY",
+    "current_email": "leo@huihongpackaging.com",
+    "website": "https://www.huihongpackaging.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "P&G·유니레버 협력 튜브·병·캡 제조사, 부자재 공급 전문으로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "WES Worldwide Expo Services (H.K.) Ltd.",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "사명상 전시 서비스 업체로 자체 뷰티 소비자 브랜드 없음."
+  },
+  {
+    "company": "Talents Packing Technology Limited",
+    "current_email": "sales9@talentsgroup.com.cn",
+    "website": "http://www.talentsgroup.com.cn/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "폼·로션·스프레이 펌프와 보틀 제조 B2B 패키징사로 소비자 브랜드 없음."
+  },
+  {
+    "company": "Majesty Packaging Co., Ltd.",
+    "current_email": "info@mj-pkg.com",
+    "website": "https://www.mj-pkg.com/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "화장품·퍼스널케어용 플라스틱 튜브 제조사로 OEM/ODM 공급, 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "LIFEPACK PLASTIC CO.,LTD",
+    "current_email": "s3@zjlifepack.com",
+    "website": "http://www.zjlifepack.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "크림용기·로션병·쿠션케이스 등 화장품 용기 OEM/ODM 제조사로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "Yaxi Daily Necessities Co.,Ltd",
+    "current_email": "118183863@qq.com",
+    "website": "https://gzaishi.en.alibaba.com/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "마스크용 부직포 베이스 원단 OEM/ODM 공급사로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "Dachen Equipment Manufacturing Co., Ltd.",
+    "current_email": "danche.1362251@gmail.com",
+    "website": "https://www.dcpackequip.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 튜브·생산라인 자동화 설비 제조사(B2B 기계), 소비자 브랜드 없음."
+  },
+  {
+    "company": "QIJUNHONG PLASTIC PRODUCTS MANUFACTORY CO., LTD",
+    "current_email": "wing@qjhpumps.com",
+    "website": "https://www.qjhpumps.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "스프레이·플라스틱캡·로션펌프 등 부자재 제조사로 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "HONG KONG HUIBIDA INTERNATIONAL TRADE CO., LIMITED",
+    "current_email": "business20@huibida.com",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 기프트·향수 주변제품(병캡 등) 하드웨어 제조사, 부자재로 소비자 브랜드 없음."
+  },
+  {
+    "company": "RISE COSMETIC PACKAGING CO., LTD.",
+    "current_email": "CEO@RISEPACK.COM",
+    "website": "http://WWW.RISEPACK.COM",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "에어리스병·드로퍼·튜브 등 화장품 포장재 전문 제조사로 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "메타폴라아로마(주)",
+    "current_email": "inform@orlic.co.kr",
+    "website": "https://orlic.co.kr",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "클린뷰티·차별화 제형 R&D·OEM/ODM 제조 기업으로 글로벌 바이어 대상, 자체 소비자 브랜드 언급 없음"
+  },
+  {
+    "company": "COSMOIM",
+    "current_email": "",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "빈칸",
+    "근거": "화장품 용기·부자재·원료 소싱·OEM 공급망 B2B 무역사, 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "(주)조에바이오",
+    "current_email": "info@zoebio.co.kr",
+    "website": "https://www.zoebio.co.kr/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "필러·스킨부스터·스킨케어 원료 제조 및 ODM/OEM 수출 중심, 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "YUANJI PLASTIC PRODUCTS CO LTD",
+    "current_email": "394997302@qq.com",
+    "website": "https://www.yuanjitube.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 플라스틱 튜브 제조·맞춤 인쇄 제공 패키징사로 소비자 브랜드 없음."
+  },
+  {
+    "company": "UZONEPACKAGE",
+    "current_email": "info@uzo-pak.com",
+    "website": "http://www.uzo-pak.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 보틀·자·펌프 등 용기와 표면가공 OEM 제공 패키징사로 소비자 브랜드 없음."
+  },
+  {
+    "company": "Yuncheng Commodity Co.,Ltd",
+    "current_email": "cece.fu@ycpackage.com",
+    "website": "http://www.ycpackage.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "에어리스병·스프레이·펌프·화장품 용기 전문 제조사로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "HONGXIN INDUSTRIAL..LTD.",
+    "current_email": "jenny.gzhongxin@foxmail.com",
+    "website": "https://www.hongxinglobal.com/products_details/490.html",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품·의약품용 고품질 플라스틱 튜브 패키징 전문 제조, 부자재로 소비자 브랜드 없음."
+  },
+  {
+    "company": "HANHE PLASTIC INDUSTRY CO., LTD",
+    "current_email": "joe@hanheplastic.com",
+    "website": "https://www.zjplastics.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "진공병(에어리스) 플라스틱 용기 제조, 부자재·용기로 소비자 브랜드 없음."
+  },
+  {
+    "company": "HAIJING PLASTIC INDUSTRY CO.,LTD.",
+    "current_email": "hj002@hjpackaging.com",
+    "website": "http://hjpackaging.en.alibaba.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 패키징(아크릴 진공병·크림병·로션병) 디자인·제조 기업, 부자재로 소비자 브랜드 없음."
+  },
+  {
+    "company": "KESIYU PACKAGING CO., LTD",
+    "current_email": "raymond.zeng@kesiyu.cn",
+    "website": "https://www.ksypackaging.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 호스(튜브) R&D·생산·커스터마이징 전문 패키징사로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "BAICHANG HONG KONG INDUSTRY LIMITED",
+    "current_email": "tings@baichangkeji.com",
+    "website": "https://www.baichangtech.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "뷰티·미용기기 OEM/ODM 통합 서비스를 글로벌 브랜드 오너에 제공, 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "Faye Craft Limited",
+    "current_email": "80780301@qq.com",
+    "website": "https://cnyueji.en.alibaba.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "세라믹 괄사 보드·마사저 제조 판매사(알리바바 도매). 자사 소비자 브랜드 아님."
+  },
+  {
+    "company": "(주)톨리코리아",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "category·website·desc 모두 비어 사업 정보가 전무, 자사 소비자 브랜드 근거 없어 보수적 "
+  },
+  {
+    "company": "GUANGZHOU HUAXIN PLASTIC PRODUCT CO.,TLD",
+    "current_email": "vivian@huaxin-tube.com",
+    "website": "https://www.chinabeautypacking.com/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "화장품용 플라스틱 튜브·PET병 제조 수출업체로 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "GUANGZHOU LISSON PLASTIC CO.,LTD",
+    "current_email": "lissontube@gzlisson.com",
+    "website": "https://www.lissonpackaging.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 튜브·병 패키징 전문 제조기업, 부자재 공급으로 소비자 브랜드 없음."
+  },
+  {
+    "company": "GUANGDONG CANDEAR TECHNOLOGY INNOVATION CO.,LTD",
+    "current_email": "",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "빈칸",
+    "근거": "카테고리는 스킨케어 등 다수지만 desc는 플라스틱 금형·용기·캡 설계 제조. 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "TUBEST PACKING (GD) CO., LTD",
+    "current_email": "",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "빈칸",
+    "근거": "화장품 튜브 전문 제조사로 자체 소비자 브랜드 없는 패키징 B2B."
+  },
+  {
+    "company": "DINGSHENG(GUANGDONG) GLASS TECHNOLOGY CO., LTD.",
+    "current_email": "cindy.dingshengpackaging@gmail.com",
+    "website": "https://www.gzdsbottle.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "유리병 패키징 전문 제조사. 자사 소비자 브랜드 없는 용기 공급업체."
+  },
+  {
+    "company": "CHUNJING GLASS PRODUCTS CO.,LTD",
+    "current_email": "ada@chunjing.com",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "하이엔드 화장품 유리 패키징 전문 제조사(용기 부자재), 소비자 브랜드 없음."
+  },
+  {
+    "company": "REDFOXPACK TECHNOLOGY LTD.",
+    "current_email": "",
+    "website": "https://www.redfoxpack.com",
+    "seg": "혼합(검토)",
+    "reason": "빈칸",
+    "근거": "화장품·퍼스널케어용 플라스틱 용기·튜브·병 포장 전문 제조사로 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "HANGZHOU JAMORE PACKAGING CO.,LTD",
+    "current_email": "grace@jamore.com.cn",
+    "website": "http://www.znmolips.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 패키징 토탈솔루션(디자인·몰드·양산) 업체, 수탁 공급으로 소비자 브랜드 없음."
+  },
+  {
+    "company": "PINYUAN PACKAGING TECHNOLOGY (GUANGZHOU) CO., LTD",
+    "current_email": "13422131580@163.com",
+    "website": "https://www.wechat.com/pinyuanpackage",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 튜브·라미네이트 소재 전문 포장재 제조사로 자사 소비자 브랜드 없음(카테고리 태그 부정확)."
+  },
+  {
+    "company": "SHAOXING SHANGYU YASTAR PLASTIC CO., LTD.",
+    "current_email": "zouyuehua_amy@126.com",
+    "website": "https://shop65u2868rf7754.1688.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "브랜드 고객사 대상 포장재 공급 B2B 제조사로 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "LECOS",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "desc·category·website 모두 비어있고 사명도 사업 단서 없어 판단 근거 없으므로 보수적 제외"
+  },
+  {
+    "company": "SHAOXING JINSHENG PLASTIC CO.,LTD",
+    "current_email": "syjinsheng12@jsh-plastics.com",
+    "website": "http://www.sy-jinsheng.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "하이엔드 화장품 브랜드 공급용 플라스틱 포장재(로션병·크림자·에어리스병) 전문 제조사로 자사 소비자 브랜드 "
+  },
+  {
+    "company": "BELLE CRAFT MANUFACTURING CO.,LTD.",
+    "current_email": "",
+    "website": "",
+    "seg": "PB가능",
+    "reason": "빈칸",
+    "근거": "사명에 Manufacturing 포함·나머지 정보 전무로 수탁 제조사 추정, 자사 소비자 브랜드 근거 없어 "
+  },
+  {
+    "company": "화성산업진흥원",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "화성시 산업진흥 공공기관(테크노파크급)으로 뷰티 소비자 브랜드가 아닌 B2B/공공 지원기관."
+  },
+  {
+    "company": "GUANGZHOU CITY JINGSHANG PLASTIC CONTAINER CO., LTD.",
+    "current_email": "2980435004@qq.com",
+    "website": "https://jsrq1688.m.en.alibaba.com/?spm",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 플라스틱 병/캡/프리폼 생산 공장, 부자재·용기 제조로 소비자 브랜드 없음."
+  },
+  {
+    "company": "GUANGZHOU HUAYU PLASTIC PRODUCTS CO., LTD.",
+    "current_email": "jonathan@hypackco.com",
+    "website": "https://eviabt.com/wp-content/uploads/2026/06/IMG_0256.jpg",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 패키징(병/용기/펌프/캡) 공급사 HYPACK, 브랜드 패키징 수탁 공급으로 소비자 브랜드 없음."
+  },
+  {
+    "company": "FOSHAN SHUNDE QUANYE PLASTICS CO., LTD",
+    "current_email": "iris@sdquanye.com",
+    "website": "https://www.sdquanye.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 병·크림 용기·에어리스 펌프 등 플라스틱 패키징 전문 제조사. 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "GUANGDONG OUXINMAYPACK TECH CO., LTD",
+    "current_email": "admin@oxmpackaging.com",
+    "website": "https://www.oxmpackaging.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "사명·desc 모두 친환경 튜브 패키징 제조사(특허 150건). 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "DONGGUAN KINWONG TECHNOLOGY CO.,LTD",
+    "current_email": "miko@jingwangtop.com",
+    "website": "https://kinwongtechnology.en.alibaba.com",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "뷰티 마사지·화장 도구(스패출러, 괄사, 롤러) 제조사로 OEM 공급. 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "ZHEJIANG WANSHENG COSMETIC PACKAGING CO., LTD",
+    "current_email": "info@sywansheng.com",
+    "website": "https://sywansheng.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 패키징(크림자·에어리스병·토너병) 풀체인 제조사로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "FOSHAN QISHENG PLASTIC PACKAGING CO.,LTD",
+    "current_email": "cenmingheng@qishengfs.cn",
+    "website": "https://wa.me/+8613802523499",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품·스킨케어용 맞춤 플라스틱 용기 제조사. Watsons·Unilever 등 브랜드 납품, 자사 소비자 "
+  },
+  {
+    "company": "GUANGZHOU ZHEN XIONG PRINTING CO., LTD.",
+    "current_email": "selina@gzzhenxiong.cn",
+    "website": "https://gzzhenxiong.en.alibaba.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "PVC/종이 박스·기프트박스·쇼핑백 등 패키징 인쇄 제조사, 소비자 브랜드 없음."
+  },
+  {
+    "company": "GUANGDONG WENHUA PRINTING TECHNOLOGY DEVELOPMENT CO., LTD",
+    "current_email": "info@winpackprinting.com",
+    "website": "http://+853 68917318",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "종이상자·종이백 맞춤 인쇄 패키징 제조사. 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "FOSHAN BOYA PLASTIC TECHNOLOGY CO., LTD.",
+    "current_email": "boyagzcn@126.com",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "튜브·PET 병 등 플라스틱 패키징 제조 및 OEM 공급사. 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "A&H INTERNATIONAL COSMETICS CO., LTD",
+    "current_email": "info-sales@a-hcosmetics.com",
+    "website": "https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=MzkzMzM5NzM5Mw==",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "색조·스킨케어 완제품 및 원료 공장 운영 OEM/ODM 제조사, 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "GUANGZHOU SIYU NON-WOVEN PRODUCTS CO., LTD.",
+    "current_email": "1102020670@qq.com",
+    "website": "https://mp.weixin.qq.com/s/-m0lLrx2r1luNZ5JQuEmYw",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "기능성 부직포 소재 제조 하이테크 기업, 마스크시트 원단 소재공급으로 소비자 브랜드 없음."
+  },
+  {
+    "company": "SHAOXING LIZHI PLASTIC PRODUCTS CO.,LTD.",
+    "current_email": "liz_plastic@163.com",
+    "website": "http://www.liz-packaging.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 플라스틱 용기·패키징 OEM 제조사로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "NINGBO SHIRAN PLASTIC INDUSTRY CO., LTD",
+    "current_email": "winnie@nbshiran.com",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품·스킨케어 맞춤 포장재(플라스틱병·아크릴·진공병) 전문 제조사로 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "GUANGZHOU ZHENGXI PACKING PRODUCTS CO., LTD.",
+    "current_email": "justinwong@gzzxplastic.com",
+    "website": "https://www.gzzxplastic.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품·생활용품 패키징(로션·폼·디스펜서 펌프) 전문 제조사, 소비자 브랜드 없음."
+  },
+  {
+    "company": "NINGBO YOUSEE COSMETIC TECHNOLOGY CO.,LTD.",
+    "current_email": "yoki@cnyss.com",
+    "website": "http:// 17816655363",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "사출·표면처리·실크스크린 등 용기 부자재 수탁 제조사로 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "SHAOXING COMAN PACKAGING CO.,LTD.",
+    "current_email": "sales@sxcoman.com",
+    "website": "https://coman.en.alibaba.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "고품질 플라스틱 화장품 포장재 전문 제조사로 자사 소비자 브랜드 없음(카테고리 태그 부정확)."
+  },
+  {
+    "company": "SHENZHEN XIUZHUANG MAKEUP TOOLS CO., LTD",
+    "current_email": "sales5@szxiuzhuang.com",
+    "website": "https://www.xiuzhuang-beauty.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "공장이 화장품·툴을 생산하며 자재교체·라벨/패키징·로고 커스터마이징 OEM 서비스 중심, 자체 소비자 브랜드"
+  },
+  {
+    "company": "유니엔코리아",
+    "current_email": "info@unienkorea.com",
+    "website": "http://unienkorea.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "desc가 '건강·미용 제품을 유통·판매하는 토탈 헬스케어사'로 자체 검수만 언급할 뿐 자사 브랜드·완제품이"
+  },
+  {
+    "company": "디자인바른",
+    "current_email": "db@designbarun.com",
+    "website": "https://www.wechat.com/airapha",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "화장품 로고·패키지 브랜딩 디자인 스튜디오로 자체 소비자 완제품 없음."
+  },
+  {
+    "company": "주식회사 웰니스온",
+    "current_email": "well@wellnesson.co.kr",
+    "website": "http://www.wellnesson.co.kr",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "desc가 전문가용 뷰티·의료디바이스 OEM 제조·개발·판매 중심이고 '산하 다양한 브랜드' 언급뿐 구체 소"
+  },
+  {
+    "company": "와이에스메디",
+    "current_email": "beauty@ysmedi.kr",
+    "website": "https://xe-lha.com/en",
+    "seg": "불명",
+    "reason": "보유(확인용)",
+    "근거": "피부과·의료기관 대상 메디컬 에스테틱 솔루션(XE-LHA) 공급으로 일반 소비자 브랜드 아님."
+  },
+  {
+    "company": "(주)나노바이오시스템",
+    "current_email": "mkt@nanobiosystem.co.kr",
+    "website": "https://www.nanobiosystem.co.kr/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "재생의료 원천기술 기반 의료기기·바이오 기업으로 코스메틱은 기술 적용 개발 단계, 병원·파트너 대상이고 자사"
+  },
+  {
+    "company": "이연물산",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "category·website·desc가 모두 비어 있어 뷰티 소비자 브랜드 보유 근거가 전무하여 보수적으로"
+  },
+  {
+    "company": "(주)오렌지팩",
+    "current_email": "sales@orange-pack.co.kr",
+    "website": "http://www.orange-pack.co.kr",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "유리 용기·금형·부자재 일괄 제조하는 패키징 파트너사, 소비자 브랜드 없음."
+  },
+  {
+    "company": "(주) 코스모더마",
+    "current_email": "comikorea@gmail.com",
+    "website": "https://www.cosmoderma.kr/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "카테고리에 실리프팅·필러 포함, desc가 R&D 기반 고품질 원자재 사용 추상적 표현뿐이고 자사 소비자 브"
+  },
+  {
+    "company": "케이투메디텍",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "desc/category/website 모두 공란이며 명칭상 메디텍(의료기기) 추정, 자사 소비자 브랜드 근"
+  },
+  {
+    "company": "에버바이오",
+    "current_email": "hello@everbio.co.kr",
+    "website": "https://www.everbio.co.kr/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "이너뷰티 건기식·화장품 OEM/ODM 전문 수탁제조사로 자체 소비자 브랜드 언급 없음."
+  },
+  {
+    "company": "주식회사 미팜",
+    "current_email": "stanleygg123@maypharm.co.kr",
+    "website": "https://maypharm.net",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "보툴리눔 톡신·필러·엑소좀 메디컬 에스테틱 전문사로 나드레쥬 등 브랜드도 시술용 제품이라 소비자완제품 아님."
+  },
+  {
+    "company": "(주)바라보니화장품",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "category/website/desc 모두 비어 사업실체 근거 전무, 자사 소비자 브랜드 증거 없어 보수적"
+  },
+  {
+    "company": "SKINNPLUS CO.,LTD",
+    "current_email": "skinn2012@naver.com",
+    "website": "https://brand.naver.com/saintfran",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "TV홈쇼핑 인큐베이팅·ODM 파트너가 본업이고 자체 브랜드는 부수적 언급이라 소비자 브랜드성 약함."
+  },
+  {
+    "company": "씨라인메디랩 C-LINE MEDILAB",
+    "current_email": "cbreath@naver.com",
+    "website": "https://www.c-line7.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "에스테틱 기기 OEM 제조·개발·보급 전문 B2B 기업으로 소비자 자체 브랜드 없음."
+  },
+  {
+    "company": "주식회사 위즈켐",
+    "current_email": "mjlee@wizchem.com",
+    "website": "http://www.wizchem.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "스킨부스터·필러 R&D/제조 OEM/ODM으로 클리닉·유통·브랜드 파트너 대상 B2B."
+  },
+  {
+    "company": "(주)순바이오팜",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "desc·website·category 모두 비어 있어 사업 확인 불가, 보수적 제외."
+  },
+  {
+    "company": "라즐라 뷰티(P.M.U)",
+    "current_email": "bpflkhss@gmail.com",
+    "website": "https://www.wechat.com/wxid_6d25szebr2ox22",
+    "seg": "불명",
+    "reason": "보유(확인용)",
+    "근거": "필링세럼+피그먼트코팅크림+페더니들 등 반영구(PMU) 시술 전용 제품으로 시술자·전문가 대상 B2B이며 소비"
+  },
+  {
+    "company": "BAIHUA CO.,LTD",
+    "current_email": "joan@baihuawipes.com",
+    "website": "https://gzbhryp.1688.com",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "물티슈 전문 제조사로 OEM/ODM 위주, 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "아롬컴퍼니",
+    "current_email": "florencekim04@gmail.com",
+    "website": "https://www.wechat.com/Flofounder",
+    "seg": "불명",
+    "reason": "보유(확인용)",
+    "근거": "desc·category 모두 비어있고 위챗 링크만 있어 사업 실체와 소비자 브랜드 확인 불가(보수적 제외)"
+  },
+  {
+    "company": "GMC Med",
+    "current_email": "info@gmcmed.co.kr",
+    "website": "http://www.gmcmed.co.kr",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "에스테틱 제품·피부과 의료기기 개발/제조 중심, 자체 소비자 브랜드 불명확한 B2B 수출형."
+  },
+  {
+    "company": "(주)라파스",
+    "current_email": "sales@raphas.com",
+    "website": "https://www.raphas.com/en/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "desc가 마이크로니들 DEN기술·제조공정·인증만 설명, 소비자 브랜드명·D2C·리테일 언급 전무한 B2B "
+  },
+  {
+    "company": "(주)뉴트리케어",
+    "current_email": "global2m@nutricare.co.kr",
+    "website": "https://nutricare.co.kr/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "건기식·뷰티 OEM/ODM/OBM/JDM 전문 제조사로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "뉴런",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "desc·website 전무, 명칭만으로 소비자 뷰티 브랜드 판단 불가하여 보수적 제외."
+  },
+  {
+    "company": "차모스코스메틱",
+    "current_email": "1992@chamos.co.kr",
+    "website": "https://en.chamos.co.kr",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "30년 기능성 화장품 OEM/ODM 수탁·수출 중심, 자사 소비자 브랜드 언급 없음."
+  },
+  {
+    "company": "(주)아름이",
+    "current_email": "arummed@gmail.com",
+    "website": "https://www.arummedi.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "의료·에스테틱 기기 제조·글로벌 유통과 OEM 솔루션 전문으로 클리닉·에스테틱센터 공급 중심, 자체 소비자 "
+  },
+  {
+    "company": "(주)디와이코스메틱",
+    "current_email": "dy-cos@daum.net",
+    "website": "https://dy-cos.com",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "마스크팩·기능성 화장품 전문 OEM/ODM 제조 기업. 자사 소비자 브랜드 언급 없음."
+  },
+  {
+    "company": "더새롬코스메틱(주)-유니스파테크(주)",
+    "current_email": "spatechsales@naver.com",
+    "website": "http://www.unispatech.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "피부·비만 의료/관리 장비를 클리닉·관리실에 공급하는 제조사의 판매 자회사로 B2B 전문장비 중심, 소비자 "
+  },
+  {
+    "company": "(주)바바와와팩토리",
+    "current_email": "junghun72001@naver.com",
+    "website": "http://www.drlola.co.kr",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "기능성 화장품 제조·수출(manufacturing/exporting) 중심으로 자체 소비자 브랜드 명시 없음"
+  },
+  {
+    "company": "유한코스메틱",
+    "current_email": "dh.son@yuhancosmetics.co.kr",
+    "website": "https://yuhancosmetics.co.kr/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "유한양행 계열 화장품 OEM/ODM 제조사로 고객사 브랜드 생산, 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "인터워크코리아",
+    "current_email": "unuco@unuco.co.kr",
+    "website": "https://smartstore.naver.com/unuco",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "1998년부터 색조 화장품 턴키 OEM·금형·필링 및 속눈썹 500종 수출 B2B 전문사로 자체 소비자 브랜"
+  },
+  {
+    "company": "주식회사 리더스코스메틱",
+    "current_email": "odem@leaderscosmetics.com",
+    "website": "https://leaderscosmetics.com",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "desc가 고객 브랜드 위한 맞춤형 ODM/OEM 솔루션만 명시, 자체 소비자 브랜드 언급 없음."
+  },
+  {
+    "company": "LEE KEE PACKAGING SOLUTION CO., LTD",
+    "current_email": "hannah@gzliji.com",
+    "website": "https://www.gzliji.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 유리병 독점 유통·가공 전문 패키징 솔루션사로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "YUYAO HEJIA PLASTIC INDUSTRY CO., LTD",
+    "current_email": "helena@hejiaplastic.com",
+    "website": "http://www.hejiaplastic.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 플라스틱 패키징(에어리스병·크림자·로션병) 전문 제조사로 소비자 브랜드 없음."
+  },
+  {
+    "company": "(주)에이로마플라붐",
+    "current_email": "info@aromaflavum.com",
+    "website": "https://en.aromaflavum.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "향료 원료 개발·공급 B2B 조향 기업으로 화장품·퍼퓸사에 향료 솔루션 제공, 소비자 완제품 브랜드 아님."
+  },
+  {
+    "company": "NATUZEN CO., LTD.,",
+    "current_email": "natuzensales@natuzen.net",
+    "website": "https://www.natuzen.net/?language=kor",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "기초·기능성·바디헤어·의약외품 등 전문 OEM/ODM 제조사로 자체 소비자 브랜드 언급 없음."
+  },
+  {
+    "company": "BODYYA HEALTH",
+    "current_email": "bodyya@naver.com",
+    "website": "",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "2010년 설립 화장품 제조업체로 소량 OEM 생산 제안(마스크팩·샴푸 등), 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "리봄화장품",
+    "current_email": "overseas@rebom.kr",
+    "website": "http://www.rebom.kr/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "화장품 R&D 및 ODM 수출 전문기업으로 고객 맞춤형 제조 제공, 자체 소비자 브랜드 언급 없음."
+  },
+  {
+    "company": "오프뷰티",
+    "current_email": "offbeauty@qandbintl.com",
+    "website": "https://offbeauty-percent.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "여러 브랜드 제품을 모아 파는 뷰티 아울렛 플랫폼/유통상으로 자사 소비자 완제품 브랜드 없음."
+  },
+  {
+    "company": "MZPACK",
+    "current_email": "Yexi@mzcn.shop",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "포장재(플라스틱 용기) 솔루션 전문 부자재 제조사로 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "GUANGZHOU AISHANG PLASTIC PRODUCTS CO., LTD.",
+    "current_email": "wu15017512296@outlook.com",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품/식품/의약품 외포장 플라스틱 용기(PP/아크릴/PE튜브) 제조 전문, 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "YANGZHOU GUANYU PLASTIC TUBE CO., LTD.",
+    "current_email": "",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "빈칸",
+    "근거": "화장품·의약품 등 튜브 패키징 맞춤 제조사로 소비자 브랜드 없음."
+  },
+  {
+    "company": "GUANGZHOU LIGAO PLASTIC PRODUCTS CO.,LTD.",
+    "current_email": "nickwang@gzligao.com.cn",
+    "website": "http://www.igaogz.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품·생활화학 패키징(폼펌프/로션펌프/PET병) 원스톱 제조사, 소비자 브랜드 없음."
+  },
+  {
+    "company": "HUARUI PACKAGING TECH(HANGZHOU) CO., LTD.",
+    "current_email": "",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "빈칸",
+    "근거": "desc·category·website 모두 비어있으나 사명에 Packaging Tech 명시, 패키징 제조"
+  },
+  {
+    "company": "NINGBO BEYON PLASTIC CO.,LTD.",
+    "current_email": "business@ibeyon.com",
+    "website": "https://www.ibeyon.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "PET병·캡·에어리스병 등 화장품 용기 전문 제조사로 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "한솔생명과학(주)",
+    "current_email": "sales@hansolbio.com",
+    "website": "https://www.hansolbio.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "cGMP OEM/ODM 화장품 제조사로 Medipeel·Cell Fusion C 등 3500여 고객사 수탁 "
+  },
+  {
+    "company": "그린코스 주식회사",
+    "current_email": "",
+    "website": "",
+    "seg": "PB가능",
+    "reason": "빈칸",
+    "근거": "desc·website 전무, 명칭상 코스(코스메틱 OEM 추정)이나 자체 소비자 브랜드 근거 없어 보수적 "
+  },
+  {
+    "company": "(주)죠이라이프",
+    "current_email": "export@jlife1.com",
+    "website": "http://joylifekorea.com/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "화장품·건강식품 OEM/ODM 전문기업으로 고객사 브랜드 제조 지원만, 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "주식회사 피에프네이처",
+    "current_email": "marketing@pfnature.com",
+    "website": "https://www.pfnature.com/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "R&D·제조·QC 원스톱 ODM/OEM 전문 수탁제조 기업으로 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "Symphony Cosmetic Inc.",
+    "current_email": "",
+    "website": "",
+    "seg": "PB가능",
+    "reason": "빈칸",
+    "근거": "성형외과·피부과가 운영하는 에스테틱·전문가용 제품 브랜드로 소비자 완제품 브랜드로 보기 어려움."
+  },
+  {
+    "company": "주식회사 엔스",
+    "current_email": "enthsales@enth.co.kr",
+    "website": "https://enth.co.kr/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "네일·컬러코스메틱 OEM/ODM 수탁제조사로 글로벌 브랜드 대상 공급, 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "무림페이퍼",
+    "current_email": "moorim@moorim.co.kr",
+    "website": "https://www.moorim.co.kr",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 패키징 용지·펄프몰드·나노셀룰로오스 원료 공급하는 지류 소재 B2B 기업, 소비자 브랜드 없음."
+  },
+  {
+    "company": "케이패키지",
+    "current_email": "help@kpackage.kr",
+    "website": "https://kpackage.kr/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "친환경 골판지 패키지 제조사로 부자재·포장 B2B, 소비자 뷰티 브랜드 없음."
+  },
+  {
+    "company": "YUGA GROUP",
+    "current_email": "ivy.liao@yuga-tech.com",
+    "website": "https://www.yuga-tech.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 패키징(용기·부자재) 전문 제조사로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "ZHONGSHAN TOPTREND PACKAGING CO., LTD.",
+    "current_email": "",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "빈칸",
+    "근거": "폼펌프 등 패키징 솔루션을 브랜드·패키징사에 공급하는 OEM 제조사로 소비자 브랜드 없음."
+  },
+  {
+    "company": "유씨엘 주식회사",
+    "current_email": "UCL.Global@e-ucl.co.kr",
+    "website": "http://www.e-ucl.co.kr/eng",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "1980년 원료 생산으로 시작한 화장품·의약외품 ODM/OEM 전문사로 desc가 클라이언트 제품 개발 강조"
+  },
+  {
+    "company": "(주)화인글로벌랩",
+    "current_email": "midilcos@gmail.com",
+    "website": "https://whaingloballab.com/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "1979년부터 화장품 연구개발·생산 전문 OEM/ODM으로 고객사 공급, 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "(주)리베코스",
+    "current_email": "tim@saenggreen.com",
+    "website": "http://www.liebecos.com/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "스킨케어·퍼스널케어 OEM/ODM 수탁제조사(38년)로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "(주)에이텍",
+    "current_email": "afternoon@aekyung.kr",
+    "website": "https://www.atecltd.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "라미네이트 튜브·용기 등 포장재·완제품 수탁제조 OEM으로 자체 브랜드 없음."
+  },
+  {
+    "company": "(주)우신화장품",
+    "current_email": "bob@woosincos.co.kr",
+    "website": "https://www.woosincos.co.kr/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "기초·바디·헤어 화장품 전문 OEM/ODM 제조사, 자체 소비자 브랜드 언급 없음."
+  },
+  {
+    "company": "주식회사 에스겔코스메틱",
+    "current_email": "ezekielcos@hanmail.net",
+    "website": "https://ezekielcos.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "CGMP 인증 화장품 OEM/ODM 전문 제조사로 고객사 브랜드 생산 원스톱 서비스, 자체 소비자 브랜드 없"
+  },
+  {
+    "company": "주식회사 베스트솔루션",
+    "current_email": "design@bestsolution1.co.kr",
+    "website": "https://www.bestsolution1.co.kr/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "Private-label·OEM·ODM 토탈 뷰티 솔루션 제공사로 자체 소비자 브랜드 언급 없음."
+  },
+  {
+    "company": "(주)케이알",
+    "current_email": "krsales@krpkg.co.kr",
+    "website": "https://www.krpkg.co.kr",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 포장재(용기) 전문 제조기업으로 부자재 공급만, 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "W(orks) & V(alue)",
+    "current_email": "project@wvdesign.kr",
+    "website": "https://www.wvdesign.kr",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "뷰티 브랜드 전문 크리에이티브 디자인 스튜디오로 자체 소비자 브랜드 없는 B2B 서비스."
+  },
+  {
+    "company": "주식회사 씨아이티 (CIT Co., Ltd)",
+    "current_email": "",
+    "website": "https://citcosmetic.com/kr/",
+    "seg": "PB가능",
+    "reason": "빈칸",
+    "근거": "화장품 ODM 토탈서비스 전문 기업, 고객맞춤형 처방·제조 수탁으로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "(주)아우딘퓨쳐스(K-Beauty ODM/OEM)",
+    "current_email": "kmpark@outinco.com",
+    "website": "https://youtu.be/r58RnimqKbM?si=42bhi3wzbVdjsPVW",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "K-뷰티 선도 글로벌 화장품 ODM 전문기업, 파트너사에 토탈 솔루션 제공으로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "APOLLO BEAUTY",
+    "current_email": "sale@apolloind.co.kr",
+    "website": "http://www.instargram/apollo___packaging",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "1976년 창업 화장품 패키징·용기·디스펜서 공급사로 부자재 제조, 소비자 브랜드 없음."
+  },
+  {
+    "company": "와이원글라스",
+    "current_email": "sales@y-oneglass.co.kr",
+    "website": "http://www.y-oneglass.co.kr",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "스킨케어/향수용 유리용기 전문 제조사로 부자재·용기 B2B 공급만 하며 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "ASIABNC (주식회사 아시아비엔씨)",
+    "current_email": "export@asiabnc.co.kr",
+    "website": "https://www.asiabnc.co.kr",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "rom&nd 등 타사 브랜드를 위한 유통·이커머스·마케팅·OEM/ODM 대행이 본업으로 자체 소비자 브랜드 "
+  },
+  {
+    "company": "미래피앤씨주식회사",
+    "current_email": "",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "빈칸",
+    "근거": "desc·website·category 모두 비어있고 사명(P&C)상 제조/부자재 추정, 자체 소비자 브랜드"
+  },
+  {
+    "company": "STB International",
+    "current_email": "",
+    "website": "",
+    "seg": "PB가능",
+    "reason": "빈칸",
+    "근거": "색조·스킨케어 OEM/ODM 전문기업으로 자체 소비자 브랜드 언급 없음."
+  },
+  {
+    "company": "(주)세리화장품",
+    "current_email": "must@sericos.co.kr",
+    "website": "http://sericos.co.kr/en",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "1998년 설립 화장품 제조사(manufacturer)로 R&D·생산 수탁, 자체 소비자 브랜드 언급 없음."
+  },
+  {
+    "company": "(주)아로마뱅크",
+    "current_email": "aromabank@aroma-bank.co.kr",
+    "website": "http://www.aroma-bank.co.kr/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "향료·에센셜오일 개발 공급 및 향수·디퓨저 OEM/ODM B2B 서비스로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "서울화장품",
+    "current_email": "sarah.k@seoulcos.co.kr",
+    "website": "http://www.seoulcos.co.kr/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "44년 경력 OEM/ODM 원스톱 제조사로 타 브랜드용 처방 개발, 자체 소비자 브랜드 언급 없음."
+  },
+  {
+    "company": "주식회사 다산씨엔텍",
+    "current_email": "sales@dasancntech.com",
+    "website": "https://www.dasancntech.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "CGMP 화장품 제조사로 원료·제형 개발 및 OEM/ODM·인증대행 제공, 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "(주)지앤아이코스메틱",
+    "current_email": "gnicos@gnicos.co.kr",
+    "website": "http://www.gnicos.co.kr/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "desc상 색조화장품 ODM 전문업체로 자사 소비자 브랜드 언급 없음, 수탁제조."
+  },
+  {
+    "company": "AMORY LONDON LTD",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "category·website·desc 모두 비어 정보 전무, 자사 소비자 브랜드 근거 없어 보수적 제외(재"
+  },
+  {
+    "company": "HUAXIN BIOTECHNOLOGY CO., LIMITED",
+    "current_email": "olwen_z@foxmail.com",
+    "website": "https://huaxinguoji.en.alibaba.com/company_profile.html",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "Alibaba company_profile 기반에 브랜드명 없이 '저가·중가·고가 전 가격대 풀라인업'을 내"
+  },
+  {
+    "company": "ZAZAYOU TECHNOLOGY CO., LTD.",
+    "current_email": "catherinetan@zazayou.com",
+    "website": "https://www.zazayou.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "스마트 뷰티·마사지 기기 제조사로 글로벌 브랜드 대상 OEM/ODM 공급이 핵심, 소비자 대상 자사 D2C "
+  },
+  {
+    "company": "Nuon LLC",
+    "current_email": "info@nuonmedical.com",
+    "website": "https://www.nuonmedical.com",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "18년 의료기술 기반으로 코스메틱 효능을 높이는 액티브 애플리케이터(기기 부품)를 개발하는 B2B 의료기술 "
+  },
+  {
+    "company": "LAYMAX MACHINERY CO.,LTD.",
+    "current_email": "justin@verolaymax.com",
+    "website": "https://laymaxmachinery.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "블리스터 패키징 설비(기계) 제조사로 B2B 기기 공급, 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "JINLAN PLASTIC TECHNOLOGY CO., LTD",
+    "current_email": "karen@jinlanplastic.com",
+    "website": "https://jinlanplastic.en.alibaba.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "립글로스·마스카라·콤팩트 용기 등 화장품 용기 설계·제조사로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "GROWN TECHNOLOGY (HK) LIMITED",
+    "current_email": "may@onebeauty.com.cn",
+    "website": "http://www.onebeauty.com.cn/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "가정용 뷰티·퍼스널케어 기기 OEM/ODM 통합 솔루션 제조사. 자사 소비자 브랜드 아님."
+  },
+  {
+    "company": "주식회사 이든팜",
+    "current_email": "dwkim@edencos.co.kr",
+    "website": "http://edencos.co.kr/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "스킨/헤어/바디 OEM/ODM 제조기업으로 고객사 맞춤 제형 개발, 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "BonitoLab",
+    "current_email": "bonitolab@bonitolab.com",
+    "website": "https://www.bonitolab.com",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "화장품 기획부터 처방·양산까지 지원하는 개발 전문 OEM/ODM 기업, 자체 소비자 브랜드 언급 없음."
+  },
+  {
+    "company": "에이코스팩 주식회사",
+    "current_email": "ze9718@acospack.com",
+    "website": "https://www.acospack.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 용기·펌프 전문 패키징 제조사로 소비자 브랜드 없음."
+  },
+  {
+    "company": "해피엘앤비",
+    "current_email": "happy@happylnb.com",
+    "website": "https://www.happylnb.com/eng/cosmetic/index.php",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 OEM 기업으로 비건·할랄 인증 수탁 제조·수출 중심, 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "(주) 정동산업",
+    "current_email": "duzon@jungdong.biz",
+    "website": "https://www.jungdongcos.com/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "마스크팩·여드름패치 전문 글로벌 OEM/ODM 제조사로 파트너사 공급, 소비자 브랜드 없음."
+  },
+  {
+    "company": "(주)디엠코스메틱스",
+    "current_email": "dmcos@dmcosmetics.co.kr",
+    "website": "https://dmcosmetics.co.kr",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 용기·포장재 개발 및 충전·포장 원스톱 제조사로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "(주) 에이바이오머티리얼즈",
+    "current_email": "master@a-bio.co.kr",
+    "website": "https://celexo.co.kr/home/index.php?ps_language_type=english",
+    "seg": "불명",
+    "reason": "보유(확인용)",
+    "근거": "엑소좀 스킨부스터와 전문가용 프리/포스트케어 화장품을 클리닉에 공급하는 바이오텍으로 소비자 자체 브랜드 없음"
+  },
+  {
+    "company": "DOOCO CO., LTD.",
+    "current_email": "salesinquiry@dooco.co.kr",
+    "website": "https://www.dooco.co.kr/en",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 용기·패키징 전문 제조(에어리스·펌프 등)로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "KUMO",
+    "current_email": "sales@kumo-group.com",
+    "website": "https://kumo-group.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 유리 용기·패키징 전문사로 태그 다수에도 desc는 용기 제조 B2B만."
+  },
+  {
+    "company": "TONGCHENG PACKAGING",
+    "current_email": "",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "빈칸",
+    "근거": "사명이 패키징 업체로 부자재·용기 제조 추정, desc 비어있으나 자체 소비자 브랜드 근거 없음."
+  },
+  {
+    "company": "MOMIX",
+    "current_email": "sales@momix.co.kr",
+    "website": "https://momix.co.kr/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "맞춤 금형 개발·본품/코팅/인쇄 원스톱 제조(용기·부자재) 중심으로, 카테고리 태그와 달리 자체 소비자 브랜"
+  },
+  {
+    "company": "씨앤텍(주)",
+    "current_email": "sbeom1@cntechcorp.co.kr",
+    "website": "https://www.cntechcorp.co.kr/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "스킨케어·마스크·패치 등 외주 없는 자체생산 OEM/ODM 수탁제조사로 자체 소비자 브랜드 언급 없음."
+  },
+  {
+    "company": "㈜세레코",
+    "current_email": "celleco@celleco.co.kr",
+    "website": "https://www.celleco.co.kr/en",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "피부과학 기반 화장품 OEM/ODM 전문 기업, 원스톱 수탁제조로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "(주)미진화장품",
+    "current_email": "mijin_kor@mjcare.co.kr",
+    "website": "https://www.mjcare.co.kr/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "마스크팩 OEM/ODM 전문업체로 desc에 자체 소비자 브랜드 언급 없음, 수탁제조 중심."
+  },
+  {
+    "company": "퓨어앤텍(주)",
+    "current_email": "sales@purentechkorea.com",
+    "website": "https://purentechkorea.com/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "GMP 기반 OEM/ODM 전문 글로벌 화장품 제조사로 자체 소비자 브랜드 없이 수탁 생산·수출 중심."
+  },
+  {
+    "company": "주식회사 신일피비씨",
+    "current_email": "",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "빈칸",
+    "근거": "화장품·생활용품용 친환경 에어리스 용기를 제작하는 부자재·용기 제조사로 소비자 브랜드 없음."
+  },
+  {
+    "company": "에이치앤엘바이오",
+    "current_email": "mkt_tiger@i-solu.com",
+    "website": "https://www.drschiller.kr/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "동결건조 마스크팩 ODM/OEM 원스톱 수탁제조·대량 생산능력 중심, 소비자 브랜드 아님."
+  },
+  {
+    "company": "대산산업",
+    "current_email": "dsi21@daesan21.com",
+    "website": "https://daesan21.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 명판·패키징 인쇄·용기 제조 부자재 업체로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "주식회사 씨티케이",
+    "current_email": "",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "빈칸",
+    "근거": "글로벌 뷰티 브랜드 대상 풀서비스 OEM/ODM 플랫폼 기업으로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "지와이바이오",
+    "current_email": "INFO@GYBIO.CO.KR",
+    "website": "https://WWW.GYBIO.CO.KR",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "NAD+/PDRN 항노화 제조·유통(실리프팅/필러 포함) 전문 제조사로 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "모래코리아",
+    "current_email": "sales.t@moraepackaging.com",
+    "website": "https://moraepackaging.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "화장품 용기·튜브·디스펜서 등 패키징 전문 제조사, 부자재 공급으로 소비자 브랜드 없음."
+  },
+  {
+    "company": "한스코스",
+    "current_email": "tax@hanscos.com",
+    "website": "http://www.hanscos.com/default/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "스킨케어·기능성·디바이스 OEM/ODM 전문 수탁제조 기업으로 자체 소비자 브랜드 언급 없음."
+  },
+  {
+    "company": "주식회사 더마솔루션",
+    "current_email": "sales.dermasolution@gmail.com",
+    "website": "https://www.derma-solution.co.kr/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "리프팅실·필러·뷰티디바이스 39개국 수출 B2B, 시술기기 중심으로 소비자 브랜드 아님."
+  },
+  {
+    "company": "exomera",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "desc·website·category 모두 비어 사업 실체를 판단할 근거가 전무하여 보수적 제외."
+  },
+  {
+    "company": "비티랩",
+    "current_email": "btylab8082@naver.com",
+    "website": "http://www.btylab.net/theme/bty/en/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "비타민 뷰티 샤워필터를 20여국에 OEM 수출하고 약국·살롱 등에 공급, 자체 소비자 브랜드 아닌 B2B 공"
+  },
+  {
+    "company": "사치바이오",
+    "current_email": "saccibio@saccibio.com",
+    "website": "https://www.saccibio.co.kr/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "PLLA 바이오스티뮬레이터·스킨부스터 등 '시술용' 제품 전문으로 소비자 직접판매 완제품 브랜드가 아님."
+  },
+  {
+    "company": "(주) 엘림텍",
+    "current_email": "sales@elimtek.co.kr",
+    "website": "http://www.elimtek.co.kr",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "피부관리 의료/에스테틱 기기 개발·제조사로 자체 소비자 브랜드 명시 없음."
+  },
+  {
+    "company": "아사달뷰티프로덕트",
+    "current_email": "Sales@asadalbeauty.com",
+    "website": "https://en.asadalbeauty.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "메이크업·네일 브러시 등 뷰티툴 OEM/ODM 제조사(중국공장)로 소비자 자체 브랜드 없음."
+  },
+  {
+    "company": "주식회사 명성에이앤티",
+    "current_email": "donkyu@goodmsi.com",
+    "website": "",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "OEM/ODM 분류이며 desc는 접는 파우치 등 포장재 솔루션만 설명, 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "LROAD",
+    "current_email": "jangjh@lroad.co.kr",
+    "website": "http://www.lroad.co.kr",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "알루미늄 용기·패키징 전문 B2B 공급사로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "㈜나산기업",
+    "current_email": "nasan@nscolor.com",
+    "website": "https://nallshopping.cafe24.com/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "헤어컬러차트·살롱액세서리 OEM/ODM 수탁제조사로 자체 소비자 브랜드 없음."
+  },
+  {
+    "company": "비컨",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "category·website·desc 모두 비어 있어 사업 확인 불가, 소비자 브랜드 근거 없어 보수적 제"
+  },
+  {
+    "company": "주식회사 모티프커뮤니케이션",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "desc·category·website 전부 비어있고 사명상 커뮤니케이션 업체로 추정되어 뷰티 소비자 브랜드"
+  },
+  {
+    "company": "Trendyproducts Co.,Ltd.",
+    "current_email": "missmore@naver.com",
+    "website": "https://www.trendyproducts.co.kr/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "미용소도구·화장품 OEM/ODM 수출 전문 기업으로 '자체 브랜드 수출 가능'은 역량 언급 수준일 뿐 소비자"
+  },
+  {
+    "company": "투엘바이오",
+    "current_email": "sales@2lbio.com",
+    "website": "https://www.2lbio.com/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "리프팅실(LUNA Q)·스킨부스터 등 시술용 의료미용 제조사, 임상용 중심으로 소비자 브랜드 약함."
+  },
+  {
+    "company": "큐브캡 주식회사",
+    "current_email": "jykim@cubecap.co.kr",
+    "website": "https://www.cubecap.co.kr",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "식물성 소프트캡슐 화장품 OEM 수탁제조 전문, 자사 소비자 브랜드 없음."
+  },
+  {
+    "company": "(주)한양에스엔디",
+    "current_email": "hysnd@naver.com",
+    "website": "http://hanyangsnd.kr/",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "펌프 제조 전문 부자재 기업, 소비자 뷰티 브랜드 없음."
+  },
+  {
+    "company": "스킨핏 프로그램",
+    "current_email": "dkhc@dkhc.kr",
+    "website": "https://www.skinfitai.com",
+    "seg": "혼합(검토)",
+    "reason": "보유(확인용)",
+    "근거": "AI 피부분석 진단 솔루션·뷰티테크로 자사 소비자 완제품 브랜드 없음(B2B 진단·추천)."
+  },
+  {
+    "company": "(주)아이테크",
+    "current_email": "nurieye@daum.net",
+    "website": "https://nurieye.com/",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "안과 임상검증 안구건조증 치료 의료기기(누리아이) 제조가 본업, 얼굴마사지기 누리아이2U는 파생품으로 소비자"
+  },
+  {
+    "company": "아이스링커 주식회사",
+    "current_email": "icelinker@icelinker.com",
+    "website": "http://www.icelinker.com/",
+    "seg": "불명",
+    "reason": "보유(확인용)",
+    "근거": "삼성 C-LAB 분사 디지털 냉각기술 기반 의료·웰니스 기기 회사로 뷰티 소비자 브랜드가 아님."
+  },
+  {
+    "company": "(주)아이오쓰리",
+    "current_email": "",
+    "website": "",
+    "seg": "불명",
+    "reason": "빈칸",
+    "근거": "category·website·desc 모두 비어 있어 사업 확인 불가, 보수적으로 제외."
+  },
+  {
+    "company": "㈜제이디바이오",
+    "current_email": "jdbio@jdbio.com",
+    "website": "http://www.jdbio.com",
+    "seg": "PB가능",
+    "reason": "보유(확인용)",
+    "근거": "HA필러·스킨부스터·톡신 등 메디컬 에스테틱 시술제품 수출사로 소비자 브랜드 아님."
+  }
+]

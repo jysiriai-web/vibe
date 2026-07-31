@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "(주) 진코스텍",
+      "verdict": "적합",
+      "own_brand": "amocosplus",
+      "reason": "amocosplus 브랜드로 네이버스토어·W컨셉·쿠팡 등 소비자 채널 직접 판매 확인 (link.inpock.co.kr/amocosplus)"
+    },
+    {
+      "company": "(주)온궁",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "홈페이지(need-on.com) 접속 불가(ECONNREFUSED), 검색 결과에서 자체 브랜드·사업 내용 확인 불가"
+    },
+    {
+      "company": "Caregen Co., Ltd.",
+      "verdict": "적합",
+      "own_brand": "Felloveaum, Neoverre, Dermaheals",
+      "reason": "자체 브랜드 포트폴리오(Felloveaum·Neoverre 등) 보유·판매, 펩타이드 기반 기능성 화장품 직접 개발·운영 (shopcaregen.com, caregen.co.kr/eng/brandportfolio)"
+    },
+    {
+      "company": "(주)오래온라이프사이언스",
+      "verdict": "적합",
+      "own_brand": "아이시리즈(i-Series): i-LEAD, i-JUV, i-NOVA",
+      "reason": "아이시리즈 자체 브랜드로 필러·스킨부스터 등 소비자 제품 직접 개발·출시, KIMES 박람회 출품 확인 (pharmnews.com 기사)"
+    },
+    {
+      "company": "스턴메디칼",
+      "verdict": "적합",
+      "own_brand": "PCL Power Booster, Power Col-tra, BotanicEXO, AQUA BOMB 등",
+      "reason": "자체 개발 스킨부스터·필러 다수 브랜드 보유, 제조·유통 직접 수행, 글로벌 판매 확인 (stunmedical.kr)"
+    },
+    {
+      "company": "더마밀",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "화장품 OEM/ODM 전문 제조사, 고객 브랜드 위탁 제조만 수행하며 자체 소비자 브랜드 없음 (selfcos.com, cosmorning.com 기사)"
+    },
+    {
+      "company": "주식회사 셀락바이오",
+      "verdict": "적합",
+      "own_brand": "셀피덤(Cellpiderm)",
+      "reason": "자체 코스메슈티컬 브랜드 셀피덤(Cellpiderm) 보유·운영, 소비자 판매 확인 (cellarkbio.com, cellpiderm.com)"
+    },
+    {
+      "company": "주식회사 레드바이오컴퍼니",
+      "verdict": "적합",
+      "own_brand": "HYALSKIN, The RED Slim, The JUR Kiss, Redjur PN 등",
+      "reason": "2018년부터 The RED 브랜드 자체 제품 출시, OEM/ODM 병행하나 자사 브랜드 직접 개발·글로벌 수출 (redbiocp.com)"
+    },
+    {
+      "company": "에이치앤비바이오",
+      "verdict": "적합",
+      "own_brand": "오베드(OBED)",
+      "reason": "자체 브랜드 오베드(OBED) 운영, 2024 서울국제화장품박람회에서 자사브랜드 공식 소개 (머니투데이 기사)"
+    },
+    {
+      "company": "(주)프리모리스인터내셔널",
+      "verdict": "적합",
+      "own_brand": "GD11, benestem, CURESTEM, P198 ExoHealer, TNU, 57ºN",
+      "reason": "줄기세포 기반 자체 화장품 브랜드 다수 보유·유통, GDF11 화장품 성분 특허 1호 취득 (primorisintl.com, primorisintl.gobizkorea.com)"
+    }
+  ]
+}

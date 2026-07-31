@@ -1,0 +1,66 @@
+[
+  {
+    "code": "OFF2653",
+    "cat": "기타",
+    "intro": "60여개 브랜드 직매입하는 도심형 뷰티 아웃렛 체인",
+    "verdict": "제외",
+    "basis": "타 브랜드 유통, 자체 브랜드 없음",
+    "homepage": ""
+  },
+  {
+    "code": "XEL9253",
+    "cat": "스킨케어",
+    "intro": "LHA 필링 솔루션 '쎄라필' 보유 메디컬 에스테틱 브랜드",
+    "verdict": "타겟",
+    "basis": "자체 필링·홈케어 브랜드 보유",
+    "homepage": ""
+  },
+  {
+    "code": "YOL6680",
+    "cat": "기타",
+    "intro": "30년 경력 메이크업 브러시·퍼프 제조사(광둥 유롄)",
+    "verdict": "제외",
+    "basis": "브러시 OEM/ODM 수탁 전문",
+    "homepage": ""
+  },
+  {
+    "code": "UNI3605",
+    "cat": "이너뷰티",
+    "intro": "EVE·시나플러스 등 자체 건강기능식품 브랜드 보유",
+    "verdict": "타겟",
+    "basis": "자체 건기식 브랜드 소비자 판매",
+    "homepage": ""
+  },
+  {
+    "code": "EUC8348",
+    "cat": "기타",
+    "intro": "인천·제주 공장 보유 화장품 ODM/OEM 전문 제조사",
+    "verdict": "제외",
+    "basis": "ODM/OEM 수탁 전업",
+    "homepage": ""
+  },
+  {
+    "code": "YUH2084",
+    "cat": "기타",
+    "intro": "스킨케어·헤어바디 OEM/ODM 화장품 제조 파트너사",
+    "verdict": "제외",
+    "basis": "OEM/ODM 수탁, 자체 브랜드 미확인",
+    "homepage": ""
+  },
+  {
+    "code": "KKI8749",
+    "cat": "색조",
+    "intro": "자체 메이크업 브러시 브랜드 제조·온라인몰 직판",
+    "verdict": "타겟",
+    "basis": "자체 브러시 브랜드 직접 판매",
+    "homepage": "http://yiyan.co.kr"
+  },
+  {
+    "code": "JNR2432",
+    "cat": "색조",
+    "intro": "UV램프 없는 젤네일 스티커 브랜드 '비비쇼' 운영",
+    "verdict": "타겟",
+    "basis": "자체 네일 브랜드 D2C 판매",
+    "homepage": "https://vivi-show.co.kr"
+  }
+]

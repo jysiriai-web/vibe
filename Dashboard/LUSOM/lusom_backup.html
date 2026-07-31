@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUSOM × SIRIAI Campaign</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #FAFAF8;
+            --point-color: #C8A882;
+            --text-main: #1A1A1A;
+            --text-sub: #888888;
+            --card-bg: #FFFFFF;
+            --card-border: #EBEBEB;
+            --nav-height: 80px;
+            --img-placeholder: #EAE8E3;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        .playfair {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* Layout */
+        #app {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Slides */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 40px 40px 120px 40px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slide.active {
+            opacity: 1;
+            pointer-events: auto;
+            z-index: 10;
+        }
+
+        /* Animations */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .slide.active .fade-up {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .delay-1 { transition-delay: 0.1s; }
+        .delay-2 { transition-delay: 0.2s; }
+        .delay-3 { transition-delay: 0.3s; }
+
+        /* Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: var(--nav-height);
+            background: rgba(250, 250, 248, 0.8);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            z-index: 100;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-sub);
+            cursor: pointer;
+            padding: 10px 24px;
+            border-radius: 40px;
+            transition: all 0.3s;
+        }
+
+        .nav-btn.active, .nav-btn:hover {
+            color: var(--bg-color);
+            background: var(--text-main);
+        }
+
+        /* Slide 1: Cover */
+        .cover-layout {
+            display: grid;
+            grid-template-columns: 1.25fr 0.75fr;
+            gap: 60px;
+            width: 100%;
+            max-width: 1200px;
+            align-items: center;
+        }
+
+        .cover-text {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .cover-title {
+            font-size: clamp(48px, 5vw, 72px);
+            margin-bottom: 24px;
+            letter-spacing: 1px;
+            line-height: 1.1;
+        }
+
+        .cover-divider {
+            width: 40px;
+            height: 2px;
+            background: var(--point-color);
+            margin: 24px 0;
+        }
+
+        .campaign-badges {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .campaign-badge {
+            display: inline-block;
+            background: var(--card-border);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .cover-desc {
+            font-size: 16px;
+            color: var(--text-sub);
+            font-weight: 300;
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+
+        .cover-image {
+            width: 100%;
+            height: auto;
+            max-height: 80vh;
+            object-fit: contain;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
+
+        /* Slide 2: Features */
+        .features-container {
+            width: 100%;
+            max-width: 1200px;
+            text-align: center;
+        }
+
+        .slide-title {
+            font-size: clamp(32px, 3vw, 44px);
+            margin-bottom: 60px;
+            font-weight: 700;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+        }
+
+        .feature-item {
+            text-align: left;
+            padding: 32px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            transition: transform 0.4s;
+        }
+
+        .feature-item:hover {
+            transform: translateY(-8px);
+        }
+
+        .feature-icon-placeholder {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--img-placeholder);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+        }
+
+        .feature-num {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            color: var(--point-color);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .feature-title {
+            font-size: 20px;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .feature-desc {
+            font-size: 14px;
+            color: var(--text-sub);
+            line-height: 1.6;
+            font-weight: 300;
+        }
+
+        /* Slide 3 & 4 Curation Container */
+        .curation-container {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .curation-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            width: 100%;
+            margin-bottom: 48px;
+        }
+
+        .curation-card {
+            background: transparent;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+
+        .curation-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .curation-img {
+            width: 100%;
+            aspect-ratio: 1;
+            background: var(--img-placeholder);
+            border-radius: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #C0BCB5;
+            font-size: 12px;
+        }
+
+        .curation-info {
+            padding: 0 8px;
+        }
+
+        .curation-name {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .curation-link {
+            color: var(--text-sub);
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .curation-link:hover {
+            color: var(--point-color);
+        }
+
+        .curation-stat {
+            font-size: 13px;
+            color: var(--text-sub);
+            margin-bottom: 4px;
+        }
+
+        .btn-primary {
+            background: var(--text-main);
+            color: var(--bg-color);
+            border: none;
+            padding: 14px 40px;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.3s, transform 0.2s;
+            font-family: 'Noto Sans KR', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+        
+        .footer-note {
+            font-size: 13px;
+            color: var(--text-sub);
+            margin-top: 24px;
+        }
+
+        /* Slide 5: Process Timeline */
+        .timeline-container {
+            width: 100%;
+            max-width: 1000px;
+            text-align: center;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 60px;
+        }
+        
+        .tab-btn {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            padding: 10px 32px;
+            border-radius: 30px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-sub);
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        
+        .tab-btn.active {
+            background: var(--text-main);
+            color: var(--bg-color);
+            border-color: var(--text-main);
+            font-weight: 500;
+        }
+
+        .tab-content {
+            display: none;
+            width: 100%;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .timeline {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 40px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 24px;
+            left: 50px;
+            right: 50px;
+            height: 1px;
+            background: var(--card-border);
+            z-index: 0;
+        }
+
+        .timeline-step {
+            position: relative;
+            z-index: 1;
+            width: 160px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .timeline-dot {
+            width: 48px;
+            height: 48px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            color: var(--point-color);
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            transition: all 0.3s;
+        }
+
+        .timeline-step:hover .timeline-dot {
+            background: var(--text-main);
+            color: var(--bg-color);
+            border-color: var(--text-main);
+        }
+
+        .timeline-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            word-break: keep-all;
+        }
+
+        .timeline-desc {
+            font-size: 13px;
+            color: var(--text-sub);
+            font-weight: 300;
+            line-height: 1.5;
+            word-break: keep-all;
+        }
+
+        .process-footer {
+            font-size: 16px;
+            color: var(--text-main);
+            font-weight: 500;
+            margin-top: 40px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 24px;
+            width: 90%;
+            max-width: 720px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            transform: translateY(20px);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            padding: 32px;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--text-sub);
+            transition: color 0.2s;
+        }
+        
+        .modal-close:hover { color: var(--text-main); }
+
+        .modal-body {
+            padding: 0;
+            overflow-y: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th, .data-table td {
+            padding: 16px 24px;
+            text-align: center;
+            border-bottom: 1px solid var(--card-border);
+            font-size: 14px;
+        }
+
+        .data-table th {
+            background: #FAFAFA;
+            font-weight: 500;
+            color: var(--text-sub);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .data-table td.name-col {
+            font-weight: 700;
+            color: var(--text-main);
+            text-align: left;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .cover-layout { grid-template-columns: 1fr; gap: 40px; text-align: center; }
+            .cover-text { align-items: center; }
+            .features-grid { grid-template-columns: 1fr; gap: 20px; }
+            .curation-grid { grid-template-columns: repeat(2, 1fr); }
+            .timeline { flex-direction: column; align-items: center; gap: 32px; margin-bottom: 40px; }
+            .timeline::before { display: none; }
+            .timeline-step { width: auto; }
+            .slide { padding: 40px 20px 100px; }
+            .campaign-badges { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <!-- Slide 1: Cover -->
+        <section class="slide active" id="slide-1">
+            <div class="cover-layout">
+                <div class="cover-text fade-up">
+                    <h1 class="cover-title playfair">LUSOM<br>&times; SIRIAI</h1>
+                    <div class="cover-divider"></div>
+                    <div class="campaign-badges">
+                        <div class="campaign-badge">국내: IG Reels / 5~6월</div>
+                        <div class="campaign-badge">북미: TikTok / 7월</div>
+                    </div>
+                    <p class="cover-desc">글로벌 숏폼 캠페인 제안서<br>2026.05</p>
+                </div>
+                <img src="images/cover.jpg" alt="LUSOM Toner Pad" class="cover-image fade-up delay-1">
+            </div>
+        </section>
+
+        <!-- Slide 2: Features -->
+        <section class="slide" id="slide-2">
+            <div class="features-container">
+                <h2 class="slide-title fade-up">Why SIRIAI?</h2>
+                <div class="features-grid">
+                    <div class="feature-item fade-up delay-1">
+                        <div class="feature-icon-placeholder">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        </div>
+                        <div class="feature-num">01</div>
+                        <h3 class="feature-title">데이터 기반 최적화 매칭</h3>
+                        <p class="feature-desc">가입 풀에 제한되지 않고, 플랫폼 전체 데이터를 탐색하여 브랜드 핏에 맞는 최적의 인원을 새롭게 발굴합니다.</p>
+                    </div>
+                    <div class="feature-item fade-up delay-2">
+                        <div class="feature-icon-placeholder">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        </div>
+                        <div class="feature-num">02</div>
+                        <h3 class="feature-title">전담 매니저 밀착 관리</h3>
+                        <p class="feature-desc">단순 매칭 플랫폼이 해결하지 못하는 2차 활용 협상, 디테일한 콘텐츠 가이드 조율을 전담 매니저가 밀착 관리합니다.</p>
+                    </div>
+                    <div class="feature-item fade-up delay-3">
+                        <div class="feature-icon-placeholder">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                        </div>
+                        <div class="feature-num">03</div>
+                        <h3 class="feature-title">거품 없는 합리적 예산</h3>
+                        <p class="feature-desc">거대한 플랫폼 시스템 유지 비용을 걷어내어, 합리적인 예산으로 무신사, HYBE 수준의 하이엔드 결과물을 제공합니다.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 3: Domestic Curation List -->
+        <section class="slide" id="slide-3">
+            <div class="curation-container">
+                <h2 class="slide-title fade-up" style="margin-bottom: 24px;">핵심 인플루언서 제안</h2>
+                <div class="campaign-badge fade-up" style="margin-bottom: 40px;">IG Reels / 5~6월 / 800만원</div>
+                <div class="curation-grid fade-up delay-1" id="curationGrid">
+                    <!-- Cards will be rendered by JS -->
+                </div>
+                <button class="btn-primary fade-up delay-2" onclick="openModal('modal-fulllist')">
+                    전체 리스트 21명 보기 &rarr;
+                </button>
+            </div>
+        </section>
+
+        <!-- Slide 4: NA TikTok Strategy -->
+        <section class="slide" id="slide-4">
+            <div class="features-container">
+                <h2 class="slide-title fade-up" style="margin-bottom: 24px;">북미 TikTok 캠페인 전략</h2>
+                <div class="campaign-badge fade-up" style="margin-bottom: 40px; background: #1A1A1A; color: #FFF;">TikTok / 7월 / 200만원</div>
+                
+                <div class="features-grid">
+                    <div class="feature-item fade-up delay-1">
+                        <div class="feature-num">01</div>
+                        <h3 class="feature-title">무가시딩 중심</h3>
+                        <p class="feature-desc">미국 시장은 우선 콘텐츠를 꾸준히 쌓는 것이 핵심입니다. (바이뉴셀 성공 레퍼런스 적용)</p>
+                    </div>
+                    <div class="feature-item fade-up delay-2">
+                        <div class="feature-num">02</div>
+                        <h3 class="feature-title">후불 청구</h3>
+                        <p class="feature-desc">실제 업로드된 건수만 청구하여, 캠페인 진행 시 브랜드의 로스 리스크를 최소화합니다.</p>
+                    </div>
+                    <div class="feature-item fade-up delay-3">
+                        <div class="feature-num">03</div>
+                        <h3 class="feature-title">Amazon MCF 연동</h3>
+                        <p class="feature-desc">부운영자 권한 부여 시, 복잡한 해외 물류 대행까지 원스톱으로 관리해 드립니다.</p>
+                    </div>
+                </div>
+                
+                <div class="fade-up delay-3" style="margin-top: 40px; padding: 24px 32px; background: #FFFFFF; border: 1px solid var(--card-border); border-radius: 16px; display: inline-block; text-align: left; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <div style="font-size: 14px; font-weight: 700; color: var(--text-sub); margin-bottom: 8px;">성공 레퍼런스</div>
+                    <p style="font-size: 16px; font-weight: 500; color: var(--text-main);">
+                        Dr. Bio 2,000건 / Cos De BAJA / 
+                        <a href="#" target="_blank" style="color: var(--point-color); text-decoration: underline;">바이뉴셀 월 200건</a>
+                    </p>
+                </div>
+                <div class="footer-note fade-up delay-3" style="margin-top: 16px;">
+                    <p>* 리스트는 진행 확정 후 5~7일 이내 별도 제공됩니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 5: Process -->
+        <section class="slide" id="slide-5">
+            <div class="timeline-container">
+                <h2 class="slide-title fade-up" style="margin-bottom: 24px;">캠페인 진행 과정</h2>
+                
+                <div class="tabs fade-up">
+                    <button class="tab-btn active" onclick="switchTab('tab-domestic')">국내 (IG Reels)</button>
+                    <button class="tab-btn" onclick="switchTab('tab-na')">북미 (TikTok)</button>
+                </div>
+
+                <!-- Domestic Tab -->
+                <div id="tab-domestic" class="tab-content active fade-up delay-1">
+                    <div class="timeline">
+                        <div class="timeline-step" onclick="showProcessImage(1)" style="cursor: pointer;">
+                            <div class="timeline-dot" id="dot-1">1</div>
+                            <h3 class="timeline-title">리스트 확정</h3>
+                            <p class="timeline-desc">1~2일 소요<br>내부 검토 후 최종 선정</p>
+                        </div>
+                        <div class="timeline-step" onclick="showProcessImage(2)" style="cursor: pointer;">
+                            <div class="timeline-dot" id="dot-2">2</div>
+                            <h3 class="timeline-title">가이드 & 발송</h3>
+                            <p class="timeline-desc">2~3일 소요<br>가이드라인 전달 및 제품 발송</p>
+                        </div>
+                        <div class="timeline-step" onclick="showProcessImage(3)" style="cursor: pointer;">
+                            <div class="timeline-dot" id="dot-3">3</div>
+                            <h3 class="timeline-title">제작 & 검수</h3>
+                            <p class="timeline-desc">1~2주 소요<br>업로드 전 사전 검수 진행</p>
+                        </div>
+                        <div class="timeline-step" onclick="showProcessImage(4)" style="cursor: pointer;">
+                            <div class="timeline-dot" id="dot-4">4</div>
+                            <h3 class="timeline-title">업로드 & 리포트</h3>
+                            <p class="timeline-desc">순차 발행<br>퍼포먼스 리포트 제공</p>
+                        </div>
+                    </div>
+                    <div class="process-footer" style="margin-top: 40px;">
+                        <p>전체 진행 기간: 약 4~5주</p>
+                    </div>
+                </div>
+
+                <!-- NA Tab -->
+                <div id="tab-na" class="tab-content fade-up delay-1">
+                    <div class="timeline">
+                        <div class="timeline-step">
+                            <div class="timeline-dot">1</div>
+                            <h3 class="timeline-title">권한 부여 & 기획</h3>
+                            <p class="timeline-desc">Amazon MCF 연동 및<br>미국 시장 맞춤 시딩 기획</p>
+                        </div>
+                        <div class="timeline-step">
+                            <div class="timeline-dot">2</div>
+                            <h3 class="timeline-title">시딩 & 물류 대행</h3>
+                            <p class="timeline-desc">적합 인플루언서 발굴 및<br>원스톱 제품 발송 처리</p>
+                        </div>
+                        <div class="timeline-step">
+                            <div class="timeline-dot">3</div>
+                            <h3 class="timeline-title">콘텐츠 축적</h3>
+                            <p class="timeline-desc">무가시딩 중심<br>꾸준한 업로드 관리</p>
+                        </div>
+                        <div class="timeline-step">
+                            <div class="timeline-dot">4</div>
+                            <h3 class="timeline-title">후불 청구</h3>
+                            <p class="timeline-desc">실제 업로드된 건수 기준<br>정산 및 성과 리포팅</p>
+                        </div>
+                    </div>
+                    <div class="process-footer">
+                        <p>장기적인 브랜드 자산 구축 파트너십</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="bottom-nav">
+        <button class="nav-btn active" onclick="goToSlide(1)">표지</button>
+        <button class="nav-btn" onclick="goToSlide(2)">Why SIRIAI</button>
+        <button class="nav-btn" onclick="goToSlide(3)">인플루언서 큐레이션</button>
+        <button class="nav-btn" onclick="goToSlide(4)">북미 틱톡 전략</button>
+        <button class="nav-btn" onclick="goToSlide(5)">진행 과정</button>
+    </nav>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal-fulllist" onclick="if(event.target === this) closeModal('modal-fulllist')">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">국내 인플루언서 리스트 (21명)</h3>
+                <div style="display: flex; gap: 16px; align-items: center;">
+                    <button class="btn-primary" style="padding: 8px 20px; font-size: 14px;" onclick="window.open('https://docs.google.com/spreadsheets/d/1Af-ZER9z5DFlh0tJuEoR0c5D9t9-VV3AwmOfKUNFPtI/edit?usp=sharing', '_blank')">시트로 이동</button>
+                    <button class="modal-close" onclick="closeModal('modal-fulllist')">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>이름</th>
+                            <th>팔로워</th>
+                            <th>예상 조회수</th>
+                            <th>ER</th>
+                            <th>Instagram</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalTableBody">
+                        <!-- Table rows will be rendered by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Process Modal -->
+    <div class="modal-overlay" id="modal-process" onclick="if(event.target === this) closeModal('modal-process')">
+        <div class="modal-content" style="max-width: 1000px; background: transparent; box-shadow: none;">
+            <div style="display: flex; justify-content: flex-end; padding: 16px;">
+                <button class="modal-close" style="color: #FFF; text-shadow: 0 2px 4px rgba(0,0,0,0.5); font-size: 40px;" onclick="closeModal('modal-process')">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 0; display: flex; justify-content: center; align-items: center;">
+                <img id="process-image" src="" style="max-width: 100%; max-height: 85vh; object-fit: contain; border-radius: 16px; display: none; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+                <div id="process-text" style="display: none; background: var(--card-bg); padding: 48px; border-radius: 24px; font-size: 18px; font-weight: 500; color: var(--text-main); text-align: center; line-height: 1.6; box-shadow: 0 20px 40px rgba(0,0,0,0.1);"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data
+        const influencers = [
+            { no: 1, name: '김지구', followers: '17.1K', views: '28.1K', er: '1.78%', ig: '@bree_zgu_' },
+            { no: 2, name: 'Hailey Kim', followers: '20.1K', views: '8.9K', er: '6.91%', ig: '@277.45k' },
+            { no: 3, name: '__jan.7', followers: '54.2K', views: '5.6K', er: '0.35%', ig: '@__jan.7' },
+            { no: 4, name: 'Rina Yun', followers: '35.4K', views: '12.2K', er: '0.51%', ig: '@rinnayun' },
+            { no: 5, name: '수비니', followers: '54.3K', views: '13.7K', er: '1.38%', ig: '@beureyu' },
+            { no: 6, name: 'Crystal🔮', followers: '2.2K', views: '1.5K', er: '3.02%', ig: '@crystalyxo' },
+            { no: 7, name: 'mill_you__', followers: '3.0K', views: '4.6K', er: '0.19%', ig: '@mill_you__' },
+            { no: 8, name: '강다은', followers: '2.1K', views: '4.4K', er: '0.43%', ig: '@_kangdaeun_' },
+            { no: 9, name: 'hhhyunnn.0', followers: '5.8K', views: '5.3K', er: '5.47%', ig: '@hhhyunnn.0' },
+            { no: 10, name: '주서현', followers: '3.6K', views: '6.1K', er: '3.99%', ig: '@imjoo._.o' },
+            { no: 11, name: '윤슬', followers: '2.0K', views: '3.2K', er: '4.35%', ig: '@yoonsri' },
+            { no: 12, name: '차미', followers: '1.2K', views: '1.2K', er: '8.10%', ig: '@chammy_you' },
+            { no: 13, name: '예워니', followers: '3.1K', views: '1.5K', er: '10.65%', ig: '@wonnnnonly' },
+            { no: 14, name: '아이엠코코', followers: '2.2K', views: '0.8K', er: '0.03%', ig: '@ia.mcoco.__' },
+            { no: 15, name: '민주 SONG MINJOO', followers: '3.0K', views: '7.0K', er: '4.19%', ig: '@mzu329' },
+            { no: 16, name: '신나', followers: '5.0K', views: '0.9K', er: '2.06%', ig: '@shinnashinna' },
+            { no: 17, name: '미율', followers: '1.2K', views: '1.2K', er: '2.10%', ig: '@sophi_yoool' },
+            { no: 18, name: 'chunworld_', followers: '11.3K', views: '5.7K', er: '0.11%', ig: '@chunworld_' },
+            { no: 19, name: '4.20nm', followers: '7.8K', views: '5.9K', er: '0.87%', ig: '@4.20nm' },
+            { no: 20, name: '박민서', followers: '0.8K', views: '5.0K', er: '3.32%', ig: '@777minseo' },
+            { no: 21, name: 'skw1s_', followers: '0.7K', views: '0.9K', er: '2.84%', ig: '@skw1s_' }
+        ];
+
+        let currentSlideIndex = 1;
+        const totalSlides = 5; // Updated to 5 slides
+        let isScrolling = false;
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCurationCards();
+            renderModalTable();
+            triggerAnimation(1);
+        });
+
+        function triggerAnimation(index) {
+            const currentSlide = document.getElementById(`slide-${index}`);
+            const animatedElements = currentSlide.querySelectorAll('.fade-up');
+            
+            // Reset
+            animatedElements.forEach(el => {
+                el.style.animation = 'none';
+                el.offsetHeight; /* trigger reflow */
+                el.style.animation = null; 
+            });
+        }
+
+        function goToSlide(index) {
+            if (index < 1 || index > totalSlides) return;
+            currentSlideIndex = index;
+            document.querySelectorAll('.nav-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i + 1 === index);
+            });
+            document.querySelectorAll('.slide').forEach((slide, i) => {
+                slide.classList.toggle('active', i + 1 === index);
+            });
+            triggerAnimation(index);
+        }
+
+        // Tabs logic for Process Slide
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Activate selected tab button
+            event.target.classList.add('active');
+            
+            // Show selected content
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // Wheel Scroll Navigation
+        window.addEventListener('wheel', (e) => {
+            if (document.querySelector('.modal-overlay.active')) return;
+            if (isScrolling) return;
+            
+            if (e.deltaY > 0) {
+                if (currentSlideIndex < totalSlides) goToSlide(currentSlideIndex + 1);
+            } else if (e.deltaY < 0) {
+                if (currentSlideIndex > 1) goToSlide(currentSlideIndex - 1);
+            }
+            
+            isScrolling = true;
+            setTimeout(() => { isScrolling = false; }, 800);
+        });
+
+        // Keyboard Navigation (Arrow Keys and F key)
+        document.addEventListener('keydown', (e) => {
+            const isModalOpen = document.querySelector('.modal-overlay.active');
+            
+            if (e.key === 'Escape' && isModalOpen) {
+                closeModal('modal-fulllist');
+                return;
+            }
+
+            if (isModalOpen) return;
+
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                if (currentSlideIndex < totalSlides) goToSlide(currentSlideIndex + 1);
+            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                if (currentSlideIndex > 1) goToSlide(currentSlideIndex - 1);
+            } else if (e.key.toLowerCase() === 'f') {
+                toggleFullScreen();
+            }
+        });
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        // Render Top 4 for Slide 3
+        function renderCurationCards() {
+            const grid = document.getElementById('curationGrid');
+            const displayData = influencers.slice(0, 4); // Top 4
+            
+            grid.innerHTML = displayData.map(inf => `
+                <div class="curation-card">
+                    <div class="curation-img">
+                        [ Image ]
+                    </div>
+                    <div class="curation-info">
+                        <div class="curation-name">
+                            ${inf.name}
+                            <a href="https://instagram.com/${inf.ig.replace('@','')}" target="_blank" class="curation-link">↗</a>
+                        </div>
+                        <div class="curation-stat">Followers: ${inf.followers}</div>
+                        <div class="curation-stat">ER: ${inf.er}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render All 21 in Modal
+        function renderModalTable() {
+            const tbody = document.getElementById('modalTableBody');
+            tbody.innerHTML = influencers.map(inf => `
+                <tr>
+                    <td>${inf.no}</td>
+                    <td class="name-col">${inf.name}</td>
+                    <td>${inf.followers}</td>
+                    <td>${inf.views}</td>
+                    <td>${inf.er}</td>
+                    <td><a href="https://instagram.com/${inf.ig.replace('@','')}" target="_blank" style="color:#888; text-decoration:none;">${inf.ig} ↗</a></td>
+                </tr>
+            `).join('');
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function showProcessImage(step) {
+            const img = document.getElementById('process-image');
+            const text = document.getElementById('process-text');
+            
+            if (step === 1) {
+                img.style.display = 'block';
+                text.style.display = 'none';
+                img.src = 'images/oddtype-sheet.png';
+            } else if (step === 4) {
+                img.style.display = 'block';
+                text.style.display = 'none';
+                img.src = 'images/report-1.png';
+            } else if (step === 2) {
+                img.style.display = 'none';
+                text.style.display = 'block';
+                text.innerHTML = '브랜드 가이드라인에 맞춘 디테일한 콘텐츠 조율 및<br>인플루언서 대상 제품 발송이 진행됩니다.';
+            } else if (step === 3) {
+                img.style.display = 'none';
+                text.style.display = 'block';
+                text.innerHTML = '크리에이터의 콘텐츠 제작 진행 상황을 팔로업하며<br>업로드 전 브랜드의 니즈가 반영되었는지 사전 검수합니다.';
+            }
+            
+            openModal('modal-process');
+        }
+    </script>
+</body>
+</html>

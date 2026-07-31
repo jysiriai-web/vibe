@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "(주)탠코리아",
+      "verdict": "적합",
+      "own_brand": "JAMIE BRONZE (제이미 브론즈)",
+      "reason": "태닝 전문 자체 브랜드 JAMIE BRONZE 보유, 소비자 직판 운영 (출처: kr.aving.net 2025 인터참코리아 기사)"
+    },
+    {
+      "company": "디어메이",
+      "verdict": "적합",
+      "own_brand": "DEARMAY",
+      "reason": "자체 브랜드 DEARMAY로 립·아이·페이스 제품 소비자 직판 운영 (출처: en.dearmay.co.kr)"
+    },
+    {
+      "company": "(주)바이옵트",
+      "verdict": "적합",
+      "own_brand": "VENDERMA",
+      "reason": "자체 브랜드 VENDERMA로 스킨케어·뷰티디바이스 온라인 직판 운영 (출처: venderma.com)"
+    },
+    {
+      "company": "TROIAREUKE",
+      "verdict": "적합",
+      "own_brand": "TROIAREUKE, ACSEN",
+      "reason": "TROIAREUKE·ACSEN 등 자체 브랜드 복수 보유, 직판몰 운영 (출처: troiareuke.com)"
+    },
+    {
+      "company": "오미티드",
+      "verdict": "적합",
+      "own_brand": "Omitted (오미티드)",
+      "reason": "자체 브랜드 Omitted로 스킨케어 제품 소비자 직판, 운영사는 (주)벤처리스트 (출처: omitted.kr)"
+    },
+    {
+      "company": "DAILY WEEKLY",
+      "verdict": "적합",
+      "own_brand": "DAILY WEEKLY (데일리위클리)",
+      "reason": "자체 브랜드 DAILY WEEKLY로 쿨링·수분 스킨케어 D2C 직판, 180개국 배송 (출처: dailyweekly.co.kr)"
+    },
+    {
+      "company": "(주)아트페이스",
+      "verdict": "적합",
+      "own_brand": "TENZERO",
+      "reason": "자체 브랜드 TENZERO로 스킨케어 소비자 직판, 글로벌 배송 운영 (출처: tenzero.co.kr)"
+    },
+    {
+      "company": "KOCOSTAR",
+      "verdict": "적합",
+      "own_brand": "KOCOSTAR, MANIA HOLIC, nearer, Amaholic 등",
+      "reason": "FIRST MARKET이 운영사, KOCOSTAR 포함 24개 뷰티 자체 브랜드 보유·직판 (출처: firstmarket.co.kr)"
+    },
+    {
+      "company": "채널스완",
+      "verdict": "적합",
+      "own_brand": "OAVO",
+      "reason": "자체 브랜드 OAVO로 비건 스킨케어·메이크업 소비자 직판 및 글로벌 전시 참가 (출처: oavo.global)"
+    },
+    {
+      "company": "CELLEA/BELLADIA",
+      "verdict": "적합",
+      "own_brand": "CELLEA (셀레아)",
+      "reason": "자체 브랜드 CELLEA로 NK 세럼 등 스킨케어 소비자 직판, 운영사 에프씨세컨드 (출처: cellea.co.kr)"
+    }
+  ]
+}

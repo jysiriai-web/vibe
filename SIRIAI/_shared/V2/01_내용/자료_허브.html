@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SIRIAI · 자료 허브 (원본 무더기)</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#f3eee2;--surface:#fff;--ink:#211a33;--ink-2:rgba(33,26,51,.66);--ink-3:rgba(33,26,51,.46);--line:rgba(33,26,51,.12);
+    --lav:#cabce8;--lav-soft:#e9e3f3;--peach-soft:#f5e7d8;--sky-soft:#e3ecf4;--green-soft:#e4efe2;--amber-soft:#f3e8d2;
+    --f-en:'Helvetica Neue','Helvetica','Arimo','Pretendard',Arial,sans-serif;--f-kr:'Pretendard',sans-serif;--f-sans:'Helvetica Neue','Helvetica','Arimo','Pretendard',sans-serif;--f-mono:'JetBrains Mono',ui-monospace,monospace;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--f-sans);background:var(--bg);color:var(--ink);line-height:1.55;letter-spacing:-.01em;padding:40px clamp(16px,5vw,56px);max-width:1080px;margin:0 auto;-webkit-font-smoothing:antialiased;}
+  .top{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);}
+  h1{font-size:clamp(26px,3.2vw,38px);font-weight:700;letter-spacing:-.022em;margin:5px 0 10px;}
+  .lead{font-family:var(--f-kr);color:var(--ink-2);font-size:14.5px;margin-bottom:8px;word-break:keep-all;line-height:1.65;}
+  .lead b{color:var(--ink);}
+  .rule{font-family:var(--f-kr);font-size:13px;color:#8a6a25;background:var(--amber-soft);border:1px solid rgba(199,154,63,.3);border-radius:11px;padding:11px 15px;margin:14px 0 34px;word-break:keep-all;line-height:1.6;}
+  .rule b{color:var(--ink);}
+
+  h2{font-family:var(--f-kr);font-size:15px;font-weight:800;margin:34px 0 4px;display:flex;align-items:center;gap:8px;}
+  .h2sub{font-family:var(--f-kr);font-size:12.5px;color:var(--ink-3);margin-bottom:14px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;}
+  .item{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px 17px;display:flex;flex-direction:column;gap:5px;transition:.16s;}
+  .item:hover{border-color:var(--lav);box-shadow:0 16px 36px -22px rgba(33,26,51,.25);}
+  .item .t{font-family:var(--f-kr);font-weight:700;font-size:14.5px;}
+  .item .d{font-family:var(--f-kr);font-size:12.5px;color:var(--ink-2);word-break:keep-all;line-height:1.5;}
+  .item .path{font-family:var(--f-en);font-size:10.5px;color:var(--ink-3);word-break:break-all;margin-top:2px;}
+  .item .open{margin-top:8px;align-self:flex-start;font-family:var(--f-kr);font-size:12.5px;font-weight:700;color:#5a4a85;text-decoration:none;background:var(--lav-soft);padding:6px 13px;border-radius:100px;}
+  .item .open:hover{background:var(--lav);color:#2f2350;}
+  .item.ext .open{background:var(--sky-soft);color:#2f4a66;}
+  .item.todo{border-style:dashed;}
+  .item.todo .d{color:#8a6a25;}
+  .item .gap{font-family:var(--f-kr);font-size:11px;font-weight:600;color:#8a6a25;background:var(--amber-soft);border-radius:100px;padding:3px 9px;align-self:flex-start;margin-top:6px;}
+  .foot{margin-top:34px;font-family:var(--f-kr);font-size:12.5px;color:var(--ink-3);text-align:center;line-height:1.7;}
+</style>
+</head>
+<body>
+  <div class="top">SIRIAI · 사업소개서 — Step 1 내용 확보</div>
+  <h1>자료 허브 <span style="font-family:var(--f-en);font-weight:500;font-size:18px;color:var(--ink-3);">/ 원본 무더기</span></h1>
+  <p class="lead">여기 있는 건 전부 <b>원본 그대로야. 내가 요약·편집 안 했어.</b> 카드의 한 줄은 "내용 요약"이 아니라 그냥 <b>"이게 무슨 파일인지"</b> 안내일 뿐. 클릭해서 네가 직접 원문 읽고, 들어갈 내용·분량·중요도를 검수해줘.</p>
+  <div class="rule">📌 <b>읽는 법:</b> 로컬 문서(.md)는 "열기"를 누르면 브라우저/에디터에서 원문이 열려. 안 열리면 카드의 <b>회색 경로</b>를 복사해서 직접 열면 돼. · 외부 링크는 새 탭. · <b>figma·드라이브 등 URL 모르는 건 네가 채워줄 자리</b>로 비워뒀어.</div>
+
+  <h2>📋 기준 문서</h2>
+  <div class="h2sub">deck 목적·메시지 기준. <b>★핵심 = 꼭 읽기</b> · 참고 = 배경용(안 봐도 무방).</div>
+  <div class="grid">
+    <div class="item"><div class="t">★ 사업소개서_필요사항</div><div class="d">꼭 읽기 — "소개가 아니라 증명" 관점 전환. deck 방향의 출발점. (지금 PRD의 뿌리)</div><div class="path">기준/사업소개서_필요사항.md</div><a class="open" href="../../기준/사업소개서_필요사항.md" target="_blank">열기 →</a></div>
+    <div class="item"><div class="t">★ 메시지_아키텍처</div><div class="d">꼭 읽기 — 메시지 A안·3기둥·서사·버릴 것. <b>카피 척추</b>(어떤 표현 쓸지의 기준).</div><div class="path">기준/메시지_아키텍처.md</div><a class="open" href="../../기준/메시지_아키텍처.md" target="_blank">열기 →</a></div>
+    <div class="item"><div class="t">PRD_SIRIAI_사업소개서</div><div class="d">참고 — 1차 PRD 본문(2차 PRD가 대체함). 배경 맥락용.</div><div class="path">기준/PRD_SIRIAI_사업소개서.md</div><a class="open" href="../../기준/PRD_SIRIAI_사업소개서.md" target="_blank">열기 →</a></div>
+    <div class="item"><div class="t">PRD_SIRIAI_v0.2</div><div class="d">참고(거의 불필요) — 폐기된 위계모델 포함. 안 봐도 됨.</div><div class="path">기준/PRD_SIRIAI_v0.2.md</div><a class="open" href="../../기준/PRD_SIRIAI_v0.2.md" target="_blank">열기 →</a></div>
+  </div>
+
+  <h2>📚 스터디 (1차 조사·수집)</h2>
+  <div class="h2sub">내용 재료. <b>★핵심 = 내용·표현 정할 때 꼭</b> · 보조/참고 = 선택.</div>
+  <div class="grid">
+    <div class="item"><div class="t">★ 콘텐츠_원천수집</div><div class="d">꼭 — 프로세스 7단계·케이스·견적 등 원천. <b>'무슨 내용'의 본산.</b></div><div class="path">스터디/콘텐츠_원천수집.md</div><a class="open" href="../../스터디/콘텐츠_원천수집.md" target="_blank">열기 →</a></div>
+    <div class="item"><div class="t">★ deck_텍스트_초안</div><div class="d">꼭 — 1차 섹션별 카피 초안. <b>'어떤 표현·분량'</b> 가늠.</div><div class="path">스터디/deck_텍스트_초안.md</div><a class="open" href="../../스터디/deck_텍스트_초안.md" target="_blank">열기 →</a></div>
+    <div class="item"><div class="t">★ 브랜딩_기준_스터디</div><div class="d">꼭 — 영업메일 vs 내러티브·고객 hero. 표현 톤의 잣대.</div><div class="path">스터디/브랜딩_기준_스터디.md</div><a class="open" href="../../스터디/브랜딩_기준_스터디.md" target="_blank">열기 →</a></div>
+    <div class="item"><div class="t">브랜드_무드_정의</div><div class="d">중요 — '아는 사이=따뜻한 지성' 무드. 톤 기준.</div><div class="path">스터디/브랜드_무드_정의.md</div><a class="open" href="../../스터디/브랜드_무드_정의.md" target="_blank">열기 →</a></div>
+    <div class="item"><div class="t">카피뱅크</div><div class="d">보조 — 카피 후보·문구 모음. 표현 고를 때.</div><div class="path">스터디/카피뱅크.md</div><a class="open" href="../../스터디/카피뱅크.md" target="_blank">열기 →</a></div>
+    <div class="item"><div class="t">브랜딩_톤앤매너</div><div class="d">보조 — 톤앤매너 정리.</div><div class="path">스터디/브랜딩_톤앤매너.md</div><a class="open" href="../../스터디/브랜딩_톤앤매너.md" target="_blank">열기 →</a></div>
+    <div class="item"><div class="t">레퍼런스_해부</div><div class="d">참고 — monopo·PAF 해부(레퍼런스는 이제 '레퍼런스 대시보드'로 일원화).</div><div class="path">스터디/레퍼런스_해부.md</div><a class="open" href="../../스터디/레퍼런스_해부.md" target="_blank">열기 →</a></div>
+    <div class="item"><div class="t">홈페이지 분석 (정밀 + 초기)</div><div class="d">⏳ 곧 갱신 — 홈 v2 나오면 재작성. 지금은 보류. (초기 분석본은 _보관 검토)</div><div class="path">스터디/홈페이지_정밀분석.md</div><a class="open" href="../../스터디/홈페이지_정밀분석.md" target="_blank">열기 →</a></div>
+  </div>
+
+  <h2>🗂️ 2차 정리 — 내용 자료</h2>
+  <div class="h2sub">2차에서 정리한 '내용' 관련 자료만. (PRD·구조·디자인 기준은 PLAN에서 접근 — 여긴 내용 결정용만)</div>
+  <div class="grid">
+    <div class="item"><div class="t">건진_정보</div><div class="d">1차에서 건진 핵심 — 메시지·검증수치(✅/❌)·4분야·콘텐츠 자산. 내용 결정의 출발점.</div><div class="path">rebuild/01_내용/건진_정보.md</div><a class="open" href="건진_정보.md" target="_blank">열기 →</a></div>
+    <div class="item"><div class="t">수치→역량 전략</div><div class="d">'몇 개국'(닫힌 수치) → '필요한 곳이면 어디든'(열린 역량). 카피 방향. ※수치 배제가 아니라 증거로 활용.</div><div class="path">rebuild/01_내용/수치_역량_전략.html</div><a class="open" href="수치_역량_전략.html" target="_blank">열기 →</a></div>
+  </div>
+
+  <h2>🧩 클디 (claude.ai 디자인 관련)</h2>
+  <div class="h2sub">1차 deck을 클디에서 만들 때 쓴 프롬프트·사용법.</div>
+  <div class="grid">
+    <div class="item"><div class="t">클로드_프롬프트</div><div class="d">클디 deck 제작 프롬프트.</div><div class="path">클디/클로드_프롬프트.md</div><a class="open" href="../../클디/클로드_프롬프트.md" target="_blank">열기 →</a></div>
+    <div class="item"><div class="t">클로드디자인_사용법</div><div class="d">클디 사용법 메모.</div><div class="path">클디/클로드디자인_사용법.md</div><a class="open" href="../../클디/클로드디자인_사용법.md" target="_blank">열기 →</a></div>
+  </div>
+
+  <h2>🔗 외부 링크 (원본 출처)</h2>
+  <div class="h2sub">SIRIAI 프로젝트 자료 출처 모음. (디자인 레퍼런스는 맨 아래 '레퍼런스 대시보드'로) · URL 모르는 건 ⏳ 자리.</div>
+  <div class="grid">
+    <div class="item ext"><div class="t">노션 — 서비스 포트폴리오</div><div class="d">서비스 3분류·영문 카피·Global Seeding 상세(75개국·12만 큐레이터).</div><a class="open" href="https://mysterious-goal-e21.notion.site/siriai-services" target="_blank">열기 →</a></div>
+    <div class="item ext"><div class="t">⭐ 드라이브 — 서비스소개서 레퍼런스 (팀 수집)</div><div class="d">팀원이 모은 경쟁/동종 <b>서비스·회사 소개서 PDF 20개</b> (8division·on170·레뷰글로벌·인플루넷·인플루언서컴퍼니·commalax·브랜다진 등). deck 골격·경쟁 벤치마크. (⛔읽기만)</div><a class="open" href="https://drive.google.com/drive/folders/1ctTy-M1a8DgFsiNA0TVjOMGjFiYweZPx" target="_blank">열기 →</a></div>
+    <div class="item ext"><div class="t">📊 서비스소개서 벤치마크 — 19선 정독 (클로드 정리)</div><div class="d">위 드라이브 19개를 전수 정독해 뽑은 <b>deck 골격 패턴·증명 방식·차용/회피·경쟁 좌표·우리 DNA.</b> 구조(Step2)·디자인(Step3) 설계 근거.</div><a class="open" href="../레퍼런스/서비스소개서_벤치마크.html" target="_blank">열기 →</a></div>
+    <div class="item ext"><div class="t">현재 홈페이지 (netlify)</div><div class="d">팀장님 홈. ※ 곧 v2 나옴 — 디자인 톤의 무조건 기준.</div><a class="open" href="https://unrivaled-kangaroo-aa2285.netlify.app" target="_blank">열기 →</a></div>
+    <div class="item ext"><div class="t">클디 — 1차 deck 작업본</div><div class="d">claude.ai 디자인 편집기(1차 제작본). 미리보기는 편집기 클릭 후 PageUp/Down.</div><a class="open" href="https://claude.ai/design/p/590a00aa-c93a-4255-8b96-c2657685ded1" target="_blank">열기 →</a></div>
+    <div class="item ext"><div class="t">1차 deck 배포본 (Vercel)</div><div class="d">1차 결과물 (반면교사·참고). "유사 홈페이지" 평 받은 그것.</div><a class="open" href="https://deck-deploy-beta.vercel.app" target="_blank">열기 →</a></div>
+    <div class="item ext"><div class="t">오픈채팅 (Contact 보조)</div><div class="d">이메일 부담될 때 가벼운 연락 채널 → deck Contact에 들어감.</div><a class="open" href="https://open.kakao.com/o/sPb2dMfi" target="_blank">열기 →</a></div>
+    <div class="item ext"><div class="t">레퍼런스 대시보드 →</div><div class="d">디자인 레퍼런스(준용 준 사이트 + 클로드 역추천)는 여기에 모음.</div><a class="open" href="../레퍼런스/레퍼런스_대시보드.html" target="_blank">열기 →</a></div>
+    <div class="item ext todo"><div class="t">figma — sa:ai UI</div><div class="d">sa:ai 화면 (개발 중). 공유 URL 주면 채움.</div><span class="gap">⏳ 준용 URL</span></div>
+    <div class="item ext todo"><div class="t">구글 드라이브 — 시트·보고서</div><div class="d">'SIRIAI 프로젝트관리' 시트·틈결 성과보고서 등. 공유 링크 주면 채움. (⛔클로드는 읽기만)</div><span class="gap">⏳ 준용 URL</span></div>
+    <div class="item ext todo"><div class="t">브랜드 도메인 (미사용)</div><div class="d">siriai.studio / siriai.io — 홈 표기됐으나 미사용. Contact 메일은 jysiriai@gmail.com.</div><span class="gap">참고 · 미사용</span></div>
+  </div>
+
+  <div class="foot">💡 원문 읽다가 "이건 deck에 꼭 / 이건 빼 / 이건 이렇게 바꿔" 정하면 그대로 나한테 줘. 그게 진짜 내용 확보야.<br/>· 빠진 자료(어디 폴더·링크)가 있으면 알려주면 여기 추가할게.</div>
+</body>
+</html>

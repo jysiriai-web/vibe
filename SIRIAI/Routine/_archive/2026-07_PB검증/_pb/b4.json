@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "(주)알에이치앤비브랜즈",
+      "verdict": "적합",
+      "own_brand": "RATED GREEN, Pretty Actually",
+      "reason": "ratedgreenglobal.com에서 자체 브랜드 RATED GREEN 및 Pretty Actually 라인 스킨케어·헤어케어 제품을 직접 소비자에 판매 (출처: ratedgreenglobal.com/prettyactually)"
+    },
+    {
+      "company": "브에노메디텍",
+      "verdict": "적합",
+      "own_brand": "브에노 (Bueno)",
+      "reason": "bueno9.com에서 자체 브랜드 '브에노' 스킨케어 제품을 소비자에 직접 판매, OEM/ODM도 병행하나 자체 PB 명확히 보유 (출처: bueno9.com)"
+    },
+    {
+      "company": "쥬네뷰",
+      "verdict": "적합",
+      "own_brand": "Dewdap (듀댑)",
+      "reason": "dewdap.com에서 자체 브랜드 듀댑으로 스킨케어 제품을 소비자에 직접 판매하는 D2C 뷰티 기업 (출처: dewdap.com)"
+    },
+    {
+      "company": "컬러딥",
+      "verdict": "적합",
+      "own_brand": "컬러딥(Color Deep), 무드매쳐, 크리스탈 데오드란트 등",
+      "reason": "miskos.co.kr에서 자체 브랜드 다수(컬러딥 등) 보유, 메이크업·스킨케어 소비자 직판 (출처: miskos.co.kr)"
+    },
+    {
+      "company": "주식회사 반다비앤에이치",
+      "verdict": "적합",
+      "own_brand": "KIWIGLOW (키위글로우)",
+      "reason": "kiwiglow.co.kr에서 비건 인증 자체 브랜드 KIWIGLOW로 스킨케어·헤어케어 소비자 직판 (출처: kiwiglow.co.kr)"
+    },
+    {
+      "company": "주식회사 정림에프앤에이치",
+      "verdict": "적합",
+      "own_brand": "Vanava (바나바)",
+      "reason": "vanava.co.kr에서 자체 브랜드 Vanava로 보습크림·바디케어 제품을 다국어 쇼핑몰에서 소비자 직판 (출처: vanava.co.kr)"
+    },
+    {
+      "company": "주식회사 웰컴이엔앰",
+      "verdict": "적합",
+      "own_brand": "WELBORN, LOEVIE",
+      "reason": "welcomesgroup.com에서 자체 브랜드 WELBORN·LOEVIE 등 뷰티·헬스케어 제품군을 직접 기획·생산·판매 (출처: welcomesgroup.com)"
+    },
+    {
+      "company": "닥터바이오 & 티블레스",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "litt.ly 링크에서 'ROK Co., Ltd.' 회사명만 확인, 자체 홈페이지 접속 불가로 브랜드 보유 여부 불명확 (출처: litt.ly/corporationrok_global_sales)"
+    },
+    {
+      "company": "Y.N.M",
+      "verdict": "적합",
+      "own_brand": "YNM (You Need Me)",
+      "reason": "ynmcosmetic.co.kr에서 자체 브랜드 YNM으로 립·아이·페이스 컬러 화장품을 소비자에 직접 판매 (출처: ynmcosmetic.co.kr)"
+    },
+    {
+      "company": "헤트라스",
+      "verdict": "적합",
+      "own_brand": "헤트라스",
+      "reason": "유튜브 영상 제목 '가장 매력적인 향기, 나만 알고 싶은 감성 향기 디퓨저, 헤트라스'로 자체 향기 디퓨저 소비자 브랜드 확인 (출처: youtu.be/qRuMsXV8pSw)"
+    }
+  ]
+}

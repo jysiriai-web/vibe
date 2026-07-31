@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SIRIAI 02 · 변주 v2 — 에디토리얼 매거진</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#f7f4ee; --paper-2:#efe9df;
+    --ink:#1b1813; --ink-2:#6c665d; --ink-faint:#a8a194;
+    --line:rgba(27,24,19,.16); --line-2:rgba(27,24,19,.07);
+    --accent:#7b6aad; --accent-soft:#e7e1f1;
+    --peach:#d8a47e; --sky:#8aa6c4;
+    --serif:'Newsreader',serif; --kr:'Pretendard',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{font-family:var(--kr);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5;}
+  .field{min-height:100vh;position:relative;border-bottom:1px solid var(--line);padding:8vh 5vw;display:flex;flex-direction:column;}
+  .lab-flag{position:fixed;top:16px;left:16px;z-index:50;font-family:var(--serif);font-style:italic;font-size:13px;color:var(--ink-2);background:rgba(247,244,238,.85);border:1px solid var(--line);border-radius:2px;padding:6px 13px;}
+  /* magazine header row */
+  .mhead{display:flex;align-items:baseline;gap:28px;border-bottom:1.5px solid var(--ink);padding-bottom:14px;}
+  .mnum{font-family:var(--serif);font-weight:300;font-size:clamp(72px,11vw,168px);line-height:.82;letter-spacing:-.02em;}
+  .mmeta{margin-left:auto;text-align:right;font-family:var(--serif);font-style:italic;font-size:15px;color:var(--ink-2);}
+  .men{font-family:var(--serif);font-size:clamp(20px,2.4vw,34px);font-weight:400;letter-spacing:.01em;}
+  .ktitle{font-family:var(--kr);font-weight:700;letter-spacing:-.02em;word-break:keep-all;line-height:1.12;}
+  .lead{color:var(--ink-2);word-break:keep-all;}
+  /* 01 — 2컬럼 정의|프로세스 */
+  .f-arch .body{display:grid;grid-template-columns:1.3fr 1fr;gap:0;margin-top:auto;}
+  .f-arch .col{padding:34px 36px 10px 0;}
+  .f-arch .col+.col{border-left:1px solid var(--line);padding-left:36px;}
+  .f-arch .ktitle{font-size:clamp(28px,3.3vw,46px);margin-bottom:20px;}
+  .f-arch .lead{font-size:17px;max-width:32ch;}
+  .f-arch .steps{list-style:none;}
+  .f-arch .steps li{display:flex;gap:14px;padding:13px 0;border-bottom:1px solid var(--line-2);align-items:baseline;}
+  .f-arch .steps b{font-family:var(--serif);font-style:italic;color:var(--accent);font-size:15px;min-width:26px;}
+  /* 02 — 박스 카드 그리드 */
+  .f-content .ktitle{font-size:clamp(26px,3vw,42px);margin:30px 0 8px;max-width:20ch;}
+  .f-content .cards{margin-top:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  .card{border:1px solid var(--line);border-radius:3px;padding:20px;min-height:148px;display:flex;flex-direction:column;justify-content:space-between;background:var(--paper);transition:.2s;}
+  .card:hover{background:#fff;box-shadow:0 14px 30px -16px rgba(27,24,19,.2);}
+  .card .cn{font-family:var(--serif);font-style:italic;color:var(--ink-faint);font-size:13px;}
+  .card .ct{font-weight:600;font-size:16px;}
+  .card .cd{font-size:12.5px;color:var(--ink-2);margin-top:4px;}
+  .card.feat{background:var(--ink);color:var(--paper);grid-column:span 2;}
+  .card.feat .ct{font-size:20px;}
+  .card.feat .cd,.card.feat .cn{color:rgba(247,244,238,.6);}
+  .card.accent{background:var(--accent-soft);border-color:transparent;}
+  /* 03 — 2컬럼 텍스트|축 */
+  .f-saai .body{display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:auto;align-items:end;}
+  .f-saai .ktitle{font-size:clamp(26px,3vw,44px);margin-bottom:18px;}
+  .f-saai .lead{font-size:16px;max-width:34ch;margin-bottom:26px;}
+  .axis{display:flex;align-items:baseline;justify-content:space-between;padding:16px 0;border-top:1px solid var(--line);}
+  .axis .ax-en{font-family:var(--serif);font-size:22px;}
+  .axis .ax-kr{font-size:13px;color:var(--ink-2);}
+  .axis .ax-no{font-family:var(--serif);font-style:italic;color:var(--accent);}
+  .built{margin-top:24px;font-size:11px;letter-spacing:.14em;color:var(--ink-faint);text-transform:uppercase;}
+  /* 04 — 선언 */
+  .f-pb{justify-content:center;align-items:flex-start;}
+  .f-pb .mnum{font-size:clamp(120px,20vw,300px);color:var(--accent-soft);position:absolute;right:5vw;top:14vh;z-index:0;}
+  .f-pb .inner{position:relative;z-index:1;max-width:22ch;}
+  .f-pb .men{margin-bottom:18px;color:var(--accent);}
+  .f-pb .ktitle{font-size:clamp(30px,4vw,58px);margin-bottom:24px;}
+  .f-pb .lead{font-size:17px;max-width:34ch;}
+  .f-pb .soon{margin-top:30px;font-family:var(--serif);font-style:italic;color:var(--ink-faint);}
+</style>
+</head>
+<body>
+  <div class="lab-flag">v2 — Editorial / Archive Magazine</div>
+
+  <section class="field f-arch">
+    <div class="mhead">
+      <div class="mnum">01</div>
+      <div class="men">Architecting</div>
+      <div class="mmeta">Practice no.1<br/>전략 · 설계</div>
+    </div>
+    <div class="body">
+      <div class="col">
+        <h2 class="ktitle">당신이 놓친 건 예산이 아니라,<br/>비어 있는 '자리'입니다.</h2>
+        <p class="lead">시장에서 당신 브랜드가 들어설 빈 자리를 진단하고, 어떻게 들어설지 설계합니다. 플랫폼을 직접 운영해 본 눈으로 봅니다.</p>
+      </div>
+      <div class="col">
+        <ul class="steps">
+          <li><b>i</b><span>페인포인트 진단</span></li>
+          <li><b>ii</b><span>포지셔닝 매핑</span></li>
+          <li><b>iii</b><span>캠페인 아키텍처</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="field f-content">
+    <div class="mhead">
+      <div class="mnum">02</div>
+      <div class="men">Visual Content</div>
+      <div class="mmeta">Practice no.2<br/>75개국 · 120,000 큐레이터</div>
+    </div>
+    <h2 class="ktitle">가입자 풀이 아니라, 당신께 맞는 사람을 고릅니다.</h2>
+    <div class="cards">
+      <div class="card feat"><div class="cn">i. Seeding</div><div><div class="ct">인플루언서 시딩 — 나노에서 메가까지</div><div class="cd">매번 새로 발굴 · 후불제(업로드분만 청구)</div></div></div>
+      <div class="card accent"><div class="cn">ii. Global</div><div><div class="ct">글로벌 시딩</div><div class="cd">美·日·中·東南 / 12+ 플랫폼</div></div></div>
+      <div class="card"><div class="cn">iii. Reels</div><div><div class="ct">릴스 · 숏츠</div></div></div>
+      <div class="card"><div class="cn">iv. Conversion</div><div><div class="ct">라이브커머스 · 광고 전환</div></div></div>
+      <div class="card"><div class="cn">v. Magazine</div><div><div class="ct">매거진 협업</div></div></div>
+      <div class="card"><div class="cn">vi. QC</div><div><div class="ct">검수 · 리스크 관리</div></div></div>
+    </div>
+  </section>
+
+  <section class="field f-saai">
+    <div class="mhead">
+      <div class="mnum">03</div>
+      <div class="men">sa:ai</div>
+      <div class="mmeta">Practice no.3<br/>자체 AI 플랫폼</div>
+    </div>
+    <div class="body">
+      <div>
+        <h2 class="ktitle">관계에서 시작해 데이터로 확장하고, 기록으로 증명합니다.</h2>
+        <p class="lead">당신의 브랜드를 사람처럼 이해하는 AI 위에서 일합니다. 감이 아니라 구조로 결정합니다.</p>
+        <div class="built">Built on — OpenAI · Anthropic · Gemini · Vercel · Next.js</div>
+      </div>
+      <div>
+        <div class="axis"><span class="ax-no">i</span><span class="ax-en">Performance</span><span class="ax-kr">성과 · 데이터</span></div>
+        <div class="axis"><span class="ax-no">ii</span><span class="ax-en">Creative</span><span class="ax-kr">생성 AI 통합</span></div>
+        <div class="axis"><span class="ax-no">iii</span><span class="ax-en">Archivo</span><span class="ax-kr">기록 · 증명</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="field f-pb">
+    <div class="mnum">04</div>
+    <div class="inner">
+      <div class="men">Private Brand</div>
+      <h2 class="ktitle">우리 말을, 우리 제품으로 증명합니다.</h2>
+      <p class="lead">남의 브랜드만 키우지 않습니다. 우리가 권하는 구조가, 곧 우리가 쓰는 구조입니다.</p>
+      <div class="soon">Coming 2026 —</div>
+    </div>
+  </section>
+</body>
+</html>

@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "데이셀코스메틱 주식회사",
+      "verdict": "적합",
+      "own_brand": "DAYCELL, Dr.VITA, MBA MoBalA, ESTHENIQUE, MEDI LAB, guteHaare",
+      "reason": "daycellglobal.com에서 다수의 자체 브랜드 제품(클렌저·토너·크림 등)을 소비자에게 직접 판매"
+    },
+    {
+      "company": "WONDER BATH (CSA COSMIC Co., Ltd.)",
+      "verdict": "적합",
+      "own_brand": "WONDER BATH",
+      "reason": "wonderbath.com에서 자체 브랜드 WONDER BATH로 바디·스킨케어 제품을 소비자에게 직접 판매"
+    },
+    {
+      "company": "fmk 에프엠케이",
+      "verdict": "적합",
+      "own_brand": "FMK(에프엠케이)",
+      "reason": "fmkcos.com에서 자체 브랜드 FMK로 PDRN 홈케어 키트 등 스킨부스터 제품을 소비자에게 직접 판매"
+    },
+    {
+      "company": "리꼼 코스메틱",
+      "verdict": "적합",
+      "own_brand": "리꼼 LICORNE",
+      "reason": "licorne.co.kr에서 자체 브랜드 리꼼(LICORNE)으로 다수 스킨케어 라인 제품을 소비자에게 직접 판매"
+    },
+    {
+      "company": "FORMECELL(포미셀)",
+      "verdict": "적합",
+      "own_brand": "FORMECELL(포미셀)",
+      "reason": "formecell.com에서 자체 브랜드 포미셀로 크림·쿠션 등 제품을 소비자에게 직접 판매"
+    },
+    {
+      "company": "페이블",
+      "verdict": "적합",
+      "own_brand": "페이블 Fable (by ATNATURE)",
+      "reason": "fableperfume.com에서 자체 향수 브랜드 페이블(Fable)로 퍼퓸·롤온 제품을 소비자에게 직접 판매"
+    },
+    {
+      "company": "뷰핸",
+      "verdict": "적합",
+      "own_brand": "뷰핸(BEAUHAN)",
+      "reason": "beauhanmall.com에서 자체 브랜드 뷰핸(BEAUHAN)으로 핸드·바디케어 등 스킨케어 제품을 소비자에게 직접 판매"
+    },
+    {
+      "company": "주식회사 라피끄",
+      "verdict": "적합",
+      "own_brand": "플렌티플랜트(PlentyPlant)",
+      "reason": "plentyplant.co.kr에서 자체 브랜드 플렌티플랜트로 진생·어성초 등 다수 라인 스킨케어 제품을 소비자에게 직접 판매"
+    },
+    {
+      "company": "고요이 GOYOYI",
+      "verdict": "적합",
+      "own_brand": "고요이(GOYOYI)",
+      "reason": "goyoyi.com에서 자체 프래그런스 브랜드 고요이로 퍼퓸·디퓨저·룸스프레이 등을 소비자에게 직접 판매"
+    },
+    {
+      "company": "피에이치하비",
+      "verdict": "적합",
+      "own_brand": "Ph.Hubby",
+      "reason": "en.phhubby.com에서 자체 선케어 브랜드 Ph.Hubby로 선밤·쿠션·엘릭서 등 제품을 소비자에게 직접 판매"
+    }
+  ]
+}

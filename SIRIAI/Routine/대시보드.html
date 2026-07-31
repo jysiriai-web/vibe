@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIRIAI 영업 자동화 — 홈</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--paper:#F3EEE2;--ink:#211A33;--soft:#5b5468;--line:rgba(33,26,51,.14);--card:#FBF8F1;
+    --ok:#2E7D5B;--warn:#B7791F;--idle:#9b93a3;--accent:#6B4DE6;--accentbg:rgba(107,77,230,.07);
+    --mono:'JetBrains Mono',monospace;--sans:'Pretendard','Helvetica Neue',sans-serif;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.55;padding:32px 26px 60px}
+  .wrap{max-width:900px;margin:0 auto}
+  .hd{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:3px}
+  .label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft)}
+  h1{font-size:25px;font-weight:600;letter-spacing:-.02em}
+  h1 .si{font-family:'Helvetica Neue',sans-serif}
+  .demo{font-size:11px;color:var(--warn);margin-left:auto}
+  .sub{color:var(--soft);font-size:13.5px;margin:3px 0 22px}
+  h2{font-size:11px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--soft);margin:26px 0 11px;font-weight:600}
+
+  /* 현황 5 */
+  .metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+  .m{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:13px 14px}
+  .m.lead{border-color:rgba(107,77,230,.3)}
+  .m .v{font-size:25px;font-weight:600;line-height:1.1}
+  .m .k{font-size:12px;color:var(--soft);margin-top:3px}
+  .m .step{display:block;font-family:var(--mono);font-size:9.5px;color:var(--idle);margin-top:6px;letter-spacing:.04em}
+
+  /* 바로가기 3 */
+  .nav{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+  .ncard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px 17px;text-decoration:none;color:inherit;transition:.1s;display:block}
+  .ncard:hover{border-color:var(--accent);box-shadow:0 0 0 2px var(--accentbg)}
+  .ncard .ni{font-size:17px}
+  .ncard .nt{font-size:15px;font-weight:600;margin:6px 0 2px}
+  .ncard .nd{font-size:12px;color:var(--soft)}
+  .ncard .nbadge{display:inline-block;margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--accent);background:var(--accentbg);padding:2px 8px;border-radius:12px}
+
+  /* 내가 하는 것 — 컴팩트 */
+  .acts{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .act{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:14px 15px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:9px;transition:.1s}
+  .act.live{border-color:var(--ok)}
+  .act.live:hover{background:#fff;box-shadow:0 0 0 2px rgba(46,125,91,.18)}
+  .act.soon{opacity:.6}
+  .act .top{display:flex;align-items:baseline;justify-content:space-between;gap:6px}
+  .act .n{font-family:var(--mono);font-size:10px;color:var(--accent)}
+  .act .t{font-size:16px;font-weight:600}
+  .act .badge{font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:12px;align-self:flex-start}
+  .b-live{background:rgba(46,125,91,.13);color:var(--ok)}
+  .b-soon{background:rgba(155,147,163,.16);color:var(--idle)}
+  footer{margin-top:36px;border-top:1px solid var(--line);padding-top:13px;font-family:var(--mono);font-size:11px;color:var(--idle);display:flex;justify-content:space-between}
+  @media(max-width:760px){.metrics{grid-template-columns:repeat(2,1fr)}.nav,.acts{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hd">
+    <span class="label">Sales Automation · Home</span>
+    <span class="demo">⚠️ 데모 — 모듈 가동되며 업데이트</span>
+  </div>
+  <h1><span class="si">SIRIAI</span> 영업 자동화</h1>
+  <div class="sub">복잡한 건 뒤에서 자동. 아래 현황 먼저 보고, 내가 하는 건 4가지뿐.</div>
+
+  <h2>현황 (6월)</h2>
+  <div class="metrics">
+    <div class="m"><div class="v" id="s-wait">—</div><div class="k">발송 대기</div><span class="step">초안·승인</span></div>
+    <div class="m"><div class="v" id="s-sent">—</div><div class="k">발송됨</div><span class="step">누적</span></div>
+    <div class="m"><div class="v" id="s-reply">—</div><div class="k">회신</div><span class="step">관심 신호</span></div>
+    <div class="m lead"><div class="v" id="s-meet">—</div><div class="k">미팅 성사</div><span class="step">리드→미팅</span></div>
+    <div class="m lead"><div class="v" id="s-deal">—</div><div class="k">계약 완료</div><span class="step">계약·성사</span></div>
+  </div>
+
+  <h2>바로 보기</h2>
+  <div class="nav">
+    <a class="ncard" href="_프로세스.html"><div class="ni">🗺</div><div class="nt">전체 흐름</div><div class="nd">10모듈 프로세스 맵 · 내가 손대는 4곳</div></a>
+    <a class="ncard" href="_doc.html?f=_아침요약_0613.md"><div class="ni">🌅</div><div class="nt">아침 요약</div><div class="nd">어젯밤 작업 + 후속 필요 조치</div><span class="nbadge" id="todo">오늘 할 일</span></a>
+    <a class="ncard" href="_월별보고서.html"><div class="ni">📊</div><div class="nt">월별 보고서</div><div class="nd">6월 세일즈 퍼널·전환·회신 현황</div></a>
+  </div>
+
+  <h2>내가 하는 것 (4)</h2>
+  <div class="acts">
+    <div class="act soon">
+      <div class="top"><span class="n">STEP 1</span></div><div class="t">브랜드 입력</div>
+      <span class="badge b-soon">준비중</span>
+    </div>
+    <a class="act live" href="_발송검토.html">
+      <div class="top"><span class="n">STEP 2</span></div><div class="t">발송 검토</div>
+      <span class="badge b-live">지금 가능 · <span id="s-wait2">—</span>건</span>
+    </a>
+    <div class="act soon">
+      <div class="top"><span class="n">STEP 3</span></div><div class="t">회신 검토</div>
+      <span class="badge b-soon">준비중 (5·6)</span>
+    </div>
+    <div class="act soon">
+      <div class="top"><span class="n">STEP 4</span></div><div class="t">미팅 회신</div>
+      <span class="badge b-soon">준비중 (7)</span>
+    </div>
+  </div>
+
+  <footer><span>SIRIAI · Routine</span><span id="clock"></span></footer>
+</div>
+<script>
+document.getElementById('clock').textContent='updated '+new Date().toLocaleString('ko-KR');
+fetch('/api/stats').then(r=>r.json()).then(s=>{
+  const set=(id,v)=>document.getElementById(id).textContent=v;
+  set('s-wait',s.대기); set('s-wait2',s.대기); set('s-sent',s.발송);
+  set('s-reply',s.회신); set('s-meet',s.미팅); set('s-deal',s.계약);
+}).catch(()=>{['s-wait','s-sent','s-reply','s-meet','s-deal'].forEach(i=>document.getElementById(i).textContent='?');});
+</script>
+</body>
+</html>

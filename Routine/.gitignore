@@ -1,8 +1,0 @@
-# Routine 공유 — 절대 커밋 금지
-secrets/
-.env
-
-# 공유 환경
-.venv/
-__pycache__/
-*.pyc

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<title>SIRIAI 인터참 사후 팔로업 — 템플릿 (흰 본문 · c 색코딩)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Noto+Sans+KR:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* 라이트 반전 — cd-study의 ink(#f4f4f3)를 지면으로, paper(#000)를 잉크로 */
+    --paper:#f4f4f3;--ink:#000000;--ink2:rgba(0,0,0,.62);--ink3:rgba(0,0,0,.42);
+    --line:rgba(0,0,0,.13);--line2:rgba(0,0,0,.2);--dark:#000000;
+    /* 강점 박스는 무채색 확정 (a안 계열) — (c) 색코딩은 "컬러풀 원치 않음"으로 철회 */
+    --f:'Inter Tight','Noto Sans KR',Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#E4E4E1;font-family:var(--f);line-height:1.55;word-break:keep-all;
+       -webkit-font-smoothing:antialiased;padding:24px 12px 60px}
+  .email{max-width:600px;margin:0 auto;background:var(--paper);border-radius:14px;overflow:hidden;color:var(--ink)}
+
+  /* ══ 히어로 — 검정 유지 (홈페이지 오마주) ══ */
+  .hero{position:relative;background-color:#000;background-image:url('https://siriai-mail-assets.vercel.app/hero_bg.png');
+        background-size:cover;background-position:center;padding:33px 40px 30px;min-height:320px;
+        display:flex;flex-direction:column;color:#f4f4f3}
+  /* ── 헤더 [C안] 2존 : 좌상단 마스트헤드(로고+업종) → 중앙 대형 타이포 ──
+     근거: 실측한 이메일 레퍼런스(Spotify·Absolut·CLASS101·FGTS·라우드메이커스) 전부
+           "로고 + 메시지" 2존. 네 귀퉁이 배치는 웹사이트 문법이라 600px에선 과밀.
+     좌하단은 구텐베르크 다이어그램상 휴면구역(시선 잘 안 감) → 제거.
+     우하단 태그라인은 본문(훅·강점01)과 중복 → 제거. */
+  .hero-logo{display:flex;align-items:center;gap:11px}
+  .hero-logo img{width:76px;height:auto;display:block}
+  .hero-logo i{width:1px;height:14px;background:rgba(244,244,243,.34);display:inline-block}
+  .hero-logo span{font-size:14px;font-weight:400;color:#f4f4f3}
+  .hero-role{margin-top:7px;font-size:12.5px;letter-spacing:.02em;color:rgba(244,244,243,.55)}
+  /* 캡션이 빠져 아래가 비므로 대형 타이포를 그 공간에서 광학 중앙에 놓음 */
+  .hero-center{flex:1;display:flex;align-items:center;justify-content:center;
+               padding:34px 0 30px;text-align:center}
+  .hero-center .big{font-size:33px;font-weight:500;letter-spacing:-.01em;line-height:1.18}
+  .hero-center .big .jp{font-family:'Noto Sans JP','Inter Tight',sans-serif;font-weight:500}
+
+  /* ══ 본문 — 흰(오프화이트) 지면 ══ */
+  /* ② 인사 — 누구인지 밝히는 자리 (한 줄, 잉크 진하게) */
+  .ctx{padding:30px 40px 0;font-size:15px;line-height:1.7;letter-spacing:-.005em;color:var(--ink)}
+  .ctx b{color:var(--ink);font-weight:600}
+  /* ③ 오프닝 훅 — 왜 '지금' 연락했는지 + 부스 대화 소환(리서치 증거) */
+  .hook{padding:14px 40px 30px;font-size:15px;line-height:1.75;letter-spacing:-.005em;color:var(--ink2)}
+  .hook b{color:var(--ink);font-weight:500}
+  .sec{padding:30px 40px;border-top:1px solid var(--line)}
+  .sec .lab{font-size:13px;font-weight:500;letter-spacing:-.01em;color:var(--ink3);margin-bottom:12px}
+  .sec h3{font-size:26px;font-weight:500;letter-spacing:-.02em;line-height:1.25;margin-bottom:12px;color:var(--ink)}
+  .sec h3 em{font-style:normal;font-weight:400;color:rgba(0,0,0,.4)}
+  .sec p{font-size:15px;line-height:1.7;letter-spacing:-.005em;color:var(--ink2)}
+  .sec p b{color:var(--ink);font-weight:500}
+
+  /* ── 강점 3박스 — 무채색(c 색코딩 철회) + 라인 아이콘 ──
+       컬러풀 배제 요청 → 틴트·색보더 제거. 구분은 아이콘+헤어라인+면 밝기로만 */
+  /* 카드 = 6:4 비율 고정 사각형. 위:제목(좌)+아이콘(우) / 아래:설명 — 사이는 여백으로 벌림 */
+  .cards{display:flex;gap:10px;margin-top:18px}
+  .card{flex:1;border:1px solid var(--line);border-radius:10px;padding:16px 15px;
+        background:rgba(0,0,0,.022);aspect-ratio:6/4;
+        display:flex;flex-direction:column;justify-content:space-between}
+  .card .head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .card .ic{width:19px;height:19px;flex:none;color:var(--ink3)}
+  .card .ic svg{width:19px;height:19px;display:block}
+  .card .t{font-size:15px;font-weight:600;letter-spacing:-.01em;color:var(--ink);
+           line-height:1.2;white-space:nowrap}
+  .card .t .n{color:var(--ink3);font-weight:500;margin-right:2px}
+  .card .d{font-size:12.5px;line-height:1.55;color:var(--ink2)}
+
+  /* ── 질문 → 사업소개서 ── */
+  .qa{margin-top:4px}
+  .qa a{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:15px 0;
+        border-bottom:1px solid var(--line);text-decoration:none;color:var(--ink);
+        font-size:16px;font-weight:500;letter-spacing:-.01em}
+  .qa a:first-child{border-top:1px solid var(--line)}
+  .qa a i{font-style:normal;color:var(--ink3);font-size:15px}
+  .qa-note{margin-top:12px;font-size:13px;color:var(--ink3)}
+
+  /* ── 코드 박스 — welcome3처럼 밝은 지면 위 '어두운 박스' ── */
+  .codebox{background:var(--dark);border-radius:12px;padding:24px 20px;margin-top:18px;
+           text-align:center;color:#f4f4f3}
+  .codebox .cl{font-size:12.5px;font-weight:500;color:rgba(244,244,243,.55);margin-bottom:14px}
+  .codewrap{display:flex;align-items:stretch;justify-content:center;margin-bottom:14px}
+  .code{border:1px solid rgba(244,244,243,.55);border-right:0;border-radius:8px 0 0 8px;
+        padding:13px 18px;font-size:21px;font-weight:600;letter-spacing:.14em;color:#f4f4f3;
+        background:transparent;user-select:all}
+  .copybtn{border:1px solid rgba(244,244,243,.55);border-radius:0 8px 8px 0;background:transparent;
+           color:#f4f4f3;font-family:var(--f);font-size:12.5px;font-weight:500;padding:0 15px;cursor:pointer}
+  .copybtn:hover{background:rgba(244,244,243,.1)}
+  .codebox .use{font-size:12.5px;line-height:1.6;color:rgba(244,244,243,.55)}
+
+  /* CTA = 밑줄 텍스트 링크 (welcome3 방식). 바로 위 코드박스가 이미 강한 앵커라
+     솔리드 버튼을 겹치면 무거운 덩어리가 연달아 와 서로 잡아먹음.
+     단 탭 타겟 확보 — 상하 패딩으로 44px 이상 */
+  .cta-wrap{text-align:center;margin-top:14px}
+  .cta{display:inline-block;color:var(--ink);text-decoration:none;
+       font-weight:600;font-size:15px;letter-spacing:-.01em;
+       padding:13px 6px;line-height:1.2;
+       border-bottom:1.5px solid var(--ink)}
+
+  /* ⑦ 아웃트로 — 히어로와 수미상관이되 '잔향' 수준으로.
+     전용 이미지(outro_bg): 히어로 대비 채도 50%→19% · 밝기 35→18 로 눌러 색을 뺌 */
+  .outro{background-color:#000;background-image:url('https://siriai-mail-assets.vercel.app/outro_bg.png?v=3');
+         background-size:cover;background-position:center;
+         padding:36px 40px 30px;color:#f4f4f3}
+  /* 마무리 문장 : 22px는 섹션 헤드라인(26)급이라 '정중한 인사'가 헤드라인 무게를 가짐 →
+     19px로 낮춤. 본문(15)·서명(14.5)보다는 크고 헤드라인과는 구분되는 '마무리' 자리 */
+  .outro .msg{font-size:19px;font-weight:500;letter-spacing:-.015em;line-height:1.5}
+  .outro .thanks{font-size:15px;font-weight:400;color:rgba(244,244,243,.72);
+                 margin-top:16px;margin-bottom:30px}
+  .outro .rule{height:1px;background:rgba(244,244,243,.18);margin-bottom:22px}
+  .outro .foot{display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
+  .outro .foot img{width:66px;height:auto;display:block;opacity:.9}
+  .outro .brand{display:flex;flex-direction:column;gap:9px}
+  .outro .site{font-size:12.5px;color:rgba(244,244,243,.62);text-decoration:none;
+               border-bottom:1px solid rgba(244,244,243,.28);padding-bottom:2px;align-self:flex-start}
+  .outro .who{text-align:right}
+  .outro .who .name{font-size:14.5px;font-weight:500;color:#f4f4f3;letter-spacing:-.01em}
+  .outro .who .c{font-size:13px;line-height:1.6;color:rgba(244,244,243,.58);margin-top:3px}
+  .outro .unsub{margin-top:24px;font-size:12px;line-height:1.6;color:rgba(244,244,243,.42)}
+  .meta{max-width:600px;margin:16px auto 0;font-size:11px;color:rgba(0,0,0,.42);line-height:1.75}
+  .meta b{color:rgba(0,0,0,.62)}
+  .meta code{font-family:var(--f);color:rgba(0,0,0,.62)}
+  @media(max-width:560px){.cards{flex-direction:column}}
+</style>
+</head>
+<body>
+
+  <div class="email">
+
+    <div class="hero">
+      <div class="hero-mast">
+        <div class="hero-logo"><img src="https://siriai-mail-assets.vercel.app/siriai-word-white@2x.png" alt="Siriai" width="76"><i></i><span>seoul</span></div>
+        <div class="hero-role">인플루언서 마케팅</div>
+      </div>
+      <div class="hero-center">
+        <div class="big">가장 쉬운 방법으로,<br><span class="jp">“시리아이(しりあい)”</span>가 됩니다</div>
+      </div>
+    </div>
+
+    <!-- ② 인사 : 누구인지 -->
+    <div class="ctx">김서연 팀장님 — 지난 인터참에서 <b>무드컬러</b> 부스에서 인사드렸던 SIRIAI 조준용입니다.</div>
+
+    <!-- ③ 오프닝 훅 : 왜 지금(늦은 연락 명분) + 부스 대화 소환 + 아래로 잇는 다리 -->
+    <div class="hook">박람회 마치고 정리하시느라 바쁘셨을 것 같아 이제야 연락드립니다.
+      그때 <b>“브랜드 무드에 맞는 분을 찾는 게 늘 어렵다”</b>고 하신 말씀이 계속 남아서,
+      무드컬러에 맞을 만한 후보를 따로 추려봤습니다.</div>
+
+    <!-- ④ 강점 3박스 : "왜 우리한테 맡기나" — 신뢰 근거. 훅에서 넘어온 흐름을 받는 자리
+         ※ 브랜드별로 바뀌지 않는 고정 블록 (셋의 축 = 능력 / 범위 / 구조) -->
+    <div class="sec">
+      <div class="lab">Strengths</div>
+      <h3>다른 점은<br><em>세 가지입니다.</em></h3>
+      <div class="cards">
+        <div class="card">
+          <div class="head">
+            <span class="t"><span class="n">01.</span>기술력</span>
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/><path d="M11 8.2v5.6M8.2 11h5.6"/></svg></span>
+          </div>
+          <div class="d">AI 활용을 통한 정밀 모집</div>
+        </div>
+        <div class="card">
+          <div class="head">
+            <span class="t"><span class="n">02.</span>유연함</span>
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/><path d="M12 3.5c2.2 2.4 3.3 5.4 3.3 8.5s-1.1 6.1-3.3 8.5c-2.2-2.4-3.3-5.4-3.3-8.5S9.8 5.9 12 3.5z"/></svg></span>
+          </div>
+          <div class="d">한국·중국·미국 동시 진행</div>
+        </div>
+        <div class="card">
+          <div class="head">
+            <span class="t"><span class="n">03.</span>합리성</span>
+            <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18V9M10 18V5M16 18v-6M22 18H2"/></svg></span>
+          </div>
+          <div class="d">목표 규모에 맞춘 견적</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑤ Q&A : 회신 전에 생길 반론·궁금증을 미리 눕히는 자리. 답은 메일이 아니라 덱에서
+         ※ 링크는 사업소개서로 — 메일은 떡밥, 설득은 덱이 담당 (깔때기 연결점) -->
+    <div class="sec">
+      <div class="lab">Questions</div>
+      <h3>궁금하실 것만 1분이면 됩니다.</h3>
+      <div class="qa">
+        <a href="https://siriai-qa-deck.vercel.app/#different">SIRIAI는 뭐가 다른가요? <i>→</i></a>
+        <a href="https://siriai-qa-deck.vercel.app/#how">어떻게 진행되나요? <i>→</i></a>
+        <a href="https://siriai-qa-deck.vercel.app/#cost">비용은 어떻게 되나요? <i>→</i></a>
+      </div>
+      <div class="qa-note">누르시면 사업소개서에서 해당 내용을 확인하실 수 있습니다.</div>
+    </div>
+
+    <!-- ⑥ 후보 코드 : 이 메일의 목적지. 훅에서 "추려봤습니다"라고 한 것을 여기서 실물로 넘김
+         ※ 브랜드 전용 코드 = 개인화의 증거이자 열람 트리거. CTA는 이 하나뿐 -->
+    <div class="sec">
+      <div class="lab">Next</div>
+      <h3>무드컬러에 맞는<br><em>인플루언서 후보 리스트</em></h3>
+      <p>무드컬러의 무드·타겟에 맞춘 예시 계정들입니다. 팔로워 규모와 결이 한눈에 보이도록 정리해 두었습니다.</p>
+
+      <div class="codebox">
+        <div class="cl">무드컬러 전용 코드</div>
+        <div class="codewrap">
+          <span class="code" id="code">MOODCOLOR</span><button class="copybtn" onclick="cp()">복사</button>
+        </div>
+        <div class="use">아래 버튼을 누르고 이 코드를 입력하시면 리스트가 열립니다.</div>
+      </div>
+
+      <div class="cta-wrap">
+        <a class="cta" href="https://siriai-qa-deck.vercel.app/?code=MOODCOLOR">후보 리스트 열어보기 →</a>
+      </div>
+    </div>
+
+    <!-- ⑦ 아웃트로 : 히어로와 수미상관(검정+그라디언트). 미팅 제안 + 서명 + 법 최소 -->
+    <div class="outro">
+      <div class="msg">편하신 때 알려주시면<br>한번 찾아뵙고 인사드리겠습니다.</div>
+      <div class="thanks">감사합니다.</div>
+      <div class="rule"></div>
+      <div class="foot">
+        <div class="brand">
+          <img src="https://siriai-mail-assets.vercel.app/siriai-word-white@2x.png" alt="Siriai" width="66">
+          <a class="site" href="https://cd-study-deploy.vercel.app/">홈페이지 둘러보기 →</a>
+        </div>
+        <div class="who">
+          <div class="name">조준용 · SIRIAI Sales Manager</div>
+          <div class="c">M (+82) 10-7552-4320 · E jysiriai@gmail.com</div>
+        </div>
+      </div>
+      <div class="unsub">더 이상 메일을 원치 않으시면 회신으로 알려주시면 즉시 중단하겠습니다.</div>
+    </div>
+
+  </div>
+
+  <div class="meta"><b>제목</b> 지난 인터참에서 뵀던 SIRIAI입니다 — 무드컬러에 맞는 인플루언서<br>
+  <b>프리헤더</b> 무드컬러를 위해 선별한 리스트, 코드로 바로 열어보실 수 있습니다.<br><br>
+  <b>이 버전</b> = 흰(오프화이트 #f4f4f3) 본문 + 검정 히어로 + <b>(c) 박스 색코딩</b>(카드별 틴트 배경·색 보더·색 번호). 색은 히어로 그라디언트에서 가져와 흰 배경에서 읽히도록 어둡게 조정.<br>
+  코드박스는 welcome3처럼 <b>밝은 지면 위 어두운 박스</b>로 두어 강조. CTA도 검정 알약.<br>
+  ⚠️ 실제 메일에선 JS 미동작 → CTA URL에 <code>?code=</code>로 코드를 실어 붙여넣기 없이 열리게 함. 코드는 클릭 시 전체 선택.<br>
+  치환 슬롯 : 브랜드명 · 담당자명 · 부스대화 인용 · 전용코드 · 덱 URL</div>
+
+<script>
+function cp(){
+  var t=document.getElementById('code').textContent.trim();
+  navigator.clipboard.writeText(t).then(function(){
+    var b=document.querySelector('.copybtn'); var o=b.textContent;
+    b.textContent='복사됨'; setTimeout(function(){b.textContent=o;},1200);
+  });
+}
+</script>
+</body>
+</html>

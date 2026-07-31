@@ -1,0 +1,66 @@
+[
+  {
+    "code": "MSN1248",
+    "cat": "스킨케어",
+    "intro": "의료기기 기업 아이넛의 메디컬 코스메틱 스킨케어 브랜드",
+    "verdict": "타겟",
+    "basis": "INOT 자체 메디컬 코스메틱 브랜드",
+    "homepage": ""
+  },
+  {
+    "code": "MEL5395",
+    "cat": "스킨케어",
+    "intro": "화장품 OEM/ODM 다믈이 전개하는 자체 스킨케어 브랜드",
+    "verdict": "타겟",
+    "basis": "OEM 겸업이나 자체 브랜드 보유",
+    "homepage": ""
+  },
+  {
+    "code": "NAT2202",
+    "cat": "스킨케어",
+    "intro": "펩타이드·줄기세포 화장품 OEM/ODM, 자체 브랜드 미니셀 운영",
+    "verdict": "타겟",
+    "basis": "OEM 주력이나 자체 브랜드 Minicell",
+    "homepage": ""
+  },
+  {
+    "code": "NUL4052",
+    "cat": "기타",
+    "intro": "화장품 용기·어플리케이터에 기기 기술을 접목하는 B2B 기업",
+    "verdict": "제외",
+    "basis": "브랜드 대상 패키징·기술 공급",
+    "homepage": ""
+  },
+  {
+    "code": "SFB1880",
+    "cat": "기타",
+    "intro": "식물·동물 추출물 원료를 공급하는 중국 B2B 소재 기업",
+    "verdict": "제외",
+    "basis": "화장품·식품용 원료 공급사",
+    "homepage": "https://www.fairirbiotech.com/"
+  },
+  {
+    "code": "SKI3054",
+    "cat": "스킨케어",
+    "intro": "자체 에스테틱 브랜드 세인트프랑을 운영하는 K뷰티 기업",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 saintfran 직판",
+    "homepage": ""
+  },
+  {
+    "code": "SYM4583",
+    "cat": "스킨케어",
+    "intro": "심포니 성형외과가 선보인 스킨부스터 브랜드 SYMFECT 전개",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 SYMFECT 보유",
+    "homepage": ""
+  },
+  {
+    "code": "THE1979",
+    "cat": "홈디바이스",
+    "intro": "헤어드라이어·고데기 등 미용가전을 만드는 중국 제조사",
+    "verdict": "제외",
+    "basis": "해외 브랜드 OEM/ODM 수탁 중심",
+    "homepage": ""
+  }
+]

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>인터참 사후 팔로업 메일 — 진행 체크리스트</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root{
+    --paper:#F5F1E8;--card:#FFFFFF;--ink:#211A33;--ink2:rgba(33,26,51,.66);--ink3:rgba(33,26,51,.46);
+    --line:rgba(33,26,51,.12);--line2:rgba(33,26,51,.24);--teal:#0F6E56;--tealbg:#E1F5EE;
+    --sans:'Pretendard',-apple-system,'Helvetica Neue',Arial,sans-serif;
+    --mono:'Pretendard',-apple-system,'Helvetica Neue',Arial,sans-serif;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{--paper:#17141d;--card:#221d2b;--ink:#F3EEE2;--ink2:rgba(243,238,226,.7);--ink3:rgba(243,238,226,.45);
+      --line:rgba(243,238,226,.13);--line2:rgba(243,238,226,.26);--tealbg:rgba(15,110,86,.18);}
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.55;word-break:keep-all;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:860px;margin:0 auto;padding:44px 22px 70px}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px}
+  h1{font-size:25px;font-weight:600;letter-spacing:-.02em;margin-bottom:7px}
+  .sub{color:var(--ink2);font-size:14px;line-height:1.55;max-width:52em}
+  .meta{font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-top:11px;letter-spacing:.03em}
+  .now-bar{display:flex;align-items:center;gap:10px;background:var(--tealbg);border:1px solid rgba(15,110,86,.32);border-radius:12px;padding:13px 16px;margin:22px 0 18px}
+  .now-bar .lb{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal)}
+  .now-bar .val{font-size:15.5px;font-weight:600;color:var(--teal)}
+  .tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+  table{border-collapse:collapse;width:100%;min-width:720px;background:var(--card)}
+  th{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);text-align:left;font-weight:500;padding:11px 13px;border-bottom:1px solid var(--line)}
+  td{padding:12px 13px;border-bottom:1px solid var(--line);font-size:13.5px;color:var(--ink2);vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  tr.grp td{background:rgba(33,26,51,.035);font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--ink);font-weight:500;padding:9px 13px}
+  @media(prefers-color-scheme:dark){tr.grp td{background:rgba(243,238,226,.05)}}
+  tr.grp .gtime{float:right;color:var(--ink2);font-weight:500}
+  .step .sec{color:var(--ink);font-weight:500;white-space:nowrap}
+  .est{color:var(--ink);font-weight:500;white-space:nowrap}
+  input[type=checkbox]{width:18px;height:18px;accent-color:var(--teal);cursor:pointer;margin:0}
+  .cbcell{width:44px;text-align:center}
+  tr.now td{background:var(--tealbg)}
+  tr.now td:first-child{border-left:3px solid var(--teal)}
+  .nowbadge{display:none;font-family:var(--mono);font-size:10px;color:var(--teal);border:1px solid var(--teal);border-radius:100px;padding:1px 7px;margin-left:7px;letter-spacing:.05em}
+  tr.now .nowbadge{display:inline-block}
+  tr.done .sec,tr.done td{color:var(--ink3)}
+  .pill{font-family:var(--mono);font-size:10.5px;padding:2px 8px;border-radius:100px;white-space:nowrap;display:inline-block}
+  .g-dial{background:#E1F5EE;color:#0F6E56}.g-fast{background:#F1EFE8;color:#5F5E5A}.g-review{background:#FAEEDA;color:#854F0B}.g-data{background:#FAECE7;color:#993C1D}
+  .legend{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:12px;letter-spacing:.02em}
+  .note{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 16px;margin-top:18px;font-size:13px;color:var(--ink2);line-height:1.6}
+  .note b{color:var(--ink);font-weight:600}
+  footer{margin-top:30px;border-top:1px solid var(--line);padding-top:15px;font-family:var(--mono);font-size:11px;color:var(--ink3);letter-spacing:.02em}
+  @media(max-width:520px){h1{font-size:21px}.wrap{padding:32px 16px 56px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">SIRIAI · INTERCHARM 사후 팔로업</div>
+  <h1>템플릿 제작 — 진행 체크리스트</h1>
+  <p class="sub">위 → 아래 순서대로. 끝낸 단계를 체크하면 아래 <b style="color:var(--teal)">지금 할 일</b>이 자동으로 다음으로 넘어갑니다. (훈련 프로그램처럼)</p>
+  <div class="meta">2026-07-14 · 팀 공유용 · 체크 상태는 이 브라우저에 저장됨</div>
+
+  <div class="now-bar">
+    <span class="lb">지금 할 일</span>
+    <span class="val" id="nowlabel">1-① 레퍼런스 확보</span>
+  </div>
+
+  <div class="tblwrap">
+    <table>
+      <thead>
+        <tr><th class="cbcell">체크</th><th>세부</th><th>하는 일</th><th>산출물</th><th>예상</th><th>주체·게이트</th></tr>
+      </thead>
+      <tbody>
+        <tr class="grp"><td colspan="6">1. 템플릿 레이아웃 제작 <span class="gtime">7시간</span></td></tr>
+        <tr class="step" data-label="1-① 레퍼런스 확보">
+          <td class="cbcell"><input type="checkbox" id="s1" aria-label="레퍼런스 확보 완료"></td>
+          <td><span class="sec">① 레퍼런스 확보</span><span class="nowbadge">▶ 지금</span></td>
+          <td>기존 103종 + 넓게 훑어 후보 모음</td>
+          <td>레퍼런스 후보군</td>
+          <td><span class="est">3시간</span></td>
+          <td><span class="pill g-dial">다이얼 · 넓힐수록↑</span></td>
+        </tr>
+        <tr class="step" data-label="1-② 레퍼런스 채택·검수">
+          <td class="cbcell"><input type="checkbox" id="s2" aria-label="레퍼런스 채택·검수 완료"></td>
+          <td><span class="sec">② 레퍼런스 채택·검수</span><span class="nowbadge">▶ 지금</span></td>
+          <td>우리 케이스에 맞는 것 선별·뜯어보기</td>
+          <td>채택본 + 적용점</td>
+          <td><span class="est">3시간</span></td>
+          <td><span class="pill g-fast">내가 + 검수</span></td>
+        </tr>
+        <tr class="step" data-label="1-③ 디자인 및 제작">
+          <td class="cbcell"><input type="checkbox" id="s3" aria-label="디자인 및 제작 완료"></td>
+          <td><span class="sec">③ 디자인 및 제작</span><span class="nowbadge">▶ 지금</span></td>
+          <td>2종 레이아웃 골격 + 법·기술 마감</td>
+          <td>레이아웃 (HTML)</td>
+          <td><span class="est">1시간</span></td>
+          <td><span class="pill g-fast">내가 + 렌더QA</span></td>
+        </tr>
+        <tr class="grp"><td colspan="6">2. 카피 작성 <span class="gtime">3시간</span></td></tr>
+        <tr class="step" data-label="2-① 본문 초안 제작">
+          <td class="cbcell"><input type="checkbox" id="s4" aria-label="본문 초안 제작 완료"></td>
+          <td><span class="sec">① 본문 초안 제작</span><span class="nowbadge">▶ 지금</span></td>
+          <td>레이아웃에 넣을 카피 여러 안</td>
+          <td>본문 초안</td>
+          <td><span class="est">2시간</span></td>
+          <td><span class="pill g-fast">내가</span></td>
+        </tr>
+        <tr class="step" data-label="2-② 피드백·확정">
+          <td class="cbcell"><input type="checkbox" id="s5" aria-label="피드백·확정 완료"></td>
+          <td><span class="sec">② 피드백·확정</span><span class="nowbadge">▶ 지금</span></td>
+          <td>검토·수정 → 확정</td>
+          <td>확정 본문</td>
+          <td><span class="est">1시간</span></td>
+          <td><span class="pill g-review">준용·팀 검토</span></td>
+        </tr>
+        <tr class="grp"><td colspan="6">3. 발송 <span class="gtime">2시간</span></td></tr>
+        <tr class="step" data-label="3 발송">
+          <td class="cbcell"><input type="checkbox" id="s6" aria-label="발송 완료"></td>
+          <td><span class="sec">발송</span><span class="nowbadge">▶ 지금</span></td>
+          <td>명함 데이터에 얹어 수동 발송</td>
+          <td>발송 완료</td>
+          <td><span class="est">2시간</span></td>
+          <td><span class="pill g-data">명함 데이터 · 별도 트랙</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="legend">☐ 예정 · ▶ 지금(자동) · ☑ 완료 &nbsp;|&nbsp; 예상 = 단계별 예상 소요 · 합 12시간 &nbsp;|&nbsp; 색 = 주체·게이트</div>
+
+  <div class="note"><b>예상 소요 합 = 12시간</b> — 레퍼런스 3 + 채택·검수 3 + 디자인제작 1 + 초안 2 + 피드백·확정 1 + 발송 2. 위 → 아래 순서대로 진행하며 끝낸 단계를 체크. 레퍼런스는 다이얼(넓힐수록↑), 확정·발송은 검토·명함 데이터가 게이트.</div>
+
+  <footer>출처 · Routine/2_compose/templates/intercharm/README.md (설계 문서)</footer>
+
+</div>
+<script>
+(function(){
+  var KEY='ic_checklist_v1';
+  var boxes=[].slice.call(document.querySelectorAll('.step input[type=checkbox]'));
+  function save(){try{var s={};boxes.forEach(function(b){s[b.id]=b.checked});localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
+  function load(){try{var s=JSON.parse(localStorage.getItem(KEY)||'{}');boxes.forEach(function(b){if(s[b.id])b.checked=true;});}catch(e){}}
+  function update(){
+    var rows=[].slice.call(document.querySelectorAll('tr.step'));
+    var set=false;
+    rows.forEach(function(r){
+      var cb=r.querySelector('input[type=checkbox]');
+      r.classList.toggle('done',cb.checked);
+      r.classList.remove('now');
+    });
+    for(var i=0;i<rows.length;i++){
+      var cb=rows[i].querySelector('input[type=checkbox]');
+      if(!cb.checked){rows[i].classList.add('now');document.getElementById('nowlabel').textContent=rows[i].getAttribute('data-label');set=true;break;}
+    }
+    if(!set){document.getElementById('nowlabel').textContent='전부 완료 — 발송까지 끝!';}
+  }
+  load();
+  boxes.forEach(function(b){b.addEventListener('change',function(){save();update();});});
+  update();
+})();
+</script>
+</body>
+</html>

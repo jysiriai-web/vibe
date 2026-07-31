@@ -6,23 +6,26 @@
     <title>Liaison de LOREN × SIRIAI | Global Short-form Campaign</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Montserrat:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --navy: #071D49;          /* Liaison de LOREN primary navy */
-            --navy-deep: #050F2C;     /* deeper navy for cover depth */
-            --bg-color: #FBFBFC;      /* brand off-white */
-            --accent: #A98C63;        /* champagne — quiet luxury accent */
-            --accent-soft: #C7B189;
-            --text-main: #071D49;     /* navy ink for headings / brand elements */
-            --text-sub: #8A8D8F;      /* brand neutral gray */
-            --card-bg: #FFFFFF;
-            --card-border: #DBDEE5;   /* brand light blue-gray border */
+            --navy: #211A33;          /* SIRIAI Ink — primary ink/CTA */
+            --navy-deep: #16111F;     /* deeper ink for cover depth */
+            --bg-color: #F3EEE2;      /* SIRIAI Paper — warm cream */
+            --accent: #B27B53;        /* SIRIAI warm clay accent */
+            --accent-soft: #C9A07B;
+            --text-main: #211A33;     /* Ink for headings / brand elements */
+            --text-sub: rgba(33,26,51,.66); /* Ink-2 — secondary text */
+            --card-bg: #FBF8F1;       /* surface */
+            --card-border: rgba(33,26,51,.13); /* Line */
             --nav-height: 80px;
-            --img-placeholder: #EDEEF1;
-            --shadow-sm: 0 6px 24px rgba(7,29,73,0.05);
-            --shadow-md: 0 16px 36px rgba(7,29,73,0.09);
+            --img-placeholder: #E7DFCF;
+            --shadow-sm: 0 6px 24px rgba(33,26,51,0.06);
+            --shadow-md: 0 16px 44px rgba(33,26,51,0.13);
         }
+
+        ::selection { background: #211A33; color: #F3EEE2; }
 
         * {
             box-sizing: border-box;
@@ -32,14 +35,14 @@
         }
 
         body {
-            font-family: 'Montserrat', 'Noto Sans KR', sans-serif;
+            font-family: 'Pretendard', system-ui, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             overflow: hidden;
         }
 
         .serif {
-            font-family: 'Fraunces', 'Noto Serif KR', serif;
+            font-family: 'Helvetica Neue', 'Helvetica', 'Arimo', 'Pretendard', Arial, sans-serif;
             font-optical-sizing: auto;
         }
 
@@ -99,7 +102,7 @@
 
         /* Eyebrow label (small-caps, Gotham-like) */
         .eyebrow {
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'JetBrains Mono', ui-monospace, monospace;
             font-size: 12px;
             font-weight: 600;
             letter-spacing: 0.22em;
@@ -148,7 +151,7 @@
         .nav-btn {
             background: none;
             border: none;
-            font-family: 'Montserrat', 'Noto Sans KR', sans-serif;
+            font-family: 'Pretendard', system-ui, sans-serif;
             font-size: clamp(13px, 0.95vw, 16px);
             font-weight: 500;
             color: var(--text-sub);
@@ -163,10 +166,14 @@
             background: var(--navy);
         }
 
-        /* Slide 1: Cover (navy) */
+        /* Slide 1: Cover (Paper + warm wash glow) */
         .cover-slide {
-            background: radial-gradient(120% 120% at 80% 10%, #0B2358 0%, var(--navy) 45%, var(--navy-deep) 100%);
-            color: #fff;
+            background:
+                radial-gradient(60% 70% at 80% 8%, rgba(246,201,168,0.5) 0%, rgba(246,201,168,0) 60%),
+                radial-gradient(55% 65% at 12% 18%, rgba(221,208,239,0.45) 0%, rgba(221,208,239,0) 62%),
+                radial-gradient(70% 80% at 50% 110%, rgba(255,224,196,0.42) 0%, rgba(255,224,196,0) 60%),
+                var(--bg-color);
+            color: var(--text-main);
         }
 
         .cover-layout {
@@ -185,12 +192,12 @@
         }
 
         .cover-eyebrow {
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'JetBrains Mono', ui-monospace, monospace;
             font-size: 12px;
             font-weight: 600;
             letter-spacing: 0.26em;
             text-transform: uppercase;
-            color: var(--accent-soft);
+            color: var(--accent);
             margin-bottom: 28px;
         }
 
@@ -201,15 +208,15 @@
         }
 
         .cover-cross {
-            font-family: 'Fraunces', serif;
+            font-family: 'Helvetica Neue', 'Helvetica', 'Arimo', 'Pretendard', Arial, sans-serif;
             font-size: clamp(28px, 3vw, 46px);
             font-weight: 300;
             letter-spacing: 0.04em;
-            color: rgba(255,255,255,0.92);
+            color: var(--text-main);
             margin-bottom: 4px;
         }
 
-        .cover-cross span { color: var(--accent-soft); }
+        .cover-cross span { color: var(--accent); }
 
         .cover-divider {
             width: 48px;
@@ -222,7 +229,7 @@
             font-size: clamp(17px, 1.5vw, 23px);
             font-style: italic;
             font-weight: 300;
-            color: rgba(255,255,255,0.85);
+            color: var(--text-main);
             line-height: 1.5;
             margin-bottom: 30px;
             word-break: keep-all;
@@ -248,14 +255,14 @@
         }
 
         .cover-slide .campaign-badge {
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.22);
-            color: rgba(255,255,255,0.92);
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
         }
 
         .cover-desc {
             font-size: 15px;
-            color: rgba(255,255,255,0.62);
+            color: var(--text-sub);
             font-weight: 300;
             line-height: 1.7;
             letter-spacing: 0.01em;
@@ -267,8 +274,8 @@
             max-height: 78vh;
             object-fit: cover;
             border-radius: 4px;
-            border: 1px solid rgba(255,255,255,0.14);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.35);
+            border: 1px solid var(--card-border);
+            box-shadow: 0 16px 44px rgba(33,26,51,0.13);
         }
 
         .cover-figure {
@@ -281,12 +288,12 @@
             bottom: 18px;
             left: 50%;
             transform: translateX(-50%);
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'JetBrains Mono', ui-monospace, monospace;
             font-size: 11px;
             font-weight: 600;
             letter-spacing: 0.3em;
-            color: rgba(255,255,255,0.9);
-            text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+            color: rgba(243,238,226,0.95);
+            text-shadow: 0 1px 8px rgba(33,26,51,0.55);
         }
 
         /* Section titles */
@@ -297,7 +304,7 @@
         }
 
         .slide-eyebrow {
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'JetBrains Mono', ui-monospace, monospace;
             font-size: 12px;
             font-weight: 600;
             letter-spacing: 0.24em;
@@ -307,10 +314,10 @@
         }
 
         .slide-title {
-            font-family: 'Fraunces', 'Noto Serif KR', serif;
+            font-family: 'Helvetica Neue', 'Helvetica', 'Arimo', 'Pretendard', Arial, sans-serif;
             font-size: clamp(34px, 4vw, 60px);
             margin-bottom: 56px;
-            font-weight: 400;
+            font-weight: 500;
             letter-spacing: -0.01em;
             color: var(--navy);
         }
@@ -345,11 +352,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #fff;
+            color: var(--bg-color);
         }
 
         .feature-num {
-            font-family: 'Fraunces', serif;
+            font-family: 'Bodoni Moda', Georgia, serif;
             font-size: clamp(22px, 2vw, 32px);
             color: var(--accent);
             margin-bottom: 12px;
@@ -409,7 +416,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #B7BBC4;
+            color: var(--text-sub);
             font-size: 12px;
             filter: grayscale(8%);
         }
@@ -450,13 +457,13 @@
             color: var(--bg-color);
             border: none;
             padding: 14px 40px;
-            border-radius: 40px;
+            border-radius: 100px;
             font-size: 15px;
             font-weight: 500;
             letter-spacing: 0.02em;
             cursor: pointer;
             transition: opacity 0.3s, transform 0.2s, box-shadow 0.3s;
-            font-family: 'Montserrat', 'Noto Sans KR', sans-serif;
+            font-family: 'Pretendard', system-ui, sans-serif;
             display: inline-flex;
             align-items: center;
             gap: 8px;
@@ -464,7 +471,7 @@
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 24px rgba(7,29,73,0.25);
+            box-shadow: 0 16px 44px rgba(33,26,51,0.13);
         }
 
         .footer-note {
@@ -490,7 +497,7 @@
             cursor: pointer;
             transition: all 0.3s;
             color: var(--text-sub);
-            font-family: 'Montserrat', 'Noto Sans KR', sans-serif;
+            font-family: 'Pretendard', system-ui, sans-serif;
         }
 
         .tab-btn.active {
@@ -549,10 +556,10 @@
         }
 
         .process-step-num {
-            font-family: 'Fraunces', serif;
+            font-family: 'Bodoni Moda', Georgia, serif;
             font-size: 26px;
             font-weight: 500;
-            color: var(--card-border);
+            color: rgba(33,26,51,.24);
             transition: color 0.3s;
         }
 
@@ -561,8 +568,10 @@
         }
 
         .process-icon {
-            font-size: 24px;
-            filter: grayscale(20%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
         }
 
         .timeline-title {
@@ -610,7 +619,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(7,29,73,0.45);
+            background: rgba(33,26,51,0.45);
             backdrop-filter: blur(12px);
             display: flex;
             justify-content: center;
@@ -634,7 +643,7 @@
             max-height: 82vh;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 30px 60px rgba(7,29,73,0.25);
+            box-shadow: 0 16px 44px rgba(33,26,51,0.13);
             transform: translateY(20px);
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -652,9 +661,9 @@
         }
 
         .modal-title {
-            font-family: 'Fraunces', 'Noto Serif KR', serif;
+            font-family: 'Helvetica Neue', 'Helvetica', 'Arimo', 'Pretendard', Arial, sans-serif;
             font-size: 22px;
-            font-weight: 500;
+            font-weight: 600;
             color: var(--navy);
         }
 
@@ -727,6 +736,21 @@
             .modal-stats { flex-direction: column !important; }
             .data-table th, .data-table td { padding: 12px 14px; font-size: 13px; }
         }
+
+        /* ── PDF 인쇄: 전체 슬라이드 세로로 펼침 (Ctrl+P → PDF로 저장) ── */
+        @media print {
+            @page { size: A4 landscape; margin: 10mm; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            html, body { overflow: visible !important; height: auto !important; background: #F3EEE2 !important; }
+            .bottom-nav, .modal-overlay, .process-click-hint { display: none !important; }
+            #app { height: auto !important; width: auto !important; position: static !important; }
+            .slide { position: static !important; opacity: 1 !important; pointer-events: auto !important;
+                     height: auto !important; min-height: 94vh; page-break-after: always; page-break-inside: avoid;
+                     overflow: visible !important; padding: 22px 16px !important; }
+            .slide:last-child { page-break-after: auto; }
+            .fade-up { opacity: 1 !important; transform: none !important; }
+            .feature-item, .process-card, .curation-card, .simulator-container, .er-comparison, .na-ref { box-shadow: none !important; break-inside: avoid; }
+        }
     </style>
 </head>
 <body>
@@ -737,7 +761,7 @@
             <div class="cover-layout">
                 <div class="cover-text fade-up">
                     <div class="cover-eyebrow">Global Short-form Campaign Proposal</div>
-                    <img src="images/liaison/logo.svg" alt="Liaison de LOREN" class="cover-logo">
+                    <img src="images/liaison/logo_ink.svg" alt="Liaison de LOREN" class="cover-logo">
                     <div class="cover-cross">&times; <span>SIRIAI</span></div>
                     <div class="cover-divider"></div>
                     <p class="cover-tagline serif">“깊이 있되 가볍고, 견고하되 부드러운 안착”</p>
@@ -799,15 +823,15 @@
 
                     <div style="display: flex; align-items: center; margin-bottom: 12px;">
                         <span style="width: 130px; font-size: 13px; color: var(--text-sub); text-align: left;">일반 뷰티 평균</span>
-                        <div style="flex-grow: 1; background: #EEF0F3; height: 12px; border-radius: 6px; overflow: hidden; position: relative;">
-                            <div class="bar-fill" style="width: 0; background: #C9CDD6; height: 100%; transition: width 1.5s cubic-bezier(0.2, 0.8, 0.2, 1);" data-target="35%"></div>
+                        <div style="flex-grow: 1; background: #ECE5D6; height: 12px; border-radius: 6px; overflow: hidden; position: relative;">
+                            <div class="bar-fill" style="width: 0; background: rgba(33,26,51,.24); height: 100%; transition: width 1.5s cubic-bezier(0.2, 0.8, 0.2, 1);" data-target="35%"></div>
                         </div>
                         <span style="width: 60px; font-size: 13px; color: var(--text-sub); text-align: right; font-weight: 600;">1.5%</span>
                     </div>
 
                     <div style="display: flex; align-items: center;">
                         <span style="width: 130px; font-size: 14px; font-weight: 700; color: var(--navy); text-align: left; line-height: 1.3;">제안 리스트 평균<br><span style="font-size: 11px; color: var(--text-sub); font-weight: 500;">(전체 20인 기준)</span></span>
-                        <div style="flex-grow: 1; background: #EEF0F3; height: 12px; border-radius: 6px; overflow: hidden; position: relative;">
+                        <div style="flex-grow: 1; background: #ECE5D6; height: 12px; border-radius: 6px; overflow: hidden; position: relative;">
                             <div class="bar-fill" style="width: 0; background: var(--navy); height: 100%; transition: width 1.5s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: 0.3s;" data-target="78%"></div>
                         </div>
                         <span style="width: 60px; font-size: 16px; color: var(--accent); text-align: right; font-weight: 700;">3.35%</span>
@@ -854,7 +878,7 @@
                 <div class="fade-up delay-3 na-ref" style="width: 100%; margin-top: 12px; padding: 14px 28px; background: var(--navy); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-md);">
                     <div class="na-ref-info" style="display: flex; align-items: center; gap: 16px;">
                         <span style="background: var(--accent); color: var(--navy); padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.12em;">PROVEN REFERENCE</span>
-                        <span style="font-size: 14px; font-weight: 500; color: #FFF;">
+                        <span style="font-size: 14px; font-weight: 500; color: var(--bg-color);">
                             <strong style="font-size: 16px; color: var(--accent-soft);">코스알엑스</strong> 북미 &nbsp;|&nbsp;
                             <strong style="font-size: 16px; color: var(--accent-soft);">이니스프리</strong> 북미 &nbsp;|&nbsp;
                             <strong style="font-size: 16px; color: var(--accent-soft);">Dr. Bio</strong> 2,000건 &nbsp;|&nbsp;
@@ -863,7 +887,7 @@
                         </span>
                     </div>
                     <div>
-                        <a href="https://www.tiktok.com/@bynewcell_official" target="_blank" style="color: #FFF; text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 700; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 8px; transition: background 0.3s; white-space: nowrap;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                        <a href="https://www.tiktok.com/@bynewcell_official" target="_blank" style="color: var(--bg-color); text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 700; background: rgba(243,238,226,0.12); padding: 10px 20px; border-radius: 100px; transition: background 0.3s; white-space: nowrap;" onmouseover="this.style.background='rgba(243,238,226,0.22)'" onmouseout="this.style.background='rgba(243,238,226,0.12)'">
                             바이뉴셀 상세보기 <span style="font-size: 18px;">&rarr;</span>
                         </a>
                     </div>
@@ -894,9 +918,9 @@
                             <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 8px;">예상 최소 오가닉 뷰</div>
                             <div class="serif" style="font-size: 24px; font-weight: 600; color: var(--navy);"><span id="sim-views">20,000</span><span style="font-size: 13px; font-weight: 800; color: var(--accent);"> + α</span></div>
                         </div>
-                        <div style="background: var(--navy); padding: 16px 12px; border-radius: 8px; text-align: center; box-shadow: 0 6px 16px rgba(7,29,73,0.18);">
-                            <div style="font-size: 12px; color: rgba(255,255,255,0.75); margin-bottom: 8px; font-weight: 600;">예상 최소 인게이지먼트</div>
-                            <div class="serif" style="font-size: 24px; font-weight: 600; color: #fff;"><span id="sim-eng">1,000</span><span style="font-size: 13px; font-weight: 800; color: var(--accent-soft);"> + α</span></div>
+                        <div style="background: var(--navy); padding: 16px 12px; border-radius: 8px; text-align: center; box-shadow: 0 6px 16px rgba(33,26,51,0.18);">
+                            <div style="font-size: 12px; color: rgba(243,238,226,0.78); margin-bottom: 8px; font-weight: 600;">예상 최소 인게이지먼트</div>
+                            <div class="serif" style="font-size: 24px; font-weight: 600; color: var(--bg-color);"><span id="sim-eng">1,000</span><span style="font-size: 13px; font-weight: 800; color: var(--accent-soft);"> + α</span></div>
                         </div>
                     </div>
                     <div style="margin-top: 12px; font-size: 11px; color: var(--text-sub); line-height: 1.5;">
@@ -929,7 +953,7 @@
                         <div class="process-card" onclick="showProcessImage(1)">
                             <div class="process-header">
                                 <span class="process-step-num">01</span>
-                                <div class="process-icon">📋</div>
+                                <div class="process-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"></path><rect x="9" y="3" width="6" height="4" rx="1"></rect><path d="M9 12h6"></path><path d="M9 16h4"></path></svg></div>
                             </div>
                             <h3 class="timeline-title">리스트 확정</h3>
                             <p class="timeline-desc">7일 소요<br>내부 검토 후 최종 선정</p>
@@ -938,7 +962,7 @@
                         <div class="process-card" onclick="showProcessImage(2)">
                             <div class="process-header">
                                 <span class="process-step-num">02</span>
-                                <div class="process-icon">📦</div>
+                                <div class="process-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"></path><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg></div>
                             </div>
                             <h3 class="timeline-title">가이드 & 발송</h3>
                             <p class="timeline-desc">2~3일 소요<br>가이드라인 전달 및 제품 발송</p>
@@ -947,7 +971,7 @@
                         <div class="process-card" onclick="showProcessImage(3)">
                             <div class="process-header">
                                 <span class="process-step-num">03</span>
-                                <div class="process-icon">✨</div>
+                                <div class="process-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path></svg></div>
                             </div>
                             <h3 class="timeline-title">제작 & 검수</h3>
                             <p class="timeline-desc">2~3주 소요<br>업로드 전 사전 검수 진행</p>
@@ -956,7 +980,7 @@
                         <div class="process-card" onclick="showProcessImage(4)">
                             <div class="process-header">
                                 <span class="process-step-num">04</span>
-                                <div class="process-icon">📈</div>
+                                <div class="process-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg></div>
                             </div>
                             <h3 class="timeline-title">업로드 & 리포트</h3>
                             <p class="timeline-desc">순차 발행<br>퍼포먼스 리포트 제공</p>
@@ -975,7 +999,7 @@
                         <div class="process-card" onclick="showProcessImage(5)">
                             <div class="process-header">
                                 <span class="process-step-num">01</span>
-                                <div class="process-icon">🤝</div>
+                                <div class="process-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17 2 2a1 1 0 1 0 3-3"></path><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"></path><path d="m21 3 1 11h-2"></path><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"></path><path d="M3 4h8"></path></svg></div>
                             </div>
                             <h3 class="timeline-title">권한 부여 & 기획</h3>
                             <p class="timeline-desc">Amazon MCF 연동 및<br>미국 시장 맞춤 시딩 기획</p>
@@ -984,7 +1008,7 @@
                         <div class="process-card" onclick="showProcessImage(6)">
                             <div class="process-header">
                                 <span class="process-step-num">02</span>
-                                <div class="process-icon">✈️</div>
+                                <div class="process-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"></path></svg></div>
                             </div>
                             <h3 class="timeline-title">시딩 & 물류 대행</h3>
                             <p class="timeline-desc">적합 인플루언서 발굴 및<br>원스톱 제품 발송 처리</p>
@@ -993,7 +1017,7 @@
                         <div class="process-card" onclick="showProcessImage(7)">
                             <div class="process-header">
                                 <span class="process-step-num">03</span>
-                                <div class="process-icon">📱</div>
+                                <div class="process-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><path d="M12 18h.01"></path></svg></div>
                             </div>
                             <h3 class="timeline-title">콘텐츠 축적</h3>
                             <p class="timeline-desc">무가시딩 중심<br>꾸준한 업로드 관리</p>
@@ -1002,7 +1026,7 @@
                         <div class="process-card" onclick="showProcessImage(8)">
                             <div class="process-header">
                                 <span class="process-step-num">04</span>
-                                <div class="process-icon">💳</div>
+                                <div class="process-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg></div>
                             </div>
                             <h3 class="timeline-title">후불 청구</h3>
                             <p class="timeline-desc">실제 업로드된 건수 기준<br>정산 및 성과 리포팅</p>
@@ -1020,7 +1044,7 @@
     <!-- Navigation -->
     <nav class="bottom-nav">
         <div class="nav-brand">
-            <img src="images/liaison/logo_navy.svg" alt="Liaison de LOREN">
+            <img src="images/liaison/logo_ink.svg" alt="Liaison de LOREN">
             <span class="nav-cross">× SIRIAI</span>
         </div>
         <button class="nav-btn active" onclick="goToSlide(1)">표지</button>
@@ -1078,14 +1102,14 @@
     <div class="modal-overlay" id="modal-process" onclick="if(event.target === this) closeModal('modal-process')">
         <div class="modal-content" style="max-width: 95%; width: fit-content; max-height: 95vh; background: transparent; box-shadow: none; align-items: center;" onclick="if(event.target === this) closeModal('modal-process')">
             <div style="display: flex; justify-content: flex-end; padding-bottom: 16px; width: 100%;" onclick="if(event.target === this) closeModal('modal-process')">
-                <button class="modal-close" style="color: #FFF; text-shadow: 0 2px 4px rgba(0,0,0,0.5); font-size: 40px; line-height: 1;" onclick="closeModal('modal-process')">&times;</button>
+                <button class="modal-close" style="color: var(--bg-color); text-shadow: 0 2px 4px rgba(33,26,51,0.5); font-size: 40px; line-height: 1;" onclick="closeModal('modal-process')">&times;</button>
             </div>
             <div class="modal-body" style="padding: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; overflow-y: auto; overflow-x: hidden; position: relative;" onclick="if(event.target === this) closeModal('modal-process')">
-                <img id="process-image" src="" style="max-width: 100%; max-height: 70vh; object-fit: contain; border-radius: 10px; display: none; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
-                <div id="process-text" style="display: none; background: var(--card-bg); padding: 40px 48px; border-radius: 16px; font-size: 18px; font-weight: 500; color: var(--text-main); text-align: left; line-height: 1.6; box-shadow: 0 20px 40px rgba(7,29,73,0.18); width: 600px; max-width: 100%;"></div>
-                <button id="process-report-btn" class="btn-primary" style="display: none; margin-top: 24px; padding: 14px 28px; font-size: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); z-index: 10;" onclick="window.open('https://app.featuring.co/management/campaign-v2/shared/report/JZQEHI8FHUTN8YPN', '_blank')">상세 리포트 보기 (Featuring) &rarr;</button>
-                <button id="process-sheet-btn" class="btn-primary" style="display: none; margin-top: 24px; padding: 14px 28px; font-size: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); z-index: 10;" onclick="window.open('https://docs.google.com/spreadsheets/d/1uAUvsbIrwvgg_O9ri_v8DhKJoUvvsy0xUuEph-1KYSw/edit?usp=sharing', '_blank')">리스트 확인하기 (시트) &rarr;</button>
-                <div id="process-note" style="display: none; margin-top: 12px; font-size: 14px; color: rgba(255,255,255,0.8); font-weight: 500;"></div>
+                <img id="process-image" src="" style="max-width: 100%; max-height: 70vh; object-fit: contain; border-radius: 10px; display: none; box-shadow: 0 16px 44px rgba(33,26,51,0.18);">
+                <div id="process-text" style="display: none; background: var(--card-bg); padding: 40px 48px; border-radius: 16px; font-size: 18px; font-weight: 500; color: var(--text-main); text-align: left; line-height: 1.6; box-shadow: 0 16px 44px rgba(33,26,51,0.13); width: 600px; max-width: 100%;"></div>
+                <button id="process-report-btn" class="btn-primary" style="display: none; margin-top: 24px; padding: 14px 28px; font-size: 16px; box-shadow: 0 16px 44px rgba(33,26,51,0.18); z-index: 10;" onclick="window.open('https://app.featuring.co/management/campaign-v2/shared/report/JZQEHI8FHUTN8YPN', '_blank')">상세 리포트 보기 (Featuring) &rarr;</button>
+                <button id="process-sheet-btn" class="btn-primary" style="display: none; margin-top: 24px; padding: 14px 28px; font-size: 16px; box-shadow: 0 16px 44px rgba(33,26,51,0.18); z-index: 10;" onclick="window.open('https://docs.google.com/spreadsheets/d/1uAUvsbIrwvgg_O9ri_v8DhKJoUvvsy0xUuEph-1KYSw/edit?usp=sharing', '_blank')">리스트 확인하기 (시트) &rarr;</button>
+                <div id="process-note" style="display: none; margin-top: 12px; font-size: 14px; color: rgba(243,238,226,0.85); font-weight: 500;"></div>
             </div>
         </div>
     </div>
@@ -1307,7 +1331,7 @@
                 text.style.display = 'none';
                 img.src = 'images/oddtype-sheet.png';
                 img.style.padding = '24px';
-                img.style.background = '#FFF';
+                img.style.background = '#FBF8F1';
                 if(sheetBtn) sheetBtn.style.display = 'block';
                 if(note) {
                     note.style.display = 'block';
@@ -1380,6 +1404,12 @@
             // Trigger initial calculation to populate spans
             slider.dispatchEvent(new Event('input'));
         }
+    </script>
+    <script>
+        // 인쇄 직전 ER 막대 채우기 (PDF에서 빈 막대 방지)
+        window.addEventListener('beforeprint', () => {
+            document.querySelectorAll('.bar-fill').forEach(b => { const t = b.getAttribute('data-target'); if (t) b.style.width = t; });
+        });
     </script>
 </body>
 </html>

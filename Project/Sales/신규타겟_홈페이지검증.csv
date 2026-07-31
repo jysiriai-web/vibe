@@ -1,0 +1,10 @@
+구분,회사명,자체브랜드(PB),브랜드 홈페이지,대표 이메일,마케팅·제휴 이메일,기존DB 여부,비고
+신규,글루가,오호라(ohora),ohora.kr,ohora_official@ohora.com,ohora_partnership@ohora.com,N,제휴 전용 주소 확보(사이트 JS·검색 확인)
+신규,페렌벨,썸바이미,somebymi.co.kr,retail@somebymi.com,global@somebymi.com,N,푸터 검증 / CS help01@somebymi.com
+신규,스킨79,스킨79,skin79mall.com,HELP@skin79.com,sk79beautymate@gmail.com,N,푸터 '국내 유통·마케팅 문의' 메일
+신규,라엘코리아,라엘(Rael),getrael.co.kr,raelkorea@getrael.com,younghye@getrael.com,N,푸터 사업자정보 검증(담당 younghye)
+신규,토니모리,토니모리,tonymoly.com,hjyoon2104@tonymoly.com,hjyoon2104@tonymoly.com,N,담당자 메일(자체몰 custom·푸터 미확보) / 입점제안 corp.tonymoly.com
+신규,본느,터치인솔,touchinsol.com,미확보(전화 02-6423-4187),미확보,N,홈페이지 푸터에 메일 없음(전화만)·검색도 비공개 → 인스타 @touchinsol.official DM 권장
+제외,이미인,자사 브랜드 없음(ODM),imineskin.com,mns@imineskin.com,—,N,⚠ 글로벌 스킨케어 ODM(고객사 Glow Recipe·MECCA 등) → 제외
+기존,카버코리아,AHC,ahc.co.kr,so-jung.kim@carverkorea.com,AHC몰 푸터 JS-미확보,Y,⚠ 이미 발송이력 / 브랜드 홈페이지 메일은 브라우저 자동화 필요
+기존,고운세상코스메틱,닥터지(Dr.G),dr-g.co.kr,gmteam@gwss.co.kr,—,Y,⚠ 2026-02 발송완료(중복 주의)

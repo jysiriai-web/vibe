@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>틈결 × SIRIAI — 인플루언서 시딩 기획안 2026.06</title>
+<meta name="description" content="틈결 × SIRIAI 인플루언서 시딩 기획안 — 인스타그램·네이버·샤오홍슈로 매월 콘텐츠 자산을 쌓습니다.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="틈결 × SIRIAI — 인플루언서 시딩 기획안">
+<meta property="og:description" content="매달 틈결을 새로 알립니다 · 인스타그램 · 네이버 · 샤오홍슈">
+<meta property="og:image" content="https://teumgyullist.vercel.app/images/cover_space2.png">
+<meta property="og:url" content="https://teumgyullist.vercel.app">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'><rect%20width='32'%20height='32'%20rx='7'%20fill='%23ffffff'/><circle%20cx='16'%20cy='16'%20r='7'%20fill='none'%20stroke='%23111111'%20stroke-width='2'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<style>
+:root {
+  --bg:#ffffff; --bg2:#fafafa; --surface:#f6f5f3;
+  --gold:#111111; --gold-lt:#111111; --gold-dim:rgba(17,17,17,.05); --gold-line:rgba(17,17,17,.14);
+  --text:#0f0f0f; --sub:#454545; --dim:#6b6b6b; --border:rgba(17,17,17,.1);
+  --u: clamp(18px, 1.15vw, 28px);
+  --pad: clamp(32px, 3.6vw, 88px);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Pretendard', -apple-system, sans-serif;font-weight:400;-webkit-font-smoothing:auto;font-size:var(--u);}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:200;height:clamp(48px,4vh,72px);display:flex;align-items:center;padding:0 var(--pad);gap:.15em;background:rgba(255,255,255,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+.n-brand{font-family:'Inter','Pretendard',sans-serif;font-size:1.15em;font-weight:400;letter-spacing:.1em;color:var(--gold);margin-right:1.8em;white-space:nowrap;}
+.n-btn{background:none;border:none;cursor:pointer;font-family:'Pretendard', -apple-system, sans-serif;font-size:.82em;font-weight:400;color:var(--sub);padding:.4em 1em;border-radius:20px;transition:color .2s,background .2s;white-space:nowrap;}
+.n-btn:hover{color:var(--text);}
+.n-btn.on{color:var(--bg);background:var(--gold);font-weight:400;}
+.n-pdf{margin-left:auto;background:none;border:1px solid var(--gold-line);cursor:pointer;font-family:'Pretendard', -apple-system, sans-serif;font-size:.78em;color:var(--gold);padding:.42em 1.1em;border-radius:20px;transition:all .2s;white-space:nowrap;}
+.n-pdf:hover{background:var(--gold-dim);border-color:var(--gold);}
+
+.deck{height:100vh;position:relative;overflow:hidden;}
+.slide{position:absolute;inset:0;padding-top:clamp(48px,4vh,72px);display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+.slide.on{opacity:1;pointer-events:all;}
+
+footer{height:clamp(44px,3.6vh,64px);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 var(--pad);border-top:1px solid var(--border);}
+.f-idx{font-family:'Inter','Pretendard',sans-serif;font-size:1em;color:var(--dim);letter-spacing:.1em;}
+.f-nav{display:flex;gap:.6em;}
+.f-btn{background:none;border:1px solid var(--border);color:var(--sub);font-family:'Pretendard', -apple-system, sans-serif;font-size:.82em;padding:.5em 1.6em;border-radius:20px;cursor:pointer;transition:all .2s;}
+.f-btn:hover{border-color:var(--gold-line);color:var(--gold);}
+.f-btn.p{background:var(--gold);border-color:var(--gold);color:var(--bg);font-weight:400;}
+.f-btn.p:hover{background:var(--gold-lt);}
+
+.body{flex:1;overflow:auto;display:flex;min-height:0;scrollbar-width:none;-ms-overflow-style:none;}
+.body::-webkit-scrollbar{display:none;}
+.eyebrow{font-size:.68em;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);}
+.serif{font-family:'Inter','Pretendard',sans-serif;font-weight:600;letter-spacing:-.022em;}
+img.fill,video.fill{width:100%;height:100%;object-fit:cover;display:block;}
+.img-panel{position:relative;overflow:hidden;}
+.img-panel::after{content:'';position:absolute;inset:0;pointer-events:none;}
+.img-panel-l::after{background:linear-gradient(to right,rgba(255,255,255,.6) 0%,transparent 45%);}
+.img-panel-r::after{background:linear-gradient(to left,rgba(255,255,255,.6) 0%,transparent 45%);}
+
+/* ═══ S0 COVER ═══ */
+#s0 .body{display:grid;grid-template-columns:1fr clamp(280px,26vw,460px);}
+.cov-left{display:flex;flex-direction:column;justify-content:center;padding:0 var(--pad);border-right:1px solid var(--border);}
+.cov-eyebrow{margin-bottom:2em;}
+.cov-h{font-size:clamp(40px,4.6vw,80px);line-height:1.06;margin-bottom:.7em;}
+.cov-h em{font-style:italic;color:var(--gold-lt);}
+.cov-tagline{font-size:1.05em;color:var(--sub);letter-spacing:.02em;margin-bottom:2em;}
+.cov-tagline b{color:var(--gold-lt);font-weight:400;}
+.cov-rule{width:2.6em;height:1px;background:var(--gold);opacity:.45;margin-bottom:1.8em;}
+.cov-stats{display:grid;grid-template-columns:repeat(3,auto);gap:1.2em 2.6em;justify-content:start;}
+.st-label{font-size:.62em;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-bottom:.4em;}
+.st-val{font-size:1em;color:var(--text);}
+.st-val b{color:var(--gold-lt);font-weight:400;}
+
+/* ═══ S1 운영 플로우 ═══ */
+#s1 .body{display:flex;flex-direction:column;}
+.s1-head{padding:clamp(20px,2.6vh,40px) var(--pad) 0;display:flex;flex-direction:column;gap:.5em;flex-shrink:0;}
+.s1-h{font-size:clamp(26px,3vw,48px);line-height:1.1;}
+.s1-h em{font-style:italic;color:var(--gold-lt);}
+.flow{flex:1;display:grid;grid-template-columns:repeat(5,1fr);padding:clamp(20px,2.6vh,40px) var(--pad);}
+.flow-step{display:flex;flex-direction:column;gap:1em;padding:clamp(24px,5vh,70px) 1.6em 0;border-right:1px solid var(--border);}
+.flow-step:first-child{padding-left:0;}
+.flow-step:last-child{border-right:none;padding-right:0;}
+.flow-n{font-size:.7em;letter-spacing:.18em;color:var(--gold);font-weight:400;}
+.flow-title{font-size:1.3em;font-weight:400;color:var(--text);line-height:1.2;}
+.flow-items{list-style:none;display:flex;flex-direction:column;gap:.6em;}
+.flow-items li{font-size:.85em;color:var(--sub);line-height:1.5;padding-left:.9em;position:relative;}
+.flow-items li::before{content:'';position:absolute;left:0;top:.65em;width:4px;height:1px;background:var(--gold);opacity:.5;}
+.s1-foot{display:flex;gap:0;border-top:1px solid var(--border);flex-shrink:0;}
+.s1-foot-label{padding:1em 1.8em;border-right:1px solid var(--border);display:flex;align-items:center;flex-shrink:0;}
+.s1-foot-label span{font-size:.68em;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);}
+.s1-weeks{display:grid;grid-template-columns:repeat(4,1fr);flex:1;}
+.s1-week{padding:.8em 1.6em;border-right:1px solid var(--border);}
+.s1-week:last-child{border-right:none;}
+.s1-week-n{font-size:.68em;color:var(--gold);letter-spacing:.1em;margin-bottom:.4em;}
+.s1-week-t{font-size:.85em;color:var(--sub);line-height:1.4;}
+
+/* ═══ S2 듀얼 트랙 (세로 이미지) ═══ */
+#s2 .body{display:grid;grid-template-columns:1fr 1fr;}
+.track{display:grid;grid-template-columns:clamp(180px,22vw,320px) 1fr;border-right:1px solid var(--border);align-items:center;}
+.track:last-child{border-right:none;}
+.tr-img{position:relative;overflow:hidden;aspect-ratio:9/16;border-radius:12px;border:1px solid var(--gold-line);box-shadow:0 4px 32px rgba(0,0,0,.08);}
+.tr-img::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 55%,rgba(255,255,255,.72) 100%);pointer-events:none;}
+.tr-img-ph{position:absolute;inset:0;display:flex;flex-direction:column;gap:.4em;align-items:center;justify-content:center;text-align:center;background:var(--bg2);font-size:.8em;line-height:1.4;color:var(--sub);letter-spacing:.04em;}
+.tr-img-ph span{font-size:.82em;color:var(--dim);}
+.tr-body{padding:clamp(18px,2.4vh,34px) clamp(20px,2vw,40px);display:flex;flex-direction:column;gap:.9em;justify-content:center;}
+.tr-tag{align-self:flex-start;font-size:.66em;font-weight:400;letter-spacing:.18em;text-transform:uppercase;padding:.35em 1em;border-radius:20px;}
+.ta .tr-tag{background:var(--gold-dim);color:var(--gold);}
+.tb .tr-tag{background:var(--gold-dim);color:var(--gold);}
+.tr-h{font-size:1.8em;line-height:1.1;}
+.tr-meta{font-size:.78em;color:var(--dim);}
+.tr-list{list-style:none;display:flex;flex-direction:column;gap:.7em;margin-top:.3em;}
+.tr-list li{font-size:.92em;color:var(--sub);display:flex;gap:.7em;align-items:flex-start;line-height:1.45;}
+.tr-list li::before{content:'—';color:var(--gold);opacity:.35;flex-shrink:0;font-size:.8em;margin-top:.2em;}
+.tr-list li b{color:var(--text);font-weight:400;}
+.tr-event{background:var(--gold-dim);border:1px solid var(--gold-line);border-radius:7px;padding:.7em 1em;font-size:.8em;color:var(--sub);margin-top:.3em;}
+.tr-event b{color:var(--gold-lt);font-weight:400;}
+.tr-sheet-btn{align-self:flex-start;margin-top:.5em;display:inline-flex;align-items:center;gap:.5em;font-family:'Pretendard', -apple-system, sans-serif;font-size:.8em;color:var(--gold);text-decoration:none;padding:.5em 1.1em;border:1px solid var(--gold-line);border-radius:20px;transition:all .2s;cursor:pointer;background:none;}
+.tr-sheet-btn:hover{background:var(--gold-dim);border-color:var(--gold);}
+.tr-sheet-btn .ico{font-size:1.1em;}
+.tr-refs{display:flex;align-items:center;flex-wrap:wrap;gap:.5em;margin-top:.6em;}
+.tr-refs-label{font-size:.62em;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-right:.15em;}
+.tr-ref{display:inline-flex;align-items:center;gap:.3em;font-family:'Pretendard', -apple-system, sans-serif;font-size:.78em;color:var(--gold);text-decoration:none;padding:.4em .85em;border:1px solid var(--gold-line);border-radius:20px;transition:all .2s;}
+.tr-ref:hover{background:var(--gold-dim);border-color:var(--gold);}
+
+/* ═══ 블로그 슬라이드 (.s3b-*, HTML #s4) ═══ */
+#s3 .body{display:grid;grid-template-columns:1fr 1.5fr;}
+.s3b-text{display:flex;flex-direction:column;justify-content:center;padding:0 var(--pad);gap:.9em;border-right:1px solid var(--border);}
+.s3b-h{font-size:clamp(24px,2.7vw,42px);line-height:1.12;}
+.s3b-h em{font-style:italic;color:var(--gold-lt);}
+.s3b-bullets{list-style:none;display:flex;flex-direction:column;gap:.85em;}
+.s3b-bullets li{display:flex;gap:.7em;align-items:flex-start;font-size:.92em;color:var(--sub);line-height:1.5;}
+.s3b-bullets li::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:.55em;}
+.s3b-bullets li b{color:var(--text);font-weight:400;}
+.s3b-tags{display:flex;flex-wrap:wrap;gap:.5em;}
+.s3b-tag{font-size:.78em;padding:.35em .9em;border-radius:20px;border:1px solid var(--gold-line);color:var(--gold);}
+.s3b-effect{margin-top:.4em;font-size:.82em;color:var(--gold-lt);letter-spacing:.02em;}
+.s3b-visual{display:grid;grid-template-columns:1fr 1fr;gap:clamp(10px,1vw,18px);padding:clamp(24px,3vh,48px) var(--pad);align-items:center;}
+.s3b-media{border-radius:14px;overflow:hidden;aspect-ratio:9/14;max-height:78vh;position:relative;border:1px solid var(--gold-line);box-shadow:0 4px 28px rgba(0,0,0,.08);}
+.s3b-media::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 60%,rgba(255,255,255,.65) 100%);pointer-events:none;}
+
+/* ═══ 샤오홍슈 전략 슬라이드 (.s4-*, HTML #s3) ═══ */
+#s4 .body{display:grid;grid-template-columns:clamp(280px,28vw,460px) 1fr;}
+.s4-content{display:flex;flex-direction:column;justify-content:center;padding:0 var(--pad);gap:1.4em;overflow-y:auto;}
+.s4-h{font-size:clamp(24px,2.7vw,42px);line-height:1.1;}
+.s4-h em{font-style:italic;color:var(--gold-lt);}
+.s4-note{font-size:.82em;color:var(--dim);letter-spacing:.04em;}
+.s4-goals{display:flex;flex-direction:column;gap:.7em;}
+.goal{display:flex;gap:1em;align-items:center;}
+.goal-n{font-family:'Inter','Pretendard',sans-serif;font-size:2em;line-height:1;color:var(--dim);flex-shrink:0;width:1.2em;}
+.goal-text{font-size:.95em;color:var(--sub);line-height:1.5;}
+.goal-text b{color:var(--text);font-weight:400;}
+.s4-ratio{background:var(--surface);border:1px solid var(--gold-line);border-radius:9px;padding:1.1em 1.4em;display:flex;align-items:center;gap:1.4em;}
+.ratio-num{font-family:'Inter','Pretendard',sans-serif;font-size:2.6em;color:var(--gold);line-height:1;white-space:nowrap;}
+.ratio-desc{font-size:.85em;color:var(--sub);line-height:1.8;}
+.ratio-desc b{color:var(--text);font-weight:400;}
+.s4-lang{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:1em 1.3em;}
+.lang-title{font-size:.66em;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:.7em;}
+.tags{display:flex;flex-wrap:wrap;gap:.4em;}
+.tag{font-size:.78em;padding:.35em .9em;border-radius:20px;border:1px solid var(--border);color:var(--sub);}
+.tag.g{border-color:var(--gold-line);color:var(--gold);}
+
+/* ═══ S5 예산 ═══ */
+#s5 .body{display:flex;flex-direction:column;}
+.s5-head{padding:clamp(20px,2.6vh,40px) var(--pad) 0;flex-shrink:0;}
+.s5-h{font-size:clamp(26px,3vw,48px);line-height:1.1;margin-top:.3em;}
+.s5-h em{font-style:italic;color:var(--gold-lt);}
+.s5-pkgs{flex:1;display:grid;grid-template-columns:1fr 1.15fr;padding:clamp(18px,2.4vh,36px) var(--pad);gap:1.4em;min-height:0;align-items:center;}
+.pkg{background:var(--surface);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;overflow:hidden;position:relative;max-height:clamp(320px,60vh,460px);}
+.pkg.rec{border:1.5px solid var(--gold);box-shadow:0 0 0 4px var(--gold-dim);transform:scale(1.015);}
+.pkg-top{padding:1.2em 1.5em;border-bottom:1px solid var(--border);display:flex;align-items:baseline;justify-content:space-between;}
+.pkg.rec .pkg-top{border-bottom-color:var(--gold-line);}
+.pkg-price{display:flex;align-items:baseline;gap:.3em;}
+.pkg-price .num{font-family:'Inter','Pretendard',sans-serif;font-size:3.4em;line-height:1;}
+.pkg:not(.rec) .pkg-price .num{color:var(--sub);}
+.pkg.rec .pkg-price .num{color:var(--gold);}
+.pkg-price .won{font-size:.9em;color:var(--sub);}
+.pkg-channel{font-size:.78em;color:var(--dim);}
+.pkg-rec-badge{font-size:.62em;letter-spacing:.14em;text-transform:uppercase;padding:.4em 1.1em;border-radius:20px;background:var(--gold);color:var(--bg);font-weight:500;}
+.pkg-body{flex:1;display:flex;flex-direction:column;justify-content:center;padding:1.4em 1.5em;gap:1em;}
+.pkg-line{display:flex;align-items:center;gap:1em;}
+.pkg-line-ico{font-size:.66em;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);min-width:5.5em;flex-shrink:0;}
+.pkg-line-text{font-size:.95em;color:var(--text);}
+.pkg-line-text span{color:var(--sub);font-size:.85em;}
+.pkg-blog{padding:.9em 1.5em;background:var(--gold-dim);border-top:1px solid var(--gold-line);font-size:.8em;color:var(--sub);line-height:1.55;}
+.pkg-blog b{color:var(--gold-lt);font-weight:400;}
+.s5-foot{padding:.9em var(--pad);background:var(--bg2);border-top:1px solid var(--border);flex-shrink:0;font-size:.82em;color:var(--sub);}
+
+/* ═══ S7 캘린더 ═══ */
+#s7 .body{display:grid;grid-template-columns:clamp(200px,20vw,320px) 1fr;}
+.cal-side{display:flex;flex-direction:column;justify-content:center;padding:0 var(--pad);gap:1.4em;border-right:1px solid var(--border);}
+.cal-month{font-family:'Inter','Pretendard',sans-serif;font-size:clamp(32px,3.8vw,60px);line-height:1.05;color:var(--text);}
+.cal-month span{display:block;font-size:.42em;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:.3em;}
+.cal-legend{display:flex;flex-direction:column;gap:.55em;}
+.leg{display:flex;align-items:center;gap:.8em;font-size:.8em;color:var(--sub);line-height:1.3;}
+.leg-bar{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+.leg b{color:var(--text);font-weight:400;}
+.cal-main{padding:clamp(10px,1.6vh,24px) var(--pad);display:flex;flex-direction:column;gap:.35em;justify-content:center;}
+.cal-dow{display:grid;grid-template-columns:clamp(60px,7vw,100px) repeat(7,1fr);gap:3px;margin-bottom:.2em;}
+.cal-dow-lbl{font-size:.6em;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);display:flex;align-items:center;}
+.cal-dow-cell{font-size:.6em;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);text-align:center;padding:.3em 0;}
+.cal-row{display:grid;grid-template-columns:clamp(60px,7vw,100px) repeat(7,1fr);gap:3px;}
+.cal-week-tag{display:flex;flex-direction:column;justify-content:center;padding:.4em .7em;border-left:2px solid var(--gold-line);gap:.15em;}
+.cal-week-tag .wn{font-size:.58em;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);}
+.cal-week-tag .wt{font-size:.7em;color:var(--sub);line-height:1.2;}
+.cal-cell{aspect-ratio:1.5/1;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:.85em;color:var(--sub);position:relative;font-weight:400;}
+.cal-cell.empty{background:none;}
+.cal-cell.w1{background:rgba(191,143,82,.1);}
+.cal-cell.w2{background:rgba(90,160,140,.1);}
+.cal-cell.w3{background:rgba(150,100,190,.1);}
+.cal-cell.w4{background:rgba(90,120,190,.1);}
+.cal-cell.w5{background:rgba(191,143,82,.05);}
+.cal-cell.event{color:var(--bg);font-weight:600;background:var(--gold)!important;box-shadow:0 0 10px rgba(0,0,0,.18);z-index:1;flex-direction:column;gap:2px;}
+.cal-ev-tag{font-size:.44em;font-weight:700;letter-spacing:.02em;line-height:1;display:flex;align-items:center;gap:.3em;}
+.cal-ev-tag::before{content:'★';font-size:.9em;}
+.cal-cell.due{color:var(--gold-lt);font-weight:600;box-shadow:inset 0 0 0 1.5px var(--gold);}
+
+/* ═══ S6 기대 효과 ═══ */
+#s6 .body{display:flex;flex-direction:column;}
+.s6-kpi{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);flex-shrink:0;}
+.kpi{padding:clamp(18px,2.6vh,36px) var(--pad);border-right:1px solid var(--border);position:relative;overflow:hidden;}
+.kpi:last-child{border-right:none;}
+.kpi:not(:first-child){padding-left:1.8em;}
+.kpi-ghost{position:absolute;right:-.1em;bottom:-.35em;font-family:'Inter','Pretendard',sans-serif;font-size:5.5em;line-height:1;color:var(--gold);opacity:.05;pointer-events:none;}
+.kpi-val{display:flex;align-items:baseline;gap:.15em;margin-bottom:.4em;position:relative;}
+.kpi-num{font-family:'Inter','Pretendard',sans-serif;font-size:2.8em;color:var(--gold);line-height:1;}
+.kpi-unit{font-size:.9em;color:var(--gold);opacity:.6;}
+.kpi-label{font-size:.82em;color:var(--sub);line-height:1.5;position:relative;}
+.s6-mid{flex:1;display:grid;grid-template-columns:1fr 1fr;min-height:0;}
+.s6-col{padding:clamp(16px,2.2vh,30px) var(--pad);border-right:1px solid var(--border);overflow:hidden;display:flex;flex-direction:column;justify-content:center;}
+.s6-col:last-child{border-right:none;}
+.s6-col-title{font-size:.66em;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:1em;display:flex;align-items:center;gap:.6em;}
+.s6-col-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.eff-list{list-style:none;display:flex;flex-direction:column;gap:.7em;}
+.eff-list li{font-size:.92em;color:var(--sub);line-height:1.45;padding-left:1.4em;position:relative;}
+.eff-list li::before{content:'+';position:absolute;left:0;top:0;color:var(--gold);font-size:1em;opacity:.7;}
+.eff-list li b{color:var(--text);font-weight:400;}
+.s6-foot{flex-shrink:0;border-top:1px solid var(--gold-line);background:var(--gold-dim);padding:1.2em var(--pad);display:flex;align-items:center;gap:1em;}
+.s6-foot-arrow{font-family:'Inter','Pretendard',sans-serif;font-size:1.6em;color:var(--gold);flex-shrink:0;}
+.s6-foot-text{font-size:1em;color:var(--text);line-height:1.4;}
+.s6-foot-text b{color:var(--gold-lt);font-weight:400;}
+
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important;}}
+
+/* ═══ PRINT / PDF (Ctrl+P → PDF로 저장) ═══ */
+@media print {
+  @page { size: 338mm 190mm; margin: 0; }
+  *,*::before,*::after{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+  html, body { width:auto !important; height:auto !important; overflow:visible !important; background:var(--bg); }
+  nav { display:none !important; }
+  .deck { position:static !important; height:auto !important; overflow:visible !important; }
+  .slide { position:relative !important; inset:auto !important; opacity:1 !important; pointer-events:auto !important; display:flex !important; width:338mm; height:190mm; padding-top:0 !important; overflow:hidden; transition:none !important; page-break-after:always; break-after:page; }
+  .slide:last-child { page-break-after:avoid; break-after:avoid; }
+  .f-nav { display:none !important; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="n-brand">틈결 × SIRIAI</span>
+  <button class="n-btn on" onclick="go(0)">Overview</button>
+  <button class="n-btn" onclick="go(1)">운영 플로우</button>
+  <button class="n-btn" onclick="go(2)">듀얼 트랙</button>
+  <button class="n-btn" onclick="go(3)">샤오홍슈</button>
+  <button class="n-btn" onclick="go(4)">블로그</button>
+  <button class="n-btn" onclick="go(5)">예산</button>
+  <button class="n-btn" onclick="go(6)">기대 효과</button>
+  <button class="n-btn" onclick="go(7)">6월 일정</button>
+  <button class="n-pdf" onclick="downloadPDF()" title="PDF 다운로드 (고화질은 Ctrl+P)">📄 PDF 다운로드</button>
+</nav>
+
+<div class="deck">
+
+  <!-- S0 COVER -->
+  <div class="slide on" id="s0">
+    <div class="body">
+      <div class="cov-left">
+        <div class="eyebrow cov-eyebrow">SIRIAI × 틈결 &mdash; 인플루언서 시딩 기획안 2026</div>
+        <h1 class="serif cov-h">매달,<br><em>틈결을 새로 알립니다</em></h1>
+        <div class="cov-tagline">인스타그램 · 네이버 · <b>샤오홍슈</b>까지</div>
+        <div class="cov-rule"></div>
+        <div class="cov-stats">
+          <div><div class="st-label">운영 기간</div><div class="st-val"><b>2026년 6월</b> 1차</div></div>
+          <div><div class="st-label">월 예산</div><div class="st-val"><b>400~500만원</b></div></div>
+          <div><div class="st-label">운영 규모</div><div class="st-val"><b>PB 10</b> · <b>샤오홍슈 10~15</b></div></div>
+        </div>
+      </div>
+      <div class="img-panel img-panel-l" style="border-left:1px dashed var(--gold-line);"><img class="fill" src="images/cover_space2.png" alt="틈결 공간 전경"></div>
+    </div>
+    <footer>
+      <span class="f-idx">01 — 08</span>
+      <div class="f-nav"><button class="f-btn p" onclick="go(1)">다음 →</button></div>
+    </footer>
+  </div>
+
+  <!-- S1 운영 플로우 -->
+  <div class="slide" id="s1">
+    <div class="body">
+      <div class="s1-head">
+        <div class="eyebrow">Monthly Flow — 월 운영 플로우</div>
+        <h2 class="serif s1-h"><em>5단계</em> 실행 구조</h2>
+      </div>
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-n">STEP 01</div>
+          <div class="flow-title">후보<br>리스트업</div>
+          <ul class="flow-items">
+            <li>PB 10명 · 샤오홍슈 10~15명</li>
+            <li>중국어 콘텐츠 인플루언서 포함</li>
+            <li>클라이언트 컨펌</li>
+          </ul>
+        </div>
+        <div class="flow-step">
+          <div class="flow-n">STEP 02</div>
+          <div class="flow-title">컨택 &<br>가이드</div>
+          <ul class="flow-items">
+            <li>DM / 이메일 발송</li>
+            <li>콘텐츠 가이드라인 전달</li>
+          </ul>
+        </div>
+        <div class="flow-step">
+          <div class="flow-n">STEP 03</div>
+          <div class="flow-title">콘텐츠<br>제작</div>
+          <ul class="flow-items">
+            <li>PB — 제품 수령 후 촬영</li>
+            <li>샤오홍슈 — 현장 방문 촬영</li>
+          </ul>
+        </div>
+        <div class="flow-step">
+          <div class="flow-n">STEP 04</div>
+          <div class="flow-title">업로드 &<br>모니터링</div>
+          <ul class="flow-items">
+            <li>업로드 · 태그 검수</li>
+            <li>필요 시 수정·보완 요청</li>
+          </ul>
+        </div>
+        <div class="flow-step">
+          <div class="flow-n">STEP 05</div>
+          <div class="flow-title">성과<br>리포트</div>
+          <ul class="flow-items">
+            <li>전체 캠페인 리포트 제공</li>
+            <li>우수 콘텐츠 광고 소재화</li>
+            <li>차월 인원 선별</li>
+          </ul>
+        </div>
+      </div>
+      <div class="s1-foot">
+        <div class="s1-foot-label"><span>Schedule</span></div>
+        <div class="s1-weeks">
+          <div class="s1-week"><div class="s1-week-n">1주차</div><div class="s1-week-t">PB 진행 · 샤오홍슈 모집</div></div>
+          <div class="s1-week"><div class="s1-week-n">2주차</div><div class="s1-week-t">섭외 확정 · 방문일 픽스</div></div>
+          <div class="s1-week"><div class="s1-week-n">3주차</div><div class="s1-week-t">샤오홍슈 현장 방문 · 촬영</div></div>
+          <div class="s1-week"><div class="s1-week-n">4주차</div><div class="s1-week-t">업로드 · 성과 리포트</div></div>
+        </div>
+      </div>
+    </div>
+    <footer>
+      <span class="f-idx">02 — 08</span>
+      <div class="f-nav">
+        <button class="f-btn" onclick="go(0)">← 이전</button>
+        <button class="f-btn p" onclick="go(2)">다음 →</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- S2 듀얼 트랙 -->
+  <div class="slide" id="s2">
+    <div class="body">
+      <div class="track ta">
+        <div class="tr-img"><img class="fill" src="images/track_pb.png" alt="에스더버니 PB 악세사리 착용 콘텐츠"></div>
+        <div class="tr-body">
+          <span class="tr-tag">Track A</span>
+          <div class="serif tr-h">PB 악세사리 시딩</div>
+          <div class="tr-meta">10명 · 제품 발송형</div>
+          <ul class="tr-list">
+            <li>에스더버니 <b>반지·팔찌</b> 기존 PB</li>
+            <li>팝업 참여자 <b>우선 재섭외</b></li>
+            <li>콘텐츠: <b>제품 스타일링</b></li>
+            <li>코드 혜택: <b>온라인 할인</b></li>
+          </ul>
+          <a class="tr-sheet-btn" href="https://docs.google.com/spreadsheets/d/1rI3JMvB5V7es7M-UdquXDMo-kvXksfFJVINHa-EoIhE/edit?gid=706806471#gid=706806471" target="_blank" rel="noopener"><span class="ico">📋</span> PB 인플루언서 리스트 ↗</a>
+        </div>
+      </div>
+      <div class="track tb">
+        <div class="tr-img"><img class="fill" src="images/track_visit.png" alt="샤오홍슈 공간 콘텐츠"></div>
+        <div class="tr-body">
+          <span class="tr-tag">Track B</span>
+          <div class="serif tr-h">샤오홍슈 시딩</div>
+          <div class="tr-meta">10~15명 · 현장 방문 · 영상 중심</div>
+          <ul class="tr-list">
+            <li><b>현장 방문 영상</b> — 틈결 팝업·아뜰리에 무드 (영상 + 이미지 믹스)</li>
+            <li><b>위치·브랜드 태그</b> — 게시물 검색 노출</li>
+            <li><b>이벤트 연계</b> — 럭키드로우 등 월별 행사</li>
+          </ul>
+          <div class="tr-event">샤오홍슈 = 중국판 <b>인스타 + 네이버</b> · 여행 전 <b>필수 검색</b> 플랫폼</div>
+          <div class="tr-refs">
+            <span class="tr-refs-label">레퍼런스</span>
+            <a class="tr-ref" href="https://www.xiaohongshu.com/explore/6a0972a800000000070114e6?xsec_token=CBxr-fkFDtAXw40_UkvVSjXLQiR347BFIDU3R8A7sdbO4=&xsec_source=app_share" target="_blank" rel="noopener">01 ↗</a>
+            <a class="tr-ref" href="https://www.xiaohongshu.com/explore/6a1589a7000000003601f96f?xsec_token=CBN3a6WvGKdRQoZNweAYsHbWBrLlGw-9h3TghUw2pYZAU=&xsec_source=app_share" target="_blank" rel="noopener">02 ↗</a>
+            <a class="tr-ref" href="https://www.xiaohongshu.com/explore/6a17d7a3000000000702a3ad?xsec_token=CBAIHafZ-bgfHh6TBjSw2UAMRidBPeJatqMalMuHqq94s=&xsec_source=app_share" target="_blank" rel="noopener">03 ↗</a>
+            <a class="tr-ref" href="https://www.xiaohongshu.com/explore/6a13f849000000003601df9d?xsec_token=ABwolj9elU6LdMwCJa4quSD3eUfv5GiKddl1cbCqnMAx8=&xsec_source=pc_user" target="_blank" rel="noopener">04 ↗</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer>
+      <span class="f-idx">03 — 08</span>
+      <div class="f-nav">
+        <button class="f-btn" onclick="go(1)">← 이전</button>
+        <button class="f-btn p" onclick="go(3)">다음 →</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- S3 샤오홍슈 전략 -->
+  <div class="slide" id="s3">
+    <div class="body">
+      <div class="img-panel img-panel-r" style="border-right:1px dashed var(--gold-line);"><img class="fill" src="images/foreign_seongsu.png" alt="성수 팝업 공간을 촬영하는 중국인 인플루언서"></div>
+      <div class="s4-content">
+        <div class="eyebrow">Global — 샤오홍슈 전략</div>
+        <h2 class="serif s4-h">샤오홍슈로 여는<br><em>중국 인바운드</em></h2>
+        <div class="s4-goals">
+          <div class="goal"><div class="goal-n">01</div><div class="goal-text"><b>방문객 60%가 중국인</b> — 정작 샤오홍슈엔 틈결이 없음 (수요 O · 검색 자산 X)</div></div>
+          <div class="goal"><div class="goal-n">02</div><div class="goal-text"><b>키워드 선점</b> — 여행 전 '성수 팝업·전시' 검색을 지금 선점 = 인바운드 구조화</div></div>
+        </div>
+        <div class="s4-ratio">
+          <div class="ratio-num">10~15<span style="font-size:.42em;letter-spacing:.04em;">명</span></div>
+          <div class="ratio-desc">
+            <b>재한 중국인 인플루언서</b> — 실거주자·유학생, 여행 인플루언서<br>
+            <b>한국인 샤오홍슈 크리에이터</b> — 중국어 콘텐츠 가능자
+          </div>
+        </div>
+        <div class="s4-lang">
+          <div class="lang-title">타겟 검색 키워드</div>
+          <div class="tags">
+            <span class="tag g">성수 팝업</span><span class="tag g">성수 전시</span><span class="tag g">성수 아뜰리에</span>
+            <span class="tag">성수동 핫플</span><span class="tag">서울 가볼만한곳</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer>
+      <span class="f-idx">04 — 08</span>
+      <div class="f-nav">
+        <button class="f-btn" onclick="go(2)">← 이전</button>
+        <button class="f-btn p" onclick="go(4)">다음 →</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- S4 블로그 -->
+  <div class="slide" id="s4">
+    <div class="body">
+      <div class="s3b-text">
+        <div class="eyebrow">Naver Blog — 셀럽 착용 재조명</div>
+        <h2 class="serif s3b-h">셀럽이 입었던 그 제품,<br><em>다시 검색 위로</em></h2>
+        <ul class="s3b-bullets">
+          <li><div><b>검증된 자산</b> — 릴리·김고은·크리스탈 등 셀럽 착용 이력 보유</div></li>
+          <li><div><b>재조명</b> — 시간이 지나 묻힌 착용 정보를 검색 상위로</div></li>
+          <li><div><b>전환 직결</b> — "셀럽 착용" 검색 = 구매 + 오래 남는 검색 자산</div></li>
+        </ul>
+        <div class="s3b-tags">
+          <span class="s3b-tag">#김고은 착용</span>
+          <span class="s3b-tag">#릴리 착용</span>
+          <span class="s3b-tag">#크리스탈 착용</span>
+        </div>
+        <div class="s3b-effect">→ 새로 만드는 게 아니라, 묻힌 셀럽 효과를 되살리는 것</div>
+      </div>
+      <div class="s3b-visual">
+        <div class="s3b-media">
+          <video class="fill" src="images/blog_tmt.mp4" autoplay loop muted playsinline aria-label="네이버 블로그 후기 영상"></video>
+        </div>
+        <div class="s3b-media"><img class="fill" src="images/blog3.gif" alt="네이버 블로그 후기 콘텐츠"></div>
+      </div>
+    </div>
+    <footer>
+      <span class="f-idx">05 — 08</span>
+      <div class="f-nav">
+        <button class="f-btn" onclick="go(3)">← 이전</button>
+        <button class="f-btn p" onclick="go(5)">다음 →</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- S5 예산 -->
+  <div class="slide" id="s5">
+    <div class="body">
+      <div class="s5-head">
+        <div class="eyebrow">Budget — 예산</div>
+        <h2 class="serif s5-h">Package</h2>
+      </div>
+      <div class="s5-pkgs">
+        <div class="pkg">
+          <div class="pkg-top">
+            <div class="pkg-price"><span class="serif num">400</span><span class="won">만원 / 월</span></div>
+            <span class="pkg-channel">인스타그램 + 샤오홍슈</span>
+          </div>
+          <div class="pkg-body">
+            <div class="pkg-line"><div class="pkg-line-ico">인플루언서</div><div class="pkg-line-text">20~25명 <span>· PB 10 + 샤오홍슈 10~15</span></div></div>
+            <div class="pkg-line"><div class="pkg-line-ico">채널</div><div class="pkg-line-text">인스타그램 + 샤오홍슈 <span>피드·릴스·영상</span></div></div>
+            <div class="pkg-line"><div class="pkg-line-ico">코드</div><div class="pkg-line-text">파트너십 코드 <span>발행</span></div></div>
+          </div>
+        </div>
+        <div class="pkg rec">
+          <div class="pkg-top">
+            <div class="pkg-price"><span class="serif num">500</span><span class="won">만원 / 월</span></div>
+            <span class="pkg-rec-badge">★ 추천</span>
+          </div>
+          <div class="pkg-body">
+            <div class="pkg-line"><div class="pkg-line-ico">인플루언서</div><div class="pkg-line-text">20~25명 <span>· PB 10 + 샤오홍슈 10~15</span></div></div>
+            <div class="pkg-line"><div class="pkg-line-ico">+ 블로그</div><div class="pkg-line-text">네이버 블로그 셀럽 콘텐츠 <span>발행</span></div></div>
+            <div class="pkg-line"><div class="pkg-line-ico">채널</div><div class="pkg-line-text">인스타그램 + 샤오홍슈 <span>+</span> 네이버 검색</div></div>
+          </div>
+          <div class="pkg-blog">📝 <b>네이버 블로그 추가</b> — 인스타 도달에 더해 "김고은 틈결" 같은 검색 유입까지 확보</div>
+        </div>
+      </div>
+      <div class="s5-foot">우수 콘텐츠는 브랜드 공식 채널 광고 소재로 2차 활용 가능</div>
+    </div>
+    <footer>
+      <span class="f-idx">06 — 08</span>
+      <div class="f-nav">
+        <button class="f-btn" onclick="go(4)">← 이전</button>
+        <button class="f-btn p" onclick="go(6)">다음 →</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- S6 기대 효과 -->
+  <div class="slide" id="s6">
+    <div class="body">
+      <div class="s6-kpi">
+        <div class="kpi"><span class="serif kpi-ghost">01</span><div class="kpi-val"><span class="serif kpi-num">30~40</span><span class="kpi-unit">개</span></div><div class="kpi-label">월 콘텐츠 자산</div></div>
+        <div class="kpi"><span class="serif kpi-ghost">02</span><div class="kpi-val"><span class="serif kpi-num">50~100</span><span class="kpi-unit">만</span></div><div class="kpi-label">월 누적 도달</div></div>
+        <div class="kpi"><span class="serif kpi-ghost">03</span><div class="kpi-val"><span class="serif kpi-num">100</span><span class="kpi-unit">개+</span></div><div class="kpi-label">5개월 누적 콘텐츠</div></div>
+        <div class="kpi"><span class="serif kpi-ghost">04</span><div class="kpi-val"><span class="serif kpi-num">10~15</span><span class="kpi-unit">명</span></div><div class="kpi-label">샤오홍슈 · 중국 인바운드 선점</div></div>
+      </div>
+      <div class="s6-mid">
+        <div class="s6-col">
+          <div class="s6-col-title">월 단위 효과</div>
+          <ul class="eff-list">
+            <li><b>상시 검색 노출</b> — 팝업 이후에도 지속</li>
+            <li><b>중국 인바운드 선점</b> — 방한 전 '가볼 곳' 검색에 노출</li>
+            <li><b>광고 소재 확보</b> — 우수 콘텐츠 2차 활용</li>
+            <li><b>성과 데이터 축적</b> — 콘텐츠 성과로 우수 인플루언서 선별</li>
+          </ul>
+        </div>
+        <div class="s6-col">
+          <div class="s6-col-title">5개월 누적 효과</div>
+          <ul class="eff-list">
+            <li>시즌별 <b>콘텐츠 라이브러리</b> 구축</li>
+            <li>단골 풀 → <b>단가 협상력 상승</b></li>
+            <li><b>인플루언서 ROI 랭킹</b> 도출</li>
+            <li>PB 상품 <b>온라인 매출 기여</b></li>
+          </ul>
+        </div>
+      </div>
+      <div class="s6-foot">
+        <div class="s6-foot-arrow">→</div>
+        <div class="s6-foot-text">단발 팝업이 아닌 <b>매달 쌓이는 자산</b>. 틈결은 꾸준히 회자되는 공간이 됩니다.</div>
+      </div>
+    </div>
+    <footer>
+      <span class="f-idx">07 — 08</span>
+      <div class="f-nav">
+        <button class="f-btn" onclick="go(5)">← 이전</button>
+        <button class="f-btn p" onclick="go(7)">다음 →</button>
+      </div>
+    </footer>
+  </div>
+
+
+  <!-- S7 6월 캘린더 -->
+  <div class="slide" id="s7">
+    <div class="body">
+      <div class="cal-side">
+        <div class="cal-month"><span>June 2026</span>6월<br>실행 일정</div>
+        <div class="cal-legend">
+          <div class="leg"><div class="leg-bar" style="background:rgba(191,143,82,.4);"></div><div><b>1주차</b> PB 진행 · 샤오홍슈 모집</div></div>
+          <div class="leg"><div class="leg-bar" style="background:rgba(90,160,140,.4);"></div><div><b>2주차</b> 섭외 확정 · 방문일 픽스</div></div>
+          <div class="leg"><div class="leg-bar" style="background:rgba(150,100,190,.4);"></div><div><b>3주차</b> 샤오홍슈 방문 · 촬영</div></div>
+          <div class="leg"><div class="leg-bar" style="background:rgba(90,120,190,.4);"></div><div><b>4주차</b> 업로드 · 성과 리포트</div></div>
+          <div class="leg"><div class="leg-bar" style="background:var(--gold);box-shadow:0 0 6px rgba(191,143,82,.55);"></div><div><b>6/5</b> 럭키드로우 시작</div></div>
+          <div class="leg"><div class="leg-bar" style="background:transparent;box-shadow:inset 0 0 0 1.5px var(--gold);"></div><div><b>업로드 마감</b> PB 6/21 · 샤오홍슈 6/30</div></div>
+        </div>
+        <div style="font-size:.72em;color:var(--dim);line-height:1.55;border-top:1px solid var(--border);padding-top:1em;">방문일 확정 후 <b style="color:var(--gold-lt);font-weight:400;">약 10일 내 업로드</b> 완료</div>
+      </div>
+      <div class="cal-main">
+        <div class="cal-dow">
+          <div class="cal-dow-lbl">Week</div>
+          <div class="cal-dow-cell">Mon</div><div class="cal-dow-cell">Tue</div><div class="cal-dow-cell">Wed</div>
+          <div class="cal-dow-cell">Thu</div><div class="cal-dow-cell">Fri</div>
+          <div class="cal-dow-cell">Sat</div><div class="cal-dow-cell">Sun</div>
+        </div>
+        <div class="cal-row">
+          <div class="cal-week-tag"><span class="wn">W 1</span><span class="wt">PB<br>모집</span></div>
+          <div class="cal-cell w1">1</div><div class="cal-cell w1">2</div><div class="cal-cell w1">3</div>
+          <div class="cal-cell w1">4</div><div class="cal-cell w1 event">5<span class="cal-ev-tag">럭키드로우</span></div>
+          <div class="cal-cell w1 sat">6</div><div class="cal-cell w1 sun">7</div>
+        </div>
+        <div class="cal-row">
+          <div class="cal-week-tag"><span class="wn">W 2</span><span class="wt">섭외<br>확정</span></div>
+          <div class="cal-cell w2">8</div><div class="cal-cell w2">9</div><div class="cal-cell w2">10</div>
+          <div class="cal-cell w2">11</div><div class="cal-cell w2">12</div>
+          <div class="cal-cell w2 sat">13</div><div class="cal-cell w2 sun">14</div>
+        </div>
+        <div class="cal-row">
+          <div class="cal-week-tag"><span class="wn">W 3</span><span class="wt">방문<br>촬영</span></div>
+          <div class="cal-cell w3">15</div><div class="cal-cell w3">16</div><div class="cal-cell w3">17</div>
+          <div class="cal-cell w3">18</div><div class="cal-cell w3">19</div>
+          <div class="cal-cell w3 sat">20</div><div class="cal-cell w3 sun due">21</div>
+        </div>
+        <div class="cal-row">
+          <div class="cal-week-tag"><span class="wn">W 4</span><span class="wt">업로드<br>리포트</span></div>
+          <div class="cal-cell w4">22</div><div class="cal-cell w4">23</div><div class="cal-cell w4">24</div>
+          <div class="cal-cell w4">25</div><div class="cal-cell w4">26</div>
+          <div class="cal-cell w4 sat">27</div><div class="cal-cell w4 sun">28</div>
+        </div>
+        <div class="cal-row">
+          <div class="cal-week-tag"><span class="wn"></span><span class="wt"></span></div>
+          <div class="cal-cell w5">29</div><div class="cal-cell w5 due">30</div>
+          <div class="cal-cell empty"></div><div class="cal-cell empty"></div><div class="cal-cell empty"></div>
+          <div class="cal-cell empty"></div><div class="cal-cell empty"></div>
+        </div>
+      </div>
+    </div>
+    <footer>
+      <span class="f-idx">08 — 08</span>
+      <div class="f-nav">
+        <button class="f-btn" onclick="go(6)">← 이전</button>
+        <button class="f-btn p" onclick="go(0)">처음으로</button>
+      </div>
+    </footer>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const slides=document.querySelectorAll('.slide');
+const navBtns=document.querySelectorAll('.n-btn');
+let cur=0;
+function go(n){
+  if(n===cur)return;
+  slides[cur].classList.remove('on');
+  navBtns[cur].classList.remove('on');
+  cur=n;
+  slides[cur].classList.add('on');
+  navBtns[cur].classList.add('on');
+}
+let acc=0;
+window.addEventListener('wheel',e=>{
+  e.preventDefault();
+  acc+=e.deltaY;
+  if(acc>80&&cur<slides.length-1){go(cur+1);acc=0;}
+  if(acc<-80&&cur>0){go(cur-1);acc=0;}
+},{passive:false});
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){if(cur<slides.length-1)go(cur+1);}
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp'){if(cur>0)go(cur-1);}
+  if(e.key==='f'||e.key==='F'){
+    if(!document.fullscreenElement)document.documentElement.requestFullscreen().catch(()=>{});
+    else document.exitFullscreen();
+  }
+});
+let touchX=null;
+window.addEventListener('touchstart',e=>{touchX=e.changedTouches[0].clientX;},{passive:true});
+window.addEventListener('touchend',e=>{
+  if(touchX===null)return;
+  const dx=e.changedTouches[0].clientX-touchX;
+  if(Math.abs(dx)>50){
+    if(dx<0&&cur<slides.length-1)go(cur+1);
+    if(dx>0&&cur>0)go(cur-1);
+  }
+  touchX=null;
+},{passive:true});
+
+async function downloadPDF(){
+  const btn=document.querySelector('.n-pdf');
+  if(typeof html2canvas==='undefined'||!window.jspdf){ window.print(); return; }
+  const orig=btn?btn.textContent:''; if(btn){btn.textContent='PDF 생성 중…';btn.style.pointerEvents='none';}
+  try{
+    document.querySelectorAll('video').forEach(v=>{try{v.pause();}catch(e){}});
+    const { jsPDF }=window.jspdf;
+    const w=slides[0].clientWidth, h=slides[0].clientHeight;
+    const pdf=new jsPDF({orientation:w>=h?'l':'p', unit:'px', format:[w,h], compress:true});
+    for(let i=0;i<slides.length;i++){
+      slides.forEach((s,j)=>{ s.style.transition='none'; s.style.opacity=j===i?'1':'0'; s.style.pointerEvents=j===i?'auto':'none'; });
+      await new Promise(r=>setTimeout(r,180));
+      const canvas=await html2canvas(slides[i],{scale:2,useCORS:true,logging:false,backgroundColor:getComputedStyle(document.body).backgroundColor,windowWidth:document.documentElement.clientWidth,windowHeight:document.documentElement.clientHeight});
+      const img=canvas.toDataURL('image/jpeg',0.92);
+      if(i>0) pdf.addPage([w,h], w>=h?'l':'p');
+      pdf.addImage(img,'JPEG',0,0,w,h);
+    }
+    pdf.save('틈결_시딩_기획안_202606.pdf');
+  }catch(e){ console.error(e); window.print(); }
+  finally{
+    slides.forEach(s=>{ s.style.opacity=''; s.style.pointerEvents=''; s.style.transition=''; });
+    if(btn){btn.textContent=orig;btn.style.pointerEvents='';}
+  }
+}
+</script>
+</body>
+</html>

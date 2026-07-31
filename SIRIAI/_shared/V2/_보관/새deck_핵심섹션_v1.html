@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SIRIAI 사업소개서 — 새 구조 시안 v1</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    /* 홈 실측 토큰 — 디자인_가이드.html과 동일 세트 */
+    --bg:#f3eee2;--surface:#fff;--surface-2:#ece4d4;
+    --ink:#211a33;--ink-2:rgba(33,26,51,.66);--ink-3:rgba(33,26,51,.46);--line:rgba(33,26,51,.12);--line-2:rgba(33,26,51,.06);
+    --lav:#cabce8;--lav-soft:#e9e3f3;--peach:#edc6a8;--peach-soft:#f5e7d8;--sky:#b7cce0;--sky-soft:#e3ecf4;
+    --f-en:'Helvetica Neue','Helvetica','Arimo','Pretendard',Arial,sans-serif;--f-kr:'Pretendard',sans-serif;--f-sans:'Helvetica Neue','Helvetica','Arimo','Pretendard',sans-serif;--f-mono:'JetBrains Mono',ui-monospace,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{font-family:var(--f-sans);background:var(--bg);color:var(--ink);line-height:1.6;letter-spacing:-.01em;-webkit-font-smoothing:antialiased;}
+  .lab{position:fixed;top:14px;left:14px;z-index:90;font-family:var(--f-mono);font-size:11.5px;letter-spacing:.02em;color:var(--ink-2);background:rgba(243,238,226,.85);border:1px solid var(--line);border-radius:100px;padding:6px 13px;backdrop-filter:blur(6px);}
+  .eyebrow{font-family:var(--f-mono);font-size:13px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);}
+  section{padding:96px clamp(20px,6vw,96px);max-width:1240px;margin:0 auto;}
+
+  /* HERO */
+  .hero{min-height:90vh;display:flex;flex-direction:column;justify-content:center;
+    background:radial-gradient(120% 80% at 75% 15%,var(--lav-soft),transparent 55%),radial-gradient(90% 70% at 10% 90%,var(--peach-soft),transparent 55%),var(--bg);}
+  .hero .eyebrow{margin-bottom:24px;text-transform:none;letter-spacing:.01em;font-size:15px;}
+  .hero h1{font-family:var(--f-kr);font-weight:700;font-size:clamp(36px,5.2vw,68px);letter-spacing:-.03em;line-height:1.14;word-break:keep-all;}
+  .hero .sub{font-size:clamp(16px,1.4vw,20px);color:var(--ink-2);margin-top:26px;max-width:40ch;word-break:keep-all;line-height:1.65;}
+  .cta{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:var(--bg);border:none;border-radius:100px;padding:14px 26px;font-family:var(--f-sans);font-weight:500;font-size:15px;letter-spacing:-.01em;margin-top:40px;cursor:pointer;text-decoration:none;width:fit-content;transition:transform .18s,box-shadow .18s;}
+  .cta:hover{transform:translateY(-1px);box-shadow:0 14px 30px -14px rgba(33,26,51,.5);}
+  .cta.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);margin-left:10px;}
+  .cta.ghost:hover{box-shadow:none;border-color:var(--ink-3);}
+  .hero-ctas{display:flex;align-items:center;flex-wrap:wrap;}
+
+  /* TOC — 한눈 목차 (4 번호 기둥) */
+  .toc .eyebrow{margin-bottom:10px;}
+  .toc h2{font-family:var(--f-kr);font-weight:700;font-size:clamp(26px,3vw,40px);letter-spacing:-.022em;margin-bottom:6px;}
+  .toc .note{color:var(--ink-2);font-size:15px;margin-bottom:40px;word-break:keep-all;}
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+  @media(max-width:880px){.cards{grid-template-columns:repeat(2,1fr);}}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:24px 22px;display:flex;flex-direction:column;gap:12px;transition:.18s;}
+  .card:hover{box-shadow:0 22px 44px -24px rgba(33,26,51,.25);transform:translateY(-3px);border-color:var(--lav);}
+  .card .no{font-family:var(--f-en);font-weight:600;font-size:32px;color:var(--lav);line-height:1;letter-spacing:-.02em;}
+  .card .ct{font-family:var(--f-kr);font-weight:700;font-size:19px;letter-spacing:-.01em;}
+  .card .en{font-family:var(--f-mono);font-weight:500;font-size:12px;letter-spacing:.02em;color:var(--ink-3);margin-top:-6px;}
+  .card ul{list-style:none;display:flex;flex-direction:column;gap:5px;margin-top:4px;}
+  .card li{font-size:13.5px;color:var(--ink-2);padding-left:12px;position:relative;}
+  .card li::before{content:"";position:absolute;left:0;top:9px;width:4px;height:4px;border-radius:50%;background:var(--lav);}
+
+  /* 02 + CASE */
+  .f02{background:var(--surface);border-radius:28px;margin:0 auto;}
+  .f02-head{display:flex;align-items:baseline;gap:20px;margin-bottom:18px;}
+  .f02-head .no{font-family:var(--f-en);font-weight:600;font-size:50px;color:var(--lav);line-height:.9;letter-spacing:-.03em;}
+  .f02-head .lbl{font-family:var(--f-kr);font-weight:700;font-size:26px;letter-spacing:-.01em;}
+  .f02-head .en{font-family:var(--f-mono);font-weight:500;font-size:13px;color:var(--ink-3);margin-left:auto;letter-spacing:.02em;}
+  .f02 h2{font-family:var(--f-kr);font-weight:700;font-size:clamp(24px,2.8vw,36px);letter-spacing:-.022em;max-width:20ch;margin-bottom:30px;line-height:1.28;}
+  .noun-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-bottom:46px;}
+  @media(max-width:720px){.noun-grid{grid-template-columns:1fr;}}
+  .noun-col h4{font-family:var(--f-sans);font-weight:600;font-size:12px;color:var(--ink-3);margin-bottom:12px;letter-spacing:.06em;text-transform:uppercase;}
+  .noun-col .nouns{display:flex;flex-wrap:wrap;gap:8px;}
+  .noun{font-size:13.5px;padding:7px 14px;border-radius:100px;background:var(--bg);border:1px solid var(--line);color:var(--ink);}
+  .noun.hl{background:var(--lav-soft);border-color:transparent;color:#5a4a85;font-weight:600;}
+  /* case 4단 */
+  .case{background:var(--bg);border-radius:20px;padding:28px 30px;}
+  .case .ctag{font-family:var(--f-mono);font-weight:500;color:var(--ink-2);font-size:13px;letter-spacing:.01em;}
+  .case .ctitle{font-family:var(--f-kr);font-weight:700;font-size:22px;margin:6px 0 24px;letter-spacing:-.015em;}
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;}
+  @media(max-width:760px){.steps{grid-template-columns:1fr 1fr;gap:18px;}}
+  .step{padding:0 18px;border-left:1px solid var(--line);position:relative;}
+  .step:first-child{border-left:none;padding-left:0;}
+  .step .sn{font-family:var(--f-mono);font-weight:600;font-size:12px;color:var(--lav);letter-spacing:.01em;}
+  .step .sh{font-family:var(--f-kr);font-weight:700;font-size:14px;margin:6px 0 7px;}
+  .step .sd{font-size:13px;color:var(--ink-2);word-break:keep-all;line-height:1.5;}
+  .step .sr{font-family:var(--f-en);font-weight:600;font-size:26px;color:var(--ink);margin-top:8px;letter-spacing:-.02em;}
+
+  /* CONTACT */
+  .contact{text-align:center;background:radial-gradient(100% 80% at 50% 0%,var(--lav-soft),transparent 60%),var(--bg);border-radius:28px;}
+  .contact .eyebrow{margin-bottom:14px;}
+  .contact h2{font-family:var(--f-kr);font-weight:700;font-size:clamp(28px,3.4vw,46px);letter-spacing:-.025em;line-height:1.2;}
+  .contact .sub{color:var(--ink-2);margin-top:14px;font-size:16px;}
+  form{max-width:560px;margin:40px auto 0;text-align:left;display:flex;flex-direction:column;gap:14px;}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:560px){.row{grid-template-columns:1fr;}}
+  form label{font-size:12.5px;font-weight:600;color:var(--ink-2);margin-bottom:5px;display:block;}
+  form input,form textarea{width:100%;font-family:inherit;font-size:15px;padding:12px 14px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--ink);}
+  form textarea{min-height:88px;resize:vertical;}
+  form input:focus,form textarea:focus{outline:none;border-color:var(--lav);}
+  form .cta{width:100%;justify-content:center;margin-top:6px;}
+  .foot{text-align:center;font-size:12.5px;color:var(--ink-3);padding:40px;line-height:1.9;}
+  .foot b{color:var(--ink-2);}
+</style>
+</head>
+<body>
+  <div class="lab">새 구조 시안 v1 · StoryBrand + monopo · 홈톤</div>
+
+  <!-- ① HERO : you 주어 + 문제·결과 + 단일 CTA -->
+  <section class="hero">
+    <div class="eyebrow">SIRIAI · 知り合い — 아는 사이</div>
+    <h1>당신의 브랜드는 이미 좋습니다.<br/>시장이 아직 모를 뿐입니다.</h1>
+    <p class="sub">좋은 브랜드가 안 알려지는 건 <b>도달</b>이 아니라 <b>관계</b>의 문제. 시리아이가 당신을 시장과 '아는 사이'로 잇습니다.</p>
+    <div class="hero-ctas">
+      <a class="cta" href="#contact">막힌 결정 가져오기 →</a>
+      <a class="cta ghost" href="#toc">무엇을 하는지 보기</a>
+    </div>
+  </section>
+
+  <!-- ② 한눈 목차 : 4 번호 기둥 + 명사구 (monopo IA) -->
+  <section class="toc" id="toc">
+    <div class="eyebrow">What we do together</div>
+    <h2>우리가 함께 하는 일</h2>
+    <p class="note">네 개의 축. 전략으로 진단하고, 콘텐츠로 알리고, 기술로 증명하고, 제품으로 확장합니다.</p>
+    <div class="cards">
+      <a class="card" href="#f02" style="text-decoration:none;color:inherit">
+        <div class="no">01</div><div><div class="ct">아키텍팅</div><div class="en">Architecting</div></div>
+        <ul><li>페인포인트 진단</li><li>포지셔닝 설계</li><li>캠페인 아키텍처</li><li>A to Z 실행</li></ul>
+      </a>
+      <a class="card" href="#f02" style="text-decoration:none;color:inherit">
+        <div class="no">02</div><div><div class="ct">비주얼 콘텐츠</div><div class="en">Visual Content</div></div>
+        <ul><li>인플루언서 시딩</li><li>글로벌 시딩</li><li>릴스·콘텐츠</li><li>후불제·리스크 0</li></ul>
+      </a>
+      <a class="card" href="#f02" style="text-decoration:none;color:inherit">
+        <div class="no">03</div><div><div class="ct">sa:ai</div><div class="en">Software</div></div>
+        <ul><li>콘텐츠 아카이빙</li><li>성과 데이터</li><li>생성 AI 통합</li><li>관계의 기록</li></ul>
+      </a>
+      <a class="card" href="#f02" style="text-decoration:none;color:inherit">
+        <div class="no">04</div><div><div class="ct">프라이빗 브랜드</div><div class="en">Private Brand</div></div>
+        <ul><li>제품으로 증명</li><li>2026 —</li></ul>
+      </a>
+    </div>
+  </section>
+
+  <!-- ③ 02 비주얼 콘텐츠 (심장) + 케이스 4단 -->
+  <section class="f02" id="f02">
+    <div class="f02-head"><span class="no">02</span><span class="lbl">비주얼 콘텐츠</span><span class="en">Visual Content · 매출의 심장</span></div>
+    <h2>가입자 풀이 아니라, 당신께 맞는 사람을 고릅니다.</h2>
+    <div class="noun-grid">
+      <div class="noun-col">
+        <h4>국내</h4>
+        <div class="nouns"><span class="noun">인플루언서 시딩</span><span class="noun">릴스·숏츠</span><span class="noun">오프라인 행사</span><span class="noun">매거진 협업</span><span class="noun hl">후불제 (리스크 0)</span><span class="noun">검수 관리</span></div>
+      </div>
+      <div class="noun-col">
+        <h4>해외</h4>
+        <div class="nouns"><span class="noun">글로벌 시딩</span><span class="noun">美 틱톡 UGC</span><span class="noun">일본 챌린지</span><span class="noun">중국 샤오홍슈</span><span class="noun">해외 박람회</span><span class="noun hl">75개국 · 12만 큐레이터</span></div>
+      </div>
+    </div>
+    <div class="case">
+      <div class="ctag">Case — 글로벌 음악 레이블</div>
+      <div class="ctitle">"결정이 만남보다 빨라야 했던 레이블"</div>
+      <div class="steps">
+        <div class="step"><div class="sn">01 문제</div><div class="sh">릴리스 결정이 느렸다</div><div class="sd">팀이 매번 외부 판단에 의존, 타이밍을 놓침</div></div>
+        <div class="step"><div class="sn">02 설계</div><div class="sh">판단 흐름을 매핑</div><div class="sd">스스로 굴러가는 의사결정 구조를 짜줌</div></div>
+        <div class="step"><div class="sn">03 실행</div><div class="sh">일본 틱톡 챌린지</div><div class="sd">현지 크리에이터 정밀 섭외 → 업로드 전담 관리</div></div>
+        <div class="step"><div class="sn">04 결과</div><div class="sh">업로드율</div><div class="sr">100%</div><div class="sd">댄스 챌린지 55건 · 끝까지 관리</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ④ 전환 : 단일 CTA + 폼 (StoryBrand) -->
+  <section class="contact" id="contact">
+    <div class="eyebrow">Let's start with one decision</div>
+    <h2>막혀 있는 결정 하나를<br/>가져와 주세요.</h2>
+    <p class="sub">그 구조는 우리가 짜겠습니다.</p>
+    <form onsubmit="return sendMail(event)">
+      <div class="row">
+        <div><label>브랜드 / 회사</label><input id="m-co" placeholder="예: OOO 코스메틱" required /></div>
+        <div><label>담당자</label><input id="m-name" placeholder="이름" required /></div>
+      </div>
+      <div><label>연락처 (이메일)</label><input id="m-email" type="email" placeholder="you@brand.com" required /></div>
+      <div><label>지금 막혀 있는 결정 / 고민 한 줄</label><textarea id="m-q" placeholder="예: 신제품을 어느 시장부터, 누구와 알려야 할지 모르겠어요"></textarea></div>
+      <button class="cta" type="submit">보내기 →</button>
+    </form>
+    <div class="foot">
+      <b>SIRIAI (시리아이)</b> · CEO 김동현 · 서울 용산구 한강대로293 성원빌딩 4층A<br/>
+      ☎ 070-7576-1944 · 평균 응답 0~1영업일 · 사업자 405-23-02027
+    </div>
+  </section>
+
+<script>
+function sendMail(e){
+  e.preventDefault();
+  const co=m_co.value,name=m_name.value,email=m_email.value,q=m_q.value;
+  const body=`[브랜드] ${co}%0D%0A[담당자] ${name}%0D%0A[연락처] ${email}%0D%0A%0D%0A[막힌 결정]%0D%0A${q}`;
+  window.location.href=`mailto:jysiriai@gmail.com?subject=${encodeURIComponent('['+co+'] 협업 문의 — SIRIAI')}&body=${body}`;
+  return false;
+}
+</script>
+</body>
+</html>

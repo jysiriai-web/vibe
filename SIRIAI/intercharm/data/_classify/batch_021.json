@@ -1,0 +1,66 @@
+[
+  {
+    "code": "ELI5504",
+    "cat": "기타",
+    "intro": "EP·RF·HIFU 등 의료미용 장비를 개발·제조하는 기업",
+    "verdict": "제외",
+    "basis": "병원·클리닉용 의료기기 제조",
+    "homepage": ""
+  },
+  {
+    "code": "JUN7488",
+    "cat": "스킨케어",
+    "intro": "마스크팩·여드름패치 CGMP 제조사, 자체 브랜드 '이프온유' 운영",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 If on you 보유",
+    "homepage": ""
+  },
+  {
+    "code": "LIN9472",
+    "cat": "스킨케어",
+    "intro": "하이드로겔 마스크팩 ODM사, 자체 브랜드 아모코스(AMOCOS) 전개",
+    "verdict": "타겟",
+    "basis": "amocosplus 자사몰·쿠팡 직판",
+    "homepage": "https://amocosplus.com"
+  },
+  {
+    "code": "COS2757",
+    "cat": "기타",
+    "intro": "필러·보톡스·리프팅실 등 의료미용 시술 제품 공급사",
+    "verdict": "제외",
+    "basis": "병원 대상 의료기기·주사제",
+    "homepage": ""
+  },
+  {
+    "code": "NUT4893",
+    "cat": "이너뷰티",
+    "intro": "건강기능식품·화장품·뷰티디바이스 제조사, 뉴트리케어몰 직판",
+    "verdict": "타겟",
+    "basis": "MDNature 등 자체몰 직판",
+    "homepage": ""
+  },
+  {
+    "code": "DYC7852",
+    "cat": "스킨케어",
+    "intro": "강남걸·오션랩·포커스네이처 마스크팩 브랜드 보유 제조사",
+    "verdict": "타겟",
+    "basis": "자체 마스크팩 브랜드 3종",
+    "homepage": ""
+  },
+  {
+    "code": "RAP5629",
+    "cat": "스킨케어",
+    "intro": "마이크로니들 기술 기업, 패치 브랜드 아크로패스 운영",
+    "verdict": "타겟",
+    "basis": "Acropass 소비자 브랜드",
+    "homepage": ""
+  },
+  {
+    "code": "LIE1085",
+    "cat": "스킨케어",
+    "intro": "1987년 설립 화장품 제조사, 한방 브랜드 '생그린' 전개",
+    "verdict": "타겟",
+    "basis": "OEM 겸업이나 생그린 보유",
+    "homepage": ""
+  }
+]

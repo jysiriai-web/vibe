@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "(주)코비스타",
+      "verdict": "적합",
+      "own_brand": "SOLEP (솔랩)",
+      "reason": "SOLEP 브랜드로 두피케어 제품(샴푸·앰플·토닉 등)을 자사몰·올리브영·네이버에서 소비자 직판 (solepkorea.com)"
+    },
+    {
+      "company": "LINDSAY&COS Inc.",
+      "verdict": "적합",
+      "own_brand": "LINDSAY (린제이)",
+      "reason": "자체 LINDSAY 브랜드로 모델링 마스크·스킨케어 제품을 올리브영글로벌·STYLEVANA·Boozyshop 등에서 소비자 직판 (tradekorea, oliveyoung 검색 확인)"
+    },
+    {
+      "company": "주식회사 스타힐스코스메틱",
+      "verdict": "적합",
+      "own_brand": "MOO100 (무백)",
+      "reason": "MOO100 브랜드로 헤어케어(샴푸·트리트먼트·세럼) 제품을 자사몰·네이버·카카오 등에서 소비자 직판 (moo100.com)"
+    },
+    {
+      "company": "MAKE SOUL",
+      "verdict": "적합",
+      "own_brand": "MAKE SOUL (메크쏘울)",
+      "reason": "자체 연구소 보유, 100% 비건 메이크업(틴트·립앤치크·하이라이터) 소비자 직판 (make-soul.co.kr)"
+    },
+    {
+      "company": "휴션",
+      "verdict": "적합",
+      "own_brand": "Huceane (휴세인)",
+      "reason": "엑소좀 기반 프리미엄 스킨케어 자체 브랜드, 소비자 쇼핑몰 운영 중(카운트다운 출시 대기 상태) (huceane.com)"
+    },
+    {
+      "company": "SKINISGOOD",
+      "verdict": "적합",
+      "own_brand": "LISSEDERM",
+      "reason": "주식회사제이윤코스메틱이 LISSEDERM 브랜드로 토너·세럼·크림 등을 온라인 직영몰에서 소비자 직판 (lissederm.co.kr)"
+    },
+    {
+      "company": "솔테라피",
+      "verdict": "적합",
+      "own_brand": "SALTHERAPY (솔테라피)",
+      "reason": "한국 천일염 기반 바디스크럽·워시 등을 자체 브랜드로 온라인 스토어에서 소비자 직판, OEM/ODM 언급 없음 (saltherapy.us)"
+    },
+    {
+      "company": "어룸",
+      "verdict": "적합",
+      "own_brand": "AROOM (어룸)",
+      "reason": "Rice Marshmallow 클렌징폼 등 자체 개발 스킨케어를 Shopify 자사몰·Amazon·Shopee에서 소비자 직판 (aroomskin.com)"
+    },
+    {
+      "company": "ANOETIC BEAUTY",
+      "verdict": "적합",
+      "own_brand": "ANOETIC BEAUTY (아노에틱 뷰티)",
+      "reason": "헤어·향수·스킨·바디 전 카테고리 자체 브랜드 제품을 온라인 직영몰에서 소비자 직판 (anoeticbeauty.com)"
+    },
+    {
+      "company": "(주) 유나이티드앤글로벌",
+      "verdict": "적합",
+      "own_brand": "OHAVE",
+      "reason": "프리미엄 비건 스킨케어 OHAVE 브랜드로 세럼·크림·클렌저 등을 자사몰에서 소비자 직판 (ohavecosmetic.com)"
+    }
+  ]
+}

@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SIRIAI 사업소개서 — deck 시안 v3 (절제)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+JP:wght@500&display=swap" rel="stylesheet" />
+<style>
+  :root{--paper:#F3EEE2;--surface:#FBF8F1;--ink:#211A33;--ink-2:rgba(33,26,51,.66);--ink-3:rgba(33,26,51,.46);
+    --line:rgba(33,26,51,.13);
+    --lav:#cabce8;--lav-soft:#e9e3f3;--peach-soft:#f5e7d8;--sky:#b7cce0;--amber-soft:#f3e8d2;
+    --f-en:'Helvetica Neue','Helvetica','Arimo','Pretendard',Arial,sans-serif;--f-kr:'Pretendard',system-ui,sans-serif;
+    --f-mono:'JetBrains Mono',ui-monospace,monospace;--f-jp:'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic','Noto Sans JP',sans-serif;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{font-family:var(--f-kr);background:var(--paper);color:var(--ink);line-height:1.6;letter-spacing:-.01em;-webkit-font-smoothing:antialiased;}
+  .lab{position:fixed;top:13px;left:13px;z-index:90;font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);background:rgba(243,238,226,.85);border:1px solid var(--line);border-radius:100px;padding:6px 12px;backdrop-filter:blur(6px);}
+  section{padding:clamp(84px,11vw,150px) clamp(22px,6vw,104px);max-width:1180px;margin:0 auto;}
+  .eyebrow{font-family:var(--f-mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);}
+  .gap{display:inline-flex;align-items:center;gap:5px;font-family:var(--f-mono);font-size:10px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:#8a6a25;background:var(--amber-soft);border:1px solid rgba(199,154,63,.3);border-radius:100px;padding:3px 9px;vertical-align:middle;}
+  .cta{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:var(--paper);border:none;border-radius:100px;padding:15px 28px;font-family:var(--f-en);font-weight:500;font-size:15px;letter-spacing:-.005em;cursor:pointer;text-decoration:none;width:fit-content;transition:transform .18s,box-shadow .18s;}
+  .cta:hover{transform:translateY(-1px);box-shadow:0 14px 32px -14px rgba(33,26,51,.5);}
+  .cta.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);}
+  a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--lav);outline-offset:3px;border-radius:6px;}
+
+  /* HERO — 텍스트 최소, 여백 최대 */
+  .hero{min-height:96vh;display:flex;flex-direction:column;justify-content:center;
+    background:radial-gradient(70% 60% at 80% 10%,var(--lav-soft),transparent 60%),radial-gradient(60% 55% at 6% 94%,var(--peach-soft),transparent 60%),var(--paper);}
+  .hero .brand{font-family:var(--f-en);font-weight:700;font-size:15px;letter-spacing:.06em;color:var(--ink);}
+  .hero .brand small{font-family:var(--f-jp);font-weight:500;font-size:14px;color:var(--ink-2);letter-spacing:0;margin-left:9px;}
+  .hero h1{font-family:var(--f-kr);font-weight:700;font-size:clamp(36px,6vw,76px);letter-spacing:-.035em;line-height:1.1;word-break:keep-all;margin-top:26px;}
+  .hero .sub{font-family:var(--f-kr);font-size:clamp(17px,1.5vw,21px);color:var(--ink-2);margin-top:22px;word-break:keep-all;}
+  .hero-ctas{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:44px;}
+  .hero .anchor{margin-top:34px;font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);}
+
+  /* 관점 — 1문장 + 3기둥 키워드 */
+  .lens h2{font-family:var(--f-kr);font-weight:700;font-size:clamp(26px,3.6vw,46px);letter-spacing:-.03em;line-height:1.22;word-break:keep-all;max-width:16ch;}
+  .lens .p{font-family:var(--f-kr);font-size:clamp(15px,1.3vw,18px);color:var(--ink-2);margin-top:26px;max-width:44ch;word-break:keep-all;line-height:1.7;}
+  .lens .p b{color:var(--ink);}
+  .pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-top:60px;}
+  @media(max-width:780px){.pillars{grid-template-columns:1fr;}}
+  .pillar{background:var(--paper);padding:28px 24px;}
+  .pillar .pn{font-family:var(--f-mono);font-weight:500;font-size:11px;letter-spacing:.1em;color:var(--lav);}
+  .pillar h3{font-family:var(--f-kr);font-weight:700;font-size:19px;margin:12px 0 7px;}
+  .pillar p{font-family:var(--f-kr);font-size:13px;color:var(--ink-3);word-break:keep-all;line-height:1.55;}
+
+  /* 영역 4분야 — 레이어드 표면 (텍스트 최소) */
+  .fields .eyebrow{margin-bottom:12px;}
+  .fields > h2{font-family:var(--f-kr);font-weight:700;font-size:clamp(28px,3.4vw,44px);letter-spacing:-.03em;margin-bottom:8px;}
+  .fields .note{font-family:var(--f-kr);color:var(--ink-3);font-size:14px;margin-bottom:48px;}
+  .cards4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+  @media(max-width:980px){.cards4{grid-template-columns:1fr 1fr;}}
+  @media(max-width:560px){.cards4{grid-template-columns:1fr;}}
+  .fcard{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden;cursor:pointer;transition:.2s;display:flex;flex-direction:column;}
+  .fcard:hover{transform:translateY(-5px);box-shadow:0 28px 54px -30px rgba(33,26,51,.3);border-color:var(--lav);}
+  .fcard .ph{aspect-ratio:1/1;display:flex;align-items:flex-end;padding:18px;color:#fff;}
+  .fcard .ph.c1{background:linear-gradient(150deg,#cabce8,#b7cce0);}
+  .fcard .ph.c2{background:linear-gradient(150deg,#edc6a8,#cabce8);}
+  .fcard .ph.c3{background:linear-gradient(150deg,#b7cce0,#9fb8d6);}
+  .fcard .ph.c4{background:linear-gradient(150deg,#bcb2c9,#8d8598);}
+  .fcard .ph .no{font-family:var(--f-en);font-weight:700;font-size:32px;letter-spacing:-.02em;}
+  .fcard .fb{padding:18px 20px 20px;display:flex;flex-direction:column;gap:4px;flex:1;}
+  .fcard .ft{font-family:var(--f-kr);font-weight:700;font-size:17px;}
+  .fcard .fe{font-family:var(--f-mono);font-weight:500;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);}
+  .fcard .more{font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#5a4a85;margin-top:auto;padding-top:14px;}
+
+  /* Selected Work */
+  .work{background:var(--surface);border-radius:28px;}
+  .work .eyebrow{margin-bottom:12px;}
+  .work h2{font-family:var(--f-kr);font-weight:700;font-size:clamp(26px,3vw,40px);letter-spacing:-.03em;margin-bottom:8px;}
+  .work .anon{font-family:var(--f-kr);font-size:13.5px;color:var(--ink-3);margin-bottom:40px;word-break:keep-all;}
+  .cases2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media(max-width:760px){.cases2{grid-template-columns:1fr;}}
+  .ccard{border:1px solid var(--line);border-radius:20px;overflow:hidden;cursor:pointer;transition:.2s;background:var(--paper);}
+  .ccard:hover{transform:translateY(-5px);box-shadow:0 28px 54px -30px rgba(33,26,51,.3);border-color:var(--lav);}
+  .ccard .ph{height:160px;display:flex;align-items:flex-end;padding:16px;color:#fff;}
+  .ccard .ph .badge{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;background:rgba(255,255,255,.22);padding:5px 11px;border-radius:100px;}
+  .ccard .cb{padding:22px 24px;}
+  .ccard .ctag{font-family:var(--f-mono);font-weight:500;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);}
+  .ccard .ctitle{font-family:var(--f-kr);font-weight:700;font-size:19px;margin:8px 0 14px;letter-spacing:-.015em;word-break:keep-all;}
+  .ccard .cres{display:flex;gap:20px;}
+  .ccard .cres .m b{font-family:var(--f-en);font-weight:700;color:var(--ink);font-size:22px;letter-spacing:-.02em;display:block;}
+  .ccard .cres .m span{font-family:var(--f-kr);font-size:11.5px;color:var(--ink-3);}
+  .ccard .more{font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#5a4a85;margin-top:16px;}
+
+  /* The Plan — 압축 타임라인 */
+  .plan h2{font-family:var(--f-kr);font-weight:700;font-size:clamp(26px,3vw,40px);letter-spacing:-.03em;margin-bottom:8px;}
+  .plan .note{font-family:var(--f-kr);color:var(--ink-3);font-size:14px;margin-bottom:46px;}
+  .timeline{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-family:var(--f-kr);font-size:13.5px;color:var(--ink-2);margin-bottom:30px;}
+  .timeline .t{background:var(--surface);border:1px solid var(--line);border-radius:100px;padding:9px 16px;}
+  .timeline .ar{color:var(--ink-3);font-size:11px;}
+  .assure{display:flex;flex-wrap:wrap;gap:8px;}
+  .assure .a{font-family:var(--f-kr);font-size:13px;padding:9px 15px;border-radius:100px;background:var(--surface);border:1px solid var(--line);color:var(--ink-2);}
+  .assure .a.hl{background:var(--lav-soft);border-color:transparent;color:#5a4a85;font-weight:600;}
+
+  /* Trusted by */
+  .trust{text-align:center;}
+  .trust .big{font-family:var(--f-en);font-weight:700;font-size:clamp(44px,9vw,108px);letter-spacing:-.05em;line-height:.92;color:var(--ink);}
+  .trust .subh{font-family:var(--f-kr);font-size:15px;color:var(--ink-2);margin-top:18px;word-break:keep-all;max-width:30ch;margin-left:auto;margin-right:auto;}
+  .stats{display:grid;grid-template-columns:repeat(5,auto);justify-content:center;align-items:start;gap:clamp(24px,4.5vw,56px);margin:52px 0;}
+  .stat{text-align:center;}
+  @media(max-width:760px){.stats{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:30px;}}
+  @media(max-width:440px){.stats{grid-template-columns:repeat(2,minmax(0,1fr));}}
+  .stat .v{font-family:var(--f-en);font-weight:700;font-size:clamp(30px,3.6vw,46px);letter-spacing:-.02em;}
+  .stat .l{font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-top:5px;}
+  .brandlist{max-width:720px;margin:0 auto;}
+  .brandlist .names{font-family:var(--f-kr);font-size:16px;line-height:2.2;color:var(--ink-2);word-break:keep-all;}
+
+  /* Studio — 영문 이름 */
+  .studio{background:var(--surface);border-radius:28px;text-align:center;}
+  .studio h2{font-family:var(--f-kr);font-weight:700;font-size:clamp(26px,3.2vw,42px);letter-spacing:-.03em;line-height:1.3;max-width:18ch;margin:0 auto;word-break:keep-all;}
+  .studio .p{font-family:var(--f-kr);font-size:15px;color:var(--ink-2);margin:20px auto 48px;max-width:40ch;word-break:keep-all;}
+  .members{display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(24px,4vw,52px);}
+  .member{text-align:center;}
+  .member .mn{font-family:var(--f-en);font-weight:500;font-size:clamp(15px,1.6vw,19px);letter-spacing:.02em;color:var(--ink);}
+  .member .mr{font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-top:6px;}
+
+  /* 전환 — 단일 인풋 강조 */
+  .contact{text-align:center;background:radial-gradient(80% 70% at 50% 0%,var(--lav-soft),transparent 62%),var(--paper);border-radius:28px;}
+  .contact .eyebrow{margin-bottom:16px;}
+  .contact h2{font-family:var(--f-kr);font-weight:700;font-size:clamp(28px,3.6vw,48px);letter-spacing:-.03em;line-height:1.22;word-break:keep-all;}
+  .contact .sub{font-family:var(--f-kr);color:var(--ink-2);margin-top:16px;font-size:16px;word-break:keep-all;}
+  form{max-width:540px;margin:42px auto 0;text-align:left;display:flex;flex-direction:column;gap:12px;}
+  form .main-q{width:100%;font-family:var(--f-kr);font-size:16px;padding:18px 18px;border:1.5px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);resize:vertical;min-height:96px;line-height:1.6;}
+  form .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media(max-width:520px){form .row{grid-template-columns:1fr;}}
+  form input{width:100%;font-family:var(--f-kr);font-size:14px;padding:13px 15px;border:1px solid var(--line);border-radius:11px;background:var(--surface);color:var(--ink);}
+  form .main-q:focus,form input:focus{outline:none;border-color:var(--lav);}
+  form .cta{width:100%;justify-content:center;margin-top:4px;}
+  .altc{font-family:var(--f-kr);font-size:13px;color:var(--ink-3);margin-top:20px;}
+  .altc a{color:#5a4a85;}
+  .foot{text-align:center;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.02em;color:var(--ink-3);padding:44px 20px;line-height:2;}
+
+  /* 모달 (레이어드 디테일) */
+  .modal{position:fixed;inset:0;background:rgba(33,26,51,.36);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:clamp(14px,4vw,48px);z-index:100;}
+  .modal.open{display:flex;animation:fade .2s ease;}
+  .modal .panel{background:var(--paper);border-radius:24px;max-width:860px;width:100%;max-height:90vh;overflow-y:auto;padding:clamp(26px,4vw,46px);position:relative;animation:rise .26s cubic-bezier(.2,.7,.3,1);}
+  @keyframes fade{from{opacity:0;}to{opacity:1;}}
+  @keyframes rise{from{transform:translateY(24px) scale(.98);opacity:.4;}to{transform:none;opacity:1;}}
+  .modal .x{position:absolute;top:18px;right:18px;background:var(--surface);border:1px solid var(--line);border-radius:100px;font-family:var(--f-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);padding:8px 14px;cursor:pointer;z-index:2;}
+  .p-eyebrow{font-family:var(--f-mono);font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#5a4a85;}
+  .p-title{font-family:var(--f-kr);font-weight:700;font-size:clamp(24px,2.8vw,34px);letter-spacing:-.03em;margin:8px 0 10px;line-height:1.2;word-break:keep-all;}
+  .p-lead{font-family:var(--f-kr);font-size:15px;color:var(--ink-2);max-width:50ch;word-break:keep-all;margin-bottom:26px;line-height:1.7;}
+  .p-hero{height:170px;border-radius:15px;display:flex;align-items:center;justify-content:center;color:#fff;margin-bottom:26px;font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;}
+  .p-hero .ph{background:rgba(255,255,255,.2);padding:5px 13px;border-radius:100px;}
+  .p-grid{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-bottom:8px;}
+  @media(max-width:640px){.p-grid{grid-template-columns:1fr;}}
+  .p-col h4{font-family:var(--f-mono);font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:11px;}
+  .nouns{display:flex;flex-wrap:wrap;gap:7px;}
+  .noun{font-family:var(--f-kr);font-size:12.5px;padding:7px 13px;border-radius:100px;background:var(--surface);border:1px solid var(--line);}
+  .noun.hl{background:var(--lav-soft);border-color:transparent;color:#5a4a85;font-weight:600;}
+  .p-proc{display:flex;flex-wrap:wrap;gap:7px;align-items:center;font-family:var(--f-kr);font-size:12.5px;color:var(--ink-2);}
+  .p-proc .st{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:7px 11px;}
+  .p-proc .st.hl{background:var(--lav-soft);border-color:transparent;color:#5a4a85;font-weight:700;}
+  .p-proc .ar{color:var(--ink-3);}
+  .p-ref{margin-top:22px;border:1.5px dashed var(--line);border-radius:14px;padding:15px;text-align:center;font-family:var(--f-kr);font-size:12px;color:var(--ink-3);word-break:keep-all;}
+  .p-ref b{color:var(--ink-2);}
+  .p-sec{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);margin:18px 0 12px;}
+</style>
+</head>
+<body>
+  <div class="lab">deck 시안 v3.1 · 접근성·토큰 보강 · 내부 검토본</div>
+
+  <!-- 0. HERO -->
+  <section class="hero">
+    <div class="brand">SIRIAI<small>知り合い · 아는 사이</small></div>
+    <h1>당신의 브랜드는 이미 좋습니다.<br/>시장이 아직 모를 뿐.</h1>
+    <p class="sub">도달이 아니라, <b style="color:var(--ink);">관계</b>의 문제입니다.</p>
+    <div class="hero-ctas">
+      <a class="cta" href="#contact">대화 시작하기 →</a>
+      <a class="cta ghost" href="#work">사례 보기</a>
+    </div>
+    <div class="anchor">인플루언서가 있는 곳이면, 어디든 — 75개국 네트워크</div>
+  </section>
+
+  <!-- 1. 관점 -->
+  <section class="lens">
+    <div class="eyebrow">Our lens</div>
+    <h2 style="margin-top:16px;">'무엇을 파는가'보다<br/>'무엇을 놓쳤는가'를.</h2>
+    <p class="p">안 알려지는 건 대개 예산이 아닙니다. 시장이 아직 당신을 모를 뿐. <b>도달을 더 사기 전에</b>, '아는 사이'가 될 자리부터 설계합니다.</p>
+    <div class="pillars">
+      <div class="pillar"><div class="pn">01</div><h3>관계의 눈</h3><p>도달이 아니라 맞는 관계를.</p></div>
+      <div class="pillar"><div class="pn">02</div><h3>끝까지 곁에</h3><p>리스트만 던지지 않습니다.</p></div>
+      <div class="pillar"><div class="pn">03</div><h3>기술로 정확히</h3><p>감이 아니라 데이터로.</p></div>
+    </div>
+  </section>
+
+  <!-- 2. 영역 4분야 -->
+  <section class="fields" id="fields">
+    <div class="eyebrow">What we do</div>
+    <h2>우리가 함께 하는 일</h2>
+    <p class="note">네 개의 축 — 누르면 펼쳐집니다.</p>
+    <div class="cards4">
+      <article class="fcard" data-key="arch">
+        <div class="ph c1"><span class="no">01</span></div>
+        <div class="fb"><div class="ft">아키텍팅</div><div class="fe">Architecting</div><div class="more">자세히</div></div>
+      </article>
+      <article class="fcard" data-key="content">
+        <div class="ph c2"><span class="no">02</span></div>
+        <div class="fb"><div class="ft">비주얼 콘텐츠</div><div class="fe">Visual Content</div><div class="more">자세히</div></div>
+      </article>
+      <article class="fcard" data-key="saai">
+        <div class="ph c3"><span class="no">03</span></div>
+        <div class="fb"><div class="ft">sa:ai</div><div class="fe">Software</div><div class="more">자세히</div></div>
+      </article>
+      <article class="fcard" data-key="pb">
+        <div class="ph c4"><span class="no">04</span></div>
+        <div class="fb"><div class="ft">프라이빗 브랜드</div><div class="fe">Private Brand · 2026~</div><div class="more">자세히</div></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- 3. Selected Work -->
+  <section class="work">
+    <div class="eyebrow">Selected work</div>
+    <h2>하는 일은, 해본 일로.</h2>
+    <p class="anon">브랜드명은 익명으로, 일의 '구조'를 공유합니다.</p>
+    <div class="cases2">
+      <article class="ccard" data-key="case-kent">
+        <div class="ph" style="background:linear-gradient(135deg,#b7cce0,#9fb8d6);"><span class="badge">K-Entertainment</span></div>
+        <div class="cb">
+          <div class="ctag">글로벌 음악 레이블</div>
+          <div class="ctitle">"결정이 만남보다 빨라야 했던 레이블"</div>
+          <div class="cres"><div class="m"><b>100%</b><span>업로드율</span></div><div class="m"><b>55건</b><span>일본 챌린지</span></div></div>
+          <div class="more">케이스 펼치기 →</div>
+        </div>
+      </article>
+      <article class="ccard" data-key="case-global">
+        <div class="ph" style="background:linear-gradient(135deg,#edc6a8,#cabce8);"><span class="badge">Global Seeding</span></div>
+        <div class="cb">
+          <div class="ctag">글로벌 뷰티 브랜드</div>
+          <div class="ctitle">"세계 곳곳의 진짜 후기로 데뷔하기"</div>
+          <div class="cres"><div class="m"><b>200</b><span>단일 캠페인 제공</span></div><div class="m"><b>USA</b><span>북미 시딩</span></div></div>
+          <div class="more">케이스 펼치기 →</div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- 4. The Plan -->
+  <section class="plan">
+    <div class="eyebrow">The Siriai method</div>
+    <h2 style="margin-top:14px;">막막하지 않게, 관리 가능한 길로.</h2>
+    <p class="note">계약부터 정산까지 · 평균 2주~1달 · 착수금 20%로 시작.</p>
+    <div class="timeline">
+      <span class="t">계약</span><span class="ar">→</span><span class="t">컨택</span><span class="ar">→</span><span class="t">리스트</span><span class="ar">→</span><span class="t">컨펌</span><span class="ar">→</span><span class="t">발송</span><span class="ar">→</span><span class="t">업로드 관리</span><span class="ar">→</span><span class="t">정산</span>
+    </div>
+    <div class="assure">
+      <span class="a hl">후불제 · 리스크 0</span><span class="a">미업로드 3단계 대응</span><span class="a">검수 관리</span><span class="a">글로벌 물류</span>
+    </div>
+  </section>
+
+  <!-- 5. Trusted by -->
+  <section class="trust">
+    <div class="big">TRUSTED BY</div>
+    <div class="subh">당신과 비슷한 단계의 브랜드들이, 같은 고민에서 시작했습니다.</div>
+    <div class="stats">
+      <div class="stat"><div class="v">17곳+</div><div class="l">거래 브랜드</div></div>
+      <div class="stat"><div class="v">4곳</div><div class="l">실행 파트너</div></div>
+      <div class="stat"><div class="v">1,100건</div><div class="l">인재풀</div></div>
+      <div class="stat"><div class="v">75개국</div><div class="l">네트워크</div></div>
+      <div class="stat"><div class="v">100%</div><div class="l">업로드율</div></div>
+    </div>
+    <div class="brandlist">
+      <div class="names">무신사 · 카카오페이 · 이니스프리 · COSRX · 아이디병원 · CJ ENM · 강릉시 · 8division · 레이티드그린 · 잇퓨</div>
+      <div style="margin-top:16px;"><span class="gap">⏳ 공개동의된 최종 명단 확정 후 (HYBE 계열은 그룹 표기)</span></div>
+    </div>
+  </section>
+
+  <!-- 6. Studio -->
+  <section class="studio">
+    <div class="eyebrow" style="display:block;text-align:center;margin-bottom:16px;">The studio</div>
+    <h2>브랜드를 운영해 본 사람들이,<br/>설계자로 분사했습니다.</h2>
+    <p class="p">그래서 당신이 어디서 막혔는지, 길게 설명하지 않아도 압니다.</p>
+    <div class="members">
+      <div class="member"><div class="mn">DONGHYUN KIM</div><div class="mr">전략 · PB</div></div>
+      <div class="member"><div class="mn">SEULBUM PARK</div><div class="mr">운영</div></div>
+      <div class="member"><div class="mn">YUNKYUNG HWANG</div><div class="mr">인플루언서</div></div>
+      <div class="member"><div class="mn">JUNYONG CHO</div><div class="mr">세일즈</div></div>
+    </div>
+  </section>
+
+  <!-- 7. 전환 -->
+  <section class="contact" id="contact">
+    <div class="eyebrow">Let's start with one decision</div>
+    <h2>막혀 있는 결정 하나를<br/>가져와 주세요.</h2>
+    <p class="sub">관계는, 대화에서 시작됩니다.</p>
+    <form onsubmit="return sendMail(event)">
+      <textarea class="main-q" id="m-q" placeholder="지금 막혀 있는 결정을 한 줄로. (예: 신제품을 어느 시장부터, 누구와 알려야 할지 모르겠어요)" required></textarea>
+      <div class="row">
+        <input id="m-co" placeholder="브랜드 / 회사" required />
+        <input id="m-email" type="email" placeholder="회신 받을 이메일" required />
+      </div>
+      <button class="cta" type="submit">대화 시작하기 →</button>
+    </form>
+    <div class="altc">이메일이 부담되면 → <a href="https://open.kakao.com/o/sPb2dMfi" target="_blank">오픈채팅으로 가볍게</a></div>
+    <div class="foot">SIRIAI (시리아이) · CEO 김동현 · 서울 용산구 한강대로293 성원빌딩 4층A<br/>070-7576-1944 · 평균 응답 0~1영업일 · 사업자 405-23-02027</div>
+  </section>
+
+  <!-- 디테일 모달 (텍스트 압축) -->
+  <template id="d-arch">
+    <div class="p-eyebrow">01 · Architecting</div>
+    <div class="p-title">당신이 놓친 건 예산이 아니라,<br/>비어 있는 '자리'입니다.</div>
+    <div class="p-lead">시장에서 들어설 빈 자리를 진단하고, 어떻게 들어설지 설계합니다. 리스트만 돌리는 업체가 못 하는 근간 — 처음부터 끝까지 직접.</div>
+    <div class="p-hero" style="background:linear-gradient(135deg,#cabce8,#b7cce0);"><span class="ph">진단·설계 다이어그램 자리</span></div>
+    <div class="p-grid">
+      <div class="p-col"><h4>무엇을</h4><div class="nouns"><span class="noun">페인포인트 진단</span><span class="noun">포지셔닝 매핑</span><span class="noun">캠페인 아키텍처</span><span class="noun hl">A to Z 실행</span></div></div>
+      <div class="p-col"><h4>어떻게</h4><div class="p-proc"><span class="st">진단</span><span class="ar">→</span><span class="st">포지셔닝</span><span class="ar">→</span><span class="st">설계</span><span class="ar">→</span><span class="st">실행</span></div></div>
+    </div>
+    <div class="p-ref"><span class="gap">⏳ 표현 무게</span> 홈 'AI 의사결정 구조 설계' ↔ '캠페인 전략 설계' — 확정 후</div>
+  </template>
+  <template id="d-content">
+    <div class="p-eyebrow">02 · Visual Content · 심장</div>
+    <div class="p-title">가입자 풀이 아니라,<br/>당신께 맞는 사람을.</div>
+    <div class="p-lead">등록된 풀에서 돌려쓰지 않습니다. 인스타 전체를 데이터베이스로 보고, 매번 당신께 맞는 사람을 새로 발굴 — 국내부터 글로벌까지.</div>
+    <div class="p-hero" style="background:linear-gradient(135deg,#edc6a8,#cabce8);"><span class="ph">캠페인·권역 비주얼 자리</span></div>
+    <div class="p-grid">
+      <div class="p-col"><h4>국내</h4><div class="nouns"><span class="noun">인플루언서 시딩</span><span class="noun">릴스·숏츠</span><span class="noun">오프라인</span><span class="noun">매거진</span><span class="noun hl">후불제 · 리스크 0</span></div></div>
+      <div class="p-col"><h4>해외</h4><div class="nouns"><span class="noun">글로벌 시딩</span><span class="noun">美 틱톡 UGC</span><span class="noun">일본 챌린지</span><span class="noun">샤오홍슈</span><span class="noun hl">75개국 · 12만 큐레이터</span></div></div>
+    </div>
+    <div class="p-ref"><b>📎 들어갈 것:</b> 실제 캠페인 사진 · 릴스 · 권역 지도 (비주얼 추가 예정)</div>
+  </template>
+  <template id="d-saai">
+    <div class="p-eyebrow">03 · sa:ai · Software</div>
+    <div class="p-title">브랜드를 사람처럼 이해하는<br/>AI 위에서 일합니다.</div>
+    <div class="p-lead">관계에서 시작해 데이터로 확장하고, 기록으로 증명합니다. 마케팅 노하우를 우리가 만든 소프트웨어로 제품화 — "Creators remember us."</div>
+    <div class="p-hero" style="background:linear-gradient(135deg,#b7cce0,#9fb8d6);"><span class="ph">데이터·네트워크 비주얼 자리</span></div>
+    <div class="p-grid">
+      <div class="p-col"><h4>3축</h4><div class="nouns"><span class="noun hl">Performance</span><span class="noun hl">Creative</span><span class="noun hl">Archivo</span></div></div>
+      <div class="p-col"><h4>Built with</h4><div class="nouns"><span class="noun">OpenAI</span><span class="noun">Anthropic</span><span class="noun">Vercel</span></div></div>
+    </div>
+    <div class="p-ref"><span class="gap">⏳ 기술 검증</span> 스택 실사용·거점 — 검증 후 노출 (미검증 수치 보류)</div>
+  </template>
+  <template id="d-pb">
+    <div class="p-eyebrow">04 · Private Brand · 2026~</div>
+    <div class="p-title">우리 말을,<br/>우리 제품으로 증명합니다.</div>
+    <div class="p-lead">인사이트부터 제품까지 직접. 우리가 권하는 구조가 곧 우리가 쓰는 구조 — 다른 브랜드를 키우는 데서 멈추지 않습니다.</div>
+    <div class="p-hero" style="background:linear-gradient(135deg,#bcb2c9,#8d8598);"><span class="ph">미래 청사진 — 실루엣 자리</span></div>
+    <div class="p-ref"><span class="gap">⏳ 공개 범위</span> 카테고리·제품·일정 — 확정 후. 현재는 '2026~ 청사진'.</div>
+  </template>
+  <template id="d-case-kent">
+    <div class="p-eyebrow">Case · K-Entertainment (익명)</div>
+    <div class="p-title">"결정이 만남보다<br/>빨라야 했던 레이블"</div>
+    <div class="p-lead">릴리스 결정이 외부 판단에 묶여 타이밍을 놓치던 팀에, 스스로 굴러가는 의사결정 구조를 짜주고 일본 틱톡 챌린지를 끝까지 관리.</div>
+    <div class="p-hero" style="background:linear-gradient(135deg,#b7cce0,#9fb8d6);"><span class="ph">챌린지 영상·성과 그래프 자리</span></div>
+    <div class="p-sec">문제 → 설계 → 실행 → 결과</div>
+    <div class="p-proc"><span class="st">릴리스 결정이 느렸다</span><span class="ar">→</span><span class="st">판단 흐름 매핑</span><span class="ar">→</span><span class="st">일본 틱톡 챌린지</span><span class="ar">→</span><span class="st hl">업로드율 100% · 55건</span></div>
+    <div class="p-ref"><span class="gap">⏳ 공개 수위</span> 실명 · 마루(MARU) 파트너 노출 — 확정 후</div>
+  </template>
+  <template id="d-case-global">
+    <div class="p-eyebrow">Case · Global Seeding (익명)</div>
+    <div class="p-title">"세계 곳곳의 진짜 후기로<br/>데뷔하기"</div>
+    <div class="p-lead">신제품을 북미에 알려야 했던 뷰티 브랜드에, 75개국 현지 큐레이터로 진짜 사용 후기(UGC)를 권역별 시딩.</div>
+    <div class="p-hero" style="background:linear-gradient(135deg,#edc6a8,#cabce8);"><span class="ph">글로벌 시딩·권역 지도 자리</span></div>
+    <div class="p-sec">문제 → 설계 → 실행 → 결과</div>
+    <div class="p-proc"><span class="st">현지 인지도 0</span><span class="ar">→</span><span class="st">권역·타입 필터링</span><span class="ar">→</span><span class="st">북미 UGC 시딩</span><span class="ar">→</span><span class="st hl">단일 캠페인 제공 200</span></div>
+    <div class="p-ref"><b>📎 들어갈 것:</b> 실제 시딩 콘텐츠 · 권역 데이터 (공개 수위 확정 후)</div>
+  </template>
+
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-hidden="true"><div class="panel" tabindex="-1"><button class="x" data-close>✕ 닫기</button><div id="modalContent"></div></div></div>
+
+<script>
+  const modal = document.getElementById('modal'), mc = document.getElementById('modalContent');
+  let lastFocus = null;
+  function openModal(key, trigger){
+    const t = document.getElementById('d-' + key); if(!t) return;
+    mc.innerHTML = t.innerHTML;
+    const titleEl = mc.querySelector('.p-title');
+    if(titleEl){ titleEl.id = 'modalTitle'; modal.setAttribute('aria-labelledby','modalTitle'); }
+    else { modal.removeAttribute('aria-labelledby'); }
+    lastFocus = trigger || document.activeElement;
+    modal.classList.add('open'); modal.setAttribute('aria-hidden','false');
+    document.body.style.overflow='hidden';
+    const closeBtn = modal.querySelector('[data-close]'); if(closeBtn) closeBtn.focus();
+  }
+  function closeModal(){
+    modal.classList.remove('open'); modal.setAttribute('aria-hidden','true');
+    document.body.style.overflow='';
+    if(lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  document.querySelectorAll('[data-key]').forEach(c => {
+    c.setAttribute('role','button'); c.setAttribute('tabindex','0'); c.setAttribute('aria-haspopup','dialog');
+    c.addEventListener('click', () => openModal(c.dataset.key, c));
+    c.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openModal(c.dataset.key, c); } });
+  });
+  document.querySelectorAll('[data-close]').forEach(el => el.addEventListener('click', closeModal));
+  modal.addEventListener('click', e => { if(e.target === modal) closeModal(); });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape' && modal.classList.contains('open')) closeModal(); });
+  modal.addEventListener('keydown', e => {
+    if(e.key !== 'Tab' || !modal.classList.contains('open')) return;
+    const f = modal.querySelectorAll('button,[href],input,textarea,[tabindex]:not([tabindex="-1"])');
+    if(!f.length) return;
+    const first = f[0], last = f[f.length-1];
+    if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  });
+  function sendMail(e){
+    e.preventDefault();
+    const q=m_q.value,co=m_co.value,email=m_email.value;
+    const body=`[브랜드] ${co}%0D%0A[회신] ${email}%0D%0A%0D%0A[막힌 결정]%0D%0A${q}`;
+    window.location.href=`mailto:jysiriai@gmail.com?subject=${encodeURIComponent('['+co+'] 대화 요청 — SIRIAI')}&body=${body}`;
+    return false;
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "컬러딥",
+      "verdict": "적합",
+      "own_brand": "컬러딥(Color Deep), 무드매쳐, 크리스탈 데오드란트, 원더레그 등",
+      "reason": "운영사 주식회사 미스코스(miskos.co.kr)가 컬러딥 등 다수 자체 브랜드를 보유하고 홈쇼핑 및 자사몰에서 소비자 직판"
+    },
+    {
+      "company": "주식회사 반다비앤에이치",
+      "verdict": "적합",
+      "own_brand": "키위글로우(KIWIGLOW)",
+      "reason": "kiwiglow.co.kr에서 비건 인증 스킨케어 제품(토너패드·세럼·선케어 등)을 자체 브랜드로 소비자 직판"
+    },
+    {
+      "company": "주식회사 정림에프앤에이치",
+      "verdict": "적합",
+      "own_brand": "Vanava(바나바)",
+      "reason": "vanava.co.kr에서 듀얼 모이스처라이저·시카크림 등 자체 브랜드 제품을 D2C 직판, OEM/ODM 정보 없음"
+    },
+    {
+      "company": "주식회사 웰컴이엔앰",
+      "verdict": "적합",
+      "own_brand": "WELBORN, LOEVIE",
+      "reason": "welcomesgroup.com에서 WELBORN·LOEVIE 등 다수 소비자 브랜드를 직접 기획·생산·판매하는 통합 소비재 기업"
+    },
+    {
+      "company": "닥터바이오 & 티블레스",
+      "verdict": "적합",
+      "own_brand": "닥터바이오(Dr.BIO), 티블레스(TBLES)",
+      "reason": "doctorbio.kr 자사몰에서 더마화장품 직판, 티블레스는 비건 퍼퓸 스킨케어 자체 브랜드로 미국·일본 진출 중(cosinkorea.com)"
+    },
+    {
+      "company": "Y.N.M",
+      "verdict": "적합",
+      "own_brand": "YNM(You Need Me)",
+      "reason": "ynmcosmetic.co.kr에서 허니 립밤·틴트·아이라이너 등 자체 브랜드 제품을 소비자 B2C 직판, 운영사 (주)디럭스뷰티"
+    },
+    {
+      "company": "헤트라스",
+      "verdict": "적합",
+      "own_brand": "헤트라스(HETRAS)",
+      "reason": "hetras.co.kr 자사몰 및 올리브영 입점 확인(oliveyoung.co.kr), 향기 라이프스타일·핸드케어·헤어케어 자체 브랜드 소비자 직판"
+    },
+    {
+      "company": "세이션",
+      "verdict": "적합",
+      "own_brand": "줄라이미(JULYME), 스탠다드서울(STANDARD SEOUL), 그라펜(GRAFEN)",
+      "reason": "xation.co.kr — 글로벌 K-뷰티 하우스로 자체 브랜드 3종 보유, 올리브영 어워즈 수상·TikTok Shop 글로벌 판매"
+    },
+    {
+      "company": "(주)비앤케이",
+      "verdict": "적합",
+      "own_brand": "TAM BEAUTY",
+      "reason": "tambeauty.me에서 The Jelly Line·The Cloud Line 등 자체 메이크업 라인을 D2C 직판, OEM/ODM 언급 없음"
+    },
+    {
+      "company": "줄라이 모닝",
+      "verdict": "적합",
+      "own_brand": "줄라이모닝(July Morning)",
+      "reason": "july-morning.co.kr 자사몰에서 헤어·바디케어 자체 브랜드 제품(굿모닝 오차드 릴렉싱 퍼퓸드 바디워시 등) 소비자 직판"
+    }
+  ]
+}

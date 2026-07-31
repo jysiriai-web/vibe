@@ -1,0 +1,478 @@
+[
+  {
+    "company": "CLAIRLISSE",
+    "current_email": "",
+    "website": "",
+    "track": "target",
+    "prev_note": "웹 전체 검색 및 Intercharm Korea 2026 참가업체 디렉토리 검색 결과, CLAIRLISSE 브랜드명으로 공식 웹사이트·이메일을 "
+  },
+  {
+    "company": "휴션",
+    "current_email": "",
+    "website": "https://www.huceane.com",
+    "track": "target",
+    "prev_note": "huceane.com 공식 사이트 contact/about 페이지 모두 확인했으나 이메일 미노출, 문의 양식만 존재. 웹 검색에서도 공식 이메일"
+  },
+  {
+    "company": "주식회사 사계절",
+    "current_email": "",
+    "website": "",
+    "track": "target",
+    "prev_note": "웹사이트 정보 없이 사명만으로 검색 시 동명 타사(사계절컴퍼니 등) 다수 존재. 화장품 업체 특정 불가로 이메일 확인 불가. 추측 금지."
+  },
+  {
+    "company": "ODSY",
+    "current_email": "",
+    "website": "",
+    "track": "target",
+    "prev_note": "웹 검색에서 'ODSY'라는 한국 화장품 브랜드를 특정할 수 없었음. odsycoltd.com은 '오디세이㈜(ODYSSEY Co., Ltd.)'"
+  },
+  {
+    "company": "브라이트",
+    "current_email": "",
+    "website": "https://smartstore.naver.com/brightbrush",
+    "track": "target",
+    "prev_note": "smartstore.naver.com/brightbrush 페이지를 직접 fetch할 수 없고, 웹 검색에서도 '브라이트(brightbrush)"
+  },
+  {
+    "company": "지비알아이디어",
+    "current_email": "",
+    "website": "https://www.vah.co.kr",
+    "track": "target",
+    "prev_note": "vah.co.kr의 사업자명은 '주식회사브이에이에이치(VAH)'이며 지비알아이디어가 아님. seo9009@hanmail.net은 VAH Corp"
+  },
+  {
+    "company": "주식회사 아가파월드",
+    "current_email": "",
+    "website": "https://www.wechat.com/Afgfguknnn",
+    "track": "target",
+    "prev_note": "공식 사이트(agafar.com) 및 영문 글로벌 사이트(agafarusa.com)에 이메일 주소 일체 미게재. 전화(02-3281-2253)·"
+  },
+  {
+    "company": "(주)제노헬릭스",
+    "current_email": "xenohelix@xenohelix.com",
+    "website": "http://www.xenohelix.com",
+    "track": "target",
+    "prev_note": "xenohelix.com 공식 사이트 접속 불가(ECONNREFUSED). 한국 비즈니스 디렉터리(southkoreayp.com)에 xenohe"
+  },
+  {
+    "company": "Beaufirst Global Company Limited",
+    "current_email": "",
+    "website": "",
+    "track": "target",
+    "prev_note": "공식 웹사이트 확인 불가. 검색 결과에서 이 회사의 신뢰할 수 있는 출처 없음. current_email Beaufirstglobal@gmail"
+  },
+  {
+    "company": "주식회사 메조팜",
+    "current_email": "purple9260@hnamail.net",
+    "website": "https://mesopharm.co.kr/",
+    "track": "target",
+    "prev_note": "공식 사이트(mesopharm.co.kr)에 이메일 주소 미표시. 웹검색에서 purple9260@hanmail.net(hanmail, hnama"
+  },
+  {
+    "company": "(주)미성메탈",
+    "current_email": "jkhan@misunggc.co.k",
+    "website": "https://smartstore.naver.com/misunggc",
+    "track": "target",
+    "prev_note": "공식 도메인(misunggc.co.kr) 접속 불가(ECONNREFUSED). TradeKorea 프로필·잡코리아·사람인 등 외부 기업정보 사이"
+  },
+  {
+    "company": "㈜3일애",
+    "current_email": "sales@3dayslove.kr",
+    "website": "https://www.3dayslove.kr/",
+    "track": "target",
+    "prev_note": "공식 도메인(3dayslove.kr) 사이트에 이메일 미표시. 실제 공식 사이트(3dayslove.co.kr)에는 cgen@daum.net이 표"
+  },
+  {
+    "company": "BiOBiO Co.,Ltd.",
+    "current_email": "",
+    "website": "https://www.biobiokorea.com/",
+    "track": "target",
+    "prev_note": "공식 사이트(biobiokorea.com)에 이메일 미게시, channel.io 채팅 문의만 존재. biobiocos@naver.com의 출처 "
+  },
+  {
+    "company": "미영씨앤씨",
+    "current_email": "",
+    "website": "https://hesolmall.com/",
+    "track": "target",
+    "prev_note": "hesolmall.com의 사업자 정보란에는 운영사가 (주)에코마인(Ecomine Co., Ltd.)으로 표기되어 있음. 기존 이메일 ecomi"
+  },
+  {
+    "company": "VINACEUTICALS",
+    "current_email": "",
+    "website": "https://vinaceuticals.vn",
+    "track": "target",
+    "prev_note": "vinaceuticals.vn 사이트 및 /contact, /lien-he 페이지 접속 시도하였으나 이메일 정보 추출 불가(페이지 콘텐츠 미반환"
+  },
+  {
+    "company": "성림 BNC",
+    "current_email": "sunglimbnc@naver.com",
+    "website": "http://www.sunglimbnc.com",
+    "track": "target",
+    "prev_note": "sunglimbnc.com SSL 인증서 만료로 사이트 직접 접근 불가. INTERCHARM 전시사 페이지(전화 02-413-1944 확인)에도"
+  },
+  {
+    "company": "(주)씨유스킨",
+    "current_email": "jay@cuskin.com",
+    "website": "https://www.cueshop.co.kr",
+    "track": "target",
+    "prev_note": "jay@cuskin.com은 공식 출처(자사몰 footer·GoBizKorea·INTERCHARM 전시 페이지)에서 확인되지 않음. 공식 foo"
+  },
+  {
+    "company": "주식회사 오션스인터내셔널",
+    "current_email": "sales@oseansint.com",
+    "website": "http://www.oseansint.com/kr/",
+    "track": "target",
+    "prev_note": "oseansint.com 사이트가 접속 불가(연결 오류)여서 직접 확인 불가. 검색에서 확인된 이 회사의 이메일은 overseas@oseansi"
+  },
+  {
+    "company": "INOPRO",
+    "current_email": "alexander@inopro.us",
+    "website": "https://inopro.us",
+    "track": "target",
+    "prev_note": "공식 contact 페이지(inopro.us/pages/contact)에 게재된 공식 이메일은 support@inopro.us임. alexand"
+  },
+  {
+    "company": "VIEWTEL Co., Ltd.",
+    "current_email": "",
+    "website": "https://viewtel.cafe24.com/",
+    "track": "target",
+    "prev_note": "기존 marketing@view-tel.co.kr을 어떤 공식 출처에서도 확인하지 못함. 공식 사이트(viewtel.cafe24.com)에 이메"
+  },
+  {
+    "company": "(주) 엠디무역",
+    "current_email": "mdtrad@naver.com",
+    "website": "https://www.mdwig.co.kr/",
+    "track": "target",
+    "prev_note": "mdwig.co.kr 사이트 및 개인정보처리방침에는 luoaiqi@naver.com만 표기(개인정보관리책임자). mdtrad@naver.com은"
+  },
+  {
+    "company": "HANJINEYMAY CO.,LTD",
+    "current_email": "",
+    "website": "",
+    "track": "target",
+    "prev_note": "hanjineymay.co.kr 사이트 존재 확인(SSL 자체서명 오류로 직접 fetch 불가). 검색결과에서 official@hanjineym"
+  },
+  {
+    "company": "InterCHARM Korea",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "TUOCHENG EXHIBITION",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "주식회사 셀락바이오",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "SHANTOU LIKE PLASTIC CO.,LTD.",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "NINGBO OUHUAN CONTAINER CO., LTD",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "경북IT융합기술원",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "셀아이콘랩",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "HAIFENG PACKAGING CO., LTD.",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "TINDA (GUANGZHOU) PLASTIC CO., LTD",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "Daisho Co., Ltd.",
+    "current_email": "",
+    "website": "https://www.daisho-g.co.jp/index.html",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "JDN CORPORATION LIMITED",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "재단법인 부산테크노파크",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "제너랩",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "주식회사 에코마인",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "에이치알메디텍",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "(주)에스엠에코랩",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "WES Worldwide Expo Services (H.K.) Ltd.",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "COSMOIM",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "(주)톨리코리아",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "GUANGDONG CANDEAR TECHNOLOGY INNOVATION CO.,LTD",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "TUBEST PACKING (GD) CO., LTD",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "REDFOXPACK TECHNOLOGY LTD.",
+    "current_email": "",
+    "website": "https://www.redfoxpack.com",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "LECOS",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "BELLE CRAFT MANUFACTURING CO.,LTD.",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "화성산업진흥원",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "이연물산",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "케이투메디텍",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "(주)바라보니화장품",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "(주)순바이오팜",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "뉴런",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "YANGZHOU GUANYU PLASTIC TUBE CO., LTD.",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "HUARUI PACKAGING TECH(HANGZHOU) CO., LTD.",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "그린코스 주식회사",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "Symphony Cosmetic Inc.",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "ZHONGSHAN TOPTREND PACKAGING CO., LTD.",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "주식회사 씨아이티 (CIT Co., Ltd)",
+    "current_email": "",
+    "website": "https://citcosmetic.com/kr/",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "미래피앤씨주식회사",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "STB International",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "AMORY LONDON LTD",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "TONGCHENG PACKAGING",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "주식회사 신일피비씨",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "주식회사 씨티케이",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "exomera",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "비컨",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "주식회사 모티프커뮤니케이션",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  },
+  {
+    "company": "(주)아이오쓰리",
+    "current_email": "",
+    "website": "",
+    "track": "oem",
+    "prev_note": ""
+  }
+]

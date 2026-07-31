@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SIRIAI Deck · PRD (목적 정의)</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#f3eee2;--surface:#fff;--ink:#211a33;--ink-2:rgba(33,26,51,.66);--ink-3:rgba(33,26,51,.46);--line:rgba(33,26,51,.12);
+    --lav:#cabce8;--lav-soft:#e9e3f3;--green:#7fae7f;--green-soft:#e4efe2;--amber:#c79a3f;--amber-soft:#f3e8d2;--red-soft:#f6ecec;
+    --f-en:'Helvetica Neue','Helvetica','Arimo','Pretendard',Arial,sans-serif;--f-kr:'Pretendard',sans-serif;--f-sans:'Helvetica Neue','Helvetica','Arimo','Pretendard',sans-serif;--f-mono:'JetBrains Mono',ui-monospace,monospace;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--f-sans);background:var(--bg);color:var(--ink);line-height:1.6;letter-spacing:-.01em;padding:46px clamp(18px,5vw,64px);max-width:880px;margin:0 auto;-webkit-font-smoothing:antialiased;}
+  .top{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);}
+  h1{font-size:clamp(28px,3.4vw,40px);font-weight:700;letter-spacing:-.022em;margin:5px 0 22px;}
+  .purpose{background:var(--ink);color:var(--bg);border-radius:20px;padding:30px 32px;margin-bottom:14px;}
+  .purpose .lab{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--lav);font-weight:600;}
+  .purpose .big{font-family:var(--f-kr);font-weight:700;font-size:clamp(20px,2.5vw,28px);letter-spacing:-.02em;line-height:1.4;margin-top:10px;word-break:keep-all;}
+  .purpose .big b{color:var(--lav);}
+  .purpose .sub{font-family:var(--f-kr);font-size:14px;color:rgba(243,238,226,.72);margin-top:12px;word-break:keep-all;}
+
+  .oneline{font-family:var(--f-kr);font-size:13.5px;color:var(--ink-2);background:var(--lav-soft);border-radius:12px;padding:13px 17px;margin-bottom:34px;word-break:keep-all;line-height:1.6;}
+  .oneline b{color:#4a3d6e;}
+
+  h2{font-family:var(--f-kr);font-size:13px;font-weight:800;letter-spacing:.02em;color:var(--ink-3);text-transform:uppercase;border-bottom:1px solid var(--line);padding-bottom:9px;margin:36px 0 16px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+  @media(max-width:680px){.grid2{grid-template-columns:1fr;}}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:15px;padding:18px 20px;}
+  .card .k{font-family:var(--f-mono);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--lav);}
+  .card .kk{font-family:var(--f-kr);font-size:15px;font-weight:700;margin:3px 0 7px;}
+  .card p{font-family:var(--f-kr);font-size:13.5px;color:var(--ink-2);word-break:keep-all;line-height:1.6;}
+  .card p b{color:var(--ink);}
+
+  .feel{display:flex;flex-direction:column;gap:9px;}
+  .feel .f{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:14px 18px;font-family:var(--f-kr);font-size:14px;word-break:keep-all;}
+  .feel .f .n{font-family:var(--f-mono);font-weight:700;color:var(--lav);font-size:15px;flex-shrink:0;}
+  .feel .f b{color:var(--ink);}
+
+  .flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  .flow .s{font-family:var(--f-kr);font-size:13.5px;font-weight:600;background:var(--surface);border:1px solid var(--line);border-radius:100px;padding:9px 16px;}
+  .flow .s.hl{background:var(--lav-soft);border-color:transparent;color:#5a4a85;}
+  .flow .ar{color:var(--ink-3);font-size:13px;}
+
+  .vs{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+  @media(max-width:680px){.vs{grid-template-columns:1fr;}}
+  .vs .col{border-radius:15px;padding:18px 20px;}
+  .vs .bad{background:var(--red-soft);border:1px solid rgba(201,138,138,.3);}
+  .vs .good{background:var(--green-soft);border:1px solid rgba(127,174,127,.35);}
+  .vs .col .h{font-family:var(--f-kr);font-size:14px;font-weight:800;margin-bottom:9px;}
+  .vs .bad .h{color:#8a5a5a;} .vs .good .h{color:#3f6b3f;}
+  .vs .col ul{list-style:none;display:flex;flex-direction:column;gap:6px;}
+  .vs .col li{font-family:var(--f-kr);font-size:13px;color:var(--ink-2);padding-left:15px;position:relative;word-break:keep-all;line-height:1.5;}
+  .vs .bad li::before{content:"✕";position:absolute;left:0;color:#b87a7a;font-weight:700;}
+  .vs .good li::before{content:"✓";position:absolute;left:0;color:var(--green);font-weight:700;}
+
+  .nots{display:flex;flex-wrap:wrap;gap:8px;}
+  .nots .x{font-family:var(--f-kr);font-size:13px;color:#8a5a5a;background:var(--red-soft);border:1px solid rgba(201,138,138,.3);border-radius:100px;padding:7px 14px;}
+  .risk{font-family:var(--f-kr);font-size:13px;color:#8a6a25;background:var(--amber-soft);border:1px solid rgba(199,154,63,.35);border-radius:12px;padding:14px 17px;word-break:keep-all;line-height:1.7;}
+  .risk b{color:var(--ink);}
+  .foot{margin-top:30px;font-family:var(--f-kr);font-size:12.5px;color:var(--ink-3);text-align:center;}
+  .casc{display:flex;flex-direction:column;gap:11px;}
+  .casc .step{background:var(--surface);border:1px solid var(--line);border-radius:15px;padding:17px 20px;border-left:4px solid var(--lav);}
+  .casc .step .sn{font-family:var(--f-mono);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5a4a85;}
+  .casc .step .st{font-family:var(--f-kr);font-size:15.5px;font-weight:800;margin:3px 0 10px;}
+  .casc .step .row{display:flex;gap:10px;font-family:var(--f-kr);font-size:13px;margin:6px 0;word-break:keep-all;line-height:1.55;}
+  .casc .step .row .tag{flex-shrink:0;font-family:var(--f-mono);font-weight:600;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;padding:3px 9px;border-radius:100px;height:fit-content;}
+  .casc .step .row .tag.in{background:var(--green-soft);color:#3f6b3f;}
+  .casc .step .row .tag.out{background:var(--red-soft);color:#8a5a5a;}
+  .casc .step .row b{color:var(--ink);}
+  .casc .step .crit{font-family:var(--f-kr);font-size:12.5px;color:var(--ink-2);background:var(--lav-soft);border-radius:8px;padding:8px 12px;margin-top:10px;word-break:keep-all;}
+  .casc .step .crit b{color:#4a3d6e;}
+  .casc .check{font-family:var(--f-kr);font-size:12.5px;color:var(--ink-2);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px;word-break:keep-all;line-height:1.6;}
+  .casc .check b{color:var(--ink);}
+</style>
+</head>
+<body>
+  <div class="top">SIRIAI · 사업소개서 (Deck) · PRD</div>
+  <h1>이 Deck을 왜·누구를 위해 만드는가</h1>
+
+  <div class="purpose">
+    <div class="lab">The one purpose · 단 하나의 목적</div>
+    <div class="big">홈이 "우리는 이런 걸 <b>믿는다</b>"고 말한다면,<br/>이 Deck은 "그걸 실제로 <b>해냈다</b>"를 증명한다.</div>
+    <div class="sub">→ 목표는 단 하나. 협업을 저울질하는 사람이 "이 팀이면 되겠다"고 느끼고 <b style="color:#cabce8;">대화 한 건을 시작</b>하게 만드는 것.</div>
+  </div>
+  <div class="oneline">💡 <b>이게 PRD의 전부야.</b> 앞으로 모든 결정(섹션·카피·디자인)은 한 가지로 판단해 — <b>"이게 협업 검토자에게 '증명'으로 작동하나?"</b> 아니면 버린다. 화면이 예뻐도.</div>
+
+  <h2>① 누가 보는가 · 왜 보는가</h2>
+  <div class="grid2">
+    <div class="card"><div class="k">Who</div><div class="kk">홈에서 #Deck을 누른 사람</div><p>이미 SIRIAI에 관심이 생긴 <b>semi-warm</b> 방문자. 협업을 저울질하는 <b>브랜드 담당자·대표.</b> "제품은 좋은데 시장이 아직 모른다", 또는 새 시장(해외·신규 카테고리) 진입을 앞둠.</p></div>
+    <div class="card"><div class="k">Why</div><div class="kk">또 소개받으려는 게 아니다</div><p>그들에게 필요한 건 회사 소개가 아니라 <b>"이 팀이면 우리 문제를 풀겠다"는 확신</b> 하나. 그래서 Deck = 소개(❌) → <b>증명(⭕).</b></p></div>
+  </div>
+
+  <h2>② 보고 나서 무엇을 느껴야 하는가</h2>
+  <div class="feel">
+    <div class="f"><span class="n">01</span><div><b>"이 팀, 시장을 이해하네."</b> — 우리 자랑이 아니라 고객의 문제를 먼저 짚어서.</div></div>
+    <div class="f"><span class="n">02</span><div><b>"아마추어가 아니라 프로다."</b> — 격·절제·톤에서. (1차 실패 = 여기서 무너짐)</div></div>
+    <div class="f"><span class="n">03</span><div><b>"숫자 자랑이 아니라, 진짜 해낼 수 있구나."</b> — 닫힌 수치가 아니라 열린 역량으로.</div></div>
+    <div class="f"><span class="n">04</span><div><b>"끝까지 같이 갈 팀이다."</b> — 리스트 던지고 빠지는 데가 아니라(후불제·끝까지 관리).</div></div>
+  </div>
+
+  <h2>③ 메시지 척추 + 서사 흐름</h2>
+  <div class="card" style="margin-bottom:13px;"><div class="kk">"좋은 브랜드가 안 알려지는 건, <span style="color:#5a4a85;">도달</span>이 아니라 <span style="color:#5a4a85;">관계</span>의 문제다."</div><p>시리아이(知り合い)가 당신 브랜드를 시장과 '아는 사이'로. 3기둥 = 관계의 눈 · 끝까지 곁에 · 기술로 정확히.</p></div>
+  <div class="flow">
+    <span class="s">문제 인식</span><span class="ar">→</span>
+    <span class="s hl">관점 전환 (知り合い)</span><span class="ar">→</span>
+    <span class="s">역량 (할 수 있는 것)</span><span class="ar">→</span>
+    <span class="s">증거 (케이스)</span><span class="ar">→</span>
+    <span class="s">함께 (대화)</span>
+  </div>
+
+  <h2>④ 스텝별 기준 — 목적에서 흘러내린다 (cascade)</h2>
+  <div class="oneline" style="margin-bottom:16px;">🪜 목적 하나가 1·2·3 스텝의 기준을 <b>차례로</b> 정한다. 내용이 정해져야 구조가, 구조가 정해져야 디자인이 선다. <b>이 순서가 안 흔들리는 핵심.</b> (스텝별 PRD를 따로 만들지 않는 이유)</div>
+  <div class="casc">
+    <div class="step">
+      <div class="sn">Step 1 · 내용</div><div class="st">목적상 무엇이 들어가고 빠지나</div>
+      <div class="row"><span class="tag in">넣는다</span><span>홈이 못 보여준 <b>증거·실체·역량</b> — 케이스(문제→설계→실행→결과)·프로세스·리스크 장치(후불제 등)·"할 수 있는 역량의 범위" + 고객 문제 공감.</span></div>
+      <div class="row"><span class="tag out">뺀다</span><span>홈 소개 반복 · 기능/스펙 나열 · 미검증 수치 · '우리' 주어 자랑.</span></div>
+      <div class="crit">🔑 거르는 질문: <b>"이게 '증명'인가, '소개'인가?"</b> — 소개면 뺀다.</div>
+    </div>
+    <div class="step">
+      <div class="sn">Step 2 · 구조</div><div class="st">그 내용을 어떤 흐름·형태로</div>
+      <div class="row"><span class="tag in">흐름</span><span>문제 → 관점 → 역량 → 증거 → 전환. (자기자랑 도입 금지 — 고객이 hero)</span></div>
+      <div class="row"><span class="tag in">형태</span><span>표면은 간결 → 클릭하면 디테일(레이어드). PPT처럼 한 화면에 다 깔지 않는다.</span></div>
+      <div class="crit">🔑 거르는 질문: <b>"표면만 보고도 '이거 나를 위한 거다'가 읽히나?"</b></div>
+    </div>
+    <div class="step">
+      <div class="sn">Step 3 · 디자인</div><div class="st">그 구조를 어떻게 보이게</div>
+      <div class="row"><span class="tag in">토큰</span><span>브랜드 원칙만 — Paper · Ink · Helvetica/Arimo · Pretendard · JetBrains Mono · pill.</span></div>
+      <div class="row"><span class="tag in">태도</span><span>한 화면 한 메시지 · 여백 · 절제. '있어보임'은 모션이 아니라 절제에서.</span></div>
+      <div class="crit">🔑 거르는 질문: <b>"새 색·새 폰트·이모지·형광을 쓰고 싶나?"</b> → 쓰는 순간 틀린 거다.</div>
+    </div>
+    <div class="check"><b>Step 4 · 검수</b> = 목적 충족? · 미검증수치 0? · 오타·링크·반응형? (준용 + 시리아이 팀) &nbsp;|&nbsp; <b>Step 5 · 배포</b> = Vercel + 홈 연결 (짧음, 마지막). — 이 둘은 '기준'보다 <b>체크리스트</b>다.</div>
+  </div>
+
+  <h2>⑤ 1차는 왜 실패했나 → 2차는 무엇이 다른가</h2>
+  <div class="vs">
+    <div class="col bad"><div class="h">1차 (유사 홈페이지)</div><ul>
+      <li>누가·왜 보는지 안 정하고 화면부터</li>
+      <li>홈의 소개를 그대로 반복</li>
+      <li>수치·스펙 자랑 (영업메일 톤)</li>
+      <li>"있어보이는" 디자인이 목적이 됨</li>
+    </ul></div>
+    <div class="col good"><div class="h">2차 (증명서)</div><ul>
+      <li>semi-warm 협업검토자 한 명을 위해</li>
+      <li>홈이 못 보여준 '증거·실체'만</li>
+      <li>닫힌 수치 → 열린 역량 프레이밍</li>
+      <li>모든 화면이 '증명'이라는 목적에 복무</li>
+    </ul></div>
+  </div>
+
+  <h2>⑥ 안 하는 것 (비범위)</h2>
+  <div class="nots">
+    <span class="x">홈 소개 반복</span><span class="x">수치·스펙 나열 자랑</span><span class="x">검증 안 된 허세</span><span class="x">'우리' 주어 자랑</span><span class="x">영업메일 톤</span><span class="x">상투어(준비중 등)</span><span class="x">모호한 영어 헤드</span>
+  </div>
+
+  <h2>⑦ 성공 기준 · 열린 리스크</h2>
+  <div class="grid2" style="margin-bottom:13px;">
+    <div class="card"><div class="k">Success</div><div class="kk">이렇게 되면 성공</div><p>① 협업 <b>대화 전환</b> 1건 ② 보고 "프로답다·믿음 간다" ③ 홈과 다른 <b>'증명' 경험</b>(반복 아님).</p></div>
+    <div class="card"><div class="k">Action</div><div class="kk">방문자가 할 행동</div><p>막힌 결정 하나를 들고 <b>대화를 건다.</b> (단일 CTA — 문의·더보기 같은 약한 동사 금지)</p></div>
+  </div>
+  <div class="risk">⚠️ <b>열린 리스크 (확정 전):</b><br/>· <b>홈 v2 대기</b> — "홈이 무조건 기준"인데 홈 새 버전이 곧 나옴 → 톤·01 아키텍팅 무게는 <b>홈 v2 확정 전까지 잠정.</b><br/>· <b>내용 = 준용 수작업 검수 중</b> — 들어갈 내용의 분량·중요도는 준용+팀장 검토 후 확정 (클로드 정리본은 참고).<br/>· <b>실명 공개</b> = 전체 OK(P1), 단 배치·나열이 톤과 어우러지게 (디자인 과제).</div>
+
+  <div class="foot">이 PRD에 OK/수정 주면 → 모든 후속 작업(구조·카피·디자인)의 기준선이 됩니다. · 클로드 작성 · 준용·팀장 검토 대기</div>
+</body>
+</html>

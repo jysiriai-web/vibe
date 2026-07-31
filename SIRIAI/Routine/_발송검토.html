@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>SIRIAI 발송 검토</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root{--paper:#F3EEE2;--ink:#211A33;--soft:#5b5468;--line:rgba(33,26,51,.14);
+    --ok:#2E7D5B;--warn:#B7791F;--hold:#A32D2D;--accent:#6B4DE6;--card:#fff;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:'Pretendard',sans-serif;height:100vh;display:flex;flex-direction:column}
+  header{display:flex;align-items:center;gap:16px;padding:14px 22px;border-bottom:1.5px solid var(--ink)}
+  header .home{font-size:13px;color:var(--accent);text-decoration:none;font-weight:500;padding:5px 11px;border:1px solid var(--line);border-radius:8px}
+  header .home:hover{background:#fff}
+  header h1{font-size:18px;font-weight:600}
+  header .meta{font-size:13px;color:var(--soft)}
+  header .counts{margin-left:auto;display:flex;gap:14px;font-size:13px}
+  .pill{padding:2px 10px;border-radius:20px;font-weight:500}
+  .p-ok{background:rgba(46,125,91,.14);color:var(--ok)}
+  .p-hold{background:rgba(163,45,45,.12);color:var(--hold)}
+  .p-wait{background:rgba(95,84,104,.12);color:var(--soft)}
+  main{flex:1;display:flex;min-height:0}
+  .list{width:240px;border-right:1px solid var(--line);overflow-y:auto;background:#FBF8F1}
+  .item{padding:10px 16px;border-bottom:1px solid var(--line);cursor:pointer;display:flex;align-items:center;gap:9px;font-size:14px}
+  .item:hover{background:#F3EEE2}
+  .item.active{background:#EDE7D8;font-weight:600}
+  .dot{width:8px;height:8px;border-radius:50%;flex:none;background:#cfc9bd}
+  .dot.ok{background:var(--ok)} .dot.hold{background:var(--hold)}
+  .item .wbadge{margin-left:auto;color:var(--warn);font-size:13px}
+  .pane{flex:1;overflow-y:auto;padding:24px 30px;display:flex;flex-direction:column;gap:16px}
+  .changed{background:#FFF9E8;border:1px solid #EAD9A0;border-radius:10px;padding:14px 16px}
+  .changed .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--warn);font-weight:600;margin-bottom:6px}
+  .changed .brand{font-weight:600;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .ig{font-family:'Pretendard',sans-serif;font-weight:500;font-size:12.5px;color:#C13584;text-decoration:none;
+    background:rgba(193,53,132,.09);border:1px solid rgba(193,53,132,.25);border-radius:20px;padding:2px 11px}
+  .ig:hover{background:rgba(193,53,132,.16)}
+  .ig.none{color:var(--soft);background:rgba(95,84,104,.08);border-color:var(--line)}
+  .changed .hook{margin-top:6px;line-height:1.6}
+  .warnbox{background:#FBEBEB;border:1px solid #E9B8B8;border-left:4px solid var(--hold);border-radius:0 10px 10px 0;padding:12px 16px}
+  .warnbox .lbl{color:var(--hold);font-weight:600;font-size:13px}
+  .warnbox .txt{font-size:14px;margin-top:3px}
+  .email{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px 26px}
+  .email .to{font-size:12px;color:var(--soft);border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:14px}
+  .actions{position:sticky;bottom:0;display:flex;gap:10px;padding-top:6px;background:linear-gradient(transparent,var(--paper) 30%)}
+  button{font-family:inherit;font-size:14px;font-weight:500;padding:10px 20px;border-radius:9px;border:1px solid var(--line);background:#fff;cursor:pointer}
+  button.approve{background:var(--ok);color:#fff;border-color:var(--ok)}
+  button.hold{background:#fff;color:var(--hold);border-color:var(--hold)}
+  button.next{margin-left:auto;background:var(--ink);color:#fff;border-color:var(--ink)}
+  .hint{font-size:12px;color:var(--soft);padding:0 22px 10px}
+  .loading{padding:40px;color:var(--soft)}
+</style>
+</head>
+<body>
+<header>
+  <a href="대시보드.html" class="home" title="홈으로">← 홈</a>
+  <h1>발송 검토</h1>
+  <span class="meta" id="prog">로딩…</span>
+  <div class="counts">
+    <span class="pill p-ok">승인 <span id="cOk">0</span></span>
+    <span class="pill p-hold">보류 <span id="cHold">0</span></span>
+    <span class="pill p-wait">미검토 <span id="cWait">0</span></span>
+  </div>
+</header>
+<main>
+  <div class="list" id="list"></div>
+  <div class="pane" id="pane"><div class="loading">초안 불러오는 중…</div></div>
+</main>
+<div class="hint">↑ ↓ 또는 버튼으로 이동 · 변경된 부분(브랜드·훅)만 빠르게 보고 ⚠️ 없으면 승인 · 승인/보류 누르면 6월 시트 발송단계에 바로 기록됨</div>
+<script>
+let DRAFTS=[], state=[], cur=0; const bodyCache={};
+function igChip(h){
+  if(!h) return '<span class="ig none" title="인스타 미확보">인스타 없음</span>';
+  const handle=h.replace(/^@/,'').trim();
+  return `<a class="ig" href="https://instagram.com/${encodeURIComponent(handle)}" target="_blank" rel="noopener" title="인스타그램 열기">@${handle}</a>`;
+}
+function counts(){
+  const o=state.filter(s=>s==="ok").length, h=state.filter(s=>s==="hold").length;
+  cOk.textContent=o; cHold.textContent=h; cWait.textContent=DRAFTS.length-o-h;
+}
+function renderList(){
+  list.innerHTML=DRAFTS.map((d,i)=>`<div class="item ${i===cur?'active':''}" data-i="${i}">
+    <span class="dot ${state[i]==='ok'?'ok':state[i]==='hold'?'hold':''}"></span>
+    <span>${d.brand}</span>${d.warn?'<span class="wbadge">⚠️</span>':''}</div>`).join("");
+  const act=list.querySelector(".item.active"); if(act) act.scrollIntoView({block:"nearest"});
+}
+async function body(i){
+  if(bodyCache[i]) return bodyCache[i];
+  try{ bodyCache[i]=await (await fetch(DRAFTS[i].file)).text(); }
+  catch(e){ bodyCache[i]="<p style='color:#A32D2D'>본문 로드 실패: "+DRAFTS[i].file+"</p>"; }
+  return bodyCache[i];
+}
+async function show(i){
+  cur=i; prog.textContent=(i+1)+" / "+DRAFTS.length; renderList();
+  const d=DRAFTS[i], html=await body(i);
+  pane.innerHTML=`
+    <div class="changed"><div class="lbl">개인화된 부분 (이것만 바뀜)</div>
+      <div class="brand"><span>▸ ${d.brand}</span>${igChip(d.insta)}</div><div class="hook">${d.hook}</div></div>
+    ${d.warn?`<div class="warnbox"><div class="lbl">⚠️ 메일주의 — 작성 시 지킬 것</div><div class="txt">${d.warn}</div></div>`:''}
+    <div class="email"><div class="to">받는사람: ${d.email} · 제목: [SIRIAI] ${d.brand}에 맞는 인플루언서 제안드립니다</div>${html}</div>
+    <div class="actions">
+      <button class="approve" onclick="mark('ok')">✓ 승인</button>
+      <button class="hold" onclick="mark('hold')">보류</button>
+      <button class="next" onclick="go(1)">다음 ↓</button></div>`;
+}
+async function mark(s){
+  const d=DRAFTS[cur]; state[cur]=s; counts(); renderList();
+  try{ await fetch("/api/stage",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({brand:d.brand,email:d.email,stage:s==="ok"?"승인":"보류"})}); }catch(e){}
+  if(cur<DRAFTS.length-1) go(1);
+}
+function go(d){show(Math.max(0,Math.min(DRAFTS.length-1,cur+d)));}
+document.addEventListener("keydown",e=>{if(e.key==="ArrowDown"){e.preventDefault();go(1);}if(e.key==="ArrowUp"){e.preventDefault();go(-1);}});
+list.addEventListener("click",e=>{const it=e.target.closest(".item");if(it)show(+it.dataset.i);});
+const ST={"승인":"ok","보류":"hold","초안":"wait"};
+(async()=>{
+  try{
+    DRAFTS=await (await fetch("/api/queue")).json();
+  }catch(e){ pane.innerHTML="<div class='loading'>검토 서버 연결 실패 — review_server.py 로 열렸는지 확인</div>"; return; }
+  state=DRAFTS.map(d=>ST[d.stage]||"wait"); counts(); show(0);
+})();
+</script>
+</body>
+</html>

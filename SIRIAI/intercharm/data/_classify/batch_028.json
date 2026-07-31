@@ -1,0 +1,66 @@
+[
+  {
+    "code": "BPF2661",
+    "cat": "기타",
+    "intro": "반영구화장(PMU) 색소·니들 판매 및 시술 아카데미",
+    "verdict": "제외",
+    "basis": "시술자 전용 재료·교육 B2B",
+    "homepage": ""
+  },
+  {
+    "code": "RGX6769",
+    "cat": "이너뷰티",
+    "intro": "식물성 콜라겐 기반 비건 이너뷰티 브랜드 '플랜트' 운영",
+    "verdict": "타겟",
+    "basis": "자체브랜드 자사몰 직판 확인",
+    "homepage": "https://www.rawga.co.kr"
+  },
+  {
+    "code": "REB1308",
+    "cat": "기타",
+    "intro": "기초·색조 화장품 ODM 제조 전문, 비건·할랄·CGMP 인증",
+    "verdict": "제외",
+    "basis": "ODM 수탁 전문, 자사브랜드 없음",
+    "homepage": ""
+  },
+  {
+    "code": "ORL4805",
+    "cat": "스킨케어",
+    "intro": "비건 프리미엄 스킨케어 브랜드 ORLIC 운영",
+    "verdict": "타겟",
+    "basis": "자체브랜드 ORLIC 소비자 판매",
+    "homepage": ""
+  },
+  {
+    "code": "BKX9065",
+    "cat": "기타",
+    "intro": "",
+    "verdict": "불명",
+    "basis": "동명 업체 다수·식별정보 전무",
+    "homepage": ""
+  },
+  {
+    "code": "STU9369",
+    "cat": "기타",
+    "intro": "필러·스킨부스터·실 등 미용 의료기기 제조·유통",
+    "verdict": "제외",
+    "basis": "병의원용 의료기기·주입제",
+    "homepage": ""
+  },
+  {
+    "code": "SIL1585",
+    "cat": "스킨케어",
+    "intro": "전문가용 스킨케어 브랜드 SILISCA, 자사몰·미국지사 운영",
+    "verdict": "타겟",
+    "basis": "자체브랜드 완제품 자사몰 판매",
+    "homepage": ""
+  },
+  {
+    "code": "CNT6328",
+    "cat": "스킨케어",
+    "intro": "마스크·스킨케어 제조사, 자체 브랜드 퓨어덤(Purederm) 보유",
+    "verdict": "타겟",
+    "basis": "OEM 겸업+자체브랜드 보유",
+    "homepage": ""
+  }
+]

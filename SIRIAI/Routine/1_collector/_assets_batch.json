@@ -1,0 +1,795 @@
+{
+  "results": [
+    {
+      "company": "스킨랩",
+      "homepage": "https://skinlabkorea.com",
+      "instagram": "",
+      "status": "confirmed",
+      "source": "skinlabkorea.com 도메인 검색결과 공식 홈페이지 확인. 인스타그램(@skinlab.k 등) 공식 여부 불확실하여 미기입."
+    },
+    {
+      "company": "라네뜨떼",
+      "homepage": "https://lanette.co.kr",
+      "instagram": "",
+      "status": "confirmed",
+      "source": "lanette.co.kr 검색결과 공식 홈페이지 확인. 인스타그램 공식 계정 검색결과에서 식별 불가."
+    },
+    {
+      "company": "올리크",
+      "homepage": "https://olikk.kr",
+      "instagram": "",
+      "status": "confirmed",
+      "source": "olikk.kr 검색결과 '진피 케어 전문 코스메슈티컬 브랜드'로 공식 홈페이지 확인. 인스타그램 공식 계정 식별 불가."
+    },
+    {
+      "company": "자연나라",
+      "homepage": "",
+      "instagram": "",
+      "status": "uncertain",
+      "source": "자연나라 검색 시 동명 브랜드 다수 혼재(네이처리퍼블릭·식물나라 등). 특정 공식 사이트·인스타 식별 불가."
+    },
+    {
+      "company": "오샤르",
+      "homepage": "",
+      "instagram": "",
+      "status": "uncertain",
+      "source": "오샤르/oshar 검색 결과 해당 브랜드 특정 불가. 유사 브랜드(OSHA, OASH 등)만 확인."
+    },
+    {
+      "company": "프렌치파머시",
+      "homepage": "",
+      "instagram": "frenchpharmerci_official",
+      "status": "uncertain",
+      "source": "인스타 핸들(frenchpharmerci_official)은 기존 입력값 유지. 공식 홈페이지 검색 결과 없음. 인스타 공식 여부도 검색으로 직접 확인 불가."
+    },
+    {
+      "company": "JAS",
+      "homepage": "https://peoplenstore.com/category/jas/70/",
+      "instagram": "",
+      "status": "found",
+      "source": "자사몰 없음. peoplenstore.com 브랜드관 확인(피플앤스토어 공식 유통). 인스타 @jas_beauty_products 발견되었으나 공식 계정 여부 불명확 → 빈칸 처리"
+    },
+    {
+      "company": "보스티나",
+      "homepage": "https://thebeau.co.kr",
+      "instagram": "",
+      "status": "confirmed",
+      "source": "thebeau.co.kr 검색 결과에서 '보스티나' 쇼핑몰로 다수 URL 확인. 인스타 공식 계정 검색 미확인"
+    },
+    {
+      "company": "VIP코스메틱",
+      "homepage": "https://vipcosmetics.co.kr",
+      "instagram": "",
+      "status": "confirmed",
+      "source": "vipcosmetics.co.kr 회사소개·상품 URL 검색 결과 다수 확인. 인스타 공식 계정 검색 미확인"
+    },
+    {
+      "company": "하루뷰티",
+      "homepage": "https://harubeauty.net",
+      "instagram": "",
+      "status": "confirmed",
+      "source": "harubeauty.net 로마나 주식회사 공식몰 확인. @harubeauty.ru는 러시아 계정으로 공식 아님. 국내 공식 인스타 미확인"
+    },
+    {
+      "company": "시튜에아 (SITUEA)",
+      "homepage": "",
+      "instagram": "situea.cosmetic",
+      "status": "confirmed",
+      "source": "코스모닝 기사(2023)에서 색조브랜드 시튜에아 론칭 시 인스타그램 @situea.cosmetic 개설 확인. 자사몰 별도 없음"
+    },
+    {
+      "company": "플래니스트 (PLANIST)",
+      "homepage": "",
+      "instagram": "planist.official",
+      "status": "uncertain",
+      "source": "두리화장품 비건 브랜드 확인. 인스타 @planist.raffine 발견(별도 계정). current_ig planist.official은 직접 확인 불가. 자사몰 미확인(두리몰 doorimall.net 통해 유통)"
+    },
+    {
+      "company": "나비클 (Navicle)",
+      "homepage": "",
+      "instagram": "",
+      "status": "uncertain",
+      "source": "엠에이디씨(MADC) 운영 브랜드 확인됨. 자사 공식몰 및 공식 인스타그램 계정 검색 미확인. madc.co.kr은 모회사 사이트로 브랜드 단독 채널 아님."
+    },
+    {
+      "company": "혜자 (Hyeja)",
+      "homepage": "https://www.hyejaskincare.com",
+      "instagram": "hyejaskincare",
+      "status": "confirmed",
+      "source": "hyejaskincare.com 공식몰 확인, Instagram @hyejaskincare (16K팔로워) 공식 계정 일치 확인."
+    },
+    {
+      "company": "듀이랩 (Du2LAB)",
+      "homepage": "",
+      "instagram": "",
+      "status": "uncertain",
+      "source": "넥스벨바이오텍 론칭 브랜드 언급 기사 확인. 공식몰(du2lab 도메인) 및 공식 인스타그램 검색 미확인. duolab.co.kr 및 deweylabs 등은 별개 브랜드."
+    },
+    {
+      "company": "이지비건 (EGVEGAN)",
+      "homepage": "https://egvegan.com",
+      "instagram": "egvegan_official",
+      "status": "confirmed",
+      "source": "egvegan.com 자사 공식몰 확인, Instagram @egvegan_official 공식 계정 일치 확인."
+    },
+    {
+      "company": "로로비건 (Lolovegan)",
+      "homepage": "https://lolovegan.co.kr\nhttps://lolovegan.com",
+      "instagram": "lolovegan.global",
+      "status": "confirmed",
+      "source": "lolovegan.co.kr(국내몰) 및 lolovegan.com(글로벌몰) 자사 도메인 확인. Instagram @lolovegan.global 공식 계정 확인."
+    },
+    {
+      "company": "피치포포 (Peach Pope)",
+      "homepage": "https://peachpopo.com",
+      "instagram": "peachpopo.official",
+      "status": "confirmed",
+      "source": "peachpopo.com 자사 공식몰 확인, Instagram @peachpopo.official 공식 계정 일치 확인."
+    },
+    {
+      "company": "오린힐 (ORINHEAL)",
+      "homepage": "https://www.orinheal.com",
+      "instagram": "orinheal",
+      "status": "confirmed",
+      "source": "orinheal.com 공식사이트 확인, instagram.com/orinheal 브랜드 일치"
+    },
+    {
+      "company": "너리쉬 (Nerish)",
+      "homepage": "https://nerish.co.kr",
+      "instagram": "nerish_official",
+      "status": "confirmed",
+      "source": "nerish.co.kr 자사몰 확인, 기존 핸들 nerish_official 공식 계정 일치"
+    },
+    {
+      "company": "아이보스킨 (IVOSKIN)",
+      "homepage": "https://ivoskincare.com\nhttps://ivoskins.com",
+      "instagram": "ivoskin_official",
+      "status": "confirmed",
+      "source": "ivoskincare.com 국내 공식쇼핑몰 + ivoskins.com 글로벌 공식몰 확인, instagram.com/ivoskin_official 브랜드 일치"
+    },
+    {
+      "company": "브래비티 (BRAVITY)",
+      "homepage": "https://bravity.co.kr",
+      "instagram": "bravity_official",
+      "status": "confirmed",
+      "source": "bravity.co.kr 공식몰 확인, 검색결과에서 instagram.com/bravity_official 브랜드 일치"
+    },
+    {
+      "company": "원오세븐 (107 / oneoseven)",
+      "homepage": "https://107beauty.co.kr",
+      "instagram": "107_korea",
+      "status": "confirmed",
+      "source": "107beauty.co.kr 공식사이트 확인, instagram.com/107_korea 브랜드 일치"
+    },
+    {
+      "company": "엉트르두 (Entredeux)",
+      "homepage": "https://www.entredeuxparfums.com",
+      "instagram": "entredeuxparfums",
+      "status": "confirmed",
+      "source": "entredeuxparfums.com 공식사이트 확인, 핸들이 도메인과 동일하여 공식 계정 확인"
+    },
+    {
+      "company": "케이쓰 (KEYTH)",
+      "homepage": "https://keyth.co.kr",
+      "instagram": "keythofficial",
+      "status": "confirmed",
+      "source": "keyth.co.kr 공식몰 확인, instagram @keythofficial 공식 계정 확인(비즈니스 이메일 keythinternational@keyth.co.kr)"
+    },
+    {
+      "company": "사운드그린 (Soundgreen)",
+      "homepage": "https://soundgreen.kr",
+      "instagram": "soundgreen_official",
+      "status": "confirmed",
+      "source": "soundgreen.kr 공식몰 확인(비건 향수 브랜드), instagram @soundgreen_official 공식 계정 확인"
+    },
+    {
+      "company": "라 바이에떼 (La Variété)",
+      "homepage": "https://lavariete.co.kr",
+      "instagram": "la.variete_fragrance",
+      "status": "confirmed",
+      "source": "lavariete.co.kr 공식몰 확인, instagram @la.variete_fragrance 공식 계정 확인"
+    },
+    {
+      "company": "센츄어리 (Scentuary)",
+      "homepage": "",
+      "instagram": "",
+      "status": "uncertain",
+      "source": "한국 향수 브랜드 '센츄어리' 공식 홈페이지 및 공식 인스타그램 계정 확인 불가. 인도·말레이시아·영국 동명 브랜드와 혼동 우려로 추측 기재 금지."
+    },
+    {
+      "company": "엘로레아 (ELOREA)",
+      "homepage": "https://elorea.com",
+      "instagram": "elorea",
+      "status": "confirmed",
+      "source": "elorea.com 공식몰 확인(뉴욕 기반 한국계 향수 브랜드), instagram @elorea 공식 계정 확인(팔로워 113K)"
+    },
+    {
+      "company": "퓌 (fwee)",
+      "homepage": "https://fwee.kr",
+      "instagram": "fwee_makeup",
+      "status": "confirmed",
+      "source": "fwee.kr 공식몰 확인(한국 공식), instagram @fwee_makeup 공식 계정 확인(팔로워 399K, 2021년 런칭)"
+    },
+    {
+      "company": "라프텔 (RAFTEL)",
+      "homepage": "https://rft.co.kr",
+      "instagram": "raftel_cosmetic",
+      "status": "confirmed",
+      "source": "rft.co.kr 자사몰 확인, instagram.com/raftel_cosmetic 코스메틱 공식 계정 확인"
+    },
+    {
+      "company": "3페이지스 (3pages)",
+      "homepage": "https://3pages.co.kr",
+      "instagram": "3pages_official",
+      "status": "confirmed",
+      "source": "3pages.co.kr 자사몰 확인, IG 핸들 current_ig와 일치"
+    },
+    {
+      "company": "먼데이뮤지엄 (Monday Museum)",
+      "homepage": "https://mondaymuseum.kr",
+      "instagram": "mondaymuseum.official",
+      "status": "confirmed",
+      "source": "mondaymuseum.kr 자사몰 확인, IG 핸들 current_ig와 일치"
+    },
+    {
+      "company": "물들임 (Muldream)",
+      "homepage": "https://muldream.com",
+      "instagram": "muldream.official",
+      "status": "confirmed",
+      "source": "muldream.com 공식몰 확인, IG 핸들 current_ig와 일치"
+    },
+    {
+      "company": "House of Dohwa (도화가인)",
+      "homepage": "https://www.houseofdohwa.com",
+      "instagram": "houseofdohwa",
+      "status": "confirmed",
+      "source": "houseofdohwa.com 공식사이트 확인, IG 핸들 current_ig와 일치"
+    },
+    {
+      "company": "닥터리쥬올 (Dr.Rejuall)",
+      "homepage": "https://drrejuall.kr",
+      "instagram": "rejuall_official",
+      "status": "confirmed",
+      "source": "drrejuall.kr 공식몰 확인(국문), drrejuall.com은 영문 공식스토어 병존, IG 핸들 current_ig와 일치"
+    },
+    {
+      "company": "닥터리코스 (DR.LEECOS)",
+      "homepage": "https://drleecos.com",
+      "instagram": "drleecos_official",
+      "status": "confirmed",
+      "source": "drleecos.com 공식몰 확인, Instagram @drleecos_official 공식 계정 확인"
+    },
+    {
+      "company": "더마센트릭 (Dermacentric)",
+      "homepage": "https://dermacentric.com",
+      "instagram": "dermacentric_official",
+      "status": "confirmed",
+      "source": "dermacentric.com 공식몰 확인, Instagram @dermacentric_official 공식 한국 계정 확인"
+    },
+    {
+      "company": "두피부 (doopeeboo)",
+      "homepage": "https://doopeeboo.com",
+      "instagram": "doopeeboo",
+      "status": "confirmed",
+      "source": "doopeeboo.com 공식몰 확인, Instagram @doopeeboo 공식 계정 확인"
+    },
+    {
+      "company": "솔랩 (SOLAB / Solep)",
+      "homepage": "https://solepkorea.com",
+      "instagram": "solep_scalp",
+      "status": "confirmed",
+      "source": "solepkorea.com 공식몰 확인, Instagram @solep_scalp 공식 계정 확인 (팔로워 4,119명, 126게시물)"
+    },
+    {
+      "company": "빌라에르바티움 (Villa Erbatium)",
+      "homepage": "https://villaerbatium.com",
+      "instagram": "villaerbatium",
+      "status": "confirmed",
+      "source": "villaerbatium.com 공식몰 확인, 검색 결과에서 Instagram @villaerbatium 공식 링크 직접 노출"
+    },
+    {
+      "company": "르페르소나 (LE PERSONA)",
+      "homepage": "https://lepersona.com",
+      "instagram": "lepersona_official",
+      "status": "confirmed",
+      "source": "lepersona.com 공식몰 확인 (주식회사 르페르소나, Gangnam-gu, Seoul); Instagram @lepersona_official 기존 값 유지"
+    },
+    {
+      "company": "센트메이드 (SCENTMADE)",
+      "homepage": "https://www.scentmade.co.kr",
+      "instagram": "scentmade_official",
+      "status": "confirmed",
+      "source": "scentmade.co.kr 공식몰 + instagram.com/scentmade_official 직접 확인"
+    },
+    {
+      "company": "볼름에릭스 (Bolm Erix)",
+      "homepage": "https://www.bolmerix.com",
+      "instagram": "bolm_erix",
+      "status": "confirmed",
+      "source": "bolmerix.com 공식몰 + instagram.com/bolm_erix 직접 확인"
+    },
+    {
+      "company": "사랑해요 (SARANGHAEYO)",
+      "homepage": "https://www.saranghaeyo.co.kr",
+      "instagram": "",
+      "status": "uncertain",
+      "source": "saranghaeyo.co.kr 공식몰 확인; 인스타 공식 계정은 동명 일반인 계정 다수로 특정 불가"
+    },
+    {
+      "company": "리즈네이처 (Riz Nature)",
+      "homepage": "https://www.riznature.co.kr",
+      "instagram": "riznature_pdrn",
+      "status": "confirmed",
+      "source": "riznature.co.kr 공식몰 확인; current_ig 핸들 riznature_pdrn 브랜드 일치"
+    },
+    {
+      "company": "플랜트 / 로가플랜트 (PLANT by 로가)",
+      "homepage": "https://www.plantbyseed.co.kr",
+      "instagram": "plantbyseed",
+      "status": "confirmed",
+      "source": "plantbyseed.co.kr 공식몰(주식회사 로가 운영) 확인; current_ig plantbyseed 확인"
+    },
+    {
+      "company": "배리어글로우 (Barrier Glow)",
+      "homepage": "https://barrierglow.com",
+      "instagram": "barrierglow",
+      "status": "confirmed",
+      "source": "barrierglow.com 공식몰 확인; current_ig barrierglow 확인"
+    },
+    {
+      "company": "라운지셀 (Loungecell)",
+      "homepage": "https://loungecell.co.kr",
+      "instagram": "",
+      "status": "found",
+      "source": "검색결과 loungecell.co.kr 공식몰 확인. 인스타그램 공식 계정은 검색으로 미확인"
+    },
+    {
+      "company": "이퀄베리 (EQQUALBERRY)",
+      "homepage": "https://eqqualberry.co.kr",
+      "instagram": "eqqualberry_kr",
+      "status": "confirmed",
+      "source": "공식몰 eqqualberry.co.kr 검색 확인. current_ig eqqualberry_kr은 공식몰과 동일 브랜드로 confirmed"
+    },
+    {
+      "company": "오하브 (OHAVE)",
+      "homepage": "https://ohavecosmetic.co.kr",
+      "instagram": "ohave.official",
+      "status": "confirmed",
+      "source": "ohavecosmetic.co.kr 공식몰 + instagram.com/ohave.official 고기능 비건화장품 오하브 계정 검색 직접 확인"
+    },
+    {
+      "company": "알투엔스킨 (R2N SKIN)",
+      "homepage": "https://r2nskin.co.kr",
+      "instagram": "r2nskin_official",
+      "status": "confirmed",
+      "source": "r2nskin.co.kr 공식몰 확인. 검색결과에서 instagram.com/r2nskin_official 언급 확인"
+    },
+    {
+      "company": "셀레베 (SELEVE)",
+      "homepage": "https://seleve.co.kr",
+      "instagram": "seleve_official",
+      "status": "confirmed",
+      "source": "seleve.co.kr 공식몰 확인. instagram.com/seleve_official 검색결과에서 직접 확인"
+    },
+    {
+      "company": "YSE 코스메틱스 (YSE Cosmetics)",
+      "homepage": "https://ysecosmetics.com",
+      "instagram": "",
+      "status": "found",
+      "source": "ysecosmetics.com 공식몰(주식회사 브랜뉴랩, 청담 피부과 기반 브랜드) 확인. 인스타그램 공식 계정은 검색으로 특정 불가(미국 브랜드 YSE/YISE Beauty와 혼재)"
+    },
+    {
+      "company": "닥터에이디 (Doctor Aidee / Hairology)",
+      "homepage": "https://doctoraidee.com",
+      "instagram": "doctor_aidee_official",
+      "status": "confirmed",
+      "source": "doctoraidee.com 공식 사이트 확인, 인스타 @doctor_aidee_official 공식 계정 confirmed"
+    },
+    {
+      "company": "에브리톡톡 (Etok / EverytokTok)",
+      "homepage": "https://etok.co.kr",
+      "instagram": "everytoktok",
+      "status": "confirmed",
+      "source": "etok.co.kr 공식 쇼핑몰 확인, 인스타 @everytoktok 에브리데이 에브리톡톡 공식 한국 계정 confirmed"
+    },
+    {
+      "company": "씨퓨리 (SEAPURI)",
+      "homepage": "https://seapuri.co.kr",
+      "instagram": "seapuri__official",
+      "status": "confirmed",
+      "source": "seapuri.co.kr 공식몰 확인, 인스타 @seapuri__official current_ig 그대로 confirmed"
+    },
+    {
+      "company": "스노우투플러스 (SNOW2+)",
+      "homepage": "https://snow2plus.com",
+      "instagram": "snow2plus_official",
+      "status": "confirmed",
+      "source": "snow2plus.com 공식몰 확인, 인스타 @snow2plus_official confirmed"
+    },
+    {
+      "company": "푸코아 (PUKOA)",
+      "homepage": "https://pukoa-store.com",
+      "instagram": "pukoa.official",
+      "status": "confirmed",
+      "source": "pukoa-store.com 공식 스토어 확인(클린 이너뷰티), 인스타 current_ig 유지"
+    },
+    {
+      "company": "글로우밍글 (GLOWMINGLE)",
+      "homepage": "https://glowmingle.co.kr",
+      "instagram": "glowmingle_official",
+      "status": "confirmed",
+      "source": "glowmingle.co.kr 공식몰 확인, 인스타 @glowmingle_official confirmed"
+    },
+    {
+      "company": "젠실 (Zencil)",
+      "homepage": "https://zencil.kr",
+      "instagram": "zencil.official",
+      "status": "found",
+      "source": "zencil.kr 자사몰 확인, @zencil.official 인스타그램 신재은(Zenny) 공식 계정"
+    },
+    {
+      "company": "어반퓨어 (Urban Pure)",
+      "homepage": "https://urbanpure.co.kr",
+      "instagram": "urbanpure.beauty",
+      "status": "found",
+      "source": "urbanpure.co.kr BrandStory 페이지 확인, @urbanpure.beauty 인스타그램 검색 결과"
+    },
+    {
+      "company": "LOVB LOVB (럽럽 코스메틱)",
+      "homepage": "https://lovblovb.co.kr",
+      "instagram": "lovblovb_official",
+      "status": "confirmed",
+      "source": "lovblovb.co.kr 자사몰 확인, current_ig lovblovb_official 일치"
+    },
+    {
+      "company": "STIMMUNG (스티뭉)",
+      "homepage": "https://stimmung.co.kr",
+      "instagram": "stimmung_official",
+      "status": "found",
+      "source": "stimmung.co.kr 자사몰 확인(주식회사 쓰리엘레펀트), @stimmung_official 인스타그램 35K팔로워"
+    },
+    {
+      "company": "더모테라피 (Dermotherapie)",
+      "homepage": "http://www.dermotherapie.co.kr",
+      "instagram": "dermotherapie",
+      "status": "confirmed",
+      "source": "dermotherapie.co.kr 한국 공식 홈페이지 확인, current_ig dermotherapie 일치"
+    },
+    {
+      "company": "더메디닥터 (TheMediDr)",
+      "homepage": "https://themedidr.co.kr",
+      "instagram": "themedidr_official",
+      "status": "confirmed",
+      "source": "themedidr.co.kr 공식몰 확인(주식회사 바를참스킨), current_ig themedidr_official 일치"
+    },
+    {
+      "company": "젠실 (Zencil)",
+      "homepage": "https://zencil.kr",
+      "instagram": "zencil.official",
+      "status": "found",
+      "source": "zencil.kr 공식사이트 검색 확인. ig current_ig=zencil.official는 사이트 직접 링크 미확인이나 브랜드명 일치로 confirmed 수준"
+    },
+    {
+      "company": "어반퓨어 (Urban Pure)",
+      "homepage": "https://urbanpure.co.kr",
+      "instagram": "urbanpure.beauty",
+      "status": "found",
+      "source": "urbanpure.co.kr 브랜드스토리 페이지 및 instagram.com/urbanpure.beauty 검색 결과 확인"
+    },
+    {
+      "company": "LOVB LOVB (럽럽 코스메틱)",
+      "homepage": "https://lovblovb.co.kr",
+      "instagram": "lovblovb_official",
+      "status": "confirmed",
+      "source": "lovblovb.co.kr 공식몰 검색 확인. current_ig=lovblovb_official 브랜드명 일치 confirmed"
+    },
+    {
+      "company": "STIMMUNG (스티뭉)",
+      "homepage": "https://stimmung.co.kr",
+      "instagram": "stimmung_official",
+      "status": "found",
+      "source": "stimmung.co.kr 공식몰 및 instagram.com/stimmung_official 검색 확인(35K팔로워)"
+    },
+    {
+      "company": "더모테라피 (Dermotherapie)",
+      "homepage": "http://www.dermotherapie.co.kr",
+      "instagram": "dermotherapie",
+      "status": "confirmed",
+      "source": "dermotherapie.co.kr 한국 공식 홈페이지 및 instagram.com/dermotherapie 공식계정 검색 확인. current_ig=dermotherapie 일치"
+    },
+    {
+      "company": "더메디닥터 (TheMediDr)",
+      "homepage": "https://themedidr.co.kr",
+      "instagram": "themedidr_official",
+      "status": "confirmed",
+      "source": "themedidr.co.kr 공식몰 및 instagram.com/themedidr_official 검색 확인. current_ig=themedidr_official 일치"
+    },
+    {
+      "company": "이지 (EZY)",
+      "homepage": "",
+      "instagram": "",
+      "status": "uncertain",
+      "source": "current_ig ezy.coming 검색했으나 한국 화장품 브랜드로 특정 불가. 공식 홈페이지도 확인 불가."
+    },
+    {
+      "company": "호미어 (HOMIER)",
+      "homepage": "https://en.homure.shop",
+      "instagram": "homier_kr",
+      "status": "found",
+      "source": "공식 온라인 스토어 homure.shop 확인, 인스타 @homier_kr 확인 (instagram.com/homier_kr)"
+    },
+    {
+      "company": "메르넬 (MERNEL)",
+      "homepage": "https://mernel.kr",
+      "instagram": "mernel_official",
+      "status": "confirmed",
+      "source": "공식 홈페이지 mernel.kr 확인, 인스타 @mernel_official 확인 (instagram.com/mernel_official)"
+    },
+    {
+      "company": "에코비 (EcoBe)",
+      "homepage": "https://ecobecosmetics.com",
+      "instagram": "ecobe_official",
+      "status": "confirmed",
+      "source": "공식 홈페이지 ecobecosmetics.com 확인, 인스타 @ecobe_official 확인 (instagram.com/ecobe_official)"
+    },
+    {
+      "company": "보나벨라 (BONABELLA)",
+      "homepage": "http://bnbl.co.kr",
+      "instagram": "bonabella_official",
+      "status": "confirmed",
+      "source": "공식 홈페이지 bnbl.co.kr 확인 (제조사 jncos.co.kr), 인스타 @bonabella_official 확인"
+    },
+    {
+      "company": "영롱 (Younglong)",
+      "homepage": "https://younglong.net",
+      "instagram": "younglong.official",
+      "status": "confirmed",
+      "source": "공식 홈페이지 younglong.net 확인 (약사가 만든 브랜드), 인스타 @younglong.official 확인"
+    },
+    {
+      "company": "보나벨라 (BONABELLA)",
+      "homepage": "https://bnbl.co.kr",
+      "instagram": "bonabella_official",
+      "status": "confirmed",
+      "source": "bnbl.co.kr 자사몰 확인, bonabella.co 영문몰도 존재. 인스타 @bonabella_official 공식 계정 직접 확인(16K 팔로워)"
+    },
+    {
+      "company": "영롱 (Younglong)",
+      "homepage": "https://younglong.net",
+      "instagram": "younglong.official",
+      "status": "uncertain",
+      "source": "younglong.net 자사몰 확인(약사 브랜드). 인스타 @younglong.official(팔로워 1742)·@younglong_official('YOUNG LONG l 영롱' 표기) 두 계정 존재, 공식 사이트 SNS 링크로 단일 계정 확정 불가"
+    },
+    {
+      "company": "YNM (You Need Me)",
+      "homepage": "https://ynmcosmetic.co.kr",
+      "instagram": "ynmbeauty_official",
+      "status": "confirmed",
+      "source": "ynmcosmetic.co.kr 자사몰 확인(운영사 (주)디럭스뷰티). 인스타 @ynmbeauty_official 검색 결과에서 직접 확인"
+    },
+    {
+      "company": "놀라아워 (NOLAHOUR)",
+      "homepage": "https://nolahour.co.kr",
+      "instagram": "nolahour.official",
+      "status": "confirmed",
+      "source": "nolahour.co.kr 자사몰 확인(운영사 depack). 인스타 @nolahour.official 검색 결과에서 직접 확인"
+    },
+    {
+      "company": "닥터로사 (Dr.Rosa)",
+      "homepage": "http://www.dr-rosa.com",
+      "instagram": "drrosa.official",
+      "status": "confirmed",
+      "source": "dr-rosa.com 공식 홈페이지 확인. 인스타 @drrosa.official K-Medical Beauty 브랜드 계정 직접 확인(577 팔로워)"
+    },
+    {
+      "company": "BEAUSTA (뷰스타)",
+      "homepage": "https://beausta.com",
+      "instagram": "beausta_official",
+      "status": "confirmed",
+      "source": "beausta.com 자사몰 확인(고양시 일산서구 소재). 인스타 @beausta_official 검색 결과에서 공식 계정 확인"
+    },
+    {
+      "company": "루아센시아 (LUASSENCIA)",
+      "homepage": "https://luassencia.com",
+      "instagram": "luassencia",
+      "status": "found",
+      "source": "공식 홈페이지 luassencia.com 확인, 인스타 @luassencia 릴스 게시물로 확인"
+    },
+    {
+      "company": "례례 (Reirei)",
+      "homepage": "https://reiireii.com",
+      "instagram": "reiireii.official",
+      "status": "confirmed",
+      "source": "공식 홈페이지 reiireii.com 확인, current_ig reiireii.official 인스타 프로필 확인(박막례 코스메틱 브랜드)"
+    },
+    {
+      "company": "무무키 (MUMUKI)",
+      "homepage": "https://mumuki.kr",
+      "instagram": "mumuki_kr",
+      "status": "confirmed",
+      "source": "공식 홈페이지 mumuki.kr 확인, current_ig mumuki_kr 인스타 프로필 확인(임블리 협업 브랜드)"
+    },
+    {
+      "company": "그레이스데이 (GRACEDAY)",
+      "homepage": "http://www.gracedaymall.com",
+      "instagram": "graceday_k",
+      "status": "confirmed",
+      "source": "공식몰 gracedaymall.com 확인(자사몰), current_ig graceday_k 인스타 프로필 확인"
+    },
+    {
+      "company": "클레버스텝스 (Cleversteps)",
+      "homepage": "",
+      "instagram": "",
+      "status": "uncertain",
+      "source": "2026년 4월 시드투자 기사만 확인, 자사 공식 홈페이지·인스타 채널 미확인(론칭 초기 추정)"
+    },
+    {
+      "company": "소묘 (SOMYO)",
+      "homepage": "",
+      "instagram": "",
+      "status": "uncertain",
+      "source": "4회 검색 결과 일치 브랜드 없음, 동명 타 콘텐츠/브랜드만 노출"
+    },
+    {
+      "company": "클로아 (CLOA)",
+      "homepage": "https://cloa.co.kr",
+      "instagram": "",
+      "status": "found",
+      "source": "cloa.co.kr 공식 쇼핑몰 검색 확인. 인스타그램 공식 계정 검색 미확인."
+    },
+    {
+      "company": "초민감 (Chomingam)",
+      "homepage": "https://www.chomingam.com",
+      "instagram": "",
+      "status": "found",
+      "source": "chomingam.com 브랜드스토리 페이지 확인. 인스타그램 공식 계정 검색 미확인."
+    },
+    {
+      "company": "더퍼블리셔 (The Publisher)",
+      "homepage": "https://thepublisher.co.kr",
+      "instagram": "thepublisher_official",
+      "status": "found",
+      "source": "thepublisher.co.kr 공식 홈페이지 및 instagram.com/thepublisher_official 검색 확인."
+    },
+    {
+      "company": "엘로엘 (ELROEL)",
+      "homepage": "https://elroel.com",
+      "instagram": "elroelcosmetic",
+      "status": "confirmed",
+      "source": "elroel.com 공식쇼핑몰 검색 확인. current_ig elroelcosmetic 동일 브랜드 confirmed."
+    },
+    {
+      "company": "리써 (RESEAR)",
+      "homepage": "https://resear.co.kr",
+      "instagram": "resear_official",
+      "status": "confirmed",
+      "source": "resear.co.kr 공식몰 및 instagram.com/resear_official 검색 확인. current_ig confirmed."
+    },
+    {
+      "company": "씽크바이오 (Think Bio)",
+      "homepage": "https://thinkbio.co.kr",
+      "instagram": "thinkbio_official",
+      "status": "found",
+      "source": "thinkbio.co.kr 공식쇼핑몰 확인. instagram.com/thinkbio_official 검색 확인."
+    },
+    {
+      "company": "엘로엘 (ELROEL)",
+      "homepage": "https://elroel.com",
+      "instagram": "elroelcosmetic",
+      "status": "confirmed",
+      "source": "elroel.com 공식쇼핑몰 + instagram.com/elroelcosmetic 공식 확인"
+    },
+    {
+      "company": "리써 (RESEAR)",
+      "homepage": "https://resear.co.kr",
+      "instagram": "resear_official",
+      "status": "confirmed",
+      "source": "resear.co.kr 공식몰 + 기존 current_ig confirmed"
+    },
+    {
+      "company": "씽크바이오 (Think Bio)",
+      "homepage": "https://thinkbio.co.kr",
+      "instagram": "",
+      "status": "uncertain",
+      "source": "thinkbio.co.kr 공식몰 확인 / 인스타 공식계정은 웹검색으로 명확히 확인 불가"
+    },
+    {
+      "company": "라바섬 (LAVASOME)",
+      "homepage": "https://lavasome.co.kr",
+      "instagram": "lavasome_official",
+      "status": "confirmed",
+      "source": "lavasome.co.kr 공식몰 + 기존 current_ig confirmed"
+    },
+    {
+      "company": "데일리시 (Dailish)",
+      "homepage": "https://dailish.co.kr",
+      "instagram": "dailish_cosmetic",
+      "status": "confirmed",
+      "source": "dailish.co.kr 공식몰 + 기존 current_ig confirmed"
+    },
+    {
+      "company": "우무솝 (Umoo Soap)",
+      "homepage": "https://www.umusoap.com",
+      "instagram": "umusoap",
+      "status": "confirmed",
+      "source": "umusoap.com 자사몰 + instagram.com/umusoap 검색 결과 확인"
+    },
+    {
+      "company": "데일리시 (Dailish)",
+      "homepage": "https://dailish.co.kr",
+      "instagram": "dailish_cosmetic",
+      "status": "confirmed",
+      "source": "자사몰 dailish.co.kr 확인; IG @dailish_cosmetic current_ig 그대로 확인"
+    },
+    {
+      "company": "우무솝 (Umoo Soap)",
+      "homepage": "https://www.umusoap.com",
+      "instagram": "umusoap",
+      "status": "confirmed",
+      "source": "자사몰 umusoap.com 확인; IG @umusoap current_ig 그대로 확인"
+    },
+    {
+      "company": "세이니드 (SAYNID)",
+      "homepage": "https://saynid.kr",
+      "instagram": "saynid_official",
+      "status": "confirmed",
+      "source": "국내몰 saynid.kr 확인(글로벌 saynid.com 병존); IG @saynid_official current_ig 그대로 확인"
+    },
+    {
+      "company": "비티티알 (bttr)",
+      "homepage": "https://bttr.co.kr",
+      "instagram": "bttr.kr",
+      "status": "confirmed",
+      "source": "자사몰 bttr.co.kr 확인; IG @bttr.kr current_ig 그대로 확인"
+    },
+    {
+      "company": "에이더블유이 (AWE)",
+      "homepage": "https://awe-beauty.us",
+      "instagram": "awe_beauty.official",
+      "status": "confirmed",
+      "source": "글로벌몰 awe-beauty.us 확인(한국 자사 도메인 미확인); IG @awe_beauty.official current_ig 그대로 확인"
+    },
+    {
+      "company": "바이어 (ByUR)",
+      "homepage": "https://byur.com",
+      "instagram": "byur.official",
+      "status": "confirmed",
+      "source": "자사몰 byur.com 확인(byur.us 글로벌 병존); IG @byur.official current_ig 그대로 확인"
+    },
+    {
+      "company": "무무키 (MUMUKI)",
+      "homepage": "https://mumuki.kr",
+      "instagram": "mumuki_kr",
+      "status": "confirmed",
+      "source": "mumuki.kr 공식 사이트 직접 확인, 인스타 @mumuki_kr 일치"
+    },
+    {
+      "company": "그레이스데이 (GRACEDAY)",
+      "homepage": "http://www.gracedaymall.com",
+      "instagram": "graceday_k",
+      "status": "confirmed",
+      "source": "gracedaymall.com 검색 상위 노출, 인스타 @graceday_k Instagram 공식 확인; graceday.com은 bizno 등록 도메인이나 직접 접속 불확실하여 gracedaymall 기입"
+    },
+    {
+      "company": "클레버스텝스 (Cleversteps)",
+      "homepage": "",
+      "instagram": "",
+      "status": "uncertain",
+      "source": "2026년 8월 시장 진출 예정 브랜드, 공식 홈·인스타 아직 공개 미확인"
+    },
+    {
+      "company": "소묘 (SOMYO)",
+      "homepage": "",
+      "instagram": "",
+      "status": "uncertain",
+      "source": "검색 결과에서 해당 뷰티 브랜드 공식 채널 확인 불가"
+    },
+    {
+      "company": "볼라보 (Bollabo)",
+      "homepage": "https://lacbon.com/bollabo",
+      "instagram": "bollabo_korea",
+      "status": "confirmed",
+      "source": "lacbon.com이 볼라보+라끄본 공식 통합몰, 볼라보 페이지 직접 확인"
+    }
+  ]
+}

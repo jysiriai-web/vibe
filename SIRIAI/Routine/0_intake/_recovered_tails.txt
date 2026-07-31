@@ -1,0 +1,225 @@
+
+============================================================
+[wf_928938cf-d72] agent-a3a2388a9b234e832.jsonl · 검색 47회
+------------------------------------------------------------
+I'll search for new Korean indie body scrub/bath/body care brands that meet the ICP criteria.
+You've hit your session limit · resets 6:50pm (Asia/Seoul)
+
+============================================================
+[wf_928938cf-d72] agent-a47763c0c26d2dca3.jsonl · 검색 46회
+------------------------------------------------------------
+Run the "deep-research" workflow.
+
+Deep research harness — fan-out web searches, fetch sources, adversarially verify claims, synthesize a cited report.
+
+When the user wants a deep, multi-source, fact-checked research report on any topic. BEFORE invoking, check if the question is specific enough to research directly — if underspecified (e.g., "what car to buy" without budget/use-case/region), ask 2-3 clarifying questions to narrow scope. Then pass the refined question as args, weaving the answers in.
+
+Phases:
+- Scope: Decompose question (from args) into 5 search angles
+- Search: 5 parallel WebSearch agents, one per angle
+- Fetch: URL-dedup, fetch top 15 sources, extract falsifiable claims
+- Verify: 3-vote adversarial verification per claim (need 2/3 refutes to kill)
+- Synthesize: Merge semantic dupes, rank by confidence, cite sources
+
+Invoke: Workflow({ name: "deep-research", args: "스파·에스테틱·피부관리실 출신 홈케어 신생 한국 뷰티 브랜드 찾기. 2022년 이후 런칭한 인디 브랜드로, 에스테틱/피부관리실/스파 전문가가 창업했거나 그 노하우를 홈케어 제품으로 출시한 B2C 완제품 스킨케어 브랜드. 인스타그램으로 소비자에게 직접 판매. 대기업 아님. 실재하는 브랜드만 확인. 다음 브랜드는 이미 확보됐으니 제외: 백아율, 탐뷰티, 모이컬러, 락컬러, 언리시아, 비가노, 헤일앤데일, 비건제이, 씨들렛, 이너프프로젝트, 비햅, 닥터에이지, 그렛테, 닥터그라프트, 그루밍랩, 에티에르, 바닐라부티크, 라이프넷, 풀림, 제주닮, 더마전시, 히디프, 더여백26, 바이셀렉티드, 순시키, 스킨웨이비, 니프니프, 마이베나, 수퍼에그, 디마프 레지나, 바이블리, 레스트앤레크레이션 뷰티, 시솔로지, 옛새, 리튼온워터, 니치크, 시낭. 찾아야 할 후보: 에스테틱/피부관리실 전문가 창업 홈케어 스킨케어 브랜드 6~10개. 각 브랜드의 인스타그램 핸들, 런칭연도, ICP 부합 근거(왜 에스테틱 출신인지, 출처) 포함." })
+Now I'll run 5 parallel searches across different angles to find spa/esthetic-origin homecare brands in Korea.
+The initial broad searches didn't surface specific brand names. Let me run more targeted searches.
+Let me search with more specific brand-level queries and check specific niche terms.
+Let me try more specific targeted searches for individual brands in this niche.
+You've hit your session limit · resets 6:50pm (Asia/Seoul)
+
+============================================================
+[wf_928938cf-d72] agent-a6854dfead2864491.jsonl · 검색 44회
+------------------------------------------------------------
+I'll search for Korean indie lip-specialist brands that aren't on your exclusion list.
+You've hit your session limit · resets 6:50pm (Asia/Seoul)
+
+============================================================
+[wf_928938cf-d72] agent-a6a6d5bbb8c746f7f.jsonl · 검색 70회
+------------------------------------------------------------
+search more specifically for lesser-known niche Korean suncare brands.
+I found UVX as a promising lead. Let me now investigate specific lesser-known brands in depth.
+Good - TOCOBO (2018), Numbuzin (2019), Purito (2017) are all pre-2022. Let me search for truly newer suncare-focused indie brands.
+Good. UVX confirmed with Instagram @uvx_suncare. Let me now search for more specific niche brands.
+Let me now check on Suntique and look for more specific niche brands.
+Good findings. I found iRecipe (아이레시피) and Suntique. Let me now do targeted searches on these and a few more potential brands.
+Good progress. Suntique confirmed as 2016 (not too new but suncare-only specialist). Let me now look for a few more truly new brands.
+I now have enough information to compile findings. Let me do a couple more verification searches on specific brands and then synthesize.
+Now I have enough data. Let me compile the final list. Based on all my research, here are the verified Korean indie suncare brands that fit the ICP and are not on the exclusion list:
+
+1. **UVX** - 선케어 전문 브랜드, Instagram @uvx_suncare, 무신사 입점, 선크림/선세럼/선스틱 전문
+2. **선티크 (SUNTIQUE)** - 선케어 전문 브랜드 (설립 2016, 노멀리스트), Instagram @suntique_official, 세포라 입점
+3. **아이레시피 (irecipe)** - 선진뷰티사이언스 클린뷰티 브랜드 (2021 런칭), Instagram @irecipe_official, 2024 올리브영 입점
+4. **프롬리에 (FROMRIER)** - 배리어프리 코스메틱, 선앰플 특화, Instagram @fromrier.official
+5. **믹순 (mixsoon)** - 2020 런칭, 선크림/선세럼, Instagram @mixsoon_official
+6. **체이싱래빗 (Chasin' Rabbits)** - 2020 런칭, 비건 선케어, Instagram @chasinrabbits.official
+
+However, I need to verify a few more brands and cross-check whether some of these primarily focus on suncare. Let me also check on a couple more.
+Good. Now I have enough to compile the final list. Let me synthesize the findings:
+
+**Confirmed candidates (suncare focus + ICP fit):**
+
+1. **UVX** - 선케어 전문 브랜드, @uvx_suncare, 독립 선케어 전문 브랜드, 무신사 입점
+2. **선티크 SUNTIQUE** - 선케어 전문 브랜드 (설립 2016, 노멀리스트), @suntique_official, 세포라 입점, 선케어 올인원 전문
+3. **아이레시피 irecipe** - 2021 런칭 클린뷰티, @irecipe_official, 2024 올리브영 입점, 선케어 라인 특화
+4. **프롬리에 FROMRIER** - 배리어프리 코스메틱, 선앰플 특화, @fromrier.official
+5. **믹순 mixsoon** - 2020 런칭, 선세럼/선크림 포함, @mixsoon_official
+6. **체이싱래빗 Chasin' Rabbits** - 2020 런칭 비건, 선케어 라인 포함, @chasinrabbits.official
+
+However, mixsoon (2020) and chasin' rabbits (2020) are general skincare brands with suncare. Suntique (2016) is suncare-only but slightly older. Let me verify a couple more potential candidates.
+You've hit your session limit · resets 6:50pm (Asia/Seoul)
+
+============================================================
+[wf_928938cf-d72] agent-ae272a9043930685b.jsonl · 검색 41회
+------------------------------------------------------------
+I'll search for new Korean men's skincare/grooming indie brands (post-2022) that aren't in the existing list.
+You've hit your session limit · resets 6:50pm (Asia/Seoul)
+
+============================================================
+[wf_928938cf-d72] agent-aefa25469ab07531f.jsonl · 검색 55회
+------------------------------------------------------------
+r) Korean baby/kids/family gentle low-irritation beauty brands that sell finished consumer products (skincare, bodycare, haircare) directly to consumers via Instagram. These should be indie/niche brands (not major conglomerates). I need real, verifiable brands with confirmed Instagram handles. Search for: 키즈 베이비 순한 저자극 뷰티 브랜드 신생 인디 한국, baby skincare Korea indie brand Instagram 2022 2023 2024, 키즈 스킨케어 인스타그램 브랜드, 베이비 바디워시 순한성분 신생브랜드, 온가족 저자극 스킨케어 한국 브랜드. Find 10-15 candidates that are NOT in this exclusion list: 백아율, 탐뷰티, 모이컬러, 언리시아, 비가노, 헤일앤데일, 비건제이, 씨들렛, 이너프프로젝트, 비햅, 닥터에이지, 그렛테, 순시키, 마이베나, 수퍼에그, 바이블리, 시솔로지, 옛새, 리튼온워터, 데저트프리, 아꼬제, 케이부스터, 포레더름, 더마바이오텍, 비오르, 더마리서치, 더라포, 더마셀럽, 나흐, 큐비스킨랩, 벨라씨앤씨, 키미하우스, 올리비아엄마, 탈리다쿰, 리브엠. For each brand provide: brand name (Korean + English if available), Instagram handle (confirmed), product category, and a one-line source/rationale for why it fits ICP." })
+Now I'll run 5 parallel searches across different angles.
+Let me run more targeted searches to find specific niche indie baby/kids brands.
+Good leads. I see "쏭레브 키즈" and a "premium vegan kids skincare" mention. Let me fetch those Instagram posts and search more specifically.
+Good finds: Sonreve (쏭레브) and BONNILY (보닐리). Let me verify these and find more candidates.
+밀크바오밥은 2015년 설립으로 제외 기준(신생)에 해당. 이제 라오가닉 통신판매업 2022 확인. 추가로 더 찾아보겠다.
+아토오겔은 2018년 설립으로 "신생" 기준에는 약간 벗어나나 포함 가능성 있음. 추가 후보 발굴을 위해 더 특화된 검색을 시도하겠다.
+이제 충분한 데이터가 모였다. 정리해보겠다.
+
+확인된 브랜드 목록:
+- **쏭레브 (Sonreve)**: @sonreve_official — 키즈 스킨케어, 가족용, (주)아벤트코리아 2021년 통신판매업 등록, 키즈라인 보유
+- **봉봉프렌즈 (Bongbong Friends)**: @bongbongfriends_official — Clean&Vegan 키즈뷰티, younglab 운영
+- **리숨 (Lisum)**: @lisum_official — 베이비&여성 스킨케어, 센텔라 성분, EWG그린, KSM World 2021년 등록
+- **아토오겔 (Atoogel)**: @atoogel_official — 프리미엄 유아 스킨케어, 2018년 설립 (신생 기준에 약간 벗어남)
+- **네츄레메디 (Naturemedy)**: @naturemedy_official — 유아 스킨케어, 2017년 등록 (제외 가능)
+- **포멀비 키즈 (Formal Bee Kids)**: @formalbee_kids — 키즈 전용 스킨케어, 마리앤메이 관련사
+- **아토앤오투 (Atono2)**: @atono2 — 영유아 스킨케어, 라오가닉 2022년 통신판매업 등록
+- **타가 (Taga)**: @taga.on — 클린&비건 영유아 스킨케어, 2019년 설립
+- **베네베네 (BeneBene)**: @benebene_official — 영유아 스킨케어 (BonBou 라인), 키즈 의류도 있음
+- **BONNILY/보닐리**: @marrischild — 프리미엄 비건 키즈 스킨케어
+
+신생(2022년 이후) 기준 엄격 적용 시: 아토오겔(2018), 타가(2019), 네츄레메디(2017), 줄리아루피(2019), 봉봉프렌즈(창업시기 불명) 등은 기준에 걸릴 수 있음. 그러나 통신판매업 등록 기준으로 2021-2022년 이후인 브랜드들은 신생으로 볼 수 있다. 또한 포멀비키즈, 쏭레브 키즈, 아토앤오투는 2021-2022년 이후에 실질적인 DTC 온라인 영업 시작.
+
+6~10개를 추리겠다. 가장 ICP에 부합하고 인스타 확인된 브랜드들로 선별.
+You've hit your session limit · resets 6:50pm (Asia/Seoul)
+
+============================================================
+[wf_bcdc87d7-7f5] agent-a0a65f51b58db966c.jsonl · 검색 21회
+------------------------------------------------------------
+I'll search for new Korean indie eye makeup / brow specialist brands that aren't on the exclusion list.
+[Request interrupted by user for tool use]
+
+============================================================
+[wf_bcdc87d7-7f5] agent-a1aaa316034006cd2.jsonl · 검색 62회
+------------------------------------------------------------
++선케어 특화)
+3. **선티크 (SUNTIQUE)** - 2016년 선케어 전문 브랜드, @suntique_official ✓ (2022 이후는 아니지만 선케어 전문 인디)
+4. **써니콘 (SUNNICORN)** - 연도 불명확, 비건 선케어, @sunnicorn_official ✓
+
+더 많은 후보를 찾아야 한다.
+프레비츠(FREBITS)는 제외 목록에 이미 있다. 이제 충분한 데이터를 가지고 있다. 최종 후보들을 정리한다.
+
+**최종 검증된 후보 목록:**
+
+1. **UVX** - 2023년 런칭, 선케어 전문 브랜드, @uvx_suncare - 확인됨
+2. **오브제 (OBgE)** - 2020년 12월 런칭, 남성 선스틱 특화, @obge_official - 확인됨 (선케어 전문화, 선스틱 120만개 판매)
+3. **선티크 (SUNTIQUE)** - 2016년 런칭이라 2022년 이후 기준에서 벗어남, 그러나 선케어 전문 인디. ICP 기준 "신생/인디 우선(대략 2022년 이후 런칭)" - 엄격히 적용하면 제외 가능. 하지만 소규모 독립 선케어 브랜드로 포함 가능
+4. **써니콘 (SUNNICORN)** - 연도 불명확, 비건 선케어+스킨케어, @sunnicorn_official
+
+선티크(2016)와 오브제(2020), 써니콘은 "2022년 이후" 기준에 맞지 않을 수 있다. 단, 오브제와 써니콘은 최근 선케어 제품을 강화했고 인디 브랜드로서 실제로 인플루언서 마케팅 수요가 있는 곳들이다. UVX는 2023년으로 가장 적합.
+
+후보가 부족하다. 더 찾아야 한다.
+이제 데이터를 정리하겠다. 현재까지 확보된 검증 가능한 후보들:
+
+1. **UVX** - 2023년 런칭, 선케어 전문, @uvx_suncare (확인됨)
+2. **오브제 OBgE** - 2020년 12월 런칭, 남성 선스틱 전문, @obge_official (확인됨, 포어제로 선스틱 120만개 판매)
+3. **선티크 SUNTIQUE** - 2016년 런칭, 선케어 전문, @suntique_official (확인됨, 단 런칭연도 오래됨)
+4. **써니콘 SUNNICORN** - 연도 불명, 비건 선케어+스킨케어, @sunnicorn_official (확인됨)
+
+2022년 이후 기준으로 볼 때, 오브제(2020)와 선티크(2016)는 기간이 맞지 않지만, "대략 2022년 이후"라는 권고사항을 유연하게 적용할 수 있다. 특히 오브제는 2022년 이후 선케어에 집중하며 급성장했고, 선티크는 선케어 전문 브랜드로 소규모 인디 특성을 유지하고 있다.
+
+더 후보를 추가로 찾아야 6개를 채울 수 있다.
+비레디는 아모레퍼시픽 계열 - 제외. 이제 현재 데이터를 바탕으로 결과를 도출한다. 써니콘의 연도를 한 번 더 확인하고, OBgE의 선케어 전문성을 재확인하겠다.
+오브제의 "포어 제로 오일 컨트롤 선스틱" 출시는 2025년 4월. 그러나 오브제 브랜드는 2020년 12월에 런칭됐고 선스틱 라인은 더 일찍부터 있었다. 브랜드 자체는 2020년 이지만 인디 소규모 브랜드로 인플루언서 마케팅이 활발한 곳이다.
+
+이제 지금까지 확인된 후보들 중에서 ICP 기준에 가장 잘 맞는 6~8개를 선정하겠다.
+
+**후보 검증 정리:**
+
+| 브랜드 | 런칭 | 인스타 | 특징 | ICP 적합성 |
+|---|---|---|---|---|
+| UVX | 2023 | @uvx_suncare | 선케어 전문, 선스틱/세럼/파우더 | ★★★★★ |
+| OBgE (오브제) | 2020.12 | @obge_official | 남성 선스틱 전문, 올리브영 1위 | ★★★★ |
+| SUNTIQUE (선티크) | 2016 | @suntique_official | 국내 최초 선케어 전문, 맞춤형 | ★★★ |
+| SUNNICORN (써니콘) | 불명(~2022?) | @sunnicorn_official | 비건 선케어+스킨케어 | ★★★ |
+
+6개를 채우려면 더 필요하다.
+이제 현재까지 확보된 4개 후보를 정리하고, 2개를 더 찾기 위해 마지막 검색을 진행하겠다.
+이커머스허가 "제 2025-별내-1804 호"는 2025년에 갱신하거나 재등록한 것일 수 있어 창업연도와 다를 수 있다. 써니콘의 창업 연도를 정확히 알기 어렵다. 이 이커머스 허가 번호로 정확한 최초 등록 연도를 알 수 없다.
+
+이제 부족한 후보를 위해 한 번 더 넓은 검색을 하겠다.
+UVX의 인스타그램은 팔로워가 170명 정도로 매우 작은 브랜드임이 확인됐다. 선케어 전문, 2023년 론칭으로 완전히 ICP에 부합한다.
+
+이제 6~8개 후보를 확보하기 위해, 현재까지 확인된 것들 중에서 제외 목록에 없는 것을 선별하겠다. 제외 목록에는 "데저트프리"가 있어 확인.
+
+지금까지 확보된 후보 (제외 목록 비교):
+1. **UVX** - 제외 목록 없음 ✓
+2. **오브제 OBgE** - 제외 목록 없음 ✓ 
+3. **선티크 SUNTIQUE** - 제외 목록 없음 ✓
+4. **써니콘 SUNNICORN** - 제외 목록 없음 ✓
+5. 더 필요
+[Request interrupted by user for tool use]
+
+============================================================
+[wf_bcdc87d7-7f5] agent-a56d47f8243085666.jsonl · 검색 65회
+------------------------------------------------------------
+I'll search for new Korean indie body scrub/bath/body care brands that aren't on the exclusion list.
+트리클문은 영국 브랜드여서 ICP 기준(한국 브랜드 또는 한국 진출)엔 맞지만 한국 인디 브랜드 포커스에는 약합니다. 더 탐색하겠습니다.
+솔테라피는 2017년 설립이라 ICP 기준(2022년 이후 신생/인디 우선)에서는 약합니다. 하지만 한국 인디 브랜드이고 바디스크럽 전문이라 포함 여부를 검토합니다. 콤마나인도 살펴보겠습니다.
+아르투아(ARTOIS)는 2020년 설립으로 신생 브랜드이고, 바디로션/바디오일/퍼퓸 위주라 바디케어 전문입니다. 이제 더 많은 브랜드를 탐색해보겠습니다.
+아비브는 2016년 설립이므로 신생 기준에 맞지 않습니다. 좀 더 구체적인 새 브랜드를 탐색하겠습니다.
+솔테라피는 2017년 설립, 2021년 올리브영 입점이므로 신생(2022년 이후) 기준엔 맞지 않습니다. ICP 기준의 "신생/인디 우선"이 대략 2022년 이후이지만 완전 배제는 아니니 후보 유지. 배쓰프로젝트도 보겠습니다.
+라운드어라운드는 올리브영 자체 브랜드(2015년 론칭)이므로 대기업 계열 제외 기준에 해당합니다. 배쓰프로젝트는 2016~2017년 설립으로 신생 기준(2022년 이후)에 맞지 않습니다. 다른 방향으로 탐색해보겠습니다.
+꼼에스테틱은 에스테틱 샵(피부관리실)이지 바디케어 완제품 인디 브랜드가 아닙니다. 에이비팜은 통신판매업 번호 2013년으로 오래된 브랜드. 이제 다른 방향으로 더 구체적으로 검색해보겠습니다.
+[Request interrupted by user]
+
+============================================================
+[wf_bcdc87d7-7f5] agent-aac0ec249ab2edec9.jsonl · 검색 57회
+------------------------------------------------------------
+I'll search for Korean beauty brands that originated from spa/esthetic/skin care clinic backgrounds as home care brands.
+[Request interrupted by user for tool use]
+
+============================================================
+[wf_bcdc87d7-7f5] agent-ae9868c0128a20521.jsonl · 검색 25회
+------------------------------------------------------------
+Run the "deep-research" workflow.
+
+Deep research harness — fan-out web searches, fetch sources, adversarially verify claims, synthesize a cited report.
+
+When the user wants a deep, multi-source, fact-checked research report on any topic. BEFORE invoking, check if the question is specific enough to research directly — if underspecified (e.g., "what car to buy" without budget/use-case/region), ask 2-3 clarifying questions to narrow scope. Then pass the refined question as args, weaving the answers in.
+
+Phases:
+- Scope: Decompose question (from args) into 5 search angles
+- Search: 5 parallel WebSearch agents, one per angle
+- Fetch: URL-dedup, fetch top 15 sources, extract falsifiable claims
+- Verify: 3-vote adversarial verification per claim (need 2/3 refutes to kill)
+- Synthesize: Merge semantic dupes, rank by confidence, cite sources
+
+Invoke: Workflow({ name: "deep-research", args: "발효·한방·제주/지역원료 자연주의 신생 인디 한국 뷰티 브랜드 2023년 이후 런칭. 소비자 대상 완제품 뷰티(스킨케어·색조·헤어·바디·향수·이너뷰티). 인스타그램으로 소비자에 직접 판매. 인플루언서 마케팅 수요 있는 곳. 대기업 제외, 신생 인디 우선. 다음 브랜드들은 이미 확보됐으니 제외: 백아율, 탐뷰티, 제주닮, 제주온, 산다화, 도화가인(House of Dohwa), 동구밭, 보나쥬르, 마리엔메이, 일소, 아렌시아, 바이오던스, 오하브. 찾아야 할 후보: 발효 성분 활용 스킨케어 브랜드, 한방(한약재) 성분 스킨케어 브랜드, 제주도/강원도/전남 등 지역 원료 활용 뷰티 브랜드, 자연주의/클린뷰티 신생 인디 브랜드 (2023년 이후 런칭). 각 브랜드의 인스타그램 계정 핸들도 찾아라. 실재하는 브랜드만, 웹검색으로 확인된 것만 포함." })
+Now I'll run 5 parallel searches across different angles to find the target brands.
+일반 검색이 넓어서 더 구체적인 브랜드명 발굴을 위해 심층 검색을 진행합니다.
+더 구체적인 신생 브랜드를 찾기 위해 특정 플랫폼과 키워드를 활용한 심층 검색을 진행합니다.
+유망 브랜드들이 나왔습니다. 이제 구체적인 브랜드들의 인스타그램 계정과 실존 여부를 검증합니다.
+얼루어코리아 기사에 2025년 신생 브랜드 리스트가 있어 보입니다. 해당 페이지를 가져오고 동시에 더 구체적인 브랜드 검색을 진행합니다.
+더퓨어로터스는 2019년 런칭으로 기준(2023년 이후)에 미달합니다. 데일리시도 2018년 이전 설립입니다. 탐라레도 2011년 설립이라 제외. 더 구체적으로 2023년 이후 신생 브랜드를 찾겠습니다.
+영어 검색에서 "Arraune", "Vinoir" 등이 나왔습니다. 이제 이 브랜드들과 함께 추가 한국어 검색으로 구체적인 신생 브랜드를 발굴합니다.
+[Request interrupted by user for tool use]
+
+============================================================
+[wf_bcdc87d7-7f5] agent-afaf9f23123308c81.jsonl · 검색 56회
+------------------------------------------------------------
+I'll search for new Korean men's skincare/grooming indie brand candidates from 2022 onwards.
+지금까지 찾은 것들을 정리하겠습니다. 비레디는 아모레퍼시픽 계열(대기업)이라 제외 대상이고, 오브제는 2020년 론칭이라 2022년 이전입니다. 플리프도 2020년 이전입니다. 두잉왓(2023)은 확인됐습니다. 좀 더 구체적인 신생 인디 브랜드를 찾아보겠습니다.
+지금까지의 검색을 통해 확인된 브랜드들을 정리하고, 몇 개를 더 확인해보겠습니다.
+[Request interrupted by user for tool use]

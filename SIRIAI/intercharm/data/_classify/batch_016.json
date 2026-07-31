@@ -1,0 +1,66 @@
+[
+  {
+    "code": "STA3004",
+    "cat": "스킨케어",
+    "intro": "판도라·구찌 등 럭셔리 수입유통사, AIPPO 등 화장품 브랜드 전개",
+    "verdict": "타겟",
+    "basis": "홈피 COSMETICS 카테고리 운영",
+    "homepage": "http://www.starluxe.co.kr"
+  },
+  {
+    "code": "STB5119",
+    "cat": "기타",
+    "intro": "25년 경력 화장품 OEM·ODM 제조사, 메이크업·스킨케어 개발",
+    "verdict": "제외",
+    "basis": "홈피=OEM·ODM 수탁, 자체브랜드 없음",
+    "homepage": ""
+  },
+  {
+    "code": "STU4481",
+    "cat": "기타",
+    "intro": "디자인 가구·홈데코 오브제 브랜드, 에이앤디글로벌 운영",
+    "verdict": "제외",
+    "basis": "홈피 전 품목 가구·홈데코, 비뷰티",
+    "homepage": ""
+  },
+  {
+    "code": "SYS6060",
+    "cat": "헤어바디",
+    "intro": "1989년 설립 미용실 헤어제품 총판, 자체 S4U 브랜드 운영",
+    "verdict": "타겟",
+    "basis": "자사몰 S4U 자체브랜드 판매 확인",
+    "homepage": ""
+  },
+  {
+    "code": "TAP3690",
+    "cat": "기타",
+    "intro": "중국 광둥 소재 화장품 펌프·용기 제조사, P&G·유니레버 납품",
+    "verdict": "제외",
+    "basis": "펌프·보틀 등 화장품 부자재 제조",
+    "homepage": ""
+  },
+  {
+    "code": "THE5708",
+    "cat": "색조",
+    "intro": "블리스텍스 한국 공식 수입사, 자체 색조 브랜드 Studio17 전개",
+    "verdict": "타겟",
+    "basis": "자체브랜드 Studio17 보유",
+    "homepage": "https://thebkor.kr"
+  },
+  {
+    "code": "THE3473",
+    "cat": "스킨케어",
+    "intro": "엠알이노베이션의 코스메슈티컬 브랜드, 앰플·크림 등 스킨케어",
+    "verdict": "타겟",
+    "basis": "자사몰서 앰플·크림 직접 판매",
+    "homepage": ""
+  },
+  {
+    "code": "TOL4048",
+    "cat": "기타",
+    "intro": "몰타 본사 글로벌 화장품 패키징 제조사, 한국법인 톨리코리아",
+    "verdict": "제외",
+    "basis": "홈피 자체가 패키징 제조 B2B",
+    "homepage": ""
+  }
+]

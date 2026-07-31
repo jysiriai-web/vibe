@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SIRIAI · 내용 확보 시트</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#f3eee2;--surface:#fff;--ink:#211a33;--ink-2:rgba(33,26,51,.66);--ink-3:rgba(33,26,51,.46);--line:rgba(33,26,51,.12);
+    --lav:#cabce8;--lav-soft:#e9e3f3;--green:#7fae7f;--green-soft:#e4efe2;--red:#c9787f;--red-soft:#f6ecec;--amber:#c79a3f;
+    --f-en:'Helvetica Neue','Helvetica','Arimo','Pretendard',Arial,sans-serif;--f-kr:'Pretendard',sans-serif;--f-sans:'Helvetica Neue','Helvetica','Arimo','Pretendard',sans-serif;--f-mono:'JetBrains Mono',ui-monospace,monospace;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--f-sans);background:var(--bg);color:var(--ink);line-height:1.6;letter-spacing:-.01em;padding:38px clamp(16px,5vw,52px);max-width:820px;margin:0 auto;}
+  .top{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);}
+  h1{font-size:clamp(26px,3.2vw,36px);font-weight:700;letter-spacing:-.022em;margin:5px 0 8px;}
+  .lead{font-family:var(--f-kr);color:var(--ink-2);font-size:14.5px;margin-bottom:20px;word-break:keep-all;}
+  .lead b{color:var(--ink);}
+  .summary{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:6px;}
+  .sumcard{flex:1;min-width:190px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px 18px;}
+  .sumcard .big{font-family:var(--f-en);font-weight:700;font-size:30px;letter-spacing:-.02em;line-height:1;}
+  .sumcard.have .big{color:var(--green);} .sumcard.todo .big{color:var(--red);}
+  .sumcard .lbl{font-family:var(--f-kr);font-size:13px;color:var(--ink-2);margin-top:4px;}
+  .bar{height:8px;border-radius:100px;background:var(--green-soft);overflow:hidden;margin:14px 0 28px;}
+  .bar i{display:block;height:100%;background:var(--green);width:0;transition:.3s;}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:19px 22px;margin-bottom:13px;border-left:4px solid var(--red);}
+  .card.answered{border-left-color:var(--green);}
+  .card .ph{display:flex;align-items:center;gap:9px;margin-bottom:9px;}
+  .card .pno{font-family:var(--f-mono);font-weight:700;font-size:11.5px;color:#fff;background:var(--red);border-radius:100px;padding:3px 10px;}
+  .card.answered .pno{background:var(--green);}
+  .card .psec{font-family:var(--f-kr);font-size:12px;font-weight:700;color:var(--ink-2);word-break:keep-all;}
+  .card .q{font-family:var(--f-kr);font-size:16px;font-weight:700;line-height:1.5;word-break:keep-all;margin-bottom:7px;}
+  .card .why{font-family:var(--f-kr);font-size:12.5px;color:var(--ink-3);word-break:keep-all;margin-bottom:12px;}
+  .card .ex{font-family:var(--f-kr);font-size:13px;color:var(--ink);background:var(--lav-soft);border-radius:10px;padding:11px 14px;word-break:keep-all;margin-bottom:13px;line-height:1.65;}
+  .card .ex b{color:#5a4a85;}
+  .card .ans{display:flex;flex-direction:column;gap:9px;}
+  .card label.ok{display:flex;align-items:center;gap:9px;font-family:var(--f-kr);font-size:14.5px;font-weight:600;cursor:pointer;}
+  .card label.ok input{width:21px;height:21px;accent-color:var(--green);cursor:pointer;}
+  .card textarea{width:100%;font-family:var(--f-kr);font-size:14px;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);resize:vertical;min-height:44px;line-height:1.5;}
+  .card textarea:focus{outline:none;border-color:var(--lav);}
+  .card textarea::placeholder{color:var(--ink-3);}
+
+  .actions{position:sticky;bottom:14px;margin-top:22px;display:flex;gap:10px;}
+  .btn{flex:1;font-family:var(--f-kr);font-weight:700;font-size:15px;padding:15px;border:none;border-radius:100px;cursor:pointer;background:var(--ink);color:var(--bg);box-shadow:0 12px 30px -12px rgba(33,26,51,.55);}
+  .btn.ghost{background:var(--surface);color:var(--ink-2);border:1px solid var(--line);box-shadow:none;flex:0 0 auto;padding:15px 18px;}
+
+  details.haveall{margin-top:28px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:2px 20px;}
+  details.haveall summary{font-family:var(--f-kr);font-size:14px;font-weight:700;padding:15px 0;cursor:pointer;color:var(--ink-2);list-style:none;}
+  details.haveall summary::-webkit-details-marker{display:none;}
+  details.haveall summary::before{content:"▸ ";color:var(--ink-3);}
+  details.haveall[open] summary::before{content:"▾ ";}
+  .sec-have h4{font-family:var(--f-kr);font-size:13.5px;font-weight:800;margin:16px 0 6px;color:var(--ink);}
+  .sec-have .slot{font-family:var(--f-kr);font-size:12.5px;color:var(--ink-2);padding:6px 0 6px 18px;position:relative;word-break:keep-all;border-top:1px solid rgba(33,26,51,.05);line-height:1.55;}
+  .sec-have .slot::before{content:"✓";position:absolute;left:0;color:var(--green);font-weight:700;}
+  .sec-have .slot b{color:var(--ink);font-weight:600;}
+
+  dialog{border:none;border-radius:16px;padding:22px;max-width:600px;width:92%;box-shadow:0 30px 60px -20px rgba(0,0,0,.3);background:var(--surface);color:var(--ink);}
+  dialog h3{font-family:var(--f-kr);font-size:16px;margin-bottom:10px;}
+  dialog textarea{width:100%;min-height:280px;font-family:ui-monospace,monospace;font-size:12px;border:1px solid var(--line);border-radius:10px;padding:12px;color:var(--ink);}
+</style>
+</head>
+<body>
+  <div class="top">SIRIAI · 사업소개서 — Step 1 내용 확보</div>
+  <h1>내용 확보 시트</h1>
+  <p class="lead">자료 13개를 내가 다 훑어서 <b>242개</b>를 정리했어. 그 중 <b>233개는 이미 확보</b> — 너는 아래 <b>빨간 카드 9개</b>만 보면 돼. 거의 다 예시를 달아놨으니 <b>"예시대로 OK"를 누르거나 한 줄 고치면</b> 끝. 다 하면 맨 밑 버튼으로 나한테 넘겨줘. (실무 바쁘면 위에서부터 P1·P2·P3만 먼저 해도 deck 절반은 굴러가.)</p>
+  <div class="summary">
+    <div class="sumcard have"><div class="big">233</div><div class="lbl">✅ 내가 이미 채운 항목</div></div>
+    <div class="sumcard todo"><div class="big" id="left">9</div><div class="lbl">✏️ 네가 정할 카드 (남은 거)</div></div>
+  </div>
+  <div class="bar"><i id="barfill"></i></div>
+
+  <div id="cards"></div>
+
+  <div class="actions">
+    <button class="btn" onclick="copyAns()">📋 내 답변 → 클로드에게 복사</button>
+    <button class="btn ghost" onclick="resetAll()">초기화</button>
+  </div>
+
+  <details class="haveall">
+    <summary>📑 내가 이미 채운 것 보기 (확인만 — 안 봐도 됨)</summary>
+    <div id="haveBox"></div>
+  </details>
+
+  <dialog id="dlg">
+    <h3>전체 선택 → 복사 → 클로드 채팅에 붙여넣기</h3>
+    <textarea id="dlgText" readonly></textarea>
+    <div class="actions" style="position:static;box-shadow:none;margin-top:12px;">
+      <button class="btn" onclick="doCopy()">📋 클립보드 복사</button>
+      <button class="btn ghost" onclick="document.getElementById('dlg').close()">닫기</button>
+    </div>
+  </dialog>
+
+<script type="application/json" id="cis-data">
+{
+  "sections": [
+    { "id": "0", "name": "Hero — 첫 화면", "slots": [
+      { "need": "메인 헤드라인", "status": "확보", "haveValue": "좋은 브랜드가 안 알려지는 건, 도달이 아니라 관계의 문제입니다. (대안: \"당신 브랜드는 이미 좋습니다. 시장이 아직 모를 뿐.\")" },
+      { "need": "서브 카피 (知り合い 연결)", "status": "확보", "haveValue": "시리아이(知り合い)는 당신의 브랜드를 시장과 '아는 사이'로 만듭니다." },
+      { "need": "Hero CTA 버튼", "status": "확보", "haveValue": "대화 시작하기 →" },
+      { "need": "사명 유래 한 줄", "status": "확보", "haveValue": "SIRIAI = 知り合い(아는 사이/지인). 시장과 브랜드 사이 거리를 좁히는, 똑똑하지만 따뜻한 설계자." }
+    ]},
+    { "id": "1", "name": "관점 — 도달 vs 관계", "slots": [
+      { "need": "섹션 헤드", "status": "확보", "haveValue": "우리는 '무엇을 파는가'보다 '무엇을 놓쳤는가'를 먼저 봅니다." },
+      { "need": "문제 공감", "status": "확보", "haveValue": "좋은 브랜드가 안 알려지는 이유는 대개 예산이 아닙니다. 시장이 아직 당신을 모를 뿐입니다." },
+      { "need": "관점 전환 (우리 렌즈)", "status": "확보", "haveValue": "도달을 더 사기 전에, 당신 브랜드가 시장과 어디서 '아는 사이'가 될 수 있는지부터 설계합니다." },
+      { "need": "3기둥 불릿", "status": "확보", "haveValue": "① 관계의 눈(도달 아닌 관계) ② 끝까지 곁에(후불제·7단계) ③ 기술로 정확히(sa:ai·데이터)." }
+    ]},
+    { "id": "2", "name": "한눈 목차 — 4 기둥", "slots": [
+      { "need": "섹션 헤드", "status": "확보", "haveValue": "우리가 함께 하는 일" },
+      { "need": "01 기둥", "status": "확보", "haveValue": "01 Architecting — 기획·컨설팅 (페인포인트 진단 → 캠페인 전략 설계)" },
+      { "need": "02 기둥", "status": "확보", "haveValue": "02 Visual Content — 콘텐츠 비즈니스 (룩북·인플루언서 시딩·AI 콘텐츠) [심장]" },
+      { "need": "03 기둥", "status": "확보", "haveValue": "03 sa:ai — Software Engineering (자체 AI 기술 엔진)" },
+      { "need": "04 기둥", "status": "확보", "haveValue": "04 Private Brand — 자체 브랜드 (미래 청사진, 2026~)" }
+    ]},
+    { "id": "3", "name": "영역별 — 4분야 정의", "slots": [
+      { "need": "01 아키텍팅", "status": "확보", "haveValue": "헤드 \"당신이 놓친 건 예산이 아니라, 비어 있는 '자리'입니다.\" 정의: 시장의 빈 자리를 진단하고 어떻게 들어설지 설계. 진단→포지셔닝→캠페인 아키텍처. problem solver, A to Z." },
+      { "need": "02 콘텐츠 비즈니스", "status": "확보", "haveValue": "헤드 \"가입자 풀이 아니라, 당신께 맞는 사람을 고릅니다.\" 국내: 시딩·릴스/숏츠·오프라인·매거진. 해외: 미·필·일(틱톡 챌린지)·중(샤오홍슈)·박람회. 차별점: 인스타 전체가 DB·후불제(리스크0)·검수·2차활용·Amazon MCF." },
+      { "need": "03 sa:ai", "status": "확보", "haveValue": "헤드 \"당신의 브랜드를 사람처럼 이해하는 AI 위에서 일합니다.\" 3축: Performance·Creative(생성AI 통합)·Archivo. \"관계→데이터→기록 / Creators remember us.\"" },
+      { "need": "04 Private Brand", "status": "확보", "haveValue": "헤드 \"우리 말을, 우리 제품으로 증명합니다.\" (2026~) 인사이트부터 제품까지 직접. 미래 청사진으로 당당히 노출." },
+      { "need": "영역 수치", "status": "확보", "haveValue": "Global Seeding 75개국 · 12만 큐레이터 · 12+ 플랫폼. 가격 비노출(\"동일 퀄리티, 합리적 비용\")." }
+    ]},
+    { "id": "4", "name": "02 케이스 — 4단", "slots": [
+      { "need": "케이스 ① K-엔터", "status": "확보", "haveValue": "\"결정이 만남보다 빨라야 했던 레이블\" — 릴리스 결정 매핑 → 스스로 굴릴 판단 흐름. NCT 일본 댄스챌린지 55건 / ZB1 북미 업로드율 100% (HYBE 익명화)." },
+      { "need": "케이스 ② 글로벌 시딩", "status": "확보", "haveValue": "레이티드그린·잇퓨 Global Seeding USA. 단일 캠페인 제공 최대 200." },
+      { "need": "익명화 선언 문구", "status": "확보", "haveValue": "브랜드명은 익명, 일의 구조를 공유합니다. (Client names held in confidence; the structure of the work is what we share.)" },
+      { "need": "결과 칸 수치", "status": "확보", "haveValue": "업로드율 100%(ZB1 북미·토코보 등) · NCT 일본 챌린지 55건 · 단일 캠페인 최대 200." },
+      { "need": "소요 시간", "status": "확보", "haveValue": "평균 14일~1달 (리스트 1주 → 선정 2~3일 → 배송 1주 → 업로드 1~2주)." }
+    ]},
+    { "id": "5", "name": "The Plan — 프로세스", "slots": [
+      { "need": "프로세스 7단계", "status": "확보", "haveValue": "계약 → 캠페인 생성·직접 컨택 → 리스트 제공 → 컨펌 → 제품 발송 → 업로드 관리 → KPI 보고·정산" },
+      { "need": "타임프레임", "status": "확보", "haveValue": "리스트 1주 → 선정 2~3일 → 배송 1주 → 업로드 1~2주 (총 14일~1달). 착수금 20%." },
+      { "need": "차별점(안심 장치)", "status": "확보", "haveValue": "후불제(리스크0) · 미업로드 3단계 대응 · 검수 · 2차활용 · 글로벌 물류 · 권역 필터링." }
+    ]},
+    { "id": "6", "name": "Trusted by — 신뢰", "slots": [
+      { "need": "섹션 헤드", "status": "확보", "haveValue": "TRUSTED BY + 부제 \"로고로 자랑하지 않습니다 — 목록이 곧 안목\". 8division식 텍스트 리스트." },
+      { "need": "검증 수치", "status": "확보", "haveValue": "거래처 17곳+ · 실행사 4곳(오초·인플루넷·에녹·마루) · 인재풀 1,100건 · 업로드율 100% · 75개국·12만 큐레이터." }
+    ]},
+    { "id": "7", "name": "Studio — 우리 팀", "slots": [
+      { "need": "섹션 헤드", "status": "확보", "haveValue": "\"브랜드를 운영해 본 사람들이, 설계자로 분사했습니다.\" (연혁 배제, 분사 서사)" },
+      { "need": "R&R 구조", "status": "확보", "haveValue": "전략·아키텍팅 / 콘텐츠·크리에이티브 / sa:ai·엔지니어링 / 운영·파트너십. PAF식 수평 컬렉티브 톤." }
+    ]},
+    { "id": "8", "name": "전환 — 폼·푸터", "slots": [
+      { "need": "전환 카피", "status": "확보", "haveValue": "\"관계는, 대화에서 시작됩니다. 막혀 있는 결정 하나를 가져와 주세요. 그 구조는 우리가 짜겠습니다.\"" },
+      { "need": "입력 폼 필드", "status": "확보", "haveValue": "회사명 + 막힌 결정 한 줄 (StoryBrand: 단일 CTA + 폼 최소)." },
+      { "need": "보조 채널", "status": "확보", "haveValue": "오픈채팅 https://open.kakao.com/o/sPb2dMfi (이메일 부담되면 가볍게)." },
+      { "need": "FAQ", "status": "확보", "haveValue": "소요시간 · AI로 어떻게 고르나 · 플랫폼과 차이 · 가능 국가 · 착수 조건(착수금 20%) · 예산 · 미팅 준비." },
+      { "need": "회사정보(푸터)", "status": "확보", "haveValue": "시리아이(SIRIAI) · 사업자 405-23-02027 · CEO 김동현 · 서울 용산구 한강대로293 성원빌딩 4층A · 070-7576-1944 · 평균 응답 0~1영업일." }
+    ]}
+  ],
+  "todos": [
+    { "priority": 1, "section": "전역 — 브랜드 실명 공개 동의 (Hero·Trusted by·FAQ 공통)", "question": "deck에 실명으로 박아도 되는 브랜드를 한 번만 정해주세요. (1) Trusted by 명단 15~20개, (2) Hero/FAQ 신뢰앵커 대표 3개. HYBE는 'HYBE 계열' 그룹 표기로 OK인가요?", "why": "Hero 앵커·Trusted by 명단/앵커·FAQ '큰 브랜드' 4개 미검증 슬롯이 전부 이 동의 하나로 풀림 — deck 신뢰축 전체가 막혀 있음", "example": "앵커 3개 후보: 무신사·HYBE 계열·이니스프리. Trusted by 후보 풀: 무신사·카카오페이×삼성페이·아이디병원·이니스프리·COSRX·키핀터치·8division·CJ ENM·강릉시·레이티드그린·잇퓨 (+HYBE 계열). 여기서 빼거나 추가만 해주세요." },
+    { "priority": 2, "section": "02 케이스 — 공개 수위 (deck의 심장)", "question": "케이스③ 틈결×에스더버니 플래그십을 실명/익명 어느 수위로 쓸까요? 나노100·매거진7·시딩72 같은 숫자는 노출 OK? 그리고 HYBE 계열 케이스에 파트너 '마루(MARU)' 협업을 노출해도 되나요?", "why": "deck의 심장인 02 케이스 4단의 헤드·파트너십이 막혀 있음. 수위 확정 안 되면 케이스 슬라이드 자체를 못 짬", "example": "예시 수위: '틈결 x 글로벌 캐릭터 IP 1st Flagship (2026.5) — 오프라인 3일·나노 100인·매거진 7개·브랜드 시딩 72명' (에스더버니는 익명, 메가 라인업·단가는 비공개). 마루는 '실행 파트너 협업'으로만 표기. → 이대로 OK / 더 줄이기 중 선택." },
+    { "priority": 3, "section": "02 케이스 — 결과 수치 검증 (방문률·나노 DB)", "question": "케이스 '결과' 칸에 방문률 94.6%·나노 191 DB 수치를 쓰려면 분모(전체 N)가 필요해요. 성과보고서에서 확인 가능한가요, 아니면 빼고 검증된 '업로드율 100%·NCT 챌린지 55건'만 쓸까요?", "why": "PRD/메시지아키텍처엔 있지만 시트 근거·분모 미확인이라 검증 규칙상 현재 deck 사용 금지 — 쓸지 뺄지 결정 필요", "example": "기본값(안전): 빼고 검증된 수치만 → 업로드율 100%·NCT 일본 챌린지 55건·단일 캠페인 최대 200. (분모 보고서 있으면 94.6% 추가)" },
+    { "priority": 4, "section": "03 sa:ai / 영역 — 기술 사실확인 (허세 리스크)", "question": "기술 3개만 확인해주세요. (1) BUILT WITH 스택(OpenAI·Anthropic·Vercel·Supabase·Next.js)이 sa:ai에 실제로 쓰이나요? (2) Seoul·SF·Tokyo 거점은 실재? (3) '20만 즉시 스코어링·60개국'이 진짜 맞나요(75개국·12만 큐레이터와 충돌)?", "why": "기술스택·거점·스코어링 수치 미검증. 사실 아니면 deck에서 빼야 함(허세 리스크)", "example": "예시: (1) 실제 사용 O / 일부만 → 쓰는 것만 표기, (2) 거점은 '서울' 단일, (3) 글로벌 수치는 '75개국·12만 큐레이터'로 일원화하고 20만/60개국은 삭제." },
+    { "priority": 5, "section": "Hero·관점 — 사명 표기 & 포지셔닝 용어", "question": "두 가지만요. (1) Hero 사명을 'SIRIAI' 단독으로 쓸까요, '知り合い' 병기할까요? (2) 포지셔닝 한 문장에서 '두 기둥/아키텍처 그룹' 용어를 쓸까요, 버릴까요(메시지아키텍처는 폐기 권고)?", "why": "Hero 표기와 포지셔닝 한 문장이 빈칸/용어 충돌 상태 — deck 첫인상과 핵심 메시지 톤을 가름", "example": "예시: (1) 큰 로고 'SIRIAI', 아래 작게 '知り合い · 아는 사이' 병기. (2) 용어 버리고 → '검증된 마케팅 실행력과 자체 AI 기술으로 브랜드 성장을 설계합니다'." },
+    { "priority": 6, "section": "01 아키텍팅 — 표현 무게", "question": "01 아키텍팅을 홈의 'AI 의사결정 구조 설계'와 deck의 '캠페인 전략 설계' 중 어느 쪽 무게로 갈까요?", "why": "추상(홈)↔구체(PRD) 다리 카피 미정렬 — 01 슬라이드 정의문이 안 정해짐", "example": "추천: '캠페인 전략 설계'를 전면(구체)에, 'AI 의사결정 구조 설계'는 한 줄 서브로." },
+    { "priority": 7, "section": "전환 — Contact 메일 통일", "question": "Contact/CTA 메일을 jysiriai@gmail.com로 갈까요, 브랜딩 도메인(siriai.studio / siriai.io) 메일로 갈까요?", "why": "실무 gmail ↔ 미사용 브랜딩 도메인이 충돌 — mailto CTA를 못 박음", "example": "예시: 지금은 jysiriai@gmail.com로 확정(도메인 셋업 전까지). 준비되면 교체." },
+    { "priority": 8, "section": "Studio — 멤버 공개 범위", "question": "Studio에 멤버를 실명·직함으로 공개할까요, 역할만 표기할까요? 코어 인원은 정확히 몇 명(객원 포함/제외)이고, 객원(김바다 등)은 어떻게 표기할까요?", "why": "멤버 실명/직함·인원 수 빈칸 — Studio R&R 슬라이드를 못 채움 (부차 섹션이라 후순위)", "example": "예시: 코어 4인 역할+실명 — 김동현(대표·PB)·박슬범(운영)·조준용(세일즈)·황윤경(인플루언서 운영). 객원은 'Project Partners'로 이름만." },
+    { "priority": 9, "section": "04 PB — 자체 브랜드 공개 범위", "question": "04 Private Brand의 카테고리·제품·출시 일정을 어디까지 공개할까요? 필름·디스플레이 방향을 노출해도 되나요(아직 피보팅 중)?", "why": "PB 구체 정보 빈칸이지만 '미래 청사진' 섹션이라 헤드만으로도 슬라이드 성립 — 가장 후순위", "example": "예시(안전): 카테고리·제품 비공개, '2026~ 준비 중'만. 헤드 '우리 말을, 우리 제품으로 증명합니다' 유지." }
+  ]
+}
+</script>
+<script>
+  const DATA = JSON.parse(document.getElementById('cis-data').textContent);
+  const TODOS = DATA.todos, SECTIONS = DATA.sections;
+  function esc(s){return (s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+
+  document.getElementById('cards').innerHTML = TODOS.map((t,i)=>`
+    <div class="card" id="card${i}">
+      <div class="ph"><span class="pno">P${t.priority}</span><span class="psec">${esc(t.section)}</span></div>
+      <div class="q">${esc(t.question)}</div>
+      <div class="why">왜 필요해: ${esc(t.why)}</div>
+      ${t.example?`<div class="ex"><b>💡 예시 답:</b> ${esc(t.example)}</div>`:''}
+      <div class="ans">
+        <label class="ok"><input type="checkbox" class="okchk" data-i="${i}"/> 👍 예시대로 OK</label>
+        <textarea class="note" data-i="${i}" placeholder="고치거나 보탤 말 있으면 여기 (없으면 비워둬)"></textarea>
+      </div>
+    </div>`).join('');
+
+  function refresh(){
+    let done=0;
+    TODOS.forEach((t,i)=>{
+      const ok=localStorage.getItem('cis_ok_'+i)==='1';
+      const note=(localStorage.getItem('cis_note_'+i)||'').trim();
+      const answered=ok||!!note;
+      document.getElementById('card'+i).classList.toggle('answered',answered);
+      if(answered)done++;
+    });
+    document.getElementById('left').textContent=TODOS.length-done;
+    document.getElementById('barfill').style.width=(done/TODOS.length*100)+'%';
+  }
+  document.querySelectorAll('.okchk').forEach(c=>{
+    const i=c.dataset.i; c.checked=localStorage.getItem('cis_ok_'+i)==='1';
+    c.addEventListener('change',()=>{localStorage.setItem('cis_ok_'+i,c.checked?'1':'0');refresh();});
+  });
+  document.querySelectorAll('.note').forEach(t=>{
+    const i=t.dataset.i; t.value=localStorage.getItem('cis_note_'+i)||'';
+    t.addEventListener('input',()=>{localStorage.setItem('cis_note_'+i,t.value);refresh();});
+  });
+  refresh();
+
+  document.getElementById('haveBox').innerHTML = SECTIONS.map(s=>{
+    const have=s.slots.filter(x=>x.status==='확보');
+    if(!have.length) return '';
+    return `<div class="sec-have"><h4>${esc(s.name)}</h4>`+
+      have.map(x=>`<div class="slot"><b>${esc(x.need)}:</b> ${esc(x.haveValue)}</div>`).join('')+`</div>`;
+  }).join('');
+
+  function copyAns(){
+    let md='# SIRIAI 내용확보 — 준용 답변\n\n', any=false;
+    TODOS.forEach((t,i)=>{
+      const ok=localStorage.getItem('cis_ok_'+i)==='1';
+      const note=(localStorage.getItem('cis_note_'+i)||'').trim();
+      if(!ok&&!note) return;
+      any=true;
+      md+=`## P${t.priority} · ${t.section}\nQ: ${t.question}\nA: ${ok?'👍 예시대로 OK':''}${ok&&note?' / ':''}${note}\n\n`;
+    });
+    if(!any){alert('아직 답한 카드가 없어 — "예시대로 OK"를 누르거나 한 줄 적어줘');return;}
+    document.getElementById('dlgText').value=md;
+    document.getElementById('dlg').showModal();
+  }
+  function doCopy(){navigator.clipboard.writeText(document.getElementById('dlgText').value).then(()=>alert('복사됨! 클로드 채팅에 붙여넣어줘'));}
+  function resetAll(){if(confirm('답변 다 지울까?')){TODOS.forEach((t,i)=>{localStorage.removeItem('cis_ok_'+i);localStorage.removeItem('cis_note_'+i);});location.reload();}}
+</script>
+</body>
+</html>

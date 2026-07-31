@@ -1,0 +1,66 @@
+[
+  {
+    "code": "POP1821",
+    "cat": "스킨케어",
+    "intro": "클린뷰티 스킨케어 브랜드 '온그리디언츠' 운영, 40개국 수출",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 온그리디언츠 판매",
+    "homepage": "https://powerplayer.co.kr/"
+  },
+  {
+    "code": "PUS6170",
+    "cat": "기타",
+    "intro": "2020년 설립 브랜드 전략·BI·패키지 디자인 에이전시",
+    "verdict": "제외",
+    "basis": "화장품 아닌 디자인 대행사",
+    "homepage": ""
+  },
+  {
+    "code": "RAF6794",
+    "cat": "기타",
+    "intro": "식물세포 SofTech 기술 기반 화장품 ODM/OEM 전문기업",
+    "verdict": "제외",
+    "basis": "ODM/OEM 수탁 전문, 자체브랜드 없음",
+    "homepage": "https://rafiqcosmetics.com/"
+  },
+  {
+    "code": "RAI7801",
+    "cat": "향수",
+    "intro": "향수·디퓨저 제조사, 자체 브랜드 ASCENT·SCENTICA 등 운영",
+    "verdict": "타겟",
+    "basis": "자체 향수 브랜드 올리브영 판매",
+    "homepage": "https://raint.kr"
+  },
+  {
+    "code": "RAW5367",
+    "cat": "이너뷰티",
+    "intro": "식물성 콜라겐 기업, 파우더·젤리스틱 등 자사 브랜드 판매",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 완제품 소비자 판매",
+    "homepage": ""
+  },
+  {
+    "code": "REB4797",
+    "cat": "기타",
+    "intro": "HYALSKIN 필러·톡신·스킨부스터 등 미용의료 제조·수출",
+    "verdict": "제외",
+    "basis": "병원 대상 미용의료 B2B",
+    "homepage": ""
+  },
+  {
+    "code": "RIB2433",
+    "cat": "스킨케어",
+    "intro": "연구 기반 K뷰티 브랜드 'resear', 김밥롤 마스크팩 주력",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 마스크팩 판매",
+    "homepage": "https://ringthebell.kr"
+  },
+  {
+    "code": "ROK9047",
+    "cat": "스킨케어",
+    "intro": "저자극 더마 브랜드 닥터바이오·바디 브랜드 티블레스 운영",
+    "verdict": "타겟",
+    "basis": "자체 브랜드 공식몰 직접 판매",
+    "homepage": "https://www.doctorbio.kr/"
+  }
+]

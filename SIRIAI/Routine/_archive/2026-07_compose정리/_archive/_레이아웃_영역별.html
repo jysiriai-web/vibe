@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>인터참 사후 팔로업 메일 — 권장 레이아웃 (영역별)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F1E8;--card:#FFFFFF;--ink:#211A33;--ink2:rgba(33,26,51,.66);--ink3:rgba(33,26,51,.46);
+    --line:rgba(33,26,51,.12);--line2:rgba(33,26,51,.22);--bar:rgba(33,26,51,.07);
+    --sans:'Pretendard',-apple-system,'Helvetica Neue',Arial,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace;
+  }
+  @media(prefers-color-scheme:dark){:root{--bg:#17141d;--card:#221d2b;--ink:#F3EEE2;--ink2:rgba(243,238,226,.7);--ink3:rgba(243,238,226,.45);--line:rgba(243,238,226,.13);--line2:rgba(243,238,226,.26);--bar:rgba(243,238,226,.08)}}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;word-break:keep-all;-webkit-font-smoothing:antialiased;padding:40px 16px 64px}
+  .wrap{max-width:520px;margin:0 auto}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink3);margin-bottom:9px}
+  h1{font-size:23px;font-weight:600;letter-spacing:-.02em;margin-bottom:6px}
+  .sub{color:var(--ink2);font-size:14px;line-height:1.5;margin-bottom:16px}
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+  .chip{font-family:var(--mono);font-size:11px;padding:3px 10px;border-radius:100px;display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);color:var(--ink2)}
+  .dot{width:8px;height:8px;border-radius:50%;flex:none}
+  .mail{background:var(--card);border:1px solid var(--line2);border-radius:14px;overflow:hidden}
+  .blk{padding:15px 16px;border-bottom:1px solid var(--line)}
+  .blk:last-child{border-bottom:0}
+  .bh{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+  .num{font-family:var(--mono);font-size:12px;color:var(--ink3);min-width:14px}
+  .role{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--ink2);text-transform:uppercase}
+  .tag{margin-left:auto;font-family:var(--mono);font-size:10px;padding:1px 8px;border-radius:100px;white-space:nowrap}
+  .ph{font-size:13px;color:var(--ink2);line-height:1.55}
+  .ph b{color:var(--ink);font-weight:600}
+  .bar{height:9px;border-radius:5px;background:var(--bar);margin:6px 0}
+  .note{font-size:11.5px;color:var(--ink3);margin-top:8px;line-height:1.5}
+  .note::before{content:"↳ 목적 · ";font-family:var(--mono);font-size:10px;letter-spacing:.03em}
+  .ab{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .abx{background:#EEEDFE;border-radius:8px;padding:9px 11px}
+  .abx .t{font-family:var(--mono);font-size:10px;color:#3C3489;margin-bottom:4px}
+  .abx .d{font-size:12px;color:#26215C;line-height:1.45}
+  .qa{display:flex;flex-direction:column;gap:5px}
+  .qa .q{font-size:12.5px;color:#0F6E56}
+  .ctabtn{display:inline-block;background:var(--ink);color:var(--card);border-radius:100px;padding:10px 20px;font-size:13px;font-weight:600;margin-top:4px}
+  .foot{font-size:11.5px;color:var(--ink3)}
+  .why{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;margin-top:16px;font-size:13px;color:var(--ink2);line-height:1.6}
+  .why b{color:var(--ink);font-weight:600}
+  .meta{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:16px;letter-spacing:.02em}
+  @media(prefers-color-scheme:dark){.abx{background:rgba(127,119,221,.18)}.abx .t{color:#AFA9EC}.abx .d{color:#EEEDFE}.qa .q{color:#5DCAA5}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">SIRIAI · INTERCHARM 사후 팔로업</div>
+  <h1>권장 레이아웃 — 영역별</h1>
+  <p class="sub">위 → 아래 8개 영역. 각 영역 = <b style="color:var(--ink)">세일즈 역할</b>. 색·폰트·카피는 다음 단계(1-③).</p>
+
+  <div class="legend">
+    <span class="chip"><span class="dot" style="background:#888780"></span>코어 · 2종 공유</span>
+    <span class="chip"><span class="dot" style="background:#7F77DD"></span>A/B 분기 · 담당자/공식</span>
+    <span class="chip"><span class="dot" style="background:#1D9E75"></span>CTA · 홈피 링크</span>
+  </div>
+
+  <div class="mail">
+
+    <div class="blk">
+      <div class="bh"><span class="num">1</span><span class="role">제목 + 프리헤더</span><span class="tag" style="background:#EEEDFE;color:#3C3489">A/B</span></div>
+      <div class="ph">[짧게 · 개인화 · "인터참" 언급] — 열게 만드는 한 줄 + 프리헤더</div>
+      <div class="note">오픈. (광고) 표기 없음</div>
+    </div>
+
+    <div class="blk">
+      <div class="bh"><span class="num">2</span><span class="role">오프닝 훅 · 재연결 명분</span><span class="tag" style="background:#EEEDFE;color:#3C3489">A/B</span></div>
+      <div class="ab">
+        <div class="abx"><div class="t">A · 담당자</div><div class="d">○○○ 님, 지난 인터참에서 뵀던…</div></div>
+        <div class="abx"><div class="t">B · 브랜드 공식</div><div class="d">인터참에 참가하신 ○○께…</div></div>
+      </div>
+      <div class="note">"왜 지금 나한테" 즉시 해소 (2주 경과 명분)</div>
+    </div>
+
+    <div class="blk">
+      <div class="bh"><span class="num">3</span><span class="role">공감 한 줄</span><span class="tag" style="background:#F1EFE8;color:#5F5E5A">코어</span></div>
+      <div class="ph">[상대 상황·고민 짚기 — 인플루언서 매칭 니즈]</div>
+      <div class="note">PAS 훅 — 상대 머릿속 문제를 먼저 꺼냄</div>
+    </div>
+
+    <div class="blk">
+      <div class="bh"><span class="num">4</span><span class="role">밸류 · 핵심</span><span class="tag" style="background:#F1EFE8;color:#5F5E5A">코어</span></div>
+      <div class="ph">보유 리스트 안 돌리고 <b>○○에 맞는 인플루언서 직접 선별</b></div>
+      <div class="bar" style="width:78%"></div>
+      <div class="ph" style="font-size:12px">+ 소셜프루프/숫자 한 줄 (8DIVISION·COSRX 외)</div>
+      <div class="note">"왜 신경 써야?" — 성과·차별점</div>
+    </div>
+
+    <div class="blk">
+      <div class="bh"><span class="num">5</span><span class="role">궁금증 해소</span><span class="tag" style="background:#E1F5EE;color:#0F6E56">링크 → 홈피</span></div>
+      <div class="qa">
+        <div class="q">→ SIRIAI는 뭐가 다른가요?</div>
+        <div class="q">→ 어떻게 진행되나요?</div>
+      </div>
+      <div class="note">궁금증을 홈피로 넘김(깔때기 연결) · 링크 1~2개만</div>
+    </div>
+
+    <div class="blk">
+      <div class="bh"><span class="num">6</span><span class="role">단일 CTA · 소프트</span><span class="tag" style="background:#E1F5EE;color:#0F6E56">단 하나</span></div>
+      <div class="ph" style="margin-bottom:3px">[관심형 질문 — "방향만 주시면 후보 정리해 드릴까요?"]</div>
+      <span class="ctabtn">맞춤 후보 받아보기 →</span>
+      <div class="note">CTA는 하나만. 겹쳐 쌓지 말 것 (Sybill 원칙)</div>
+    </div>
+
+    <div class="blk">
+      <div class="bh"><span class="num">7</span><span class="role">서명</span><span class="tag" style="background:#F1EFE8;color:#5F5E5A">코어</span></div>
+      <div class="ph" style="font-size:12.5px">조준용 · SIRIAI Sales Manager · 연락처 하나</div>
+      <div class="note">신뢰 (사람·직함·연락처)</div>
+    </div>
+
+    <div class="blk">
+      <div class="bh"><span class="num">8</span><span class="role">수신거부 한 줄</span><span class="tag" style="background:#F1EFE8;color:#5F5E5A">법 최소</span></div>
+      <div class="foot">수신을 원치 않으시면 회신으로 알려주세요.</div>
+    </div>
+
+  </div>
+
+  <div class="why"><b>순서 근거:</b> 훅으로 열고(1·2) → 상대 문제 짚고(3) → 왜 신경써야 하는지(4) → 궁금증은 홈피로 넘기고(5) → 문턱 낮은 행동 하나(6). = <b>Sybill 세일즈 정석(제목→훅→밸류→CTA→서명) + PAS 훅 + 우리 Q&A(162137)</b> 합본. <b>5번이 홈피·사업소개서로 이어지는 깔때기 연결고리.</b></div>
+
+  <div class="meta">구성(레이아웃)만 · 디자인/카피는 1-③ · 2종(A 담당자 / B 브랜드 공식)</div>
+
+</div>
+</body>
+</html>

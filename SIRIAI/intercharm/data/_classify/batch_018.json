@@ -1,0 +1,66 @@
+[
+  {
+    "code": "ZOB1985",
+    "cat": "스킨케어",
+    "intro": "AI 펩타이드 기반 바이오기업, 자체 브랜드 formule 운영",
+    "verdict": "타겟",
+    "basis": "자체브랜드 formule 확인",
+    "homepage": ""
+  },
+  {
+    "code": "NPL4110",
+    "cat": "기타",
+    "intro": "화장품소재·원료의약품·식품첨가물 B2B 원료 제조사",
+    "verdict": "제외",
+    "basis": "홈피 원료3사업부, 브랜드無",
+    "homepage": "https://www.daebongls.co.kr"
+  },
+  {
+    "code": "DES8573",
+    "cat": "기타",
+    "intro": "화장품·건강식품 패키지·그래픽 디자인 전문 스튜디오",
+    "verdict": "제외",
+    "basis": "홈피=디자인 용역, 제품無",
+    "homepage": ""
+  },
+  {
+    "code": "DEL9814",
+    "cat": "기타",
+    "intro": "",
+    "verdict": "불명",
+    "basis": "홈피 접속불가·검색 미확인",
+    "homepage": ""
+  },
+  {
+    "code": "LAN7173",
+    "cat": "스킨케어",
+    "intro": "민감·보습 중심 베이식 케어 브랜드 LANNUE 운영",
+    "verdict": "타겟",
+    "basis": "lannue.kr 자사몰 운영",
+    "homepage": "https://lannue.kr"
+  },
+  {
+    "code": "MYS9900",
+    "cat": "스킨케어",
+    "intro": "자체 스킨케어 브랜드 Lon.G(론지화장품) 운영·수출",
+    "verdict": "타겟",
+    "basis": "longtoyou.com 자사몰 확인",
+    "homepage": ""
+  },
+  {
+    "code": "BTY5760",
+    "cat": "홈디바이스",
+    "intro": "비타민 샤워필터·샤워헤드 자체 브랜드 BTY LAB",
+    "verdict": "타겟",
+    "basis": "자사 브랜드 제품 소매유통",
+    "homepage": ""
+  },
+  {
+    "code": "SEO9008",
+    "cat": "기타",
+    "intro": "1982년 설립 인천 소재 화장품 OEM/ODM 제조 전문기업",
+    "verdict": "제외",
+    "basis": "OEM/ODM 전문 명시",
+    "homepage": ""
+  }
+]

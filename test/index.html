@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cathy DOLLE - Interactive Designer</title>
+  <meta name="description" content="Cathy Dolle - Designer & front-end developer creating simple, thoughtful digital experiences." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Custom cursor -->
+  <div class="cursor" id="cursor"></div>
+
+  <!-- Intro loader -->
+  <div class="loader" id="loader">
+    <span class="loader__bar"></span>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <a href="/" class="header__logo link">Cathy Dolle</a>
+
+    <div class="header__toggle">
+      <button class="toggle-btn is-active" data-view="list">List</button>
+      <button class="toggle-btn" data-view="slider">Slider</button>
+    </div>
+
+    <nav class="header__nav">
+      <button class="link nav__about" id="aboutTrigger">about</button>
+      <a href="/shop" class="link nav__shop">
+        <svg class="nav__bag" viewBox="0 0 20 20" aria-hidden="true">
+          <path d="M5 6h10l-.8 10.2a1 1 0 0 1-1 .9H6.8a1 1 0 0 1-1-.9L5 6Z" fill="none" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M7.3 6.2V5a2.7 2.7 0 0 1 5.4 0v1.2" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        </svg>
+        Shop
+      </a>
+      <a href="/playground" class="link nav__playground">Playground</a>
+    </nav>
+  </header>
+
+  <!-- Main -->
+  <main class="stage" id="stage">
+    <!-- Left column of project names -->
+    <ul class="projects projects--left" id="projectsLeft"></ul>
+
+    <!-- Center scrolling image column -->
+    <div class="reel" id="reel">
+      <div class="reel__track" id="reelTrack"></div>
+    </div>
+
+    <!-- Right column of project names -->
+    <ul class="projects projects--right" id="projectsRight"></ul>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <a href="mailto:cathy.dolle@live.fr" class="link">Contact</a>
+  </footer>
+
+  <!-- About overlay -->
+  <section class="about" id="about">
+    <div class="about__grid">
+      <p class="about__label">Designer &amp; Coder</p>
+      <p class="about__bio">
+        Cathy Dolle (B.1999, FR+VN) is a designer and front-end developer who creates
+        simple, thoughtful digital experiences with a minimalist, detail-driven approach.
+        She enjoys shaping quiet, refined identities and occasionally shares her creative
+        process on Twitch. Previously Immersive Garden &amp; AKQA
+      </p>
+      <a href="https://www.instagram.com/martin.ctny/" target="_blank" rel="noopener" class="about__dev link">Developed by Martin Cantony</a>
+      <div class="about__contact">
+        <a href="mailto:cathy.dolle@live.fr" class="link">cathy.dolle@live.fr</a>
+        <a href="https://www.instagram.com/katy_v4/" target="_blank" rel="noopener" class="link">Instagram</a>
+        <a href="https://www.twitch.tv/katy_v4" target="_blank" rel="noopener" class="link">Twitch</a>
+      </div>
+    </div>
+  </section>
+
+  <script src="artworks.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

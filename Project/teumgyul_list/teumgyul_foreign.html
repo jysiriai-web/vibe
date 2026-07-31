@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>틈결 × 외국인 방문 활성화 전략 | SIRIAI</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --deep: #1A1A2E;
+    --cream: #FAF7F2;
+    --gold: #C9A96E;
+    --accent: #D4607A;
+    --muted: #8A8A9C;
+    --white: #FFFFFF;
+    --green: #4CAF82;
+    --blue: #5B9BD5;
+    --red: #E85A4F;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .slides-container {
+    display: flex;
+    width: 100vw; height: 100vh;
+    overflow-x: scroll; overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+  }
+  .slides-container::-webkit-scrollbar { display: none; }
+
+  .slide {
+    flex-shrink: 0;
+    width: 100vw; height: 100vh;
+    scroll-snap-align: start;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: clamp(32px,4vh,56px) clamp(52px,7vw,108px) 100px;
+  }
+
+  /* ── NAV ── */
+  #tab-nav {
+    position: fixed; bottom: 20px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 3px; z-index: 1000;
+    background: rgba(15,15,30,0.82);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 100px;
+    padding: 5px 6px;
+  }
+  .tab {
+    display: flex; align-items: center; gap: 5px;
+    padding: 6px 12px; border-radius: 100px;
+    cursor: pointer; transition: background 0.2s; user-select: none;
+  }
+  .tab:hover { background: rgba(255,255,255,0.07); }
+  .tab.active { background: rgba(255,255,255,0.13); }
+  .tab-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    transition: background 0.2s, transform 0.2s;
+  }
+  .tab.active .tab-dot { background: var(--gold); transform: scale(1.3); }
+  .tab-label {
+    font-size: 10px; font-weight: 400;
+    color: rgba(255,255,255,0.4); letter-spacing: 0.3px;
+    transition: color 0.2s;
+  }
+  .tab.active .tab-label { color: rgba(255,255,255,0.88); font-weight: 500; }
+
+  /* ── SLIDE NUM ── */
+  .slide-num {
+    position: absolute; bottom: 28px; right: clamp(52px,7vw,108px);
+    font-family: 'DM Serif Display', serif;
+    font-size: 11px; letter-spacing: 3px; opacity: 0.18;
+  }
+
+  /* ── TYPOGRAPHY ── */
+  .eyebrow {
+    font-size: 12px; letter-spacing: 5px; font-weight: 700;
+    text-transform: uppercase; margin-bottom: 16px; flex-shrink: 0;
+  }
+  .hero {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(32px, 3.8vw, 52px);
+    line-height: 1.15; margin-bottom: 22px;
+  }
+  .tag {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    padding: 5px 16px; border-radius: 100px; margin-bottom: 18px;
+  }
+
+  /* ── SPLIT — fills remaining height ── */
+  .split {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: clamp(36px, 5vw, 72px);
+    flex: 1; min-height: 0;
+  }
+  .split-text {
+    display: flex; flex-direction: column;
+    justify-content: space-between; min-height: 0;
+  }
+  .split-visual {
+    display: flex; flex-direction: column;
+    min-height: 0;
+  }
+
+  /* ── BULLETS ── */
+  .bullets { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
+  .bullet {
+    display: flex; gap: 13px; align-items: flex-start;
+    font-size: 16px; line-height: 1.6;
+  }
+  .bullet-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    flex-shrink: 0; margin-top: 9px;
+  }
+  .bullet-text { color: var(--muted); }
+  .bullet-text strong { font-weight: 700; }
+
+  /* ── EFFECT BAR ── */
+  .effect-bar {
+    padding: 16px 22px; border-radius: 14px;
+    font-size: 16px; font-weight: 600; line-height: 1.5;
+  }
+
+  /* ══════════════════════════════
+     SLIDE 0 — 표지
+  ══════════════════════════════ */
+  #slide-0 { background: var(--deep); justify-content: center; }
+  #slide-0 .deco-a {
+    position: absolute; top: -140px; right: -140px;
+    width: 560px; height: 560px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(91,155,213,0.12) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  #slide-0 .deco-b {
+    position: absolute; bottom: -80px; left: 8%;
+    width: 340px; height: 340px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(76,175,130,0.08) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  #slide-0 .eyebrow { color: var(--gold); font-size: clamp(13px,1.2vw,18px); letter-spacing: 7px; }
+  #slide-0 .hero { color: var(--cream); font-size: clamp(52px,7vw,96px); margin-bottom: 28px; }
+  #slide-0 .hero em { color: var(--gold); font-style: normal; }
+  #slide-0 .sub {
+    font-size: clamp(16px, 2vh, 22px); font-weight: 300;
+    color: rgba(250,247,242,0.5); max-width: 600px; line-height: 1.8;
+  }
+  .cover-divider {
+    width: 72px; height: 3px; margin: 32px 0;
+    background: linear-gradient(90deg, var(--gold), transparent);
+  }
+  .cover-desc {
+    font-size: clamp(14px,1.8vh,18px); font-weight: 300;
+    color: rgba(250,247,242,0.38); line-height: 1.9; max-width: 560px;
+  }
+  .cover-brand {
+    position: absolute; bottom: 36px; left: clamp(52px,7vw,108px);
+    font-size: 11px; letter-spacing: 5px; font-weight: 700;
+    text-transform: uppercase; color: rgba(250,247,242,0.2);
+  }
+
+  /* ══════════════════════════════
+     SLIDE 1 — 기회 분석
+  ══════════════════════════════ */
+  #slide-1 { background: var(--cream); }
+  #slide-1 .eyebrow { color: var(--blue); }
+  #slide-1 .hero { color: var(--deep); }
+  #slide-1 .bullet-dot { background: var(--blue); }
+
+  .stat-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 14px; flex: 1;
+  }
+  .stat-card {
+    background: var(--white);
+    border: 1px solid rgba(26,26,46,0.08);
+    border-radius: 20px; padding: 0 24px;
+    display: flex; flex-direction: column; justify-content: center; gap: 8px;
+  }
+  .stat-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(32px, 3.8vw, 48px); line-height: 1;
+  }
+  .stat-label { font-size: 14px; color: var(--muted); line-height: 1.55; }
+  .stat-label strong { color: var(--deep); font-weight: 600; }
+
+  .strategy-list { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  .strategy-item {
+    display: flex; align-items: center; gap: 16px;
+    padding: 0 18px; border-radius: 14px;
+    background: rgba(26,26,46,0.04);
+    border: 1px solid rgba(26,26,46,0.07);
+    flex: 1;
+  }
+  .strategy-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 24px; line-height: 1; width: 32px; flex-shrink: 0; text-align: center;
+  }
+  .strategy-name { font-size: 17px; font-weight: 700; color: var(--deep); }
+  .strategy-sub { font-size: 13px; color: var(--muted); margin-top: 3px; }
+
+  /* ══════════════════════════════
+     SLIDE 2 — SNS
+  ══════════════════════════════ */
+  #slide-2 { background: var(--white); }
+  #slide-2 .eyebrow { color: var(--accent); }
+  #slide-2 .hero { color: var(--deep); }
+  #slide-2 .tag { background: rgba(212,96,122,0.1); color: var(--accent); }
+  #slide-2 .bullet-dot { background: var(--accent); }
+  #slide-2 .effect-bar { background: rgba(212,96,122,0.08); color: var(--accent); border: 1px solid rgba(212,96,122,0.2); }
+
+  .caption-cards { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+  .caption-card {
+    padding: 0 24px; border-radius: 18px;
+    border: 1.5px solid rgba(212,96,122,0.18);
+    background: rgba(212,96,122,0.04);
+    flex: 1; display: flex; flex-direction: column; justify-content: center;
+  }
+  .caption-lang {
+    font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 8px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .caption-text {
+    font-size: 14px; line-height: 1.65; color: var(--deep);
+    opacity: 0.7; font-style: italic;
+  }
+  .caption-card.xhs {
+    border-color: rgba(232,90,79,0.2);
+    background: rgba(232,90,79,0.04);
+  }
+  .caption-card.xhs .caption-lang { color: var(--red); }
+
+  /* ══════════════════════════════
+     SLIDE 3 — 인플루언서
+  ══════════════════════════════ */
+  #slide-3 { background: var(--deep); }
+  #slide-3 .deco {
+    position: absolute; bottom: -100px; right: -100px;
+    width: 400px; height: 400px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(201,169,110,0.12) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  #slide-3 .eyebrow { color: var(--gold); }
+  #slide-3 .hero { color: var(--cream); }
+  #slide-3 .tag { background: rgba(201,169,110,0.15); color: var(--gold); }
+  #slide-3 .bullet-text { color: rgba(250,247,242,0.6); }
+  #slide-3 .bullet-text strong { color: var(--cream); }
+  #slide-3 .bullet-dot { background: var(--gold); }
+  #slide-3 .effect-bar { background: rgba(201,169,110,0.12); color: var(--gold); border: 1px solid rgba(201,169,110,0.25); }
+
+  .inf-type-list { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+  .inf-type {
+    display: flex; align-items: center; gap: 18px;
+    padding: 0 22px; border-radius: 18px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.09);
+    flex: 1;
+  }
+  .inf-type-icon {
+    width: 48px; height: 48px; border-radius: 14px;
+    background: rgba(201,169,110,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  .inf-type-info { flex: 1; }
+  .inf-type-name { font-size: 17px; font-weight: 700; color: var(--cream); }
+  .inf-type-desc { font-size: 13px; color: rgba(250,247,242,0.5); margin-top: 4px; }
+  .inf-type-tag {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+    padding: 5px 14px; border-radius: 100px;
+    background: rgba(201,169,110,0.18); color: var(--gold); white-space: nowrap;
+  }
+
+  /* ══════════════════════════════
+     SLIDE 4 — 플랫폼
+  ══════════════════════════════ */
+  #slide-4 { background: var(--cream); }
+  #slide-4 .eyebrow { color: var(--green); }
+  #slide-4 .hero { color: var(--deep); }
+  #slide-4 .tag { background: rgba(76,175,130,0.1); color: var(--green); }
+  #slide-4 .bullet-dot { background: var(--green); }
+  #slide-4 .effect-bar { background: rgba(76,175,130,0.08); color: var(--green); border: 1px solid rgba(76,175,130,0.2); }
+
+  .platform-list { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+  .platform-row {
+    display: flex; align-items: center; gap: 18px;
+    padding: 0 22px; border-radius: 18px; flex: 1;
+  }
+  .platform-icon { font-size: 26px; width: 42px; text-align: center; flex-shrink: 0; }
+  .platform-info { flex: 1; }
+  .platform-name { font-size: 18px; font-weight: 700; }
+  .platform-desc { font-size: 13px; margin-top: 4px; }
+  .platform-badge {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+    padding: 5px 14px; border-radius: 100px; white-space: nowrap;
+  }
+
+  /* ══════════════════════════════
+     SLIDE 5 — 방문 경험
+  ══════════════════════════════ */
+  #slide-5 { background: var(--white); }
+  #slide-5 .eyebrow { color: var(--blue); }
+  #slide-5 .hero { color: var(--deep); }
+  #slide-5 .tag { background: rgba(91,155,213,0.1); color: var(--blue); }
+  #slide-5 .bullet-dot { background: var(--blue); }
+  #slide-5 .effect-bar { background: rgba(91,155,213,0.08); color: var(--blue); border: 1px solid rgba(91,155,213,0.2); }
+
+  .exp-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(3, 1fr);
+    gap: 12px; flex: 1;
+  }
+  .exp-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 0 18px; border-radius: 16px;
+    background: rgba(26,26,46,0.03);
+    border: 1px solid rgba(26,26,46,0.07);
+  }
+  .exp-icon { font-size: 24px; flex-shrink: 0; }
+  .exp-text { font-size: 16px; font-weight: 700; color: var(--deep); line-height: 1.3; }
+  .exp-sub { font-size: 13px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+
+  /* ══════════════════════════════
+     SLIDE 6 — 로드맵
+  ══════════════════════════════ */
+  #slide-6 { background: var(--deep); }
+  #slide-6 .eyebrow { color: var(--gold); }
+  #slide-6 .hero { color: var(--cream); font-size: clamp(28px,3.4vw,46px); }
+
+  .roadmap {
+    display: grid; grid-template-columns: repeat(4,1fr);
+    gap: 14px; flex: 1; min-height: 0;
+  }
+  .roadmap-phase {
+    border-radius: 20px; padding: 22px 20px;
+    display: flex; flex-direction: column; gap: 14px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    position: relative;
+  }
+  .roadmap-phase:not(:last-child)::after {
+    content: '→'; position: absolute; right: -12px; top: 26px;
+    font-size: 14px; color: rgba(255,255,255,0.2); z-index: 1;
+  }
+  .phase-period {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    padding: 5px 14px; border-radius: 100px;
+    display: inline-block; width: fit-content;
+  }
+  .phase-title { font-size: 18px; font-weight: 700; color: var(--cream); line-height: 1.35; }
+  .phase-items { display: flex; flex-direction: column; gap: 10px; flex: 1; justify-content: space-between; }
+  .phase-item {
+    display: flex; gap: 9px; align-items: flex-start;
+    font-size: 14px; color: rgba(250,247,242,0.6); line-height: 1.55;
+  }
+  .phase-item::before {
+    content: '·'; font-size: 16px; flex-shrink: 0;
+    margin-top: -2px; color: rgba(255,255,255,0.3);
+  }
+
+  .kpi-row { display: flex; gap: 12px; flex-shrink: 0; margin-top: 14px; }
+  .kpi-card {
+    flex: 1; background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; padding: 20px 24px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .kpi-icon { font-size: 24px; flex-shrink: 0; }
+  .kpi-label { font-size: 17px; font-weight: 600; color: var(--cream); }
+  .kpi-sub { font-size: 13px; color: rgba(250,247,242,0.45); margin-top: 4px; line-height: 1.5; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .slide { padding: 28px 24px 100px; }
+    .split { grid-template-columns: 1fr; }
+    .roadmap { grid-template-columns: 1fr 1fr; }
+    .slide-num { right: 24px !important; }
+    #tab-nav { bottom: 10px; }
+    .tab-label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="tab-nav">
+  <div class="tab active" data-slide="0"><span class="tab-dot"></span><span class="tab-label">표지</span></div>
+  <div class="tab" data-slide="1"><span class="tab-dot"></span><span class="tab-label">기회</span></div>
+  <div class="tab" data-slide="2"><span class="tab-dot"></span><span class="tab-label">SNS</span></div>
+  <div class="tab" data-slide="3"><span class="tab-dot"></span><span class="tab-label">인플루언서</span></div>
+  <div class="tab" data-slide="4"><span class="tab-dot"></span><span class="tab-label">플랫폼</span></div>
+  <div class="tab" data-slide="5"><span class="tab-dot"></span><span class="tab-label">경험</span></div>
+  <div class="tab" data-slide="6"><span class="tab-dot"></span><span class="tab-label">로드맵</span></div>
+</nav>
+
+<div class="slides-container" id="slides">
+
+  <!-- ═══ 0. 표지 ═══ -->
+  <section class="slide" id="slide-0">
+    <div class="deco-a"></div>
+    <div class="deco-b"></div>
+    <p class="eyebrow">Inbound Strategy · 2026</p>
+    <h1 class="hero">틈결 ×<br><em>외국인 방문객</em></h1>
+    <p class="sub">오프라인 방문 활성화를 위한 4가지 전략</p>
+    <div class="cover-divider"></div>
+    <p class="cover-desc">K-컬처 붐을 틈결의 지속 방문으로 전환하기 위한<br>채널별 실행 전략 제안</p>
+    <div class="cover-brand">SIRIAI</div>
+    <div class="slide-num" style="color:rgba(250,247,242,0.15);">01 / 07</div>
+  </section>
+
+  <!-- ═══ 1. 기회 분석 ═══ -->
+  <section class="slide" id="slide-1">
+    <p class="eyebrow">Opportunity</p>
+    <div class="split">
+      <div class="split-text">
+        <div>
+          <h2 class="hero">지금이 기회입니다</h2>
+          <div class="bullets">
+            <div class="bullet">
+              <div class="bullet-dot"></div>
+              <div class="bullet-text">매일 15~20% 외국인 방문 — <strong>성수기엔 50~60%가 일본인</strong></div>
+            </div>
+            <div class="bullet">
+              <div class="bullet-dot"></div>
+              <div class="bullet-text">틈결 무드 = 외국인이 찾는 <strong>'authentic Korean space'</strong>와 정확히 일치</div>
+            </div>
+          </div>
+        </div>
+        <div class="strategy-list">
+          <div class="strategy-item">
+            <div class="strategy-num" style="color:var(--accent);">01</div>
+            <div>
+              <div class="strategy-name">다국어 SNS + 샤오홍슈</div>
+              <div class="strategy-sub">IG · TikTok · 小红书 병행</div>
+            </div>
+          </div>
+          <div class="strategy-item">
+            <div class="strategy-num" style="color:var(--gold);">02</div>
+            <div>
+              <div class="strategy-name">외국인 인플루언서</div>
+              <div class="strategy-sub">Korea travel creator + 국내거주 외국인 시딩</div>
+            </div>
+          </div>
+          <div class="strategy-item">
+            <div class="strategy-num" style="color:var(--green);">03</div>
+            <div>
+              <div class="strategy-name">플랫폼 & 검색 최적화</div>
+              <div class="strategy-sub">Google Maps · TripAdvisor · 네이버지도</div>
+            </div>
+          </div>
+          <div class="strategy-item">
+            <div class="strategy-num" style="color:var(--blue);">04</div>
+            <div>
+              <div class="strategy-name">방문 경험 개선</div>
+              <div class="strategy-sub">진입 안내 · QR 메뉴 · 포토스팟 · 기념품 PB</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="split-visual">
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-num" style="color:var(--accent);">15~20<span style="font-size:0.45em;opacity:0.5;">%</span></div>
+            <div class="stat-label">틈결 일평균 외국인 비중<br><strong>성수기 50~60% 일본인</strong></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" style="color:var(--gold);">72<span style="font-size:0.45em;opacity:0.5;">%</span></div>
+            <div class="stat-label">SNS로 방문 장소 결정하는<br><strong>MZ 외국인 여행자</strong></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" style="color:var(--green);">3.2<span style="font-size:0.45em;opacity:0.5;">배</span></div>
+            <div class="stat-label">내국인 대비 외국인<br><strong>SNS 업로드 전환율</strong></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" style="color:var(--blue);">#1</div>
+            <div class="stat-label">외국인 서울 여행 관심사<br><strong>카페·공간 탐방</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num" style="color:var(--deep);">02 / 07</div>
+  </section>
+
+  <!-- ═══ 2. 전략 1: 다국어 SNS ═══ -->
+  <section class="slide" id="slide-2">
+    <p class="eyebrow">전략 01 — SNS</p>
+    <div class="split">
+      <div class="split-text">
+        <div>
+          <span class="tag">다국어 콘텐츠</span>
+          <h2 class="hero">같은 콘텐츠,<br>더 넓은 도달</h2>
+          <div class="bullets">
+            <div class="bullet">
+              <div class="bullet-dot"></div>
+              <div class="bullet-text">캡션 <strong>영·일·중 병기</strong> — 제작 추가 없이 도달 즉시 확장</div>
+            </div>
+            <div class="bullet">
+              <div class="bullet-dot"></div>
+              <div class="bullet-text"><strong>샤오홍슈(小红书)</strong> 병행 — 일본·중국인 집중 타깃</div>
+            </div>
+            <div class="bullet">
+              <div class="bullet-dot"></div>
+              <div class="bullet-text">인플루언서 콘텐츠 자막화 → <strong>2차 SNS 재활용</strong></div>
+            </div>
+          </div>
+        </div>
+        <div class="effect-bar">→ 외국인 팔로워 · 저장 · 공유 증가</div>
+      </div>
+      <div class="split-visual">
+        <div class="caption-cards">
+          <div class="caption-card">
+            <div class="caption-lang">🇺🇸 English</div>
+            <div class="caption-text">"A slow café tucked between Seoul's alleys — feels like stepping into someone's quiet studio."</div>
+          </div>
+          <div class="caption-card">
+            <div class="caption-lang">🇯🇵 日本語</div>
+            <div class="caption-text">「ソウルの路地裏に佇む静かなカフェ。誰かのアトリエに迷い込んだような感覚。」</div>
+          </div>
+          <div class="caption-card">
+            <div class="caption-lang">🇨🇳 中文</div>
+            <div class="caption-text">「藏在首尔小巷里的慢咖啡，像是走进了某人安静的工作室。」</div>
+          </div>
+          <div class="caption-card xhs">
+            <div class="caption-lang">📕 小红书 Xiaohongshu</div>
+            <div class="caption-text">일본·중국인 전용 채널 — 감성 숏폼 + 리뷰 피드 공략</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num" style="color:var(--deep);">03 / 07</div>
+  </section>
+
+  <!-- ═══ 3. 전략 2: 외국인 인플루언서 ═══ -->
+  <section class="slide" id="slide-3">
+    <div class="deco"></div>
+    <p class="eyebrow">전략 02 — 인플루언서</p>
+    <div class="split">
+      <div class="split-text">
+        <div>
+          <span class="tag">Korea Travel Creator</span>
+          <h2 class="hero">외국인이 외국인에게<br>추천하게 합니다</h2>
+          <div class="bullets">
+            <div class="bullet">
+              <div class="bullet-dot"></div>
+              <div class="bullet-text"><strong>Japan · SEA · 영미권</strong> 나노~마이크로 인플루언서 초청</div>
+            </div>
+            <div class="bullet">
+              <div class="bullet-dot"></div>
+              <div class="bullet-text">콘텐츠 <strong>자막화 → 2차 SNS 재활용</strong> 가능 형태로 제작</div>
+            </div>
+            <div class="bullet">
+              <div class="bullet-dot"></div>
+              <div class="bullet-text"><strong>국내거주 외국인 시딩</strong> — 진정성 높은 생활 밀착 콘텐츠</div>
+            </div>
+          </div>
+        </div>
+        <div class="effect-bar">→ 해외 팔로워 도달 · 구글 리뷰 · 방문 문의</div>
+      </div>
+      <div class="split-visual">
+        <div class="inf-type-list">
+          <div class="inf-type">
+            <div class="inf-type-icon">🗾</div>
+            <div class="inf-type-info">
+              <div class="inf-type-name">일본 감성 여행 크리에이터</div>
+              <div class="inf-type-desc">서울 카페 투어 · 한국 무드 콘텐츠</div>
+            </div>
+            <div class="inf-type-tag">5K–50K</div>
+          </div>
+          <div class="inf-type">
+            <div class="inf-type-icon">🌏</div>
+            <div class="inf-type-info">
+              <div class="inf-type-name">동남아 K-컬처 인플루언서</div>
+              <div class="inf-type-desc">태국·말레이시아·베트남 한국 여행</div>
+            </div>
+            <div class="inf-type-tag">10K–100K</div>
+          </div>
+          <div class="inf-type">
+            <div class="inf-type-icon">🇺🇸</div>
+            <div class="inf-type-info">
+              <div class="inf-type-name">영미권 Korea Travel Vlogger</div>
+              <div class="inf-type-desc">YouTube · Instagram Seoul 탐방</div>
+            </div>
+            <div class="inf-type-tag">20K–200K</div>
+          </div>
+          <div class="inf-type">
+            <div class="inf-type-icon">📍</div>
+            <div class="inf-type-info">
+              <div class="inf-type-name">서울 거주 외국인 로컬</div>
+              <div class="inf-type-desc">국내거주 외국인 시딩 · 높은 신뢰도</div>
+            </div>
+            <div class="inf-type-tag">1K–20K</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num" style="color:var(--cream);">04 / 07</div>
+  </section>
+
+  <!-- ═══ 4. 전략 3: 플랫폼 최적화 ═══ -->
+  <section class="slide" id="slide-4">
+    <p class="eyebrow">전략 03 — 플랫폼</p>
+    <div class="split">
+      <div class="split-text">
+        <div>
+          <span class="tag">검색 & 리뷰 최적화</span>
+          <h2 class="hero">외국인이 검색할 때<br>가장 먼저 나옵니다</h2>
+          <div class="bullets">
+            <div class="bullet">
+              <div class="bullet-dot"></div>
+              <div class="bullet-text"><strong>구글맵·네이버지도</strong> 골목 진입 경로 포함 — 찾기 허들 제거</div>
+            </div>
+            <div class="bullet">
+              <div class="bullet-dot"></div>
+              <div class="bullet-text"><strong>TripAdvisor 신규 등록</strong> — 서울 카페 카테고리 상위 진입</div>
+            </div>
+            <div class="bullet">
+              <div class="bullet-dot"></div>
+              <div class="bullet-text"><strong>小红书</strong> 채널 개설 — 일본·중국인 검색 트래픽 흡수</div>
+            </div>
+          </div>
+        </div>
+        <div class="effect-bar">→ 구글 상위 노출 · 리뷰 신뢰도 · 직접 방문</div>
+      </div>
+      <div class="split-visual">
+        <div class="platform-list">
+          <div class="platform-row" style="background:rgba(76,175,130,0.07);border:1px solid rgba(76,175,130,0.15);">
+            <div class="platform-icon">🗺️</div>
+            <div class="platform-info">
+              <div class="platform-name" style="color:var(--deep);">Google Maps</div>
+              <div class="platform-desc" style="color:var(--muted);">골목 진입 경로 · 영문 정보 · 리뷰 관리</div>
+            </div>
+            <div class="platform-badge" style="background:rgba(76,175,130,0.15);color:var(--green);">최우선</div>
+          </div>
+          <div class="platform-row" style="background:rgba(76,175,130,0.07);border:1px solid rgba(76,175,130,0.15);">
+            <div class="platform-icon">✈️</div>
+            <div class="platform-info">
+              <div class="platform-name" style="color:var(--deep);">TripAdvisor</div>
+              <div class="platform-desc" style="color:var(--muted);">신규 등록 · 서울 카페 카테고리 진입</div>
+            </div>
+            <div class="platform-badge" style="background:rgba(76,175,130,0.15);color:var(--green);">신규</div>
+          </div>
+          <div class="platform-row" style="background:rgba(76,175,130,0.07);border:1px solid rgba(76,175,130,0.15);">
+            <div class="platform-icon">🟢</div>
+            <div class="platform-info">
+              <div class="platform-name" style="color:var(--deep);">Naver Map</div>
+              <div class="platform-desc" style="color:var(--muted);">골목 안내 · 영문 설명 · 외국인 리뷰 응답</div>
+            </div>
+            <div class="platform-badge" style="background:rgba(76,175,130,0.15);color:var(--green);">보완</div>
+          </div>
+          <div class="platform-row" style="background:rgba(232,90,79,0.06);border:1px solid rgba(232,90,79,0.18);">
+            <div class="platform-icon">📕</div>
+            <div class="platform-info">
+              <div class="platform-name" style="color:var(--deep);">小红书 Xiaohongshu</div>
+              <div class="platform-desc" style="color:var(--muted);">중국어 감성 콘텐츠 · 일본·중국인 집중 타깃</div>
+            </div>
+            <div class="platform-badge" style="background:rgba(232,90,79,0.12);color:var(--red);">신규</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num" style="color:var(--deep);">05 / 07</div>
+  </section>
+
+  <!-- ═══ 5. 전략 4: 방문 경험 개선 ═══ -->
+  <section class="slide" id="slide-5">
+    <p class="eyebrow">전략 04 — 경험</p>
+    <div class="split">
+      <div class="split-text">
+        <div>
+          <span class="tag">In-store Experience</span>
+          <h2 class="hero">오면 반드시<br>올리게 됩니다</h2>
+          <div class="bullets">
+            <div class="bullet">
+              <div class="bullet-dot"></div>
+              <div class="bullet-text"><strong>골목 진입 안내</strong> — 네이버지도·구글맵 QR, 입구 사인</div>
+            </div>
+            <div class="bullet">
+              <div class="bullet-dot"></div>
+              <div class="bullet-text"><strong>QR 영문 메뉴</strong> + 알레르기·비건 정보</div>
+            </div>
+            <div class="bullet">
+              <div class="bullet-dot"></div>
+              <div class="bullet-text"><strong>포토스팟 3개소</strong> 지정 + 영문 촬영 가이드</div>
+            </div>
+          </div>
+        </div>
+        <div class="effect-bar">→ UGC 자발 생성 · 리뷰 · 재방문 · 굿즈 매출</div>
+      </div>
+      <div class="split-visual">
+        <div class="exp-grid">
+          <div class="exp-item">
+            <div class="exp-icon">🗺️</div>
+            <div><div class="exp-text">골목 진입 안내</div><div class="exp-sub">네이버지도·구글맵 QR<br>입구 골목 사인 부착</div></div>
+          </div>
+          <div class="exp-item">
+            <div class="exp-icon">📋</div>
+            <div><div class="exp-text">QR 영문 메뉴</div><div class="exp-sub">주문 허들 제거<br>알레르기 정보 포함</div></div>
+          </div>
+          <div class="exp-item">
+            <div class="exp-icon">📸</div>
+            <div><div class="exp-text">포토스팟 3곳</div><div class="exp-sub">영문 가이드 안내<br>조명·구도 최적화</div></div>
+          </div>
+          <div class="exp-item">
+            <div class="exp-icon">🛍️</div>
+            <div><div class="exp-text">기념품 PB</div><div class="exp-sub">엽서·스티커·굿즈<br>글로벌 감성 디자인</div></div>
+          </div>
+          <div class="exp-item">
+            <div class="exp-icon">⭐</div>
+            <div><div class="exp-text">리뷰 유도 카드</div><div class="exp-sub">Google·TripAdvisor QR<br>테이블 비치</div></div>
+          </div>
+          <div class="exp-item">
+            <div class="exp-icon">🌐</div>
+            <div><div class="exp-text">영문 사이니지</div><div class="exp-sub">입구·메뉴판·공간<br>영문 병기</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num" style="color:var(--deep);">06 / 07</div>
+  </section>
+
+  <!-- ═══ 6. 실행 로드맵 ═══ -->
+  <section class="slide" id="slide-6">
+    <p class="eyebrow">Roadmap</p>
+    <h2 class="hero">4단계 실행 로드맵</h2>
+
+    <div class="roadmap">
+      <div class="roadmap-phase">
+        <div class="phase-period" style="background:rgba(212,96,122,0.18);color:var(--accent);">Week 1–2</div>
+        <div class="phase-title">기반 세팅</div>
+        <div class="phase-items">
+          <div class="phase-item">구글맵 영문 + 진입 경로</div>
+          <div class="phase-item">TripAdvisor 신규 등록</div>
+          <div class="phase-item">QR 영문 메뉴 제작</div>
+          <div class="phase-item">小红书 채널 개설</div>
+        </div>
+      </div>
+      <div class="roadmap-phase">
+        <div class="phase-period" style="background:rgba(201,169,110,0.18);color:var(--gold);">Week 3–4</div>
+        <div class="phase-title">콘텐츠 전환</div>
+        <div class="phase-items">
+          <div class="phase-item">릴스 영·일·중 캡션 적용</div>
+          <div class="phase-item">포토스팟 + 골목 사인</div>
+          <div class="phase-item">리뷰 유도 카드 비치</div>
+          <div class="phase-item">입구 진입 안내 QR</div>
+        </div>
+      </div>
+      <div class="roadmap-phase">
+        <div class="phase-period" style="background:rgba(76,175,130,0.18);color:var(--green);">Month 2</div>
+        <div class="phase-title">인플루언서 실행</div>
+        <div class="phase-items">
+          <div class="phase-item">외국인 인플루언서 3–5명</div>
+          <div class="phase-item">국내거주 외국인 시딩</div>
+          <div class="phase-item">자막 콘텐츠 2차 활용</div>
+          <div class="phase-item">기념품 PB 1차 런칭</div>
+        </div>
+      </div>
+      <div class="roadmap-phase">
+        <div class="phase-period" style="background:rgba(91,155,213,0.18);color:var(--blue);">Month 3+</div>
+        <div class="phase-title">지속 운영</div>
+        <div class="phase-items">
+          <div class="phase-item">외국인 방문 월간 집계</div>
+          <div class="phase-item">리뷰 모니터링 · 응답</div>
+          <div class="phase-item">채널 성과 기반 조정</div>
+          <div class="phase-item">시즌별 캠페인 연계</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-icon">🎯</div>
+        <div>
+          <div class="kpi-label">핵심 KPI</div>
+          <div class="kpi-sub">외국인 방문 +30% · 구글 리뷰 50건+ · 해외 노출 50만+</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">🐰</div>
+        <div>
+          <div class="kpi-label">SIRIAI 풀 매니징</div>
+          <div class="kpi-sub">기획 · 섭외 · 콘텐츠 · 리포트 일괄</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-num" style="color:var(--cream);">07 / 07</div>
+  </section>
+
+</div>
+
+<script>
+  const container = document.getElementById('slides');
+  const tabs = document.querySelectorAll('.tab');
+  const slides = document.querySelectorAll('.slide');
+  let currentSlide = 0;
+
+  function updateTabs(idx) {
+    currentSlide = idx;
+    tabs.forEach((t, i) => t.classList.toggle('active', i === idx));
+  }
+
+  function goTo(idx) {
+    idx = Math.max(0, Math.min(slides.length - 1, idx));
+    slides[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+    updateTabs(idx);
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting && e.intersectionRatio >= 0.6) {
+        const idx = Array.from(slides).indexOf(e.target);
+        if (idx !== -1) updateTabs(idx);
+      }
+    });
+  }, { threshold: 0.6, root: container });
+  slides.forEach(s => observer.observe(s));
+
+  tabs.forEach(t => t.addEventListener('click', () => goTo(parseInt(t.dataset.slide))));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); goTo(currentSlide + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(currentSlide - 1); }
+    else if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+      else document.exitFullscreen().catch(() => {});
+    }
+  });
+
+  let touchStartX = 0;
+  container.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  container.addEventListener('touchend', e => {
+    const dx = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(dx) > 50) goTo(dx > 0 ? currentSlide + 1 : currentSlide - 1);
+  }, { passive: true });
+
+  updateTabs(0);
+</script>
+
+</body>
+</html>

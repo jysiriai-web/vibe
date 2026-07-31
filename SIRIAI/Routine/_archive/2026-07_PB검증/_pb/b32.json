@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "지구의 온도 G9ONDO",
+      "verdict": "적합",
+      "own_brand": "G9ONDO (지구의온도)",
+      "reason": "자체 브랜드 G9ONDO로 입욕제·바디·향수 등 소비자 직판 쇼핑몰 운영 (g9ondo.com)"
+    },
+    {
+      "company": "(주)한국쉬즈라인",
+      "verdict": "적합",
+      "own_brand": "Toolif (툴리프)",
+      "reason": "자체 브랜드 Toolif로 메이크업 브러시·퍼프·헤어도구 소비자 직판 (toolif.co.kr)"
+    },
+    {
+      "company": "아이프로덕트",
+      "verdict": "적합",
+      "own_brand": "Dr.Percent (닥터퍼센트)",
+      "reason": "자체 브랜드 Dr.Percent로 피부과학 기반 스킨케어 직판, 누적 후기 3,000개+ (drpercent.co.kr)"
+    },
+    {
+      "company": "(주)코비스타",
+      "verdict": "적합",
+      "own_brand": "Solep (솔랩)",
+      "reason": "21년 노하우 두피케어 브랜드 Solep으로 샴푸·앰플 등 소비자 직판 (solepkorea.com)"
+    },
+    {
+      "company": "LINDSAY&COS Inc.",
+      "verdict": "적합",
+      "own_brand": "Lindsay",
+      "reason": "자체 브랜드 Lindsay로 모델링팩 등 소비자 판매, OEM/ODM 병행하나 자사 브랜드 보유 (lindsaycos.com, tradekorea)"
+    },
+    {
+      "company": "주식회사 스타힐스코스메틱",
+      "verdict": "적합",
+      "own_brand": "MOO100 (무백)",
+      "reason": "자체 브랜드 MOO100으로 헤어케어(샴푸·트리트먼트·에센스) 소비자 직판 (moo100.com)"
+    },
+    {
+      "company": "MAKE SOUL",
+      "verdict": "적합",
+      "own_brand": "MAKE SOUL (메크쏘울)",
+      "reason": "자체 피부과학연구소 기반 비건 메이크업 브랜드 MAKE SOUL로 소비자 직판 (make-soul.co.kr)"
+    },
+    {
+      "company": "휴션",
+      "verdict": "적합",
+      "own_brand": "HUCEAN (휴션)",
+      "reason": "해양·인간 유래 엑소솜 기반 스킨케어 자체 브랜드 HUCEAN, 소비자 직판 이커머스 운영 (huceane.com)"
+    },
+    {
+      "company": "SKINISGOOD",
+      "verdict": "적합",
+      "own_brand": "LISSEDERM (리쎄덤)",
+      "reason": "자체 브랜드 LISSEDERM으로 토너·세럼·크림 등 소비자 직판, 브랜드스토리 및 자사몰 운영 (lissederm.co.kr)"
+    },
+    {
+      "company": "솔테라피",
+      "verdict": "적합",
+      "own_brand": "SALTHERAPY (솔테라피)",
+      "reason": "자체 브랜드 SALTHERAPY로 바디스크럽·바디워시·바디오일 소비자 직판 (saltherapy.us)"
+    }
+  ]
+}

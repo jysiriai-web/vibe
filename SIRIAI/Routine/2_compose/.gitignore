@@ -1,0 +1,4 @@
+__pycache__/
+_*.py
+_preview*.html
+archive/

@@ -1,0 +1,66 @@
+[
+  {
+    "code": "NAN7780",
+    "cat": "기타",
+    "intro": "실리콘 음극재·자기색가변 나노소재 개발사(구 나노브릭)",
+    "verdict": "제외",
+    "basis": "소재기업, 화장품 완제품 없음",
+    "homepage": "https://ns-am.com/"
+  },
+  {
+    "code": "DAS6145",
+    "cat": "스킨케어",
+    "intro": "줄기세포배양액 화장품 제조사, 자체 브랜드 루비셀 보유",
+    "verdict": "타겟",
+    "basis": "루비셀·아토락 등 자체브랜드",
+    "homepage": ""
+  },
+  {
+    "code": "DER3356",
+    "cat": "기타",
+    "intro": "필러·리프팅실·엑소좀 등 미용 의료기기 제조·수출사",
+    "verdict": "제외",
+    "basis": "병원용 의료기기, 소비자판매 아님",
+    "homepage": ""
+  },
+  {
+    "code": "MTP7548",
+    "cat": "기타",
+    "intro": "서울 중랑구 소재 광고·행사대행 법인",
+    "verdict": "제외",
+    "basis": "사업자등록 업종 광고대행업",
+    "homepage": ""
+  },
+  {
+    "code": "MAY3296",
+    "cat": "헤어바디",
+    "intro": "필러·스킨부스터와 탈모케어 브랜드 헤어나를 보유한 뷰티기업",
+    "verdict": "타겟",
+    "basis": "헤어나 샴푸·앰플 자체브랜드",
+    "homepage": ""
+  },
+  {
+    "code": "BES5852",
+    "cat": "기타",
+    "intro": "인천 송도 소재 화장품 처방개발·OEM/ODM 전문사",
+    "verdict": "제외",
+    "basis": "BS ON:+는 월별 제형 소개용",
+    "homepage": ""
+  },
+  {
+    "code": "CIT7674",
+    "cat": "기타",
+    "intro": "CGMP·ISO22716 인증 화장품 ODM 토탈 서비스 기업",
+    "verdict": "제외",
+    "basis": "홈피 전면 ODM, 자체브랜드 없음",
+    "homepage": ""
+  },
+  {
+    "code": "EZE8225",
+    "cat": "기타",
+    "intro": "프리미엄 화장품 OEM/ODM 제조 기업",
+    "verdict": "제외",
+    "basis": "홈피 전면 OEM&ODM 표방",
+    "homepage": ""
+  }
+]

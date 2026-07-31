@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "company": "팜스비앤비",
+      "verdict": "적합",
+      "own_brand": "팜스아이비씨(PAMSIBC), 올로스(OLOS), 엠베카(MBK)",
+      "reason": "자체 PB 3종(PAMSIBC·OLOS·MBK) 보유 및 자사몰(pamseshop.co.kr)에서 소비자 직판, OEM/ODM 병행 (출처: pamseshop.co.kr)"
+    },
+    {
+      "company": "프랜드",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "코스메틱 소재·원료 전문 공급사(B2B), 소비자 화장품 브랜드 없음 (출처: plandkorea.com, 검색결과 '코스메틱소재 전문기업')"
+    },
+    {
+      "company": "THESERA",
+      "verdict": "적합",
+      "own_brand": "더쎄라(The SERA)",
+      "reason": "자체 브랜드 '더쎄라'로 스킨케어 제품(세라엑토인, 텔로미어 앰플 등) 소비자 직판, B2B 전문점몰도 병행 (출처: thesera.co.kr)"
+    },
+    {
+      "company": "(주)스킨솔루션",
+      "verdict": "애매",
+      "own_brand": "",
+      "reason": "홈페이지(skinsolution.co.kr) SSL 오류로 접속 불가, 검색으로도 자체 소비자 브랜드 여부 확인 불가 (출처: 검색 및 직접 접속 시도)"
+    },
+    {
+      "company": "욜리 메이크업툴",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "중국 메이크업 브러시·파우더퍼프 전문 OEM/ODM 제조사(B2B), 자체 소비자 브랜드 없음 (출처: yolybrush.com)"
+    },
+    {
+      "company": "GUANGZHOU LVFANGZHOU INDUSTRIAL CO.,LTD",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "부직포·일회용 뷰티용품 OEM/ODM 수탁 제조 전문(B2B), 자체 소비자 브랜드 없음 (출처: lfz-nonwoven.com)"
+    },
+    {
+      "company": "한방미인화장품 HBMIC",
+      "verdict": "적합",
+      "own_brand": "HBMIC",
+      "reason": "자체 브랜드 HBMIC로 소비자 쇼핑몰(hbmicmall.net) 운영 및 에스테틱 화장품 직판, OEM/ODM 병행 (출처: hbmicmall.net, hbmic.com)"
+    },
+    {
+      "company": "MELKA",
+      "verdict": "적합",
+      "own_brand": "멜카(MELKA)",
+      "reason": "OEM/ODM사 담을이 런칭한 자체 기능성 화장품 브랜드 멜카, 올리브영 입점 확인 (출처: livesnews.com 기사, oliveyoung.co.kr)"
+    },
+    {
+      "company": "에이치제이코퍼레이션즈 주식회사",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "보톡스(TOXPIA)·필러(LAPIENA)·엑소좀 등 메디컬 에스테틱 의약품 도매 B2B 업체, 소비자 화장품 브랜드 아님 (출처: hjcorporations.kr)"
+    },
+    {
+      "company": "주식회사 케이원파마",
+      "verdict": "부적합",
+      "own_brand": "",
+      "reason": "더말필러(Luscifil)·지방용해제(LusciLIPO) 등 메디컬 에스테틱 의약품 도매 B2B, 소비자 화장품 브랜드 아님 (출처: konepharma.co.kr)"
+    }
+  ]
+}
