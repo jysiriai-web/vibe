@@ -137,7 +137,8 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
   }
 
   // 인증 창 하나 먼저 띄우고 '스캔 시작'을 기다린다(대기 초과면 여기서 throw).
-  const { browser, ctx } = await launchBrowser({ onWarmup, waitForGo, takeGo, onNote }); // Playwright 미설치면 throw
+  // shouldStop 을 같이 넘긴다 — 인증 대기 중에 눌린 '중지'도 여기서 먹어야 크롬 창이 닫힌다.
+  const { browser, ctx } = await launchBrowser({ onWarmup, waitForGo, takeGo, onNote, shouldStop }); // Playwright 미설치면 throw
   const detected = { ...prev }; // 이미 업로드된 건 이전 결과 유지
   let done = 0;
   let newUp = 0;

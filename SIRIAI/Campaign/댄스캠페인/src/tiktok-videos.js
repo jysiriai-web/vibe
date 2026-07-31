@@ -110,7 +110,7 @@ async function waitForHuman(page, handle, onCaptcha) {
 // 예전엔 자동 감지(프로필 렌더 폴링)로 판단했는데, 시간 압박·오탐이 있었다.
 // 이제는 '사람 확인'이 기본 신호다: waitForGo 가 resolve 되면 신뢰하고 진행.
 // (프로필이 저절로 렌더되면 인증이 필요 없던 것이므로 확인 없이도 자동 진행 — 쿠키 살아있을 때 편의)
-async function warmUp(ctx, { onWarmup, waitForGo, takeGo, onNote, timeout = 15 * 60 * 1000 } = {}) {
+async function warmUp(ctx, { onWarmup, waitForGo, takeGo, onNote, shouldStop, timeout = 15 * 60 * 1000 } = {}) {
   const page = await ctx.newPage();
   const start = Date.now();
   let ok = false;
@@ -123,6 +123,10 @@ async function warmUp(ctx, { onWarmup, waitForGo, takeGo, onNote, timeout = 15 *
     if (onWarmup) { try { onWarmup(); } catch {} } // 창 떴고 인증 대기 — 화면에 '스캔 시작' 버튼 띄우라는 신호
     let lastReload = Date.now();
     while (Date.now() - start < timeout) {
+      /* ⚠️ '완전 중지'가 여기서 안 먹었다. 인증 대기는 15분짜리 루프인데 중지 깃발을 안 봤다 —
+         로봇 인증이 안 풀리면 눌러도 안 멈추고, 서버를 죽이는 것 말고는 크롬 창을 접을 방법이 없었다.
+         (중지는 스캔 중일 때만 먹는다고 고쳤는데, 인증 구간이 그 바깥에 남아 있었다) */
+      if (shouldStop && shouldStop()) { note('중지했어요 — 스캔을 시작하지 않았습니다.'); break; }
       if (await profileRendered(page)) { ok = true; break; }   // 인증 필요 없었음(쿠키 살아있음) → 자동 진행
 
       const kind = await pageKind(page);
@@ -160,7 +164,7 @@ async function warmUp(ctx, { onWarmup, waitForGo, takeGo, onNote, timeout = 15 *
 }
 
 // warmup=false 는 테스트용. 평소엔 항상 인증 관문을 거친다 (호출부가 빠뜨릴 수 없게 여기에 둠).
-export async function launchBrowser({ warmup = true, onWarmup, waitForGo, takeGo, onNote } = {}) {
+export async function launchBrowser({ warmup = true, onWarmup, waitForGo, takeGo, onNote, shouldStop } = {}) {
   const { chromium } = await import('playwright'); // 미설치면 여기서 throw
   const proxy = proxyFromEnv(); // TIKTOK_PROXY 설정 시 스캐너를 그 프록시(다른 나라)로 내보냄
   const browser = await chromium.launch({ headless: false, ...(proxy ? { proxy } : {}) });
@@ -172,10 +176,13 @@ export async function launchBrowser({ warmup = true, onWarmup, waitForGo, takeGo
     ctx = await browser.newContext(base); // 저장된 세션이 깨졌으면 그냥 새로 시작
   }
   if (warmup) {
-    const ok = await warmUp(ctx, { onWarmup, waitForGo, takeGo, onNote });
+    const ok = await warmUp(ctx, { onWarmup, waitForGo, takeGo, onNote, shouldStop });
     if (!ok) {
       try { await browser.close(); } catch {}
-      throw new Error('로봇 인증 대기가 끝났어요(시간 초과). 크롬 창에서 인증을 끝내고 스캔을 다시 눌러주세요.');
+      // 중지해서 안 연 것과 시간이 다 된 것은 다른 일이다 — 중지에 '시간 초과'라고 하면 안 된다.
+      throw new Error(shouldStop && shouldStop()
+        ? '중지했어요 — 스캔을 시작하지 않았습니다.'
+        : '로봇 인증 대기가 끝났어요(시간 초과). 크롬 창에서 인증을 끝내고 스캔을 다시 눌러주세요.');
     }
     try { mkdirSync(dirname(SESSION_PATH), { recursive: true }); await ctx.storageState({ path: SESSION_PATH }); } catch {}
   }
