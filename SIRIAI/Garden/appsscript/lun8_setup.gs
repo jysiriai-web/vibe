@@ -139,7 +139,27 @@ function setupLun8() {
     var iPlat  = rcAny(['参加を希望するsns', '希望するsns', '플랫폼']);
     var iLink  = rcAny(['リンク', 'url']);
     var iSnsId = rcAny(['id（ユーザー名）', 'ユーザー名', 'sns의 id']);
-    var iTk = rc('tiktok'), iIg = rc('instagram');
+    /* 플랫폼 열은 '링크 칸' 을 먼저 찾는다.
+       ⚠️ rc() 는 먼저 걸리는 헤더를 준다. 마루 7/23 폼은 인스타 칸이 둘이다 —
+         6열 '応募するInstagramのID（ユーザー名）'  ← 아이디
+         7열 '応募するInstagramアカウントのリンク（URL）' ← 진짜 링크
+       그래서 iIg 가 아이디 칸(@nana_dw_7)을 잡았고, cleanUrl 이 URL 이 아니라고 버려
+       22명이 한 명도 안 들어왔다. 링크·URL 이 붙은 헤더를 우선한다. */
+    var rcPlat = function (word) {
+      var j;
+      for (j = 0; j < rHead.length; j++) if (rHead[j].indexOf(word) >= 0 && /リンク|url|링크|주소/.test(rHead[j])) return j;
+      for (j = 0; j < rHead.length; j++) if (rHead[j].indexOf(word) >= 0) return j;   // 링크 칸이 없으면 아무거나(아이디로 만들어 쓴다)
+      return -1;
+    };
+    var iTk = rcPlat('tiktok'), iIg = rcPlat('instagram');
+    /* 플랫폼별 아이디 칸 — 링크가 없거나 단축주소일 때 이걸로 주소를 만든다.
+       (기존 iSnsId 는 '선택+링크' 폼용이라 플랫폼 구분이 없다) */
+    var rcId = function (word) {
+      for (var j = 0; j < rHead.length; j++)
+        if (rHead[j].indexOf(word) >= 0 && /id|ユーザー名|아이디|계정/.test(rHead[j]) && !/リンク|url|링크|주소/.test(rHead[j])) return j;
+      return -1;
+    };
+    var iTkId = rcId('tiktok'), iIgId = rcId('instagram');
     // 위 두 칸을 못 찾았고 '선택+링크' 형태면, 행마다 갈라 넣는다(아래 pickLinks).
     var splitMode = (iTk < 0 && iIg < 0 && iLink >= 0 && iPlat >= 0);
     if (splitMode) Logger.log('ℹ️ ' + src.company + ': 플랫폼 선택+링크 한 칸 형식으로 읽습니다.');
@@ -151,7 +171,18 @@ function setupLun8() {
        링크가 lite.tiktok.com 단축주소면 핸들을 못 뽑으므로 아이디 칸으로 만들어 준다
        (전각 ＠·앞뒤 공백 제거). 실제로 마루 시트에 3건 있었다. */
     var pickLinks = function (row) {
-      if (!splitMode) return [iTk >= 0 ? cleanUrl(row[iTk]) : '', iIg >= 0 ? cleanUrl(row[iIg]) : ''];
+      if (!splitMode) {
+        /* 링크가 비었거나 주소 꼴이 아니면 아이디 칸으로 만들어 준다 — 링크만 보고 버리면
+           폼이 아이디만 받은 사람이 통째로 사라진다(마루 폼이 실제로 그랬다). */
+        var mk = function (iLnk, iId, isIgP) {
+          var v = iLnk >= 0 ? cleanUrl(row[iLnk]) : '';
+          if (v && /(tiktok|instagram)\.com/i.test(v) && v.indexOf('lite.tiktok.com') < 0) return v;
+          var idv = iId >= 0 ? t(row[iId]).replace(/[＠@]/g, '').replace(/\s+/g, '') : '';
+          if (!idv) return '';
+          return isIgP ? 'https://www.instagram.com/' + idv : 'https://www.tiktok.com/@' + idv;
+        };
+        return [mk(iTk, iTkId, false), mk(iIg, iIgId, true)];
+      }
       var pv = t(row[iPlat]).toLowerCase();
       var isIg = pv.indexOf('instagram') >= 0 || pv.indexOf('インスタ') >= 0;
       var link = cleanUrl(row[iLink]);
