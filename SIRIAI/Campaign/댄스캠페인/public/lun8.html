@@ -2952,7 +2952,10 @@ async function deleteSelected(){
       headers:{'Content-Type':'application/json'}, body: JSON.stringify({ rows }) });
     const j = await res.json();
     if(j.error) throw new Error(j.error);
-    toast(`<b>${j.deleted}명</b> 지웠어요` + (j.overridesShifted?` · 검수 잠금 ${j.overridesShifted}건 정리`:'') + '.');
+    /* ovWarn = 잠금 정리가 실패했다는 서버 경고. 안 띄우면 잠금이 남의 행에 옮겨붙은 채로
+       '지웠어요' 만 뜬다 — 조용한 실패를 또 만드는 자리다. */
+    if(j.ovWarn) toast(`<b>${j.deleted}명</b> 지웠지만 — ` + esc(j.ovWarn), 'bad');
+    else toast(`<b>${j.deleted}명</b> 지웠어요` + (j.overridesShifted?` · 검수 잠금 ${j.overridesShifted}건 정리`:'') + '.');
     await loadData();
   } catch(e){ toast('삭제 실패: ' + esc(e.message||e), 'bad'); }
 }
