@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>SIRIAI — 知り合い</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&display=swap" />
+<style>
+  :root{
+    --paper:#f3eee2; --ink:#211a33;
+    --ink-2:rgba(33,26,51,.74); --ink-3:rgba(33,26,51,.56);
+    --hair:rgba(33,26,51,.13);
+    --peach:rgba(246,201,168,.5); --lilac:rgba(221,208,239,.45);
+    --shadow:0 16px 44px rgba(33,26,51,.13);
+    --sans:'Pretendard','Arimo',system-ui,sans-serif;
+    --en:'Arimo','Pretendard',system-ui,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+    --serif:'Bodoni Moda',serif;
+    --r-s:14px; --r-m:18px; --r-pill:100px;
+    --rail-w:66px; --rail-open:340px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:var(--sans); color:var(--ink);
+    background:
+      radial-gradient(620px 480px at 16% 6%, var(--peach), transparent 62%),
+      radial-gradient(680px 520px at 88% 4%, var(--lilac), transparent 60%),
+      var(--paper);
+    background-attachment:fixed;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    line-height:1.6; word-break:keep-all; overflow:hidden;
+  }
+  .en{font-family:var(--en)}
+  .mono{font-family:var(--mono);text-transform:uppercase;letter-spacing:.18em;font-size:11px;color:var(--ink-3)}
+  a{color:inherit}
+  button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:none}
+
+  /* ===== INTRO ===== */
+  #intro{
+    position:fixed; inset:0; z-index:60;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:32px; text-align:center;
+    transition:opacity .7s ease, visibility .7s ease;
+  }
+  #intro.gone{opacity:0; visibility:hidden; pointer-events:none}
+  .intro-tag{margin-bottom:26px}
+  .intro-h{
+    font-weight:600; line-height:1.32; letter-spacing:-.01em;
+    font-size:clamp(26px,3.5vw,44px); max-width:18ch;
+  }
+  .intro-h .b{
+    font-family:var(--serif); font-style:italic; font-weight:500;
+    border-bottom:1.5px solid var(--hair); padding-bottom:1px;
+  }
+  .intro-sub{margin-top:18px; color:var(--ink-3); font-size:15px; max-width:34ch}
+  .start{
+    margin-top:40px; display:inline-flex; align-items:center; gap:11px;
+    padding:15px 30px; border-radius:var(--r-pill);
+    background:var(--ink); color:var(--paper);
+    font-size:15px; font-weight:500; letter-spacing:.01em;
+    box-shadow:var(--shadow); transition:transform .25s ease, opacity .25s ease;
+  }
+  .start:hover{transform:translateY(-2px)}
+  .start .ar{transition:transform .3s ease}
+  .start:hover .ar{transform:translateX(4px)}
+
+  /* ===== STAGE ===== */
+  #stage{position:fixed; inset:0; opacity:0; transition:opacity .7s ease .1s}
+  #stage.on{opacity:1}
+  .wrap{
+    height:100%; max-width:1280px; margin:0 auto;
+    padding:clamp(22px,3.4vh,40px) clamp(26px,4vw,64px);
+    display:grid; grid-template-columns:minmax(330px,408px) 1fr;
+    gap:clamp(30px,4vw,68px); align-items:stretch;
+    position:relative;
+  }
+
+  /* ===== LEFT (questions) ===== */
+  .left{display:flex; flex-direction:column; min-height:0; position:relative}
+  .brandline{margin-top:auto; padding-top:22px}
+  .brandline .q{
+    font-family:var(--serif); font-style:italic; font-size:19px;
+    color:var(--ink-2); line-height:1.5; max-width:24ch;
+  }
+  .lead{margin-bottom:6px}
+  .lead .mono{display:block; margin-bottom:13px}
+  .lead h1{
+    font-weight:600; letter-spacing:-.01em; line-height:1.28;
+    font-size:clamp(21px,1.8vw,25px);
+  }
+  .lead h1 .em{font-family:var(--serif); font-style:italic; font-weight:500}
+  .qlist{list-style:none; margin-top:26px; display:flex; flex-direction:column; gap:2px}
+  .qitem{
+    display:flex; align-items:flex-start; gap:14px;
+    padding:15px 14px 15px 4px; border:none; width:100%; text-align:left;
+    border-top:1px solid var(--hair);
+    transition:padding-left .3s ease;
+  }
+  .qitem:last-child{border-bottom:1px solid var(--hair)}
+  .qitem .n{font-family:var(--mono);font-size:11px;color:var(--ink-3);padding-top:4px;letter-spacing:.1em}
+  .qitem .t{
+    font-size:16.5px; font-weight:500; line-height:1.42; color:var(--ink-2);
+    transition:color .25s ease;
+  }
+  .qitem:hover{padding-left:10px}
+  .qitem:hover .t{color:var(--ink)}
+  .qitem.active .t{color:var(--ink)}
+  .qitem.active .n{color:var(--ink)}
+
+  /* ===== RAIL (collapsed overlay) ===== */
+  #rail{
+    position:absolute; top:0; left:0; height:100%; width:var(--rail-w);
+    z-index:25; padding:clamp(22px,3.4vh,40px) 0 clamp(22px,3.4vh,40px) clamp(26px,4vw,64px);
+    display:none; flex-direction:column;
+    background:linear-gradient(90deg, var(--paper) 62%, rgba(243,238,226,.0));
+    transition:width .42s cubic-bezier(.4,0,.1,1);
+    overflow:hidden;
+  }
+  #rail.show{display:flex}
+  #rail::before{
+    content:""; position:absolute; inset:0 0 0 0; z-index:-1;
+    background:
+      radial-gradient(420px 400px at 0% 6%, var(--peach), transparent 70%),
+      var(--paper);
+    opacity:0; transition:opacity .42s ease;
+  }
+  #rail:hover{width:var(--rail-open); box-shadow:var(--shadow)}
+  #rail:hover::before{opacity:1}
+  .rail-cap{font-family:var(--mono);font-size:11px;color:var(--ink-3);writing-mode:vertical-rl;letter-spacing:.22em;margin-bottom:18px}
+  .rail-list{list-style:none; display:flex; flex-direction:column; gap:1px; flex:1}
+  .rail-item{
+    display:flex; align-items:center; gap:14px; width:100%; text-align:left;
+    padding:13px 12px 13px 0; border-top:1px solid var(--hair);
+    white-space:nowrap;
+  }
+  .rail-item:last-of-type{border-bottom:1px solid var(--hair)}
+  .rail-item .n{font-family:var(--mono);font-size:11px;color:var(--ink-3);min-width:20px;transition:color .25s ease}
+  .rail-item .t{
+    font-size:15px; font-weight:500; color:var(--ink-2);
+    opacity:0; transform:translateX(-6px);
+    transition:opacity .3s ease .04s, transform .3s ease .04s, color .25s ease;
+  }
+  #rail:hover .rail-item .t{opacity:1; transform:none}
+  .rail-item.active .n{color:var(--ink)}
+  .rail-item.active .t{color:var(--ink)}
+  .rail-item:hover .t{color:var(--ink)}
+  .rail-foot{
+    opacity:0; transition:opacity .3s ease .06s; white-space:nowrap;
+    font-family:var(--mono); font-size:10px; color:var(--ink-3); letter-spacing:.14em;
+  }
+  #rail:hover .rail-foot{opacity:1}
+
+  /* ===== RIGHT (answer) ===== */
+  .right{display:flex; flex-direction:column; min-height:0; position:relative}
+  .right-inner{
+    display:flex; flex-direction:column; min-height:0; height:100%;
+    padding-top:clamp(10px,4vh,52px);
+  }
+  .ans-head{margin-bottom:4px; flex:none}
+  .ans-head .mono{display:block; margin-bottom:14px}
+  .ans-title{
+    font-weight:600; letter-spacing:-.012em; line-height:1.22;
+    font-size:clamp(26px,3.1vw,42px); max-width:17ch;
+  }
+  .ans-title .em{font-family:var(--serif); font-style:italic; font-weight:500}
+
+  .ans-scroll{flex:1; min-height:0; overflow-y:auto; padding-top:20px; -ms-overflow-style:none; scrollbar-width:none}
+  .ans-scroll::-webkit-scrollbar{display:none}
+
+  .ans-body{
+    font-size:clamp(17px,1.55vw,22px); line-height:1.66; color:var(--ink-2);
+    max-width:42ch; font-weight:400;
+  }
+  .cursor{display:inline-block; width:2px; height:1.05em; background:var(--ink);
+    margin-left:1px; vertical-align:-2px; animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+
+  /* big inline number (only meaningful questions) */
+  .figure{
+    margin-top:26px; display:flex; align-items:baseline; gap:16px;
+    opacity:0; transform:translateY(8px); transition:opacity .6s ease, transform .6s ease;
+  }
+  .figure.in{opacity:1; transform:none}
+  .figure .big{
+    font-family:var(--en); font-weight:700; font-size:clamp(48px,6vw,76px);
+    line-height:.9; letter-spacing:-.03em; color:var(--ink);
+  }
+  .figure .big .pct{font-size:.5em; font-weight:600; margin-left:2px}
+  .figure .cap{font-size:14.5px; color:var(--ink-3); line-height:1.5; max-width:20ch}
+
+  /* 2x2 visual (overseas only) */
+  .grid2{
+    margin-top:28px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px; max-width:380px;
+    opacity:0; transform:translateY(8px); transition:opacity .6s ease, transform .6s ease;
+  }
+  .grid2.in{opacity:1; transform:none}
+  .chan{
+    border:1px solid var(--hair); border-radius:var(--r-s);
+    padding:17px 16px; display:flex; flex-direction:column; gap:7px;
+    background:rgba(243,238,226,.4); min-height:78px;
+  }
+  .chan .mk{
+    width:24px; height:24px; border-radius:7px; display:grid; place-items:center;
+    border:1px solid var(--hair); font-family:var(--mono); font-size:11px; color:var(--ink-2);
+  }
+  .chan .nm{font-family:var(--en); font-weight:600; font-size:15px; letter-spacing:-.01em}
+  .chan .rg{font-family:var(--mono); font-size:9.5px; color:var(--ink-3); letter-spacing:.1em}
+
+  /* ===== HIERARCHY: 3 distinct shapes ===== */
+  .ans-actions{margin-top:30px; display:flex; flex-direction:column; gap:22px; padding-bottom:8px;
+    opacity:0; transform:translateY(8px); transition:opacity .55s ease, transform .55s ease}
+  .ans-actions.in{opacity:1; transform:none}
+
+  /* (a) follow-ups = QUESTION feel: outline + leading question-mark glyph */
+  .follow-wrap{display:flex; flex-direction:column; gap:9px}
+  .follow-lbl{font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:.2em;margin-bottom:3px}
+  .chips{display:flex; flex-wrap:wrap; gap:9px}
+  .chip{
+    display:inline-flex; align-items:center; gap:9px;
+    padding:10px 17px 10px 14px; border-radius:var(--r-pill);
+    border:1px solid var(--hair); background:transparent;
+    font-size:14.5px; font-weight:500; color:var(--ink-2);
+    transition:border-color .25s ease, color .25s ease, transform .25s ease, background .25s ease;
+  }
+  .chip .qm{
+    font-family:var(--serif); font-style:italic; font-size:16px; color:var(--ink-3);
+    line-height:1; transition:color .25s ease;
+  }
+  .chip:hover{border-color:var(--ink); color:var(--ink); transform:translateY(-1px)}
+  .chip:hover .qm{color:var(--ink)}
+
+  /* (b) CTA = the ONLY Ink solid pill — must dominate */
+  .cta-wrap{display:flex; flex-direction:column; gap:13px}
+  .cta-note{font-size:14px; color:var(--ink-3); line-height:1.55; max-width:30ch}
+  .cta-row{display:flex; flex-wrap:wrap; gap:11px; align-items:center}
+  .cta{
+    display:inline-flex; align-items:center; gap:10px;
+    padding:14px 26px; border-radius:var(--r-pill);
+    background:var(--ink); color:var(--paper);
+    font-size:14.5px; font-weight:600; letter-spacing:.01em;
+    box-shadow:var(--shadow); transition:transform .25s ease;
+  }
+  .cta:hover{transform:translateY(-2px)}
+  .cta .ar{transition:transform .3s ease}
+  .cta:hover .ar{transform:translateX(4px)}
+  .cta-2nd{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:14px; font-weight:500; color:var(--ink-2);
+    border-bottom:1px solid var(--ink-2); padding-bottom:2px;
+    transition:color .25s ease, border-color .25s ease;
+  }
+  .cta-2nd:hover{color:var(--ink); border-color:var(--ink)}
+
+  /* (c) reference = plain underline text link */
+  .reflink{
+    display:inline-flex; align-items:center; gap:7px; align-self:flex-start;
+    font-size:14.5px; font-weight:500; color:var(--ink-2);
+    text-decoration:underline; text-underline-offset:4px;
+    text-decoration-color:var(--hair); text-decoration-thickness:1px;
+    transition:color .25s ease, text-decoration-color .25s ease;
+  }
+  .reflink:hover{color:var(--ink); text-decoration-color:var(--ink)}
+  .reflink .ar{font-size:12px}
+
+  /* right greeting (initial) */
+  .greet{display:flex; flex-direction:column; height:100%; justify-content:center; padding-top:clamp(10px,4vh,52px)}
+  .greet .mono{margin-bottom:18px}
+  .greet h2{
+    font-weight:600; letter-spacing:-.01em; line-height:1.3;
+    font-size:clamp(24px,2.7vw,36px); max-width:16ch;
+  }
+  .greet h2 .em{font-family:var(--serif); font-style:italic; font-weight:500}
+  .greet p{margin-top:18px; color:var(--ink-3); font-size:16px; max-width:30ch}
+  .greet .hint{margin-top:30px; display:inline-flex; align-items:center; gap:10px; color:var(--ink-3); font-size:14px}
+  .greet .hint .ar{animation:nudge 1.8s ease-in-out infinite}
+  @keyframes nudge{0%,100%{transform:translateX(0)}50%{transform:translateX(-5px)}}
+
+  /* footer */
+  .mini-foot{
+    position:fixed; left:0; right:0; bottom:0; z-index:30; pointer-events:none;
+    padding:13px clamp(26px,4vw,64px);
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:var(--mono); font-size:10px; color:var(--ink-3); letter-spacing:.14em;
+  }
+  .mini-foot .r{text-align:right}
+
+  /* ===== MOBILE ===== */
+  .m-back{display:none}
+  @media (max-width:840px){
+    body{overflow:auto}
+    #rail{display:none !important}
+    .wrap{
+      grid-template-columns:1fr; height:auto; min-height:100%;
+      padding:84px 22px 90px; gap:0;
+    }
+    .brandline{display:none}
+    .left.hide-m{display:none}
+    .right{display:none}
+    .right.show-m{display:flex}
+    .qlist{margin-top:20px}
+    .qitem .t{font-size:17px}
+    .ans-scroll{overflow:visible}
+    .right-inner{padding-top:0}
+    .ans-title{font-size:clamp(25px,7vw,33px)}
+    .ans-body{font-size:18px; max-width:none}
+    .grid2,.figure{max-width:none}
+    .m-back{
+      display:inline-flex; align-items:center; gap:9px; margin-bottom:24px;
+      font-family:var(--mono); font-size:11px; color:var(--ink-3); letter-spacing:.14em;
+    }
+    .mini-foot{position:static; justify-content:center; gap:8px; padding:36px 22px 8px; flex-wrap:wrap; text-align:center}
+    .mini-foot .r{display:none}
+  }
+  @media (max-width:840px){
+    .intro-h{font-size:clamp(25px,7vw,34px)}
+  }
+</style>
+</head>
+<body>
+
+  <!-- INTRO -->
+  <section id="intro">
+    <div class="intro-tag mono">SIRIAI · AI Consulting Studio · Seoul</div>
+    <h1 class="intro-h">SIRIAI가 <span class="b" id="brandName">당신의</span> 고민을<br/>해결해 드립니다.</h1>
+    <p class="intro-sub">정형화된 리스트가 아니라, 브랜드 결에 맞춰 매번 새로 짜는 대화.</p>
+    <button class="start" id="startBtn">
+      <span>시작하기</span>
+      <span class="ar en">→</span>
+    </button>
+  </section>
+
+  <!-- STAGE -->
+  <main id="stage">
+    <div class="wrap">
+
+      <!-- LEFT -->
+      <section class="left" id="leftCol">
+        <div class="lead">
+          <span class="mono">SIRIAI — 知り合い · 아는 사이</span>
+          <h1>무엇이 <span class="em">궁금</span>하세요?<br/>왼쪽에서 골라보세요.</h1>
+        </div>
+        <ul class="qlist" id="qlist"></ul>
+        <div class="brandline">
+          <p class="q">“브랜드의 결을 읽는 일,<br/>거기서부터 시작합니다.”</p>
+        </div>
+      </section>
+
+      <!-- RAIL (collapsed overlay) -->
+      <nav id="rail" aria-hidden="true">
+        <span class="rail-cap">질문</span>
+        <ul class="rail-list" id="railList"></ul>
+        <span class="rail-foot">SIRIAI · 知り合い</span>
+      </nav>
+
+      <!-- RIGHT -->
+      <section class="right" id="rightCol">
+        <!-- greeting (initial) -->
+        <div class="greet" id="greet">
+          <span class="mono">SIRIAI — 知り合い · 아는 사이</span>
+          <h2>안녕하세요.<br/><span class="em">아는 사이</span>처럼 편하게 물어보세요.</h2>
+          <p>왼쪽 다섯 가지 질문 중 하나를 고르면, 여기서 이야기가 펼쳐집니다.</p>
+          <span class="hint"><span class="ar en">←</span> 왼쪽에서 골라보세요</span>
+        </div>
+
+        <!-- answer (hidden until first pick) -->
+        <div class="right-inner" id="answer" style="display:none">
+          <div class="ans-head">
+            <span class="mono" id="ansKicker">질문 01</span>
+            <h2 class="ans-title" id="ansTitle"></h2>
+          </div>
+          <div class="ans-scroll" id="ansScroll">
+            <p class="ans-body" id="ansBody"></p>
+            <div id="ansExtra"></div>
+            <div class="ans-actions" id="ansActions"></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="mini-foot">
+      <span>SIRIAI · 知り合い — 아는 사이</span>
+      <span class="r">Signal · Structure · Decision</span>
+    </div>
+  </main>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- content ---------- */
+  var NODES = {
+    collab:{
+      n:"01", q:"누구와 협업했나요?",
+      title:["함께해 온 ","브랜드들"],
+      body:"8division, 무신사, 이니스프리, 코스알엑스 등 다양한 브랜드와 함께해 왔고, 지금도 여러 브랜드와 진행 중입니다. 뷰티부터 글로벌 챌린지까지, 브랜드 결에 맞춰 왔어요.",
+      ref:{label:"포트폴리오 전체 보기", href:"#portfolio"},
+      follow:["newbrand","overseas"]
+    },
+    aifind:{
+      n:"02", q:"AI로 인플루언서를 찾는다는 게 무슨 뜻이죠?",
+      title:["매번 새로 ","훑습니다"],
+      body:"가입자 풀에서 고르는 게 아니라, AI가 인스타그램 전체를 매번 새로 훑어 브랜드 결에 맞는 크리에이터를 발굴합니다. 정형화된 리스트가 아니라, 캠페인 목적에 맞춰 매번 새로 짜는 구조예요.",
+      follow:["select","overseas"]
+    },
+    match:{
+      n:"03", q:"우리 브랜드에 맞는 인플루언서는 어떻게 고르나요?",
+      title:["결이 맞는 ","사람만"],
+      body:"톤, 팔로워 결, 콘텐츠 맥락을 함께 보고 브랜드와 자연스럽게 붙는 크리에이터만 추립니다. 권역·카테고리를 먼저 들으면 더 정밀하게 필터링해 드려요.",
+      follow:["howmany","process"]
+    },
+    overseas:{
+      n:"04", q:"해외(미국·중국) 진출도 되나요?",
+      title:["권역별로 ","좁혀 들어갑니다"],
+      body:"현지 파트너의 실행으로, 미국은 아마존 진입부터 물류·콘텐츠 업로드까지 한 번에 지원하고, 중국까지 권역별로 좁혀 들어갑니다.",
+      grid:true,
+      follow:["price","process"]
+    },
+    postpay:{
+      n:"05", q:"후불제라는데 정확히 어떤 구조예요?",
+      title:["올라온 만큼만 ","정산"],
+      body:"착수금 20%로 시작하고, 실제 업로드가 완료된 분만 정산하는 구조입니다. 약속한 콘텐츠가 올라오지 않으면 청구되지 않으니, 리스크를 저희가 함께 집니다.",
+      figure:{num:"20",pct:"%",cap:"착수금으로 시작 — 나머지는 실제 업로드분만 정산"},
+      follow:["price","kickoff"]
+    },
+    /* follow-only */
+    process:{
+      title:["단계마다 ","결과를 공유"],
+      body:"목표를 진단하고, 3~4일 내 후보 리스트를 드린 뒤 섭외와 발송, 업로드, 리포트로 이어집니다. 단계마다 결과를 공유드리며, 중간에 방향도 조정할 수 있어요.",
+      follow:["kickoff","howmany"]
+    },
+    howmany:{
+      title:["인원이 아니라 ","목적에 맞춰"],
+      body:"정해진 인원이 아니라 캠페인 목적과 권역에 맞춰 규모를 잡습니다. 3~4일 내 1차 리스트로 결을 먼저 확인하신 뒤, 함께 폭을 조정합니다.",
+      follow:["price","select"]
+    },
+    select:{
+      title:["맥락까지 ","함께 봅니다"],
+      body:"숫자만이 아니라 콘텐츠 맥락과 팔로워의 결까지 함께 봅니다. 브랜드가 놓이고 싶은 자리에 자연스럽게 어울리는 크리에이터인지를 먼저 확인해요.",
+      follow:["match","howmany"]
+    },
+    newbrand:{
+      title:["작게 검증하며 ","키웁니다"],
+      body:"규모보다 브랜드가 가려는 방향이 분명한지를 봅니다. 막 시작하는 브랜드일수록 작게 검증하며 키우는 구조가 잘 맞아, 단발 테스트로 결을 확인한 뒤 확장하는 흐름을 자주 권해요.",
+      follow:["collabcta","select"]
+    },
+    price:{
+      title:["구조부터 ","역제안"],
+      body:"단가표를 먼저 들이밀기보다, 목표와 규모를 듣고 가장 린한 구조를 역제안합니다. 원하시는 결과를 먼저 알려주시면, 거기에 맞춰 구조부터 짜 드려요.",
+      cta:true, follow:["kickoff"]
+    },
+    kickoff:{
+      title:["목표부터 ","들려주세요"],
+      body:"브랜드와 제품, 이번 캠페인의 목표만 공유해 주시면 시작할 수 있습니다. 착수금 20%로 출발해 3~4일 내 후보 리스트로 첫 결과를 보여 드려요. 준비물은 많지 않아요. 목표부터 편하게 들려주세요.",
+      cta:true, follow:["price"]
+    }
+  };
+
+  /* labels for follow chips & cta-leaf alias */
+  var FOLLOW_LABEL = {
+    newbrand:"신생 브랜드도 되나요?",
+    overseas:"해외 진출도 되나요?",
+    select:"어떤 기준으로 선별하나요?",
+    howmany:"몇 명 정도 붙나요?",
+    process:"진행 절차가 궁금해요",
+    match:"우리 브랜드엔 어떻게 맞추죠?",
+    price:"비용은 어떻게 되나요?",
+    kickoff:"어떻게 착수하나요?",
+    collab:"누구와 협업했나요?",
+    collabcta:"협업을 제안하고 싶어요"
+  };
+  /* collabcta routes to kickoff content but labelled as a proposal */
+  var ALIAS = { collabcta:"kickoff" };
+
+  var HERO = ["collab","aifind","match","overseas","postpay"];
+
+  var MAIL = "mailto:jysiriai@gmail.com?subject=SIRIAI%20%ED%98%91%EC%97%85%20%EB%AC%B8%EC%9D%98&body=%EB%B8%8C%EB%9E%9C%EB%93%9C%2F%EC%A0%9C%ED%92%88%2C%20%EC%9D%B4%EB%B2%88%20%EC%BA%A0%ED%8E%98%EC%9D%B8%20%EB%AA%A9%ED%91%9C%EB%A5%BC%20%EB%93%A4%EB%A0%A4%EC%A3%BC%EC%84%B8%EC%9A%94.";
+  var KAKAO = "https://open.kakao.com/o/sPb2dMfi";
+
+  /* ---------- dom refs ---------- */
+  var $=function(s){return document.querySelector(s)};
+  var intro=$("#intro"), stage=$("#stage"), startBtn=$("#startBtn");
+  var qlist=$("#qlist"), railList=$("#railList"), rail=$("#rail");
+  var leftCol=$("#leftCol"), rightCol=$("#rightCol");
+  var greet=$("#greet"), answer=$("#answer");
+  var ansKicker=$("#ansKicker"), ansTitle=$("#ansTitle"), ansBody=$("#ansBody");
+  var ansExtra=$("#ansExtra"), ansActions=$("#ansActions"), ansScroll=$("#ansScroll");
+
+  /* ---------- brand from query ---------- */
+  (function(){
+    try{
+      var b=new URLSearchParams(location.search).get("b");
+      if(b){ b=b.trim().slice(0,24); if(b){ $("#brandName").textContent = b; } }
+    }catch(e){}
+  })();
+
+  /* ---------- build hero list + rail ---------- */
+  HERO.forEach(function(key){
+    var nd=NODES[key];
+    var li=document.createElement("button");
+    li.className="qitem"; li.type="button"; li.dataset.key=key;
+    li.innerHTML='<span class="n">'+nd.n+'</span><span class="t">'+nd.q+'</span>';
+    li.addEventListener("click", function(){ pick(key,true); });
+    qlist.appendChild(li);
+
+    var rli=document.createElement("button");
+    rli.className="rail-item"; rli.type="button"; rli.dataset.key=key;
+    rli.innerHTML='<span class="n">'+nd.n+'</span><span class="t">'+nd.q+'</span>';
+    rli.addEventListener("click", function(){ pick(key,true); });
+    railList.appendChild(rli);
+  });
+
+  /* ---------- typing engine ---------- */
+  var typeTimer=null, clueTimer=null;
+  function clearTimers(){ if(typeTimer){clearTimeout(typeTimer);typeTimer=null;} if(clueTimer){clearTimeout(clueTimer);clueTimer=null;} }
+
+  function typeBody(text, done){
+    clearTimers();
+    ansBody.innerHTML="";
+    var cur=document.createElement("span"); cur.className="cursor"; ansBody.appendChild(cur);
+    var i=0;
+    function step(){
+      if(i<text.length){
+        var ch=document.createTextNode(text.charAt(i));
+        ansBody.insertBefore(ch, cur);
+        i++;
+        ansScroll.scrollTop=ansScroll.scrollHeight;
+        typeTimer=setTimeout(step, 27);
+      }else{
+        clueTimer=setTimeout(function(){ if(cur&&cur.parentNode) cur.parentNode.removeChild(cur); if(done)done(); }, 360);
+      }
+    }
+    step();
+  }
+
+  /* ---------- render extras (figure / grid) ---------- */
+  function renderExtra(nd){
+    ansExtra.innerHTML="";
+    if(nd.figure){
+      var f=document.createElement("div"); f.className="figure";
+      f.innerHTML='<span class="big en">'+nd.figure.num+'<span class="pct">'+nd.figure.pct+'</span></span><span class="cap">'+nd.figure.cap+'</span>';
+      ansExtra.appendChild(f);
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){ f.classList.add("in"); }); });
+    }
+    if(nd.grid){
+      var chans=[
+        {mk:"T", nm:"TikTok", rg:"US / GLOBAL"},
+        {mk:"红", nm:"샤오훙수", rg:"CHINA"},
+        {mk:"a", nm:"Amazon", rg:"US"},
+        {mk:"W", nm:"Walmart", rg:"US"}
+      ];
+      var g=document.createElement("div"); g.className="grid2";
+      chans.forEach(function(c){
+        var d=document.createElement("div"); d.className="chan";
+        d.innerHTML='<span class="mk mono">'+c.mk+'</span><span class="nm en">'+c.nm+'</span><span class="rg">'+c.rg+'</span>';
+        g.appendChild(d);
+      });
+      ansExtra.appendChild(g);
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){ g.classList.add("in"); }); });
+    }
+  }
+
+  /* ---------- render actions (3 distinct hierarchies) ---------- */
+  function renderActions(nd, depth){
+    ansActions.innerHTML=""; ansActions.classList.remove("in");
+
+    var terminal = !!nd.cta;
+    var forceContact = depth>=3; // 3rd click onward -> contact surfaces
+
+    // (a) follow-ups as QUESTION chips
+    var follows = (nd.follow||[]).slice();
+    if(follows.length){
+      var fw=document.createElement("div"); fw.className="follow-wrap";
+      var lbl=document.createElement("span"); lbl.className="follow-lbl mono"; lbl.textContent="이어서 물어보기";
+      fw.appendChild(lbl);
+      var chips=document.createElement("div"); chips.className="chips";
+      follows.forEach(function(fk){
+        var realKey = ALIAS[fk] || fk;
+        var label = FOLLOW_LABEL[fk] || (NODES[fk]&&NODES[fk].q) || fk;
+        var b=document.createElement("button"); b.className="chip"; b.type="button";
+        b.innerHTML='<span class="qm">?</span><span>'+label+'</span>';
+        b.addEventListener("click", function(){ pick(realKey,false, fk); });
+        chips.appendChild(b);
+      });
+      fw.appendChild(chips);
+      ansActions.appendChild(fw);
+    }
+
+    // (b) CTA — the ONLY ink solid pill
+    if(terminal || forceContact){
+      var cw=document.createElement("div"); cw.className="cta-wrap";
+      var note=document.createElement("p"); note.className="cta-note";
+      note.textContent = terminal
+        ? "목표와 규모만 들려주시면, 거기에 맞춰 구조부터 짜 드릴게요."
+        : "여기까지 오셨다면, 이제 직접 이야기 나눠봐도 좋겠어요.";
+      cw.appendChild(note);
+      var row=document.createElement("div"); row.className="cta-row";
+      var cta=document.createElement("a"); cta.className="cta"; cta.href=MAIL;
+      cta.innerHTML='<span>협업 제안하기</span><span class="ar en">→</span>';
+      row.appendChild(cta);
+      var k=document.createElement("a"); k.className="cta-2nd"; k.href=KAKAO; k.target="_blank"; k.rel="noopener";
+      k.innerHTML='<span>오픈채팅으로 묻기</span>';
+      row.appendChild(k);
+      cw.appendChild(row);
+      ansActions.appendChild(cw);
+    }
+
+    // (c) reference — plain underline link
+    if(nd.ref || terminal || forceContact){
+      var ref = nd.ref || {label:"포트폴리오 전체 보기", href:"#portfolio"};
+      var rl=document.createElement("a"); rl.className="reflink"; rl.href=ref.href;
+      rl.innerHTML='<span>'+ref.label+'</span><span class="ar en">↗</span>';
+      ansActions.appendChild(rl);
+    }
+
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ ansActions.classList.add("in"); }); });
+  }
+
+  /* ---------- state ---------- */
+  var depth=0, current=null;
+
+  function setActive(key){
+    document.querySelectorAll(".qitem").forEach(function(el){ el.classList.toggle("active", el.dataset.key===key); });
+    document.querySelectorAll(".rail-item").forEach(function(el){ el.classList.toggle("active", el.dataset.key===key); });
+  }
+
+  function collapseLeft(){
+    leftCol.style.visibility="hidden";
+    rail.classList.add("show");
+    rail.setAttribute("aria-hidden","false");
+  }
+
+  /* ---------- pick ---------- */
+  function pick(key, isHero, displayKey){
+    var nd=NODES[key]; if(!nd) return;
+    current=key;
+    depth = isHero ? 1 : depth+1;
+
+    // first pick: collapse left, swap greeting->answer
+    if(greet.style.display!=="none"){
+      greet.style.display="none";
+      answer.style.display="flex";
+      collapseLeft();
+    }
+
+    // rail/hero active highlight (use hero key if it is one)
+    var heroKey = HERO.indexOf(key)>=0 ? key : (displayKey && HERO.indexOf(displayKey)>=0 ? displayKey : null);
+    setActive(heroKey);
+
+    // kicker
+    var kn = nd.n ? ("질문 "+nd.n) : "이어서";
+    ansKicker.textContent = kn;
+
+    // title (fixed section — does NOT retype)
+    ansTitle.innerHTML = nd.title[0]+'<span class="em">'+nd.title[1]+'</span>';
+
+    // reset extras/actions, then type body, then reveal extras+actions
+    ansExtra.innerHTML=""; ansActions.innerHTML=""; ansActions.classList.remove("in");
+    ansScroll.scrollTop=0;
+
+    // mobile view switch
+    if(window.matchMedia("(max-width:840px)").matches){
+      leftCol.classList.add("hide-m");
+      rightCol.classList.add("show-m");
+      ensureMobileBack();
+      window.scrollTo(0,0);
+    }
+
+    typeBody(nd.body, function(){
+      renderExtra(nd);
+      renderActions(nd, depth);
+    });
+  }
+
+  /* ---------- mobile back ---------- */
+  function ensureMobileBack(){
+    if($(".m-back")) return;
+    var back=document.createElement("button");
+    back.className="m-back"; back.type="button";
+    back.innerHTML='<span class="ar en">←</span><span>질문으로 돌아가기</span>';
+    back.addEventListener("click", function(){
+      leftCol.classList.remove("hide-m");
+      rightCol.classList.remove("show-m");
+      window.scrollTo(0,0);
+    });
+    answer.insertBefore(back, answer.firstChild);
+  }
+
+  /* ---------- start ---------- */
+  function begin(){
+    intro.classList.add("gone");
+    stage.classList.add("on");
+    handleAnchor();
+  }
+  startBtn.addEventListener("click", begin);
+
+  /* ---------- anchor deeplink ---------- */
+  var ANCHOR = { ai:"aifind", overseas:"overseas", postpay:"postpay", match:"match", collab:"collab", price:"price", kickoff:"kickoff" };
+  function handleAnchor(){
+    var h=(location.hash||"").replace("#","");
+    if(h && ANCHOR[h]){
+      var key=ANCHOR[h];
+      setTimeout(function(){ pick(key, HERO.indexOf(key)>=0); }, 420);
+    }
+  }
+  window.addEventListener("hashchange", function(){
+    if(stage.classList.contains("on")) handleAnchor();
+  });
+
+  /* ---------- auto-skip intro if deeplink present ---------- */
+  if((location.hash||"").length>1 && ANCHOR[(location.hash||"").replace("#","")]){
+    begin();
+  }
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+/* ============================================================
+   OVERRIDE — 미니멀 모노크롬 + 단일 액센트
+   거의 흑백(ink on paper). 색은 오직 '--accent' 하나로,
+   인터랙션·깊이에서만 드러난다. data-q마다 그 한 색만 바뀜.
+   모든 색은 brand 토큰 파생 저채도.
+   ============================================================ */
+
+:root{
+  /* 단일 액센트(기본=잉크 파생, 거의 무채). data-q가 이 값만 바꾼다 */
+  --accent:99 86 132;            /* ink 계열 dusk — rgb 채널 */
+  --accent-soft:.10;             /* 워시 강도(영토·깊이로 미세 가감) */
+  --tick:cubic-bezier(.22,.61,.36,1);
+}
+
+/* 배경 워시를 거의 죽이고, 단일 액센트로만 '한 숨' 쉬게 ─ 잉크-페이퍼 환원 */
+body{
+  background:
+    radial-gradient(1100px 760px at 18% -4%,
+      rgba(var(--accent), var(--accent-soft)), transparent 58%),
+    radial-gradient(900px 680px at 92% 110%,
+      rgba(var(--accent), calc(var(--accent-soft) * .55)), transparent 60%),
+    var(--paper);
+  background-attachment:fixed;
+  transition:background 1.1s ease;
+}
+#intro{ background:transparent; }
+
+/* ── 영토별 단일 액센트 (저채도, 페이퍼에 녹음) ──
+   01 잉크(순수 모노) · 02 라일락 안개 · 03 피치 흙빛 · 04 황혼 라일락 · 05 테라코타 */
+body[data-q="01"]{ --accent:99 86 132;  --accent-soft:.055; } /* 가장 무채 — 거의 흑백 */
+body[data-q="02"]{ --accent:150 132 184; --accent-soft:.115; } /* lilac 파생 */
+body[data-q="03"]{ --accent:198 150 116; --accent-soft:.105; } /* peach 파생 */
+body[data-q="04"]{ --accent:128 116 168; --accent-soft:.125; } /* 깊은 황혼 라일락 */
+body[data-q="05"]{ --accent:196 138 104; --accent-soft:.115; } /* 따뜻한 테라코타 */
+
+/* 깊이(후속)가 깊어질수록 액센트가 아주 미세하게 더 차오름 — 심심하지 않게 */
+body[data-depth="2"]{ --accent-soft:calc(.02 + var(--accent-soft)); }
+body[data-depth="3"]{ --accent-soft:calc(.045 + var(--accent-soft)); }
+
+/* ── 타이핑 커서 = 액센트가 드러나는 첫 지점 ── */
+.a-body .cursor{
+  background:rgb(var(--accent));
+  width:2px;
+  box-shadow:0 0 0 0 rgba(var(--accent),.0);
+  animation:blink 1.15s steps(1) infinite, cursorGlow 2.4s ease-in-out infinite;
+}
+@keyframes cursorGlow{
+  50%{ box-shadow:0 0 7px 0 rgba(var(--accent),.34); }
+}
+
+/* ── 사이드바 active = 단 하나의 절제된 인디케이터(왼쪽 바) ──
+   배경 채움 대신 액센트 한 줄로. 더 세련된 모션. */
+.qrow{
+  position:relative;
+  border-radius:0;
+  transition:background .4s var(--tick), padding-left .45s var(--tick), color .4s ease;
+}
+.qrow::before{
+  content:"";
+  position:absolute; left:0; top:50%;
+  width:2px; height:0;
+  background:rgb(var(--accent));
+  transform:translateY(-50%);
+  border-radius:0 2px 2px 0;
+  transition:height .5s var(--tick), opacity .4s ease;
+  opacity:0;
+}
+.qrow.active{ background:transparent; padding-left:18px; }
+.qrow.active::before{ height:60%; opacity:1; }
+.qrow.active .qt{ font-weight:600; }
+.qrow.active .qn{ color:rgb(var(--accent)); }
+.qrow:hover{ background:rgba(33,26,51,.028); }
+.qrow:hover .qn{ color:var(--ink-2); }
+
+/* rail(접힘 오버레이)의 현재표시 인디케이터도 같은 단일 액센트로 통일 */
+.rail .rl.cur::before{ background:rgb(var(--accent)); }
+.rail .rl.cur .rn{ color:rgb(var(--accent)); }
+
+/* ── 장식 고스트 번호 (텍스트 아님 · 정보 아님) ──
+   영토 번호를 아주 옅은 잉크로. 깊이가 깊을수록 살짝 또렷. 데스크탑 한정. */
+.a-head{ position:relative; }
+.a-head::before{
+  content:"";
+  position:absolute; right:-1vw; top:-.5em;
+  font-family:var(--serif); font-style:italic; font-weight:500;
+  font-size:21vh; line-height:1;
+  color:rgba(33,26,51,.045);
+  pointer-events:none; z-index:0;
+  letter-spacing:-.02em;
+  transition:color .8s ease;
+}
+body[data-q="01"] .a-head::before{ content:"01"; }
+body[data-q="02"] .a-head::before{ content:"02"; }
+body[data-q="03"] .a-head::before{ content:"03"; }
+body[data-q="04"] .a-head::before{ content:"04"; }
+body[data-q="05"] .a-head::before{ content:"05"; }
+/* 깊이로 고스트가 미세하게 또렷 — 같은 영토 안 변주 */
+body[data-depth="1"] .a-head::before{ color:rgba(33,26,51,.058); }
+body[data-depth="2"] .a-head::before{ color:rgba(var(--accent),.10); }
+body[data-depth="3"] .a-head::before{ color:rgba(var(--accent),.14); }
+.a-title, .a-num{ position:relative; z-index:1; }
+
+/* ── follow hover = 액센트가 잠깐 비치는 두 번째 지점 ── */
+.follow{
+  border-color:var(--hair);
+  transition:border-color .35s ease, background .35s ease, transform .25s var(--tick), color .35s ease;
+}
+.follow .qmark{ transition:color .35s ease; }
+.follow:hover{
+  border-color:rgb(var(--accent));
+  background:rgba(var(--accent),.05);
+  transform:translateY(-1px);
+}
+.follow:hover .qmark{ color:rgb(var(--accent)); }
+
+/* ── .cta = 잉크 솔리드. 호버 시에만 단일 액센트가 가장자리로 한 끗 ── */
+.cta{
+  background:var(--ink);
+  box-shadow:0 14px 36px rgba(33,26,51,.16);
+  transition:transform .3s var(--tick), box-shadow .45s ease;
+}
+.cta:hover{
+  transform:translateY(-2px);
+  box-shadow:0 16px 40px rgba(33,26,51,.18), 0 0 0 1px rgba(var(--accent),.5);
+}
+
+/* ── intro 시작 버튼 = 잉크 솔리드, 호버 시 액센트 한 끗 ── */
+.intro-start{
+  box-shadow:0 14px 36px rgba(33,26,51,.16);
+  transition:transform .3s var(--tick), box-shadow .45s ease;
+}
+.intro-start:hover{
+  transform:translateY(-2px);
+  box-shadow:0 16px 40px rgba(33,26,51,.18), 0 0 0 1px rgba(var(--accent),.45);
+}
+
+/* ── 2x2 해외 그리드(04) — 셀 호버에 단일 액센트만 ── */
+.a-grid .cell{ transition:border-color .4s ease, background .4s ease; }
+.a-grid .cell:hover{
+  border-color:rgba(var(--accent),.5);
+  background:rgba(var(--accent),.04);
+}
+.a-grid .cell .creg{ transition:color .4s ease; }
+.a-grid .cell:hover .creg{ color:rgb(var(--accent)); }
+
+/* ── 05 인라인 figure 큰 숫자 — 액센트 살짝 머금게(절제) ── */
+.a-figure .fn{ color:var(--ink); }
+body[data-q="05"] .a-figure .fn{
+  color:color-mix(in srgb, var(--ink) 86%, rgb(var(--accent)));
+}
+
+/* ── reflink 밑줄 hover도 단일 액센트로 통일 ── */
+.reflink:hover{ color:rgb(var(--accent)); border-color:rgb(var(--accent)); }
+
+/* ── prev-q(방금 본) — 더 옅게, 액센트 점 하나로만 위치감 ── */
+.prev-q.show{ color:var(--ink-3); }
+.prev-q:hover{ color:rgb(var(--accent)); }
+
+/* ── 미세 마감: 그리드 세로 헤어라인을 액센트로 아주 옅게 물들임 ── */
+.left{ border-right-color:rgba(var(--accent),.16); transition:border-color 1s ease; }
+
+/* ── 진입 시 active 인디케이터 등장 모션이 reduce에서 죽지 않도록 height만 보존 ── */
+@media (prefers-reduced-motion:reduce){
+  .qrow.active::before{ height:60%; opacity:1; }
+}
+
+/* ============ MOBILE (<=860) — 장식 축소/제거, 레이아웃 보존 ============ */
+@media (max-width:860px){
+  /* 절대배치 고스트 번호 제거 — 모바일 레이아웃 깨짐 방지 */
+  .a-head::before{ display:none; }
+  /* 모바일은 배경 워시를 더 죽여 종이에 가깝게(스크롤 영역이라 과하면 부담) */
+  body{
+    background:
+      radial-gradient(680px 520px at 50% -6%,
+        rgba(var(--accent), calc(var(--accent-soft) * .8)), transparent 62%),
+      var(--paper);
+  }
+  /* active 인디케이터는 모바일에서도 한 줄 유지(가벼움) */
+  .qrow.active{ padding-left:16px; }
+  .qrow.active::before{ height:54%; }
+}

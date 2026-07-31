@@ -1,0 +1,123 @@
+.refmedia {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  width: 100%;
+}
+
+/* 메인 프레임 — reels 그리드 영상 톤(딥 잉크 배경, 레터박스 자연스럽게) */
+.refmedia__main {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  border: var(--bw) solid var(--line);
+  background: var(--ink);
+  box-shadow: var(--shadow-soft);
+}
+.refmedia__main img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;   /* 완성된 케이스 이미지를 잘리지 않게 통째로 */
+  display: block;
+}
+
+/* 파일 없을 때 — 디자인된 reels 그리드 목업(4 포트레이트 타일 + 브랜드) */
+.refmedia__ph {
+  position: absolute;
+  inset: 0;
+  background: var(--ink);
+}
+.refmedia__ph-grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+  padding: 3px;
+}
+.refmedia__ph-tile {
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.refmedia__ph-tile:nth-child(1) { background: linear-gradient(160deg, rgba(246, 201, 168, 0.5), rgba(33, 26, 51, 0.85)); }
+.refmedia__ph-tile:nth-child(2) { background: linear-gradient(160deg, rgba(221, 208, 239, 0.5), rgba(33, 26, 51, 0.85)); }
+.refmedia__ph-tile:nth-child(3) { background: linear-gradient(160deg, rgba(255, 224, 196, 0.5), rgba(33, 26, 51, 0.85)); }
+.refmedia__ph-tile:nth-child(4) { background: linear-gradient(160deg, rgba(246, 201, 168, 0.42), rgba(33, 26, 51, 0.85)); }
+.refmedia__ph-play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 6px 0 6px 10px;
+  border-color: transparent transparent transparent rgba(243, 238, 226, 0.78);
+}
+.refmedia__ph-brand {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 6px 16px;
+  border-radius: var(--r-pill);
+  background: rgba(33, 26, 51, 0.62);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  font-family: var(--f-en);
+  font-weight: var(--w-bold);
+  font-size: clamp(18px, 2.4vw, 30px);
+  letter-spacing: -0.02em;
+  color: var(--paper);
+  white-space: nowrap;
+}
+
+/* 라벨 */
+.refmedia__badge {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  color: var(--ink-2);
+  background: rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+}
+.refmedia__tag {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  color: rgba(243, 238, 226, 0.82);
+  letter-spacing: 0.16em;
+}
+
+/* 브랜드 전환 탭 */
+.refmedia__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.refmedia__tab {
+  font-family: var(--f-en);
+  font-size: 12.5px;
+  font-weight: var(--w-medium);
+  letter-spacing: -0.01em;
+  color: var(--ink-3);
+  padding: 6px 13px;
+  border-radius: var(--r-pill);
+  border: var(--bw) solid var(--line);
+  background: rgba(255, 255, 255, 0.4);
+  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease),
+    background var(--t-fast) var(--ease);
+}
+.refmedia__tab:hover { color: var(--ink); border-color: var(--line-strong); }
+.refmedia__tab.is-active {
+  color: var(--paper);
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.refmedia__cap { color: var(--ink-3); }

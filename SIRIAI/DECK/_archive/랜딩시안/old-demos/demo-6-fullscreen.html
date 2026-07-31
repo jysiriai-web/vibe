@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>SIRIAI — 풀스크린 구도 프로토타입</title>
+<script>document.documentElement.classList.add('js')</script>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&family=Bodoni+Moda:ital,opsz,wght@1,6..96,500;1,6..96,600&family=JetBrains+Mono:wght@400;500&display=swap" />
+<style>
+  :root{
+    --paper:#f3eee2; --surface:#fff; --ink:#211a33;
+    --ink-2:rgba(33,26,51,.72); --ink-3:rgba(33,26,51,.52);
+    --hair:rgba(33,26,51,.13); --hair-2:rgba(33,26,51,.24);
+    --peach:rgba(246,201,168,.5); --lilac:rgba(221,208,239,.45);
+    --glass:rgba(255,255,255,.6);
+    --shadow:0 16px 44px rgba(33,26,51,.13);
+    --slow:cubic-bezier(.4,0,.15,1);
+    --en:"Helvetica Neue","Arimo","Pretendard",system-ui,sans-serif;
+    --kr:"Pretendard","Helvetica Neue","Arimo",sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,monospace;
+    --serif:"Bodoni Moda",Georgia,serif;
+    --edge:clamp(22px,4.5vw,72px);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:var(--kr);color:var(--ink);line-height:1.6;font-size:16px;word-break:keep-all;-webkit-font-smoothing:antialiased;overflow:hidden;
+    background:radial-gradient(58% 52% at 14% 8%,var(--peach),transparent 60%),radial-gradient(54% 48% at 90% 6%,var(--lilac),transparent 60%),var(--paper);background-attachment:fixed}
+  ::selection{background:var(--peach)}
+  a{color:inherit;text-decoration:none} button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+  .mono{font-family:var(--mono)} .serif{font-family:var(--serif);font-style:italic;font-weight:500}
+
+  /* 데모용 토글바(실제 랜딩엔 없음) */
+  .demobar{height:46px;display:flex;align-items:center;gap:6px;padding:0 var(--edge);border-bottom:1px solid var(--hair);
+    background:rgba(255,255,255,.4);backdrop-filter:blur(8px);flex:none}
+  .demobar .lbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);margin-right:8px}
+  .demobar button{font-size:12px;padding:6px 12px;border-radius:100px;border:1px solid var(--hair);color:var(--ink-2);transition:all .25s}
+  .demobar button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .demobar .hint{margin-left:auto;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--ink-3)}
+
+  #screen{flex:1;min-height:0;position:relative;display:flex;flex-direction:column}
+  #app{height:100%;display:flex;flex-direction:column}
+
+  .mk{font-family:var(--en);font-weight:700;letter-spacing:.16em;font-size:13px}
+  .stat .v{font-family:var(--en);font-weight:600;letter-spacing:-.01em}
+  .stat .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+
+  .chip{display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border:1px solid var(--hair);border-radius:100px;background:var(--glass);
+    font-weight:500;font-size:13px;letter-spacing:-.01em;transition:border-color .3s var(--slow),transform .3s var(--slow),background .3s}
+  .chip:hover{border-color:var(--hair-2);transform:translateY(-1px)}
+  .chip.on{border-color:var(--ink);background:var(--surface)}
+  .chip .go{font-family:var(--serif);font-style:italic;color:var(--ink-3)}
+  .pill{display:inline-flex;align-items:center;gap:8px;font-family:var(--en);font-weight:600;font-size:14px;padding:12px 24px;border-radius:100px;background:var(--ink);color:var(--paper);transition:transform .3s var(--slow),box-shadow .3s}
+  .pill:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+  .pill .arr{font-family:var(--serif);font-style:italic}
+
+  /* 답 영역 — 구도 바뀌거나 질문 바뀌면 느리게 페이드 */
+  .stage{flex:1;min-height:0;padding:var(--edge);max-width:1320px;margin:0 auto;width:100%;position:relative}
+  .fadein{animation:fade .9s var(--slow) both}
+  @keyframes fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  /* 공통 푸터(미니 한 줄) */
+  .foot{height:42px;display:flex;align-items:center;gap:16px;padding:0 var(--edge);border-top:1px solid var(--hair);flex:none;
+    font-size:11px;color:var(--ink-3)}
+  .foot .mk{font-size:11px;color:var(--ink-2)} .foot .r{margin-left:auto;font-family:var(--mono);letter-spacing:.1em}
+
+  /* ───── ① 풀블리드 ───── */
+  .L1{height:100%;display:flex;flex-direction:column;justify-content:center;position:relative}
+  .L1 .head{font-weight:600;font-size:clamp(34px,6.4vw,86px);line-height:1.08;letter-spacing:-.03em;max-width:16ch}
+  .L1 .stat{position:absolute;top:8px;right:4px;text-align:right}
+  .L1 .stat .v{font-size:clamp(28px,3.4vw,46px)} .L1 .stat .k{margin-top:3px}
+  .L1 .bottom{position:absolute;left:0;right:0;bottom:6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .L1 .bottom .fl{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-right:4px}
+
+  /* ───── ② 모서리+중앙 ───── */
+  .L2{height:100%;position:relative}
+  .L2 .idx{position:absolute;left:0;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:3px}
+  .L2 .idx button{display:flex;gap:9px;align-items:center;text-align:left;padding:7px 4px;font-size:12.5px;color:var(--ink-3);transition:color .3s}
+  .L2 .idx button.on{color:var(--ink);font-weight:600} .L2 .idx button:hover{color:var(--ink)}
+  .L2 .idx .n{font-family:var(--mono);font-size:10px}
+  .L2 .prog{position:absolute;right:2px;top:50%;transform:translateY(-50%);writing-mode:vertical-rl;font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--ink-3)}
+  .L2 .mid{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(60%,640px);text-align:center}
+  .L2 .mid .crumb{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);margin-bottom:14px}
+  .L2 .mid h2{font-weight:600;font-size:clamp(24px,3.2vw,40px);line-height:1.22;letter-spacing:-.02em}
+  .L2 .mid .a{margin-top:18px;color:var(--ink-2);font-size:clamp(14px,1.2vw,17px);line-height:1.75}
+  .L2 .mid .fu{margin-top:26px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+
+  /* ───── ③ 비대칭 2분할 ───── */
+  .L3{height:100%;display:flex;align-items:stretch}
+  .L3 .lft{flex:1;display:flex;flex-direction:column;justify-content:center;padding-right:clamp(20px,3vw,48px)}
+  .L3 .lft .crumb{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);margin-bottom:14px}
+  .L3 .lft .head{font-weight:600;font-size:clamp(26px,3.4vw,46px);line-height:1.16;letter-spacing:-.02em;max-width:18ch}
+  .L3 .lft .fu{margin-top:30px;display:flex;gap:8px;flex-wrap:wrap}
+  .L3 .rgt{flex:0 0 38%;border-left:1px solid var(--hair);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+  .L3 .rgt .v{font-family:var(--en);font-weight:600;font-size:clamp(48px,7vw,104px);letter-spacing:-.03em;line-height:1}
+  .L3 .rgt .k{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+  .L3 .chips{position:absolute;left:var(--edge);bottom:14px;display:flex;gap:8px;flex-wrap:wrap}
+
+  /* ───── ④ 답=비주얼 ───── */
+  .L4{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative}
+  .L4 .big{font-family:var(--en);font-weight:600;font-size:clamp(56px,11vw,150px);letter-spacing:-.04em;line-height:.96}
+  .L4 .ln{margin-top:18px;font-size:clamp(16px,1.6vw,22px);color:var(--ink-2);max-width:24ch}
+  .L4 .dot{position:absolute;width:8px;height:8px;border-radius:50%;background:rgba(33,26,51,.4)}
+  .L4 .chips{position:absolute;left:0;right:0;bottom:6px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:0 var(--edge)}
+
+  @media(max-width:760px){
+    .L3{flex-direction:column} .L3 .rgt{flex:none;border-left:0;border-top:1px solid var(--hair);padding:28px 0}
+    .L2 .idx,.L2 .prog{display:none} .L2 .mid{width:88%}
+    .L1 .stat{position:static;text-align:left;margin-bottom:20px}
+  }
+  @media(prefers-reduced-motion:reduce){.fadein{animation:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="demobar">
+    <span class="lbl">구도</span>
+    <button data-lay="1" class="on">① 풀블리드</button>
+    <button data-lay="2">② 모서리+중앙</button>
+    <button data-lay="3">③ 비대칭</button>
+    <button data-lay="4">④ 답=비주얼</button>
+    <span class="hint">질문을 눌러 전환을 보세요 · 데모용 토글</span>
+  </div>
+  <div id="screen"><div class="stage" id="stage"></div></div>
+  <div class="foot"><span class="mk">SIRIAI</span><span>知り合い — 아는 사이</span><span class="r">Signal · Structure · Decision</span></div>
+</div>
+
+<script>
+(function(){
+  var MAIL='mailto:jysiriai@gmail.com?subject=%5BSIRIAI%5D%20%ED%98%91%EC%97%85';
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+  // 미니멀 카피(짧은 line = 큰 타이포용 / a = 보조 / stat = 수치)
+  var QA={
+    portfolio:{n:'01',cat:'레퍼런스',q:'누구와 협업했나요?',line:'8division · 무신사 ·<br>이니스프리 · 코스알엑스.',a:'다양한 브랜드와 함께해 왔고, 지금도 진행 중입니다. 뷰티부터 글로벌 챌린지까지.',v:'17곳+',k:'함께한 브랜드',follow:['overseas','postpay']},
+    ai:{n:'02',cat:'방식',q:'AI로 어떻게 찾나요?',line:'풀에서 고르지 않고,<br>매번 새로 발굴합니다.',a:'AI가 인스타그램 전체를 매번 새로 훑어, 브랜드 결에 맞는 크리에이터를 발굴합니다.',v:'AI',k:'스코어링',follow:['fit','overseas']},
+    fit:{n:'03',cat:'선별',q:'우리 브랜드에 맞나요?',line:'숫자가 큰 계정보다,<br>결이 맞는 사람.',a:'톤·팔로워 결·맥락을 함께 보고, 브랜드에 자연스럽게 붙는 크리에이터만 추립니다.',v:'핏',k:'우선',follow:['overseas','postpay']},
+    overseas:{n:'04',cat:'해외',q:'해외(미국·중국)도?',line:'북미·중국까지,<br>현지 호흡으로.',a:'75개국·12+ 플랫폼, 현지 파트너 실행. 미국은 아마존 진입부터 업로드까지 한 번에.',v:'75개국',k:'커버리지',follow:['price','fit']},
+    postpay:{n:'05',cat:'비용',q:'후불제가 뭐예요?',line:'안 올라오면,<br>청구도 없습니다.',a:'착수금 20%, 실제 업로드된 분만 정산. 리스크를 저희가 함께 집니다.',v:'100%',k:'업로드율',follow:['price','overseas']},
+    /* 후속 전용 */
+    price:{cat:'비용',q:'그래서 가격이 얼마인가요?',line:'단가표보다,<br>역제안.',a:'목표와 규모를 듣고 가장 린한 구조를 역제안합니다.',v:'20%',k:'착수금',ctaLeaf:true,follow:['overseas']},
+  };
+  var HERO=['portfolio','ai','fit','overseas','postpay'];
+  var state={lay:1,q:'ai',count:0,seen:{},cta:false};
+
+  function chips(active){
+    return HERO.map(function(id){var x=QA[id];
+      return '<button class="chip'+(id===active?' on':'')+'" data-q="'+id+'"><span>'+esc(x.q)+'</span></button>';
+    }).join('');
+  }
+  function follows(x){
+    var f=(x.follow||[]).filter(function(i){return QA[i];});
+    if(!f.length)return '';
+    return f.map(function(i){return '<button class="chip" data-q="'+i+'"><span>'+esc(QA[i].q)+'</span><span class="go">→</span></button>';}).join('');
+  }
+  function ctaBtn(){ return '<a class="pill" href="'+MAIL+'">협업 제안 보내기 <span class="arr">→</span></a>'; }
+
+  function L1(x){
+    return '<div class="L1 fadein">'+
+      '<div class="stat"><div class="v">'+esc(x.v)+'</div><div class="k">'+esc(x.k)+'</div></div>'+
+      '<div class="head">'+x.line+'</div>'+
+      '<div class="bottom"><span class="fl">이어서</span>'+follows(x)+(state.cta?ctaBtn():'')+'</div></div>';
+  }
+  function L2(x){
+    var idx=HERO.map(function(id){return '<button class="'+(id===state.q?'on':'')+'" data-q="'+id+'"><span class="n">'+QA[id].n+'</span><span>'+esc(QA[id].q)+'</span></button>';}).join('');
+    return '<div class="L2 fadein">'+
+      '<div class="idx">'+idx+'</div>'+
+      '<div class="prog">'+(x.n?x.n+' / 05':'이어서')+'</div>'+
+      '<div class="mid"><div class="crumb">'+(x.n?x.n+' / 05 · ':'이어서 · ')+esc(x.cat)+'</div>'+
+        '<h2>'+esc(x.q)+'</h2><div class="a">'+esc(x.a)+'</div>'+
+        '<div class="fu">'+follows(x)+(state.cta?ctaBtn():'')+'</div></div></div>';
+  }
+  function L3(x){
+    return '<div class="L3 fadein"><div class="lft"><div class="crumb">'+(x.n?x.n+' / 05 · ':'이어서 · ')+esc(x.cat)+'</div>'+
+      '<div class="head">'+x.line+'</div><div class="fu">'+follows(x)+(state.cta?ctaBtn():'')+'</div></div>'+
+      '<div class="rgt"><div class="v">'+esc(x.v)+'</div><div class="k">'+esc(x.k)+'</div></div>'+
+      '<div class="chips">'+chips(state.q)+'</div></div>';
+  }
+  function L4(x){
+    return '<div class="L4 fadein">'+
+      '<span class="dot" style="left:20%;top:26%"></span><span class="dot" style="left:74%;top:24%;opacity:.6"></span>'+
+      '<span class="dot" style="left:80%;top:64%"></span><span class="dot" style="left:24%;top:70%;opacity:.5"></span>'+
+      '<div class="big">'+esc(x.v)+'</div><div class="ln">'+esc(x.q)+'</div>'+
+      '<div class="chips">'+follows(x)+(state.cta?ctaBtn():'')+'</div></div>';
+  }
+  var LAY={1:L1,2:L2,3:L3,4:L4};
+
+  function render(){
+    var x=QA[state.q]||QA[HERO[0]];
+    if(x.ctaLeaf || state.count>=3) state.cta=true;
+    document.getElementById('stage').innerHTML=LAY[state.lay](x);
+  }
+  function pick(id){ if(!QA[id])return; if(!state.seen[id]){state.seen[id]=1;state.count++;} state.q=id; render(); }
+
+  document.addEventListener('click',function(e){
+    var q=e.target.closest('[data-q]'); if(q){pick(q.getAttribute('data-q'));return;}
+    var l=e.target.closest('[data-lay]'); if(l){
+      state.lay=+l.getAttribute('data-lay');
+      document.querySelectorAll('.demobar [data-lay]').forEach(function(b){b.classList.toggle('on',b===l);});
+      render();
+    }
+  });
+  render();
+})();
+</script>
+</body>
+</html>

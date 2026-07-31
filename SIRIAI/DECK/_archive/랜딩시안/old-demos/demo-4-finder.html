@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>SIRIAI — 당신 같은 브랜드에 우리가 하는 것</title>
+<meta name="description" content="지금 상황을 고르면, SIRIAI가 당신 같은 브랜드에 무엇을 해줄 수 있는지 그 자리에서 보여드립니다." />
+<script>document.documentElement.classList.add('js')</script>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&family=Bodoni+Moda:ital,opsz,wght@1,6..96,500;1,6..96,600&family=JetBrains+Mono:wght@400;500&display=swap" />
+<style>
+  :root{
+    --paper:#f3eee2; --surface:#fff; --ink:#211a33;
+    --ink-2:rgba(33,26,51,.74); --ink-3:rgba(33,26,51,.56);
+    --hair:rgba(33,26,51,.13); --hair-2:rgba(33,26,51,.24);
+    --peach:rgba(246,201,168,.5); --lilac:rgba(221,208,239,.45); --cream:rgba(255,224,196,.4);
+    --glass:rgba(255,255,255,.62);
+    --sel:rgba(33,26,51,.04);
+    --shadow:0 16px 44px rgba(33,26,51,.13); --shadow-soft:0 8px 24px rgba(33,26,51,.08);
+    --ease:cubic-bezier(.22,1,.36,1);
+    --en:"Helvetica Neue","Arimo","Pretendard",system-ui,sans-serif;
+    --kr:"Pretendard","Helvetica Neue","Arimo",sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,monospace;
+    --serif:"Bodoni Moda",Georgia,serif;
+    --edge:clamp(20px,5vw,48px);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+  body{font-family:var(--kr);color:var(--ink);line-height:1.62;font-size:16px;word-break:keep-all;
+    -webkit-font-smoothing:antialiased;min-height:100dvh;overflow-x:hidden;
+    background:radial-gradient(60% 50% at 16% 6%,var(--peach),transparent 60%),radial-gradient(55% 45% at 88% 4%,var(--lilac),transparent 60%),var(--paper);
+    background-attachment:fixed;}
+  ::selection{background:var(--peach)}
+  a{color:inherit;text-decoration:none}
+  button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+  .label{font-family:var(--mono);text-transform:uppercase;letter-spacing:.18em;font-size:11px;color:var(--ink-3)}
+  .serif{font-family:var(--serif);font-style:italic;font-weight:500}
+  .pill{display:inline-flex;align-items:center;gap:9px;font-family:var(--en);font-weight:600;font-size:15px;
+    padding:14px 28px;border-radius:100px;background:var(--ink);color:var(--paper);
+    transition:transform .2s var(--ease),box-shadow .2s var(--ease)}
+  .pill:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+  .pill.ghost{background:transparent;color:var(--ink);border:1px solid var(--hair-2)}
+  .pill.ghost:hover{border-color:var(--ink)}
+  .pill .arr{font-family:var(--serif);font-style:italic}
+
+  .top{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;
+    padding:16px var(--edge);backdrop-filter:blur(6px)}
+  .top .mk{font-family:var(--en);font-weight:700;letter-spacing:.16em;font-size:14px}
+  .top .jp{font-family:"Hiragino Sans","Noto Sans JP",var(--kr);font-size:12px;color:var(--ink-3)}
+
+  .wrap{max-width:880px;margin:0 auto;padding:0 var(--edge) 130px}
+
+  /* ── 초기 화면 ── */
+  #intro{min-height:74dvh;display:flex;flex-direction:column;justify-content:center;padding:4vh 0}
+  #intro .eyebrow{display:block;margin-bottom:26px}
+  #intro h1{font-weight:600;font-size:clamp(30px,5vw,54px);line-height:1.15;letter-spacing:-.02em;max-width:16ch}
+  #intro h1 b{font-weight:600}
+  #intro p{margin-top:20px;color:var(--ink-2);font-size:clamp(15px,1.4vw,18px);max-width:32ch;line-height:1.7}
+  #intro .start{margin-top:36px}
+  #intro .hintline{margin-top:18px;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+
+  /* ── 파인더 ── */
+  #finder{padding:7vh 0 0}
+  #finder[hidden]{display:none}
+  .fq{font-weight:600;font-size:clamp(20px,2.6vw,28px);letter-spacing:-.01em}
+  .fsub{margin-top:8px;color:var(--ink-3);font-size:14px;margin-bottom:28px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+  .card{position:relative;text-align:left;padding:20px 18px 18px;border:1px solid var(--hair);border-radius:16px;
+    background:var(--glass);backdrop-filter:blur(8px);min-height:118px;display:flex;flex-direction:column;gap:12px;
+    transition:border-color .2s var(--ease),background .2s var(--ease),transform .2s var(--ease),box-shadow .2s var(--ease)}
+  .card:hover{border-color:var(--hair-2);transform:translateY(-2px);box-shadow:var(--shadow-soft)}
+  .card.on{border-color:var(--ink);background:var(--sel);box-shadow:var(--shadow-soft)}
+  .card .ico{width:26px;height:26px;color:var(--ink);opacity:.8}
+  .card .ico svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.6}
+  .card .t{font-weight:600;font-size:15.5px;letter-spacing:-.01em;line-height:1.35;margin-top:auto}
+  .card .box{position:absolute;top:16px;right:16px;width:18px;height:18px;border:1.5px solid var(--hair-2);border-radius:6px;
+    display:grid;place-items:center;transition:background .2s,border-color .2s}
+  .card .box svg{width:11px;height:11px;stroke:var(--paper);stroke-width:2.4;fill:none;opacity:0;transition:opacity .15s}
+  .card.on .box{background:var(--ink);border-color:var(--ink)}
+  .card.on .box svg{opacity:1}
+
+  /* ── 결과(누적) ── */
+  #results{margin-top:30px;display:flex;flex-direction:column;gap:14px}
+  #results .placeholder{color:var(--ink-3);font-size:14.5px;padding:18px 2px;border-top:1px dashed var(--hair-2)}
+  .res{border:1px solid var(--hair);border-radius:16px;padding:22px 22px 20px;background:var(--surface);box-shadow:var(--shadow-soft);
+    animation:rise .42s var(--ease) both}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .res .rq{font-family:var(--mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px}
+  .res .ra{font-size:15.5px;line-height:1.72}
+  .res .ra b{font-weight:600}
+  .res .proof{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px}
+  .stat{display:inline-flex;align-items:baseline;gap:6px;padding:7px 13px;border:1px solid var(--hair);border-radius:100px;background:var(--glass)}
+  .stat .v{font-family:var(--en);font-weight:600;font-size:14px}
+  .stat .k{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+  .brand{padding:6px 12px;border:1px solid var(--hair);border-radius:100px;font-weight:600;font-size:12.5px;background:var(--glass)}
+
+  /* ── 연락 카드(몇 개 고르면 등장) ── */
+  #contact{margin-top:18px;border:1px solid var(--hair-2);border-radius:20px;padding:clamp(24px,4vw,36px);
+    background:var(--glass);backdrop-filter:blur(14px);box-shadow:var(--shadow-soft);
+    opacity:0;transform:translateY(14px);transition:opacity .55s var(--ease),transform .55s var(--ease)}
+  #contact.in{opacity:1;transform:none}
+  #contact[hidden]{display:none}
+  #contact .label{display:block;margin-bottom:12px}
+  #contact h3{font-weight:600;font-size:clamp(19px,2.3vw,26px);letter-spacing:-.01em;line-height:1.3}
+  #contact h3 .serif{font-weight:500}
+  #contact p{margin-top:11px;color:var(--ink-2);font-size:14.5px;max-width:40ch}
+  #contact .row{margin-top:22px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  #contact .note{width:100%;color:var(--ink-3);font-size:13px;margin-top:4px}
+  #contact .note a{border-bottom:1px solid var(--hair-2)}
+  #contact .note a:hover{border-color:var(--ink)}
+
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.res,#contact,.card,.pill{transition:none;animation:none}#contact{opacity:1;transform:none}}
+  @media(max-width:520px){#intro{min-height:70dvh}.cards{grid-template-columns:1fr 1fr}}
+  @media(max-width:380px){.cards{grid-template-columns:1fr}}
+
+  html:not(.js) #finder{display:block!important}
+  html:not(.js) #intro .start{display:none}
+</style>
+</head>
+<body>
+<header class="top"><span class="mk">SIRIAI</span><span class="jp">知り合い</span></header>
+
+<main class="wrap">
+  <!-- 초기 화면 -->
+  <section id="intro">
+    <span class="label eyebrow">SIRIAI · 知り合い</span>
+    <h1 id="headline">SIRIAI가 <b>당신의</b> 고민을 해결해 드립니다.</h1>
+    <p>좋은 브랜드가 안 알려지는 건, 도달이 아니라 <span class="serif">관계</span>의 문제니까요.</p>
+    <div class="start"><button class="pill" id="startBtn">시작 <span class="arr">→</span></button></div>
+    <div class="hintline">30초 · 고르기만 하면 됩니다</div>
+  </section>
+
+  <!-- 파인더 -->
+  <section id="finder" hidden>
+    <div class="fq" id="finderQ">지금 어떤 상황이세요?</div>
+    <div class="fsub">해당되는 걸 골라보세요. 여러 개 골라도 됩니다.</div>
+    <div class="cards" id="cards"></div>
+    <div id="results"><div class="placeholder">고르면 — 여기에, <b>당신 같은 브랜드에 SIRIAI가 뭘 해주는지</b> 보여드릴게요.</div></div>
+    <aside id="contact" hidden>
+      <span class="label">이제,</span>
+      <h3>막힌 결정 <span class="serif">하나</span>만 가져와 주세요.</h3>
+      <p>준비물은 없습니다. 목표부터 같이 풀어보시죠.</p>
+      <div class="row">
+        <a class="pill" href="mailto:jysiriai@gmail.com?subject=%5BSIRIAI%5D%20%ED%98%91%EC%97%85%20%EC%A0%9C%EC%95%88">협업 제안 보내기 <span class="arr">→</span></a>
+        <span class="note">이메일이 부담되면 — <a href="https://open.kakao.com/o/sPb2dMfi" target="_blank" rel="noopener">오픈채팅으로 가볍게</a>.</span>
+      </div>
+    </aside>
+  </section>
+</main>
+
+<script>
+(function(){
+  var params=new URLSearchParams(location.search);
+  var brand=(params.get('b')||params.get('brand')||'').trim();
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  if(brand){
+    document.getElementById('headline').innerHTML='SIRIAI가 <b>'+esc(brand)+'의</b> 고민을 해결해 드립니다.';
+    document.getElementById('finderQ').textContent=esc(brand)+'님, 지금 어떤 상황이세요?';
+  }
+
+  var ICO={
+    spark:'<svg viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/></svg>',
+    globe:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 2.5 15.4 0 18M12 3c-2.5 2.6-2.5 15.4 0 18"/></svg>',
+    compass:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>',
+    people:'<svg viewBox="0 0 24 24"><circle cx="9" cy="9" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 7.5a3 3 0 0 1 0 5.6M20.5 19a5 5 0 0 0-3.2-4.6"/></svg>',
+    coin:'<svg viewBox="0 0 24 24"><ellipse cx="12" cy="7" rx="7" ry="3"/><path d="M5 7v10c0 1.7 3.1 3 7 3s7-1.3 7-3V7M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg>'
+  };
+  var SIT=[
+    {id:'unknown',ico:'spark',label:'좋은데, 아무도 몰라요',
+      a:'도달이 아니라 <b>관계</b>의 문제예요. AI가 인스타그램 전체에서 브랜드 결에 맞는 크리에이터를 매번 새로 발굴해, 맞는 사람한테 먼저 닿게 합니다.',
+      stats:[['100%','콘텐츠 업로드율']]},
+    {id:'overseas',ico:'globe',label:'해외로 나가고 싶어요',
+      a:'<b>75개국·12개+ 플랫폼</b>에서 현지 파트너의 실행으로 시딩합니다. 북미·중국까지 권역별로 좁혀 들어가요.',
+      stats:[['75개국','커버리지'],['12+','플랫폼']]},
+    {id:'start',ico:'compass',label:'뭐부터 할지 모르겠어요',
+      a:'목표만 주세요. 단순 마케팅이 아니라 <b>비어 있는 자리부터</b> 같이 찾고, 3~4일 안에 첫 후보 리스트로 결과를 보여드려요.',
+      stats:[['3~4일','첫 리스트']]},
+    {id:'portfolio',ico:'people',label:'누구랑 일했는지 궁금해요',
+      a:'<b>8division · 무신사 · 이니스프리 · 코스알엑스</b> 등과 함께해 왔고, 지금도 여러 브랜드와 진행 중입니다.',
+      brands:['8division','무신사','이니스프리','코스알엑스']},
+    {id:'cost',ico:'coin',label:'비용이 부담돼요',
+      a:'착수금 20%로 시작하고 <b>실제 업로드된 분만</b> 정산해요. 안 올라오면 청구 없음 — 리스크를 함께 집니다.',
+      stats:[['20%','착수금'],['100%','업로드율']]},
+  ];
+  var MAP={}; SIT.forEach(function(s){MAP[s.id]=s;});
+
+  var cardsEl=document.getElementById('cards');
+  cardsEl.innerHTML=SIT.map(function(s){
+    return '<button class="card" data-id="'+s.id+'" aria-pressed="false">'+
+      '<span class="box"><svg viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></svg></span>'+
+      '<span class="ico">'+ICO[s.ico]+'</span>'+
+      '<span class="t">'+esc(s.label)+'</span></button>';
+  }).join('');
+
+  var results=document.getElementById('results');
+  var placeholder=results.querySelector('.placeholder');
+  var contact=document.getElementById('contact');
+  var selected={}, count=0, contactShown=false;
+
+  function resHTML(s){
+    var extra='';
+    if(s.stats)extra+='<div class="proof">'+s.stats.map(function(t){return '<span class="stat"><span class="v">'+t[0]+'</span><span class="k">'+t[1]+'</span></span>';}).join('')+'</div>';
+    if(s.brands)extra+='<div class="proof">'+s.brands.map(function(b){return '<span class="brand">'+esc(b)+'</span>';}).join('')+'</div>';
+    return '<div class="rq">'+esc(s.label)+' — SIRIAI는</div><div class="ra">'+s.a+'</div>'+extra;
+  }
+  function select(id){
+    var s=MAP[id]; if(!s||selected[id])return;
+    selected[id]=1; count++;
+    if(placeholder)placeholder.style.display='none';
+    var card=cardsEl.querySelector('[data-id="'+id+'"]'); if(card){card.classList.add('on');card.setAttribute('aria-pressed','true');}
+    var div=document.createElement('div'); div.className='res'; div.id='res-'+id; div.innerHTML=resHTML(s);
+    results.appendChild(div);
+    if(!contactShown && count>=2){ contactShown=true; contact.hidden=false; requestAnimationFrame(function(){contact.classList.add('in');}); }
+  }
+  function deselect(id){
+    if(!selected[id])return; delete selected[id]; count--;
+    var card=cardsEl.querySelector('[data-id="'+id+'"]'); if(card){card.classList.remove('on');card.setAttribute('aria-pressed','false');}
+    var div=document.getElementById('res-'+id); if(div)div.remove();
+    if(count===0&&placeholder)placeholder.style.display='';
+  }
+  function toggle(id){ selected[id]?deselect(id):select(id); }
+
+  cardsEl.addEventListener('click',function(e){ var c=e.target.closest('[data-id]'); if(c)toggle(c.getAttribute('data-id')); });
+
+  // 초기화면 → 파인더
+  var intro=document.getElementById('intro'), finder=document.getElementById('finder');
+  function startFinder(){ intro.style.display='none'; finder.hidden=false; window.scrollTo(0,0); }
+  document.getElementById('startBtn').addEventListener('click',startFinder);
+
+  // 메일 딥링크: #overseas 등 → 파인더 시작 + 그 상황 선택
+  function fromHash(){ var h=(location.hash||'').replace(/^#/,''); if(MAP[h]){ startFinder(); select(h); var d=document.getElementById('res-'+h); if(d)setTimeout(function(){d.scrollIntoView({behavior:'smooth',block:'center'});},250); } }
+  window.addEventListener('hashchange',fromHash);
+  fromHash();
+})();
+</script>
+</body>
+</html>

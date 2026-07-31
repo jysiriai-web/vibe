@@ -1,0 +1,209 @@
+/* ════════════════════════════════════════════════════════════
+   OVERRIDE LAYER — 「거대 고스트 인덱스 (에디토리얼)」
+   target: cand-minimal.html  ·  append-only, 셀렉터 보존
+   한 끗: data-q마다 거대 Bodoni 번호가 워터마크로 깔리고,
+   영토별 워시·정렬·세리프 모먼트가 미세하게 바뀐다.
+   본문 가독성 불가침: 번호는 z아래·저명도·pointer 없음.
+   ════════════════════════════════════════════════════════════ */
+
+/* ── 0. 영토별 페이퍼 워시 (저채도, 느린 무드) ───────────────
+   peach/lilac 두 점광의 각도·세기만 영토마다 살짝 틀어
+   '같은 종이, 다른 시간대' 느낌. 채도 신규색 없음. */
+body[data-q="01"]{ background:
+  radial-gradient(680px 560px at 14% 4%,  rgba(246,201,168,.50), transparent 60%),
+  radial-gradient(740px 580px at 90% 6%,  rgba(221,208,239,.42), transparent 62%),
+  var(--paper); }
+body[data-q="02"]{ background:
+  radial-gradient(700px 560px at 88% 5%,  rgba(246,201,168,.42), transparent 60%),
+  radial-gradient(760px 600px at 10% 8%,  rgba(221,208,239,.52), transparent 62%),
+  var(--paper); }
+body[data-q="03"]{ background:
+  radial-gradient(640px 600px at 50% -6%, rgba(246,201,168,.40), transparent 58%),
+  radial-gradient(820px 560px at 96% 30%, rgba(221,208,239,.40), transparent 64%),
+  var(--paper); }
+body[data-q="04"]{ background:
+  radial-gradient(720px 560px at 6% 4%,   rgba(246,201,168,.46), transparent 60%),
+  radial-gradient(700px 620px at 92% 96%, rgba(221,208,239,.46), transparent 60%),
+  var(--paper); }
+body[data-q="05"]{ background:
+  radial-gradient(620px 520px at 18% 8%,  rgba(246,201,168,.54), transparent 58%),
+  radial-gradient(700px 640px at 84% 2%,  rgba(221,208,239,.38), transparent 62%),
+  var(--paper); }
+body{ transition:background 1.1s var(--ease,cubic-bezier(.22,.61,.36,1)); }
+
+/* ── 1. 무대 = 고스트 번호의 캔버스 ──────────────────────────
+   .right 가 overflow:hidden 이라 번호는 무조건 클립된다(=스크롤 0).
+   .right-pad 에 스택 컨텍스트를 주고 ::before 를 z:0 으로 깐다. */
+.right-pad{ isolation:isolate; }
+.right-pad::before{
+  content:"";                       /* 영토별로 아래에서 덮어씀 */
+  position:absolute;
+  font-family:var(--serif);
+  font-weight:500;
+  font-style:normal;                /* 인덱스 숫자는 정자 — 잡지 폴리오 */
+  font-feature-settings:"lnum" 1,"tnum" 1;
+  line-height:.74;
+  letter-spacing:-.04em;
+  color:rgba(33,26,51,.040);        /* 4% — 본문 가독성 불가침 */
+  pointer-events:none;
+  user-select:none;
+  z-index:0;
+  white-space:nowrap;
+  /* 느리게 호흡하듯 들어옴 */
+  opacity:0;
+  animation:ghostIn 1.4s var(--ease,cubic-bezier(.22,.61,.36,1)) .15s forwards;
+}
+@keyframes ghostIn{ from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
+
+/* greeting(선택 전)엔 번호 없음 — 빈 종이의 정적 */
+#greet:not([style*="display: none"]) ~ .right-pad::before,
+.right-pad:has(#greet:not([style*="none"]))::before{ content:none; }
+
+/* 실제 콘텐츠 = 번호 위로. 정상흐름 자식을 z:1 로 들어올림 */
+.right-pad > .answer,
+.right-pad > .greet{ position:relative; z-index:1; }
+
+/* ── 2. 영토별 번호 글리프 · 스케일 · 정렬 ────────────────────
+   data-q 마다 번호/위치/크기가 달라 '심심하지 않게'(#8).
+   후속질문도 같은 영토(data-q 유지) → 챕터 일관성. */
+
+/* 01 — 우하단 거대, 오른쪽 정렬 (표제의 무게) */
+body[data-q="01"] .right-pad::before{
+  content:"01";
+  font-size:clamp(220px,42vh,520px);
+  right:-.10em; bottom:-.16em;
+}
+/* 02 — 좌상단으로 끌어올림, 본문과 대각 긴장 */
+body[data-q="02"] .right-pad::before{
+  content:"02";
+  font-size:clamp(200px,40vh,500px);
+  left:-.12em; top:-.20em;
+}
+/* 03 — 정중앙 후면, 가장 옅게 (질문이 곧 배경) */
+body[data-q="03"] .right-pad::before{
+  content:"03";
+  font-size:clamp(240px,52vh,640px);
+  left:50%; top:50%;
+  transform:translate(-50%,-50%);
+  color:rgba(33,26,51,.030);
+}
+body[data-q="03"] .right-pad::before{
+  animation:ghostInC 1.4s var(--ease,cubic-bezier(.22,.61,.36,1)) .15s forwards;
+}
+@keyframes ghostInC{
+  from{opacity:0;transform:translate(-50%,calc(-50% + 14px))}
+  to{opacity:1;transform:translate(-50%,-50%)}
+}
+/* 04 — 우상단, 살짝 작게 (2x2 그리드와 공존하므로 양보) */
+body[data-q="04"] .right-pad::before{
+  content:"04";
+  font-size:clamp(180px,34vh,440px);
+  right:-.06em; top:-.18em;
+  color:rgba(33,26,51,.034);
+}
+/* 05 — 좌하단, 가장 큼 (후불 = 마지막 영토의 선언) */
+body[data-q="05"] .right-pad::before{
+  content:"05";
+  font-size:clamp(230px,48vh,600px);
+  left:-.10em; bottom:-.20em;
+}
+
+/* ── 3. 깊이(data-depth)에 따른 번호의 후퇴 ──────────────────
+   후속질문을 파고들수록(깊이↑) 번호가 더 옅고 작게 물러나,
+   대화가 깊어질수록 '표제'가 잦아드는 위계. */
+body[data-depth="1"] .right-pad::before{ opacity:.86 }
+body[data-depth="2"] .right-pad::before{ opacity:.66 }
+body[data-depth="3"] .right-pad::before{ opacity:.48 }
+/* opacity 변화를 느리게 */
+.right-pad::before{ transition:opacity 1s var(--ease,cubic-bezier(.22,.61,.36,1)); }
+
+/* ── 4. 세리프 모먼트 — 단 한 끗 ─────────────────────────────
+   답변 제목 옆, 영토 번호를 작은 Bodoni 폴리오로 한 번 더
+   '서명'처럼. 본문이 아니라 장식 숫자. crumb 역할의 위계 신호. */
+.a-head{ position:relative; }
+.a-title{ position:relative; }
+.a-title::before{
+  font-family:var(--serif);
+  font-style:italic;
+  font-weight:500;
+  font-size:.34em;
+  letter-spacing:.02em;
+  color:var(--ink-3);
+  margin-right:.05em;
+  vertical-align:.42em;
+  opacity:.0;
+  animation:folioIn .7s var(--ease,cubic-bezier(.22,.61,.36,1)) .25s forwards;
+}
+body[data-q="01"] .a-title::before{ content:"01 —" }
+body[data-q="02"] .a-title::before{ content:"02 —" }
+body[data-q="03"] .a-title::before{ content:"03 —" }
+body[data-q="04"] .a-title::before{ content:"04 —" }
+body[data-q="05"] .a-title::before{ content:"05 —" }
+@keyframes folioIn{ from{opacity:0} to{opacity:.72} }
+
+/* 제목 자체에 미세한 세리프 톤: 자간 더 조이고 호흡 */
+.a-title{ letter-spacing:-.02em; line-height:1.26; }
+
+/* ── 5. 에디토리얼 위계 — 여백과 헤어라인 ────────────────────
+   번호의 거대함을 받치는 넉넉한 윗호흡 + 제목 아래 가는 룰.
+   과밀 금지: 선 하나, 여백 하나. */
+.a-head{
+  padding-bottom:20px;
+  border-bottom:1px solid var(--hair);
+  margin-bottom:30px;
+}
+.a-body{ max-width:36ch; }          /* 잡지 칼럼 폭 — 줄길이 절제 */
+
+/* crumb 격 라벨 톤: ql-cap/ follow-cap 을 더 잡지답게 */
+.ql-cap{ letter-spacing:.24em; }
+.follow-cap{ letter-spacing:.2em; }
+
+/* 사이드바 현재 질문 = 번호가 또렷해짐(영토 인덱스 호응) */
+.qrow.active .qn{ letter-spacing:.14em; }
+.qrow.active{ background:rgba(33,26,51,.045); }
+
+/* prev-q 한 줄도 세리프 화살표로 잡지 캡션 톤 */
+.prev-q{ font-style:italic; opacity:.9; }
+
+/* ── 6. 데스크탑 단일화면 보증 ───────────────────────────────
+   번호는 .right(overflow:hidden) 안에서만 산다 → 스크롤 유발 0.
+   혹시라도 넘칠 변형 대비, 무대 자체 클립 재확인. */
+.right{ overflow:hidden; }
+.right-pad{ overflow:hidden; }
+
+/* ── 7. 모바일(<=860) — 장식 축소/제거, 레이아웃 불침 ─────────
+   절대배치 거대 번호는 좁은 폭에서 본문을 침범할 수 있어
+   대폭 축소하고 모서리로 물려 '워터마크'만 남긴다. */
+@media (max-width:860px){
+  .right-pad{ isolation:isolate; }
+  .right-pad::before,
+  body[data-q="01"] .right-pad::before,
+  body[data-q="02"] .right-pad::before,
+  body[data-q="03"] .right-pad::before,
+  body[data-q="04"] .right-pad::before,
+  body[data-q="05"] .right-pad::before{
+    font-size:clamp(120px,40vw,200px);
+    left:auto; right:-.08em; top:auto; bottom:-.10em;
+    transform:none;
+    color:rgba(33,26,51,.034);
+    animation:ghostIn 1s var(--ease,cubic-bezier(.22,.61,.36,1)) .1s forwards;
+  }
+  /* 03 중앙배치도 모바일선 모서리로 통일(가독성 우선) */
+  body[data-q="03"] .right-pad::before{ animation:ghostIn 1s var(--ease,cubic-bezier(.22,.61,.36,1)) .1s forwards; }
+  .a-body{ max-width:none; }
+  /* 작은 세리프 폴리오는 유지하되 더 절제 */
+  .a-title::before{ font-size:.4em; vertical-align:.36em; }
+  .a-head{ padding-bottom:16px; margin-bottom:24px; }
+}
+
+/* ── 8. 모션 절제 계약 ───────────────────────────────────────
+   reduced-motion 은 base 에서 이미 무력화됨. 여기선 번호가
+   정지 상태에서도 올바른 최종 위치를 갖도록만 보장. */
+@media (prefers-reduced-motion:reduce){
+  .right-pad::before{ opacity:1; animation:none; transform:none; }
+  body[data-q="03"] .right-pad::before{ transform:translate(-50%,-50%); }
+  .a-title::before{ opacity:.72; animation:none; }
+  body[data-depth="1"] .right-pad::before{ opacity:.86 }
+  body[data-depth="2"] .right-pad::before{ opacity:.66 }
+  body[data-depth="3"] .right-pad::before{ opacity:.48 }
+}

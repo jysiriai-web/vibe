@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>SIRIAI — 무엇이 궁금하세요?</title>
+<meta name="description" content="좋은 브랜드가 안 알려지는 건, 도달이 아니라 관계의 문제입니다. 궁금한 걸 눌러보세요." />
+<script>document.documentElement.classList.add('js')</script>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&family=Bodoni+Moda:ital,opsz,wght@1,6..96,500;1,6..96,600&family=JetBrains+Mono:wght@400;500&display=swap" />
+<style>
+  :root{
+    --paper:#f3eee2; --surface:#fff; --ink:#211a33;
+    --ink-2:rgba(33,26,51,.74); --ink-3:rgba(33,26,51,.58);
+    --hair:rgba(33,26,51,.15); --hair-2:rgba(33,26,51,.26);
+    --peach:rgba(246,201,168,.5); --lilac:rgba(221,208,239,.45); --cream:rgba(255,224,196,.4);
+    --glass:rgba(255,255,255,.6);
+    --shadow:0 16px 44px rgba(33,26,51,.13); --shadow-soft:0 8px 24px rgba(33,26,51,.08);
+    --ease:cubic-bezier(.22,1,.36,1);
+    --en:"Helvetica Neue","Arimo","Pretendard",system-ui,sans-serif;
+    --kr:"Pretendard","Helvetica Neue","Arimo",sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,monospace;
+    --serif:"Bodoni Moda",Georgia,serif;
+    --edge:clamp(20px,5vw,40px);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{font-family:var(--kr);color:var(--ink);line-height:1.62;font-size:16px;word-break:keep-all;
+    -webkit-font-smoothing:antialiased;min-height:100dvh;overflow-x:hidden;
+    background:radial-gradient(60% 50% at 16% 6%,var(--peach),transparent 60%),radial-gradient(55% 45% at 88% 4%,var(--lilac),transparent 60%),var(--paper);
+    background-attachment:fixed;}
+  ::selection{background:var(--peach)}
+  a{color:inherit;text-decoration:none}
+  button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+  .label{font-family:var(--mono);text-transform:uppercase;letter-spacing:.18em;font-size:11px;color:var(--ink-3)}
+  .serif{font-family:var(--serif);font-style:italic;font-weight:500}
+
+  .top{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;
+    padding:16px var(--edge);backdrop-filter:blur(6px)}
+  .top .mk{font-family:var(--en);font-weight:700;letter-spacing:.16em;font-size:14px}
+  .top .jp{font-family:"Hiragino Sans","Noto Sans JP",var(--kr);font-size:12px;color:var(--ink-3)}
+
+  .stage{max-width:720px;margin:0 auto;padding:0 var(--edge) 120px;min-height:70dvh}
+
+  /* cover */
+  .cover{padding:14vh 0 6vh;text-align:left}
+  .cover .eyebrow{display:block;margin-bottom:26px}
+  .cover h1{font-weight:600;font-size:clamp(30px,5.4vw,52px);line-height:1.16;letter-spacing:-.02em;max-width:15ch}
+  .cover h1 b{font-weight:600}
+  .cover p{margin-top:22px;color:var(--ink-2);font-size:clamp(15px,1.4vw,18px);max-width:34ch;line-height:1.7}
+  .cover .start{margin-top:38px}
+
+  .pill{display:inline-flex;align-items:center;gap:9px;font-family:var(--en);font-weight:600;font-size:15px;
+    padding:14px 28px;border-radius:100px;background:var(--ink);color:var(--paper);
+    transition:transform .2s var(--ease),box-shadow .2s var(--ease)}
+  .pill:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+  .pill .arr{font-family:var(--serif);font-style:italic}
+  .pill.ghost{background:transparent;color:var(--ink);border:1px solid var(--hair-2);padding:13px 24px}
+  .pill.ghost:hover{border-color:var(--ink);box-shadow:none}
+
+  /* ask list */
+  .ask{padding:8vh 0 4vh}
+  .ask h2{font-weight:600;font-size:clamp(22px,3vw,30px);letter-spacing:-.01em;margin-bottom:6px}
+  .ask .hint{color:var(--ink-3);font-size:14px;margin-bottom:30px}
+  .qlist{display:flex;flex-direction:column;gap:12px}
+  .qchip{display:flex;align-items:center;gap:16px;width:100%;text-align:left;
+    padding:18px 20px;border:1px solid var(--hair);border-radius:16px;background:var(--glass);
+    backdrop-filter:blur(10px);transition:border-color .2s var(--ease),transform .2s var(--ease),box-shadow .2s var(--ease)}
+  .qchip:hover{border-color:var(--hair-2);transform:translateY(-1px);box-shadow:var(--shadow-soft)}
+  .qchip .n{font-family:var(--mono);font-size:12px;color:var(--ink-3);flex:none}
+  .qchip .q{font-weight:500;font-size:clamp(15px,1.6vw,17px);letter-spacing:-.01em}
+  .qchip .go{margin-left:auto;font-family:var(--serif);font-style:italic;color:var(--ink-3);flex:none}
+
+  /* answer thread */
+  .thread{padding:6vh 0 2vh}
+  .back{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;color:var(--ink-3);margin-bottom:26px}
+  .back:hover{color:var(--ink)}
+  .crumb{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-bottom:18px}
+  .bubble-q{margin-left:auto;max-width:84%;background:var(--ink);color:var(--paper);
+    padding:13px 18px;border-radius:18px 18px 4px 18px;font-weight:500;font-size:15.5px;width:fit-content}
+  .row-a{display:flex;gap:12px;margin-top:20px;align-items:flex-start}
+  .av{flex:none;width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--paper);
+    display:grid;place-items:center;font-size:15px;font-family:var(--serif);font-style:italic;margin-top:2px}
+  .bubble-a{max-width:88%;background:var(--surface);border:1px solid var(--hair);
+    padding:17px 20px;border-radius:4px 18px 18px 18px;box-shadow:var(--shadow-soft)}
+  .bubble-a p{font-size:15.5px;line-height:1.72;color:var(--ink)}
+
+  .proof{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .stat{display:inline-flex;align-items:baseline;gap:7px;padding:7px 13px;border:1px solid var(--hair);border-radius:100px;background:var(--glass)}
+  .stat .v{font-family:var(--en);font-weight:600;font-size:14px}
+  .stat .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+  .brands{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .brand{padding:7px 14px;border:1px solid var(--hair);border-radius:100px;font-weight:600;font-size:13.5px;background:var(--glass)}
+  .contrast{display:flex;align-items:stretch;gap:10px;margin-top:16px}
+  .cside{flex:1;border:1px solid var(--hair);border-radius:12px;padding:13px 14px;background:var(--glass)}
+  .cside.a{opacity:.6}
+  .cside .ct{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:5px}
+  .cside .cv{font-size:13.5px;font-weight:500;line-height:1.4}
+  .cvs{display:flex;align-items:center;font-family:var(--serif);font-style:italic;color:var(--ink-3);font-size:13px}
+
+  .cta{margin-top:26px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .cta .note{width:100%;color:var(--ink-3);font-size:13px;margin-top:4px}
+  .cta .note a{border-bottom:1px solid var(--hair-2)}
+  .cta .note a:hover{border-color:var(--ink)}
+  .next{margin-top:30px;padding-top:22px;border-top:1px solid var(--hair)}
+  .next .nl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px;display:block}
+  .nq{display:inline-flex;align-items:center;gap:9px;padding:11px 17px;border:1px solid var(--hair);border-radius:100px;
+    background:var(--glass);font-weight:500;font-size:14px;transition:border-color .2s var(--ease)}
+  .nq:hover{border-color:var(--hair-2)}
+  .nq .go{font-family:var(--serif);font-style:italic;color:var(--ink-3)}
+
+  .fade{animation:fade .45s var(--ease) both}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @media(prefers-reduced-motion:reduce){.fade{animation:none}.pill,.qchip{transition:none}}
+  @media(max-width:520px){.bubble-q,.bubble-a{max-width:100%}.contrast{flex-direction:column}}
+
+  /* no-js fallback */
+  html:not(.js) #app{display:none}
+  html:not(.js) .nojs{display:block;padding:12vh var(--edge);max-width:640px;margin:0 auto}
+  .nojs{display:none}
+</style>
+</head>
+<body>
+<header class="top"><span class="mk">SIRIAI</span><span class="jp">知り合い</span></header>
+
+<main id="app" class="stage" aria-live="polite"></main>
+
+<section class="nojs">
+  <p class="label">SIRIAI · 크리에이터 콘텐츠</p>
+  <h1 style="font-weight:600;font-size:30px;margin:18px 0">좋은 브랜드가 안 알려지는 건, 도달이 아니라 관계의 문제입니다.</h1>
+  <p style="color:var(--ink-2)">궁금한 걸 눌러보려면 자바스크립트가 필요해요. <a href="mailto:jysiriai@gmail.com" style="border-bottom:1px solid">jysiriai@gmail.com</a> 으로 편하게 연락 주세요.</p>
+</section>
+
+<script>
+(function(){
+  var MAIL='mailto:jysiriai@gmail.com?subject=%5BSIRIAI%5D%20%ED%98%91%EC%97%85%20%EC%A0%9C%EC%95%88';
+  var KAKAO='https://open.kakao.com/o/sPb2dMfi';
+  var params=new URLSearchParams(location.search);
+  var brand=(params.get('b')||params.get('brand')||'').trim();
+  var who=brand?esc(brand)+'의':'당신의';
+
+  var QA={
+    portfolio:{n:'01',cat:'레퍼런스',q:'누구와 협업했나요?',
+      a:'8division, 무신사, 이니스프리, 코스알엑스 등 다양한 브랜드와 함께해 왔고, 지금도 여러 브랜드와 진행 중입니다.',
+      brands:['8division','무신사','이니스프리','코스알엑스'],
+      cta:{label:'포트폴리오 확인하기',href:'#',ghost:true},next:'ai'},
+    ai:{n:'02',cat:'방식',q:'AI로 인플루언서를 찾는다는 게 무슨 뜻이죠?',
+      a:'가입자 풀에서 고르는 게 아니라, AI가 인스타그램 전체를 매번 새로 훑어 브랜드 결에 맞는 크리에이터를 발굴합니다. 그래서 캠페인마다 후보가 새로 올라옵니다.',
+      contrast:['가입자 풀에서 고르기','결을 읽고, 발굴하기'],next:'overseas'},
+    overseas:{n:'03',cat:'권역',q:'해외도 되나요?',
+      a:'75개국·12개+ 플랫폼에서 현지 나노 인플루언서로 시딩합니다. 해외는 현지 파트너의 실행으로 진행해, 북미·중국까지 권역별로 좁혀 갑니다.',
+      stats:[['75개국','커버리지'],['12+','플랫폼']],next:'postpay'},
+    postpay:{n:'04',cat:'비용',q:'후불제가 뭐예요?',
+      a:'착수금 20%로 시작하고, 실제 업로드된 분만 정산합니다. 안 올라오면 청구되지 않으니 리스크를 함께 집니다. 업로드율 100%로 유지해 온 방식입니다.',
+      stats:[['100%','업로드율'],['20%','착수금']],next:'start'},
+    start:{n:'05',cat:'시작',q:'뭐부터 해야 할지 모르겠어요',
+      a:'목표만 들려주시면 됩니다. 단순 마케팅이 아니라, 비어 있는 자리부터 같이 찾습니다. 3~4일 안에 첫 후보 리스트로 결과를 보여드려요.',
+      cta:{label:'협업 제안 보내기',href:MAIL},next:'about'},
+    about:{n:'06',cat:'소개',q:'SIRIAI가 뭐예요?',
+      a:'좋은 브랜드를 시장과 ‘아는 사이’로 만드는 팀입니다. 감성과 기술을 같이 씁니다.',
+      cta:{label:'아직 확신이 안 서면 — 홈페이지',href:'#',ghost:true},next:'portfolio'},
+  };
+  var ORDER=['portfolio','ai','overseas','postpay','start','about'];
+
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  var app=document.getElementById('app');
+
+  function coverHTML(){
+    return '<section class="cover fade">'+
+      '<span class="label eyebrow">SIRIAI · 知り合い</span>'+
+      '<h1>SIRIAI가 <b>'+who+'</b> 고민을<br>해결해 드립니다.</h1>'+
+      '<p>좋은 브랜드가 안 알려지는 건, 도달이 아니라 <span class="serif">관계</span>의 문제니까요.</p>'+
+      '<div class="start"><button class="pill" data-go="ask">시작 <span class="arr">→</span></button></div>'+
+    '</section>';
+  }
+  function askHTML(){
+    var chips=ORDER.map(function(id){var x=QA[id];
+      return '<button class="qchip" data-go="'+id+'"><span class="n">'+x.n+'</span><span class="q">'+esc(x.q)+'</span><span class="go">→</span></button>';
+    }).join('');
+    return '<section class="ask fade"><span class="label">무엇이든 편하게</span>'+
+      '<h2 style="margin-top:14px">무엇이 궁금하세요?</h2>'+
+      '<p class="hint">궁금한 걸 누르면, 그 자리에서 답해 드릴게요.</p>'+
+      '<div class="qlist">'+chips+'</div></section>';
+  }
+  function answerHTML(id){
+    var x=QA[id]; var pos=ORDER.indexOf(id)+1;
+    var extra='';
+    if(x.brands)extra+='<div class="brands">'+x.brands.map(function(b){return '<span class="brand">'+esc(b)+'</span>';}).join('')+'</div>';
+    if(x.stats)extra+='<div class="proof">'+x.stats.map(function(s){return '<span class="stat"><span class="v">'+s[0]+'</span><span class="k">'+s[1]+'</span></span>';}).join('')+'</div>';
+    if(x.contrast)extra+='<div class="contrast"><div class="cside a"><div class="ct">기존</div><div class="cv">'+esc(x.contrast[0])+'</div></div><div class="cvs">→</div><div class="cside"><div class="ct">SIRIAI</div><div class="cv">'+esc(x.contrast[1])+'</div></div></div>';
+    var cta;
+    if(x.cta){cta='<a class="pill'+(x.cta.ghost?' ghost':'')+'" href="'+x.cta.href+'"'+(x.cta.href==='#'?' data-stub="1"':'')+'>'+esc(x.cta.label)+' <span class="arr">→</span></a>';}
+    else{cta='<a class="pill" href="'+MAIL+'">협업 제안 보내기 <span class="arr">→</span></a>';}
+    var note='<span class="note">이메일이 부담되면 — <a href="'+KAKAO+'" target="_blank" rel="noopener">오픈채팅으로 가볍게</a>.</span>';
+    var nx=QA[x.next];
+    return '<section class="thread fade">'+
+      '<a class="back" href="#ask">← 다른 질문 보기</a>'+
+      '<div class="crumb">'+x.n+' / 06 · '+esc(x.cat)+'</div>'+
+      '<div class="bubble-q">'+esc(x.q)+'</div>'+
+      '<div class="row-a"><div class="av">S</div><div class="bubble-a"><p>'+esc(x.a)+'</p>'+extra+'</div></div>'+
+      '<div class="cta">'+cta+note+'</div>'+
+      '<div class="next"><span class="nl">이어서</span><button class="nq" data-go="'+x.next+'"><span>'+esc(nx.q)+'</span><span class="go">→</span></button></div>'+
+    '</section>';
+  }
+
+  function render(){
+    var h=(location.hash||'').replace(/^#/,'');
+    var html;
+    if(QA[h])html=answerHTML(h);
+    else if(h==='ask')html=askHTML();
+    else html=coverHTML();
+    app.innerHTML=html;
+    window.scrollTo(0,0);
+  }
+  // 라우팅: 클릭 → 해시 변경, 해시 변경 → 렌더 (앵커 딥링크/뒤로가기 동작)
+  document.addEventListener('click',function(e){
+    var t=e.target.closest('[data-go]'); if(t){e.preventDefault();location.hash=t.getAttribute('data-go');return;}
+    var s=e.target.closest('[data-stub]'); if(s){e.preventDefault();alert('데모: 실제로는 여기서 홈페이지/포트폴리오(deck)로 이동합니다.');}
+  });
+  window.addEventListener('hashchange',render);
+  render(); // 로드 시 해시 있으면 그 화면으로 바로 (메일 딥링크)
+})();
+</script>
+</body>
+</html>

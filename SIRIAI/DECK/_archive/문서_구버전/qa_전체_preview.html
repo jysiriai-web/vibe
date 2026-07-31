@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SIRIAI · 전체 Q&A 프리뷰</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.css">
+<link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#211a33;--paper:#f3eee2;--peach:#ff8a5c;--lilac:#b06cff;--terra:#cc6c3c;--green:#1f8a5b;
+--ink72:rgba(33,26,51,.72);--ink50:rgba(33,26,51,.5);--ink12:rgba(33,26,51,.12);
+--kr:'Pretendard',sans-serif;--mono:'JetBrains Mono',monospace;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--kr);color:var(--ink);background:var(--paper);
+background-image:radial-gradient(82% 70% at 50% 0%,rgba(255,193,140,.24),transparent 60%),radial-gradient(60% 46% at 88% 6%,rgba(221,208,239,.28),transparent 60%);
+-webkit-font-smoothing:antialiased;line-height:1.6}
+/* top area nav */
+.nav{position:sticky;top:0;z-index:9;background:rgba(243,238,226,.86);backdrop-filter:blur(8px);border-bottom:1px solid var(--ink12)}
+.nav .in{max-width:900px;margin:0 auto;padding:12px 24px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.brand{font-family:var(--mono);text-transform:uppercase;letter-spacing:.18em;font-size:11px;color:var(--ink50);margin-right:8px}
+.tab{font-family:var(--kr);font-size:13px;font-weight:600;padding:7px 13px;border-radius:999px;border:1px solid var(--ink12);background:transparent;color:var(--ink72);cursor:pointer;transition:.15s}
+.tab:hover{border-color:rgba(33,26,51,.3);color:var(--ink)}
+.tab.on{background:var(--ink);color:#f3eee2;border-color:var(--ink)}
+.wrap{max-width:900px;margin:0 auto;padding:34px 24px 120px}
+.head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+h1{font-weight:800;font-size:30px;letter-spacing:-.02em}
+.badge{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.12em;padding:3px 8px;border-radius:6px;border:1px solid var(--ink12);color:var(--ink50)}
+.lead{color:var(--ink72);font-size:14.5px;margin:8px 0 22px}
+.hr{height:1px;background:var(--ink12);margin:0 0 24px}
+#chat{display:flex;flex-direction:column;gap:18px}
+.row{display:flex;flex-direction:column;gap:12px;animation:rise .32s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.q{align-self:flex-end;max-width:78%;background:var(--ink);color:#f3eee2;padding:10px 16px;border-radius:16px 16px 4px 16px;font-size:14px;font-weight:500}
+.a{align-self:flex-start;max-width:90%;background:#fffaf2;border:1px solid var(--ink12);border-radius:6px 18px 18px 18px;padding:17px 19px;box-shadow:0 8px 24px -18px rgba(33,26,51,.5)}
+.a .atitle{font-weight:700;font-size:15px;margin-bottom:6px}
+.a p{font-size:14px;margin:0}
+.a ul{list-style:none;margin:10px 0 0;display:flex;flex-direction:column;gap:7px}
+.a li{position:relative;padding-left:15px;font-size:13.5px;color:var(--ink72)}
+.a li:before{content:"";position:absolute;left:2px;top:9px;width:5px;height:5px;border-radius:50%;background:var(--terra)}
+.a li b{color:var(--ink);font-weight:600}
+.pts{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.pt{font-family:var(--mono);font-size:10px;letter-spacing:.02em;color:var(--ink72);background:rgba(33,26,51,.05);border:1px solid var(--ink12);border-radius:5px;padding:3px 7px}
+.tl{display:flex;flex-direction:column;margin-top:6px}
+.tl .step{display:flex;align-items:center;gap:11px;padding:6px 0;position:relative}
+.tl .dot{width:9px;height:9px;border-radius:50%;background:linear-gradient(110deg,var(--peach),var(--lilac));flex:0 0 auto}
+.tl .step:not(:last-child):after{content:"";position:absolute;left:4px;top:17px;bottom:-6px;width:1px;background:var(--ink12)}
+.tl .lbl{font-size:13.5px;font-weight:600}
+.tl .dur{font-family:var(--mono);font-size:11px;color:var(--ink50);margin-left:auto}
+.total{margin-top:9px;font-size:13px;color:var(--ink72)}
+.total b{font-weight:700;background:linear-gradient(110deg,var(--terra),var(--lilac));-webkit-background-clip:text;background-clip:text;color:transparent}
+.cta{align-self:flex-start;max-width:90%;display:flex;gap:11px;align-items:center;padding:13px 17px;border-radius:14px;color:#f3eee2;background:linear-gradient(110deg,#211a33 0%,#3a2b58 40%,#8a4fd0 80%,var(--terra) 135%);box-shadow:0 10px 30px -14px rgba(120,60,180,.7);cursor:pointer;border:none;text-align:left}
+.cta .ico{font-size:15px}
+.cta .ctxt{font-size:13px;line-height:1.45}
+.cta .ctxt b{display:block;font-weight:700;font-size:13.5px;margin-bottom:1px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-family:var(--kr);font-size:13px;color:var(--ink);background:rgba(255,255,255,.55);border:1px solid var(--ink12);border-radius:999px;padding:8px 14px;cursor:pointer;transition:.15s;font-weight:500}
+.chip:hover{background:#fff;border-color:rgba(33,26,51,.35);transform:translateY(-1px)}
+.chip.main{background:var(--ink);color:#f3eee2;border-color:var(--ink)}
+.chip .arr{color:var(--ink50);margin-right:5px}
+.chip.main .arr{color:rgba(243,238,226,.55)}
+.seg{font-family:var(--mono);text-transform:uppercase;letter-spacing:.16em;font-size:10px;color:var(--ink50)}
+.contact{align-self:stretch;background:linear-gradient(180deg,#fffaf2,#f6efe3);border:1px solid var(--ink12);border-radius:16px;padding:20px}
+.contact h3{font-size:17px;font-weight:800}
+.contact .sub{color:var(--ink72);font-size:13px;margin:3px 0 14px}
+.contact .grid{display:flex;flex-wrap:wrap;gap:18px 36px;font-size:13px}
+.contact .k{font-family:var(--mono);text-transform:uppercase;letter-spacing:.13em;font-size:10px;color:var(--ink50);margin-bottom:3px}
+.contact .v{font-weight:600}
+.btnrow{display:flex;gap:9px;margin-top:16px;flex-wrap:wrap}
+.btn{font-size:12.5px;font-weight:600;padding:10px 16px;border-radius:10px;border:1px solid var(--ink);background:var(--ink);color:#f3eee2;cursor:pointer;font-family:var(--kr)}
+.btn.ghost{background:transparent;color:var(--ink)}
+@media(max-width:560px){h1{font-size:24px}.wrap{padding:26px 16px 90px}}
+</style>
+</head>
+<body>
+<div class="nav"><div class="in"><span class="brand">SIRIAI</span>
+<button class="tab on" data-a="kr">국내 인플루언서</button>
+<button class="tab" data-a="gl">해외 인플루언서</button>
+<button class="tab" data-a="celeb">셀러브리티 섭외</button>
+<button class="tab" data-a="brand">브랜딩 비즈니스</button>
+</div></div>
+<div class="wrap">
+  <div class="head"><h1 id="atitle">무엇이 궁금하세요?</h1><span class="badge" id="abadge">완성</span></div>
+  <p class="lead" id="alead">궁금한 걸 누르면 답이 이어지고, 들어갈수록 디테일이 펼쳐져요.</p>
+  <div class="hr"></div>
+  <div id="chat"></div>
+</div>
+<script>
+const CTA={t:"함께 시작하기",d:"우리 브랜드엔 뭐가 맞을지 가볍게 같이 정해보아요."};
+const AREAS={
+kr:{label:"국내 인플루언서",badge:"완성",mains:["m1","m2","m3","m4"],N:{
+ m1:{q:"어떤 서비스가 있나요?",a:"인플루언서 단순 섭외에 그치지 않고 브랜드 상황에 맞춰 캠페인을 통째로 설계해 드려요. 대표적으로 이런 캠페인을 함께 진행합니다.",li:["인플루언서 릴스·피드 콘텐츠","팝업 인플루언서 오프라인 콘텐츠","온·오프라인을 결합한 캠페인","제품 대여형 캠페인"],next:["s_make","s_use"]},
+ s_make:{q:"콘텐츠는 어떻게 만드나요?",a:"인플루언서가 자신의 채널에서 가장 잘 통하는 무드로 제작하는 자유 방식을 권해드려요. 그래야 콘텐츠가 가장 자연스럽고 반응도 좋으며, 요즘은 나노 인플루언서의 제작 완성도도 상향 평준화되어 추천드립니다.",next:["s_use","m2"]},
+ s_use:{q:"제작한 콘텐츠를 어떻게 활용할 수 있나요?",a:"한 번 제작한 양질의 콘텐츠는 광고와 확산 단계까지 길게 활용할 수 있어요. 2차 활용은 기본으로 제공하고, 파트너십 코드·스파크애즈·틱톡 어필리에이트로 광고 자산까지 키워드려요. 크로스 포스팅(미러링)도 추가 비용 없이 무료로 지원합니다.",cta:{t:"함께 시작하기",d:"우리 브랜드엔 어떤 방식이 맞을지 가볍게 같이 정해보아요."},next:["u_pc","u_spark","u_aff","u_collab","u_mirror"]},
+ u_pc:{q:"파트너십 코드는 뭔가요?",a:"인스타그램 파트너십 광고 기능으로, 크리에이터 계정 이름 그대로 노출돼 자연스럽고 신뢰가 이어져요. 잘 나온 콘텐츠 하나를 별도 제작 없이 광고 자산으로 빠르게 확장합니다.",next:["u_spark"]},
+ u_spark:{q:"스파크애즈는 뭔가요?",a:"인플루언서가 올린 콘텐츠를 그 계정 그대로 광고로 띄우는 틱톡 광고 방식이에요. 새로 찍거나 편집할 필요가 없고, 반응이 검증된 콘텐츠만 골라 예산을 써요. 원본의 좋아요·댓글도 그대로 따라옵니다.",next:["u_aff"]},
+ u_aff:{q:"틱톡 어필리에이트는요?",a:"크리에이터가 틱톡샵 상품을 영상·라이브에 링크로 연동하는 구조예요. 그 링크로 구매가 일어나면 크리에이터가 판매 수수료를 가져가는 성과형이라, 고정 콘텐츠비 부담을 줄이면서 자발적 확산과 구매 전환을 동시에 잡습니다.",next:["u_collab"]},
+ u_collab:{q:"공동작업자는 어떻게 쓰나요?",a:"하나의 콘텐츠를 브랜드 계정과 인플루언서 계정에 동시에 게시하는 기능이에요. 양쪽 피드에 같이 걸려 두 팬덤에 한 번에 닿고, 조회수가 합산되며 브랜드 계정의 노출·팔로워 유입도 함께 올라갑니다.",next:["u_mirror"]},
+ u_mirror:{q:"미러링은 뭔가요?",a:"한 인플루언서가 가진 여러 채널을 입체적으로 쓰는 방식이에요. 인스타에 올린 콘텐츠를 같은 분의 틱톡·유튜브에 한 번 더 올려, 한 번의 제작으로 추가 비용 없이 도달을 넓힙니다.",next:["m2"]},
+ m2:{q:"시리아이만의 강점이 있나요?",a:"특정 플랫폼의 한정된 풀에 갇히지 않고, AI를 기반으로 인스타그램 전체에서 적합한 인플루언서를 발굴해요. 직접 브랜드를 운영해 본 팀이라 브랜드의 페인포인트를 깊이 이해하고, 뛰어난 확장성과 유연한 매칭으로 감도 높은 브랜드들과 장기 신뢰를 이어왔습니다.",next:["d_adv","d_ai"]},
+ d_adv:{q:"구체적으로 무슨 장점이 있나요?",a:"",li:["<b>합리적인 단가</b> — 고정 비용이 없어 거품이 빠지고, 같은 예산으로 더 감도 높은 인플루언서와 협업해요.","<b>고이지 않는 풀</b> — 매번 새 얼굴을 발굴해 식상할 틈이 없고 장기 협업에도 유리합니다.","<b>사람이 챙기는 디테일</b> — 일정 조율·재진행·추가 리스트처럼 시스템이 못 푸는 부분을 직접 챙겨드려요."],next:["d_ai","d_brand"]},
+ d_ai:{q:"AI로 모집이요?",a:"가입된 회원 안에서만 매칭하는 방식이 아니에요. 채널 전체를 대상으로 AI로 새 얼굴을 찾아내, 브랜드가 표현하려는 콘셉트에 맞춰 한계 없이 확장합니다. 이런 발굴 방식이 요즘 시장 흐름과도 잘 맞아요.",next:["d_trend","d_brand"]},
+ d_trend:{q:"트렌디한 방법인가요?",a:"요즘 시장은 팔로워 수보다 인물의 색깔·팬덤·라이프스타일 중심으로 움직여요. 대형 한 명보다 무드가 맞는 여러 명과 할 때 신뢰가 올라가고, 그래서 채널 전체에서 결이 맞는 인물을 발굴하는 방식이 지금 트렌드에 잘 맞습니다.",next:["d_brand","m3"]},
+ d_brand:{q:"어떤 브랜드와 함께했나요?",a:"8division, 무신사, 이니스프리, 코스알엑스처럼 감도 높은 브랜드들과 함께해 왔어요.",cta:{t:"함께 시작하기",d:"우리 브랜드에 꼭 맞는 크리에이터 후보를 가볍게 받아보세요."},next:["m3"]},
+ m3:{q:"어떻게 진행되나요?",a:"",tl:[["니즈 파악",""],["리스트 전달","5~6일"],["컨펌","1~2일"],["제품 발송","2~4영업일"],["콘텐츠 업로드","1~2주"],["리포트","2~3일"]],total:"제품 발송 캠페인 기준 전체 약 <b>3~4주</b> 정도 소요돼요.",next:["p_pick","p_num","p_report"]},
+ p_pick:{q:"선별은 어떻게 진행하시나요?",a:"브랜드 니즈를 면밀히 파악한 뒤, AI가 팔로워·성별·나이 적합도를 보는 1차 정량 과정을 거쳐요. 이후 시리아이가 톤앤무드와 콘텐츠 맥락으로 2차 정성 필터링을 마쳐 최적의 최종 후보를 역제안드립니다.",next:["p_num","m4"]},
+ p_num:{q:"몇 명이나 받나요?",a:"필요한 인원의 1.5~2배수로 명단을 구성해 여유 있게 전달드려요.",next:["p_report","m4"]},
+ p_report:{q:"끝나면 뭘 받게 되나요?",a:"업로드된 콘텐츠 전체와 캠페인 성과를 하나의 리포트로 정리해 드려요. 무엇이 통했고 어떤 인물·콘텐츠가 반응을 이끌었는지 분석해 다음 기획의 출발점으로 자연스럽게 연결합니다.",cta:{t:"함께 시작하기",d:"부담 없이 가볍게 한번 시작해보아요."},next:["m4"]},
+ m4:{q:"비용은 얼마나 드나요?",a:"릴스 기준 건당 10만~25만원대예요. 예산 범위를 알려주시면 그 안에서 효율적인 구성을 역으로 설계해 드리고, 같은 예산이라도 누구와 하느냐에 따라 결과의 깊이가 달라집니다.",next:["c_ex","c_how","c_min"]},
+ c_ex:{q:"예를 들면요?",a:"200만원 예산이면 평균 20만원 단가의 인플루언서 10명을 기준으로, 1.5~2배 규모인 15~20명의 추천 리스트를 받아보실 수 있어요.",cta:{t:"함께 시작하기",d:"목표와 예산만 알려주시면 그 안에서 바로 맞춤 구성을 짜드려요."},next:["c_how","c_min"]},
+ c_how:{q:"단가가 어떻게 정해지나요?",a:"인플루언서의 등급·팔로워 규모·콘텐츠 종류에 따라 조율돼요. 숫자만 보지 않고 콘텐츠 퀄리티와 파급력까지 질적으로 종합 검토해 가장 합리적인 선으로 맞춰드립니다.",next:["c_min","c_extra"]},
+ c_min:{q:"최소 예산은요?",a:"최소 예산은 따로 정해두지 않았어요. 목표를 먼저 듣고 그에 맞는 정직한 볼륨과 인원을 제안드려요. 인플루언서 마케팅은 브랜딩을 다지는 과정이라 단발성보다 작게라도 꾸준히 이어가는 캠페인을 추천하고, 짧은 미팅 후 작은 검증부터 시작하는 테스트도 가능합니다.",cta:{t:"함께 시작하기",d:"목표와 예산 규모만 알려주시면 무리 없는 선에서 최적안을 구성해 드려요."},next:["c_extra","c_settle"]},
+ c_extra:{q:"추가 비용이 있나요?",a:"숨겨진 비용은 없어요. 인플루언서 조율과 콘텐츠 활용 조건을 사전에 면밀히 체크해, 대부분 처음 설정한 캠페인 예산 안에서 투명하게 해결됩니다.",next:["c_settle"]},
+ c_settle:{q:"정산은 언제 하나요?",a:"캠페인이 마무리되면 실제 업로드 완료된 콘텐츠를 기준으로 후불 정산을 요청드려요.",cta:{t:"함께 시작하기",d:"여기까지 보셨으면 비용·정산 구조의 큰 그림은 거의 다 잡히신 거예요."},next:[]}
+}},
+gl:{label:"해외 인플루언서",badge:"초안",mains:["h_na","h_cn","h_jpsea","h_ops"],N:{
+ h_na:{q:"북미는 어떻게 진행되나요?",a:"틱톡·아마존·월마트 마케팅 서비스를 제공해 드려요.",next:["h_tt","h_amz","h_prep"]},
+ h_tt:{q:"틱톡은요?",a:"북미는 인스타보다 틱톡이에요. 무가시딩·유가시딩 모두 가능하고, 틱톡으로 브랜드가 미국 시장에서 플레이 중인지를 보여주며 구매로 이어지는 시장이라, 기본적으로 저렴하게 콘텐츠를 많이 깔아두고 프로모션·광고 소재가 필요할 때 유가시딩을 권합니다.",next:["h_aff"]},
+ h_aff:{q:"틱톡 어필리에이트는요?",a:"틱톡 인플루언서를 브랜드의 판매사원처럼 쓰는 방식이에요. 인플루언서가 콘텐츠로 마케팅을 대신하고 판매금액의 일부를 수수료로 가져가요. 시딩 중 브랜드에 적합한 인원이 나오거나 콘텐츠가 바이럴된 경우에 한해 진행을 추천합니다.",next:["h_amz"]},
+ h_amz:{q:"아마존·월마트는요?",a:"진입부터 물류·콘텐츠 업로드까지 도와드려요. 상품페이지 관리, 물류 관리까지 원큐로 진행합니다.",pts:["진입 지원","상품페이지","물류 원큐","(상세 보강 예정)"],next:["h_prep"]},
+ h_prep:{q:"뭘 준비해야 하나요?",a:"준비 안 하셔도 돼요. 처음 틱톡, 아마존·월마트 계정 개설부터 제품 발송, 콘텐츠 업로드, 보고서까지 원큐로 도와드립니다.",pts:["셀러계정·브랜드등록","상품등록·상세","키워드 최적화","FBA 풀필먼트","광고·리뷰 등록","주4·월1 보고서"],cta:{t:"함께 시작하기",d:"북미 진출, 어디부터 시작할지 같이 정해보아요."},next:[]},
+ h_cn:{q:"중국은 어떻게 진행되나요?",a:"샤오훙슈를 중심으로 도우인, 따종디엔핑 등으로 진행해요. 중국 현지 캠페인, 국내 제품 발송, 오프라인 팝업 방문 등 다양한 형태로 가능합니다.",cta:CTA,next:[]},
+ h_jpsea:{q:"일본·동남아는요?",a:"일본은 인플루언서와 팔로워의 연결성이 약한 편이라, 오히려 국내에서 발행한 콘텐츠를 일본 쪽에 공동작업자로 함께 노출하는 전략을 추천드려요.",pts:["일본: 공동작업자 전략","동남아: 내용 준비 중"],next:[]},
+ h_ops:{q:"비용·정산·운영은 어떻게 되나요?",a:"진행 국가에 효과적인 채널을 골라 마케팅을 진행해요. 인스타·틱톡·유튜브·스레드, 중국은 샤오훙슈·도우인·따종디엔핑 등이고, 필요하면 구글맵·레딧 같은 리뷰 관리도 가능합니다.",next:["o_reuse","o_price","o_settle"]},
+ o_reuse:{q:"콘텐츠를 광고로 다시 써도 되나요?",a:"(내용 준비 중 — 편집용 작성 예정)",next:["o_price"]},
+ o_price:{q:"단가는 어떻게 되나요?",a:"(내용 준비 중 — 해외는 북미/일본 등 지역별로 다르게 정리 예정)",next:["o_settle"]},
+ o_settle:{q:"정산은 언제, 어떻게 하나요?",a:"(내용 준비 중)",cta:CTA,next:[]}
+}},
+celeb:{label:"셀러브리티 섭외",badge:"팀장본 기반",mains:["sc_pick","sc_act","sc_legal"],N:{
+ sc_pick:{q:"어떤 셀럽을, 어떤 기준으로 제안하나요?",a:"브랜드 가치 적합도·이미지·팬덤 성향을 데이터와 정성 평가로 함께 보고 후보를 좁혀요.",pts:["가치 적합도","이미지·팬덤","데이터+정성"],next:["sc_long","sc_risk","sc_budget"]},
+ sc_long:{q:"장기 계약도 설계해주나요?",a:"단발 협찬을 넘어 시즌·연 단위 앰버서더십의 활동 범위와 단계적 노출까지 설계합니다.",pts:["시즌·연 단위","활동 범위","단계적 노출"],next:["sc_risk"]},
+ sc_risk:{q:"리스크 검토도 하나요?",a:"평판·과거 이슈·경쟁 브랜드 활동을 사전 점검해 안전한 매칭을 보장해요.",pts:["평판 점검","과거 이슈","경쟁 활동"],cta:{t:"함께 시작하기",d:"브랜드에 어울리는 얼굴을 함께 찾아보아요."},next:["sc_budget"]},
+ sc_budget:{q:"예산 안에서 후보를 줄여주나요?",a:"예산·일정·콘셉트 제약을 먼저 정의하고, 실현 가능한 후보군으로 우선순위를 제안드려요.",pts:["제약 우선 정의","우선순위 제안","실현 가능 후보"],next:["sc_alt"]},
+ sc_alt:{q:"섭외 실패 시 대안은요?",a:"1순위 불발에 대비한 대체 후보 라인을 함께 준비해 일정 리스크를 줄입니다.",pts:["대체 후보 라인","일정 리스크↓","신속 전환"],next:[]},
+ sc_act:{q:"어떤 활동·행사가 되나요?",a:"화보·팝업·런칭·시상식 등 다양한 형태의 셀러브리티 활동을 연결해요.",pts:["화보·팝업","런칭·시상식","다양한 활동"],next:["sc_field","sc_quick","sc_media"]},
+ sc_field:{q:"당일 현장 운영도 지원하나요?",a:"현장 의전·동선·미디어 응대까지 당일 운영을 함께 관리합니다.",pts:["의전·동선","미디어 응대","당일 관리"],next:["sc_quick"]},
+ sc_quick:{q:"단기 섭외도 가능한가요?",a:"넓은 네트워크를 기반으로 촉박한 일정에도 가능한 후보를 신속히 제안드려요.",pts:["넓은 네트워크","촉박한 일정","신속 제안"],next:["sc_media"]},
+ sc_media:{q:"TVC와 디지털 둘 다 되나요?",a:"TVC·디지털 광고 모두 캐스팅 경험이 있고, 매체별 초상권 범위를 명확히 계약합니다.",pts:["TVC 경험","디지털 경험","초상권 명시"],cta:CTA,next:[]},
+ sc_legal:{q:"계약·정산은 안전한가요?",a:"사용 매체·기간·지역을 계약서에 명확히 규정해 분쟁 소지를 없앱니다.",pts:["매체·기간·지역","계약서 명시","분쟁 차단"],next:["sc_settle","sc_dispute"]},
+ sc_settle:{q:"정산까지 대행되나요?",a:"출연료 정산·세무 처리·증빙까지 행정 전반을 안전하게 관리해요.",pts:["출연료 정산","세무 처리","증빙 관리"],next:["sc_dispute"]},
+ sc_dispute:{q:"분쟁이 생기면 어떻게 하나요?",a:"계약 조건에 근거해 1차 조율을 진행하고, 필요하면 법무 파트너와 연계합니다.",pts:["계약 기준","1차 조율","법무 연계"],cta:CTA,next:[]}
+}},
+brand:{label:"브랜딩 비즈니스",badge:"팀장본 기반",mains:["b_what","b_vi","b_std","b_run"],N:{
+ b_what:{q:"브랜딩 서비스는 뭘 하나요?",a:"포지셔닝·메시지 아키텍처·타깃 정의를 담은 전략 문서를 산출물로 드려요.",pts:["포지셔닝","메시지 아키텍처","타깃 정의"],next:["b_dur","b_align"]},
+ b_dur:{q:"기간은 얼마나 걸리나요?",a:"규모에 따라 보통 4~8주이며, 워크숍과 리서치를 병행해 진행합니다.",pts:["보통 4~8주","워크숍 병행","리서치 동반"],next:["b_align"]},
+ b_align:{q:"캠페인과 어떻게 연결되나요?",a:"전략이 크리에이터 캠페인의 메시지 기준점이 되어, 모든 커뮤니케이션이 한 방향을 향하게 해요.",pts:["메시지 기준점","한 방향 정렬","일관 커뮤니케이션"],cta:{t:"함께 시작하기",d:"브랜드 방향부터 같이 잡아보아요."},next:["b_vi"]},
+ b_vi:{q:"VI·디자인은 어디까지 만들어주나요?",a:"로고·컬러·타이포·그래픽 모티프와 적용 가이드까지 일관된 시스템으로 구축해요.",pts:["로고·컬러·타이포","그래픽 모티프","적용 가이드"],next:["b_rebrand","b_guide"]},
+ b_rebrand:{q:"기존 로고도 살릴 수 있나요?",a:"리브랜딩 범위를 진단해, 자산을 살리는 리프레시와 전면 개편 중 적합한 방향을 제안드려요.",pts:["범위 진단","자산 리프레시","전면 개편"],next:["b_guide"]},
+ b_guide:{q:"가이드라인도 제공되나요?",a:"누가 적용해도 일관되도록 사용 규칙과 예시를 담은 브랜드 가이드를 전달합니다.",pts:["사용 규칙","적용 예시","일관성 확보"],next:["b_std"]},
+ b_std:{q:"콘텐츠 표준화·내재화는요?",a:"채널별 톤앤매너·템플릿·콘텐츠 포맷을 정의해 제작 편차를 줄여요.",pts:["톤앤매너","템플릿","콘텐츠 포맷"],next:["b_intern","b_edu"]},
+ b_intern:{q:"내부 팀도 쓸 수 있나요?",a:"내재화를 전제로 가이드와 템플릿을 설계해, 내부 인력이 직접 운영할 수 있게 합니다.",pts:["가이드 제공","템플릿 설계","직접 운영"],next:["b_edu"]},
+ b_edu:{q:"운영 교육도 해주나요?",a:"시스템 핸드오버 시 실무 적용 교육과 초기 운영 코칭을 함께 제공해요.",pts:["실무 교육","초기 코칭","핸드오버"],cta:CTA,next:[]},
+ b_run:{q:"어떻게 지속 운영하나요?",a:"분기·연 단위로 목표를 합의하고, 월 단위 실행과 리뷰 사이클로 운영합니다.",pts:["분기·연 목표","월 실행","리뷰 사이클"],next:["b_road","b_flex"]},
+ b_road:{q:"캠페인과 어떻게 정렬하나요?",a:"브랜드 메시지와 크리에이터 캠페인을 같은 로드맵 위에서 지속적으로 맞춰요.",pts:["동일 로드맵","지속 정렬","메시지 일관"],next:["b_flex"]},
+ b_flex:{q:"범위는 조정 가능한가요?",a:"비즈니스 상황에 맞춰 매월 운영 범위와 리소스를 유연하게 조정합니다.",pts:["상황 맞춤","월별 조정","리소스 유연"],cta:CTA,next:[]}
+}}
+};
+let cur="kr";
+const chat=document.getElementById('chat');
+function el(t,c,h){const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;}
+function answerCard(n){const a=el('div','a');a.appendChild(el('div','atitle',n.q));
+ if(n.a)a.appendChild(el('p',null,n.a));
+ if(n.li){const ul=el('ul');n.li.forEach(x=>ul.appendChild(el('li',null,x)));a.appendChild(ul);}
+ if(n.tl){const tl=el('div','tl');n.tl.forEach(s=>{const st=el('div','step');st.appendChild(el('span','dot'));st.appendChild(el('span','lbl',s[0]));if(s[1])st.appendChild(el('span','dur',s[1]));tl.appendChild(st);});a.appendChild(tl);if(n.total)a.appendChild(el('div','total',n.total));}
+ if(n.pts){const p=el('div','pts');n.pts.forEach(x=>p.appendChild(el('span','pt',x)));a.appendChild(p);}
+ return a;}
+function chips(ids){const c=el('div','chips');const M=AREAS[cur].mains;ids.forEach(id=>{const node=AREAS[cur].N[id];if(!node)return;const isMain=M.includes(id);const b=el('button','chip'+(isMain?' main':''),'<span class="arr">'+(isMain?'#':'↳')+'</span>'+node.q);b.onclick=()=>go(id);c.appendChild(b);});return c;}
+function go(id){const n=AREAS[cur].N[id];if(!n)return;const row=el('div','row');
+ row.appendChild(Object.assign(el('div','q'),{textContent:n.q}));
+ row.appendChild(answerCard(n));
+ if(n.cta){const b=el('button','cta','<span class="ico">✶</span><span class="ctxt"><b>'+n.cta.t+'</b>'+n.cta.d+'</span>');b.onclick=contact;row.appendChild(b);}
+ const nx=(n.next||[]).filter(x=>AREAS[cur].N[x]);
+ if(nx.length){row.appendChild(el('div','seg','이어서'));row.appendChild(chips(nx));}
+ else{row.appendChild(el('div','seg','다른 것도 궁금하면'));row.appendChild(chips(AREAS[cur].mains));}
+ chat.appendChild(row);row.scrollIntoView({behavior:'smooth',block:'start'});}
+function contact(){const row=el('div','row');const c=el('div','contact');
+ c.innerHTML='<h3>함께 시작하기</h3><div class="sub">아래 초안을 복사해 메일로 보내주세요. 대괄호 부분만 채우면 됩니다.</div><div class="grid"><div><div class="k">Email</div><div class="v">hello@siriai.studio</div></div><div><div class="k">Response</div><div class="v">평일 24시간 이내 회신</div></div><div><div class="k">Studio</div><div class="v">Seoul · 평일 10:00–19:00 KST</div></div></div><div class="btnrow"><button class="btn">메일 초안 복사</button><button class="btn ghost">미팅으로 예약하기</button></div>';
+ row.appendChild(c);chat.appendChild(row);row.scrollIntoView({behavior:'smooth',block:'start'});}
+function start(){chat.innerHTML='';const A=AREAS[cur];
+ document.getElementById('atitle').textContent=A.label+' · 무엇이 궁금하세요?';
+ document.getElementById('abadge').textContent=A.badge;
+ const row=el('div','row');row.appendChild(el('div','seg','대표 질문'));row.appendChild(chips(A.mains));chat.appendChild(row);}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));t.classList.add('on');cur=t.dataset.a;start();});
+start();
+</script>
+</body>
+</html>

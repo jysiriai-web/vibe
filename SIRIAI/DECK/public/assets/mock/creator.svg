@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 1280" width="720" height="1280" role="img" aria-label="크리에이터 콘텐츠 비주얼(가상·세로)">
+  <defs>
+    <linearGradient id="cw" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#f8ead9"/>
+      <stop offset="0.5" stop-color="#f3eee2"/>
+      <stop offset="1" stop-color="#ece3d1"/>
+    </linearGradient>
+    <radialGradient id="cg1" cx="0.78" cy="0.14" r="0.5">
+      <stop offset="0" stop-color="#ddd0ef" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#ddd0ef" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="cg2" cx="0.18" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#f6c9a8" stop-opacity="0.8"/>
+      <stop offset="1" stop-color="#f6c9a8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="cg3" cx="0.7" cy="0.92" r="0.55">
+      <stop offset="0" stop-color="#ffe0c4" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#ffe0c4" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="720" height="1280" fill="url(#cw)"/>
+  <rect width="720" height="1280" fill="url(#cg1)"/>
+  <rect width="720" height="1280" fill="url(#cg2)"/>
+  <rect width="720" height="1280" fill="url(#cg3)"/>
+
+  <!-- 소프트 보케 -->
+  <circle cx="560" cy="210" r="150" fill="#fff" opacity="0.26"/>
+  <circle cx="150" cy="760" r="104" fill="#fff" opacity="0.2"/>
+
+  <!-- 세로 '릴스' 프레임 2장(레퍼런스 영상 암시) + 재생 삼각형 -->
+  <g>
+    <rect x="96" y="150" width="300" height="520" rx="26" fill="#ffffff" opacity="0.5" stroke="#211a33" stroke-opacity="0.12"/>
+    <path d="M232 380 l40 26 -40 26 z" fill="#211a33" opacity="0.6"/>
+    <rect x="338" y="320" width="300" height="520" rx="26" fill="#ffffff" opacity="0.6" stroke="#211a33" stroke-opacity="0.14"/>
+    <path d="M474 550 l42 28 -42 28 z" fill="#211a33" opacity="0.7"/>
+  </g>
+
+  <!-- 크리에이터 실루엣 2 -->
+  <g fill="#211a33">
+    <g opacity="0.13" transform="translate(250 980)">
+      <circle cx="0" cy="-92" r="60"/>
+      <path d="M-112 120c0-74 50-116 112-116s112 42 112 116z"/>
+    </g>
+    <g opacity="0.09" transform="translate(470 1040)">
+      <circle cx="0" cy="-78" r="50"/>
+      <path d="M-96 104c0-62 42-98 96-98s96 36 96 98z"/>
+    </g>
+  </g>
+
+  <!-- 잉크 알약 한 점(브랜드 강조) -->
+  <rect x="288" y="1150" width="144" height="32" rx="16" fill="#211a33"/>
+  <line x1="80" y1="84" x2="640" y2="84" stroke="#211a33" stroke-opacity="0.12"/>
+</svg>

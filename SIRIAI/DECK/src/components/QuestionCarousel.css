@@ -1,0 +1,73 @@
+.carousel { position: relative; width: 100%; }
+
+.carousel__hint {
+  color: var(--ink-2);
+  margin-bottom: var(--s-4);
+  text-align: center;
+}
+
+/* ---- 평면 롤러 ---- */
+.roller {
+  position: relative;
+  width: 100%;
+  height: 430px;
+  overflow: hidden;
+  /* 위/아래 가장자리 페이드 → 바가 안개 속으로 드나드는 느낌 */
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
+}
+
+/* 질문 바 (평평한 알약 — 그림의 적층 바). transform/opacity는 인라인 제어 */
+.qbar {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-origin: center center;
+  width: min(96%, 520px);
+  text-align: center;
+  font-family: var(--f-kr);
+  font-size: 17px;
+  font-weight: var(--w-medium);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  padding: 15px 26px;
+  border-radius: var(--r-pill);
+  border: var(--bw) solid var(--line);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.66), rgba(255, 255, 255, 0.44));
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: 0 6px 18px rgba(33, 26, 51, 0.07);
+  will-change: transform, opacity;
+}
+
+/* 가운데(전면) 바 — 가장 또렷, 살짝 떠오른 느낌 */
+.qbar.is-active {
+  background: var(--surface);
+  box-shadow: 0 16px 36px rgba(33, 26, 51, 0.16), 0 2px 6px rgba(33, 26, 51, 0.08);
+  box-shadow: 0 16px 36px rgba(33, 26, 51, 0.16), 0 2px 6px rgba(33, 26, 51, 0.08);
+}
+.qbar:hover {
+  background: var(--surface);
+  box-shadow: 0 16px 36px rgba(33, 26, 51, 0.16), 0 2px 6px rgba(33, 26, 51, 0.08);
+}
+
+/* ---- 정적(prefers-reduced-motion) ---- */
+.carousel__static {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  align-items: center;
+}
+.carousel__static .qchip {
+  font-family: var(--f-kr);
+  font-size: 14px;
+  font-weight: var(--w-medium);
+  color: var(--ink);
+  padding: 11px 20px;
+  border-radius: var(--r-pill);
+  border: var(--bw) solid var(--line);
+  background: var(--glass-bg);
+  white-space: normal;
+  text-align: center;
+}

@@ -1,0 +1,125 @@
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: var(--s-8) var(--edge);
+  cursor: pointer;
+  overflow: hidden;
+  /* 중앙 뒤에 은은한 웜 글로우 추가 → 깊이 */
+  background: radial-gradient(48% 38% at 50% 46%, var(--cream), transparent 70%);
+}
+
+/* ---- 상단 아카이브 프레임 ---- */
+.hero__frame {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding: var(--s-5) var(--edge);
+  border-bottom: var(--bw) solid var(--line);
+}
+.hero__brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+}
+.hero__wordmark {
+  color: var(--ink);
+  font-weight: var(--w-semibold);
+  letter-spacing: 0.24em;
+}
+.hero__brand-jp { font-size: 12px; color: var(--ink-3); }
+.hero__frame-mid { color: var(--ink-3); }
+.hero__frame-r { color: var(--ink-3); }
+@media (max-width: 600px) {
+  .hero__frame-mid { display: none; }
+}
+
+/* ---- 큰 사명 워터마크 ---- */
+.hero__watermark {
+  position: absolute;
+  right: -2vw;
+  bottom: -4vh;
+  font-size: clamp(160px, 34vw, 460px);
+  line-height: 1;
+  color: var(--ink);
+  opacity: 0.035;
+  user-select: none;
+  pointer-events: none;
+  letter-spacing: -0.04em;
+}
+
+/* ---- 본문 ---- */
+.hero__inner {
+  position: relative;
+  z-index: 2;
+  max-width: 940px;
+  animation: fadeUp var(--t-slow) var(--ease) both;
+}
+
+.hero__eyebrow { margin-bottom: var(--s-5); color: var(--ink-3); }
+
+.hero__title {
+  font-family: var(--f-kr);
+  font-weight: var(--w-semibold);
+  font-size: var(--fs-display);
+  line-height: var(--lh-head);
+  letter-spacing: var(--tracking-head);
+  color: var(--ink);
+}
+
+.hero__sub {
+  margin: var(--s-5) auto 0;
+  max-width: 38em;
+  white-space: pre-line;
+  font-size: var(--fs-lead);
+  line-height: 1.75;
+  color: var(--ink-2);
+}
+
+/* ---- 진입 버튼 (알약 고스트) ---- */
+.hero__enter {
+  margin-top: var(--s-8);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: 13px 24px;
+  border-radius: var(--r-pill);
+  border: var(--bw) solid var(--line-strong);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  color: var(--ink);
+  font-family: var(--f-kr);
+  font-size: 15px;
+  font-weight: var(--w-medium);
+  transition: transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease),
+    background var(--t-fast) var(--ease);
+}
+.hero__enter:hover {
+  transform: translateY(-2px);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.hero__enter-label { letter-spacing: -0.01em; }
+.hero__arrow {
+  display: inline-flex;
+  color: var(--ink);
+  animation: heroNudge 1.8s var(--ease-soft) infinite;
+}
+.hero__enter:hover .hero__arrow { animation-play-state: paused; transform: translateX(4px); }
+
+@keyframes heroNudge {
+  0%, 100% { transform: translateX(0); opacity: 0.7; }
+  50% { transform: translateX(6px); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__inner { animation: none; }
+  .hero__arrow { animation: none; }
+}

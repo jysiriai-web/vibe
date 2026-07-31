@@ -1,0 +1,206 @@
+/* ════════════════════════════════════════════════════
+   색의 영토 (Territory of Color)
+   히어로 질문 5개 = 종이에 녹는 5개의 방.
+   body[data-q] = 방, body[data-depth] = 그 방의 깊이.
+   색·워시·헤어라인·hover·고스트번호만으로 차별화.
+   모든 색은 peach/lilac/ink 파생 저채도.
+   ════════════════════════════════════════════════════ */
+
+/* ── 영토 토큰: 방마다 워시 색/위치/액센트만 바뀐다 ── */
+body{
+  /* 기본값(=01에 준함) — 셀렉터가 못 잡아도 안전 */
+  --terr-a: rgba(246,201,168,.30);   /* 워시 주색 */
+  --terr-b: rgba(246,201,168,.12);   /* 워시 보조 */
+  --terr-pos: 84% 8%;                /* .right 안 워시 위치 */
+  --terr-size: 620px 520px;
+  --terr-line: rgba(246,201,168,.55);/* 액센트 헤어라인 */
+  --terr-pill: rgba(246,201,168,.10);/* follow hover 바탕 */
+  --terr-ghost: rgba(33,26,51,.045); /* 고스트 번호 */
+  --terr-num: "01";
+  --terr-veil: rgba(33,26,51,0);     /* 깊이 베일(depth가 키움) */
+}
+
+/* 01 — 협업/레퍼런스 : 따뜻한 peach, 우상단에 안착(환대·신뢰) */
+body[data-q="01"]{
+  --terr-a: rgba(246,201,168,.34); --terr-b: rgba(246,201,168,.10);
+  --terr-pos: 86% 6%; --terr-size: 640px 540px;
+  --terr-line: rgba(246,201,168,.60); --terr-pill: rgba(246,201,168,.11);
+  --terr-ghost: rgba(33,26,51,.05); --terr-num:"01";
+}
+/* 02 — AI/방식 : 서늘한 lilac, 좌상단으로(테크니컬·맑음) */
+body[data-q="02"]{
+  --terr-a: rgba(221,208,239,.40); --terr-b: rgba(221,208,239,.12);
+  --terr-pos: 14% 4%; --terr-size: 600px 560px;
+  --terr-line: rgba(214,200,236,.62); --terr-pill: rgba(221,208,239,.13);
+  --terr-ghost: rgba(33,26,51,.045); --terr-num:"02";
+}
+/* 03 — 선별/fit : peach·lilac가 만나는 자리(맞춤·균형), 가운데 아래 */
+body[data-q="03"]{
+  --terr-a: rgba(232,205,205,.30); --terr-b: rgba(221,208,239,.13);
+  --terr-pos: 50% 96%; --terr-size: 700px 480px;
+  --terr-line: rgba(225,203,212,.58); --terr-pill: rgba(232,205,205,.12);
+  --terr-ghost: rgba(33,26,51,.045); --terr-num:"03";
+}
+/* 04 — 해외 : 넓고 서늘한 lilac, 우하단에서 멀리(확장·거리) */
+body[data-q="04"]{
+  --terr-a: rgba(216,206,236,.40); --terr-b: rgba(221,208,239,.10);
+  --terr-pos: 96% 92%; --terr-size: 760px 600px;
+  --terr-line: rgba(210,198,232,.60); --terr-pill: rgba(216,206,236,.13);
+  --terr-ghost: rgba(33,26,51,.04); --terr-num:"04";
+}
+/* 05 — 후불/비용 : 깊은 따뜻함(peach-cream), 좌하단에 무겁게(신뢰·정착) */
+body[data-q="05"]{
+  --terr-a: rgba(244,194,160,.34); --terr-b: rgba(246,210,180,.13);
+  --terr-pos: 8% 94%; --terr-size: 660px 560px;
+  --terr-line: rgba(240,190,156,.62); --terr-pill: rgba(244,194,160,.12);
+  --terr-ghost: rgba(33,26,51,.05); --terr-num:"05";
+}
+
+/* ── 깊이(후속질문): 같은 방, 더 들어간 느낌 — 저명도 베일 한 겹 ── */
+body[data-depth="1"]{ --terr-veil: rgba(33,26,51,.018); }
+body[data-depth="2"]{ --terr-veil: rgba(33,26,51,.032); }
+body[data-depth="3"]{ --terr-veil: rgba(33,26,51,.045); }
+
+/* ════════════════════════════════════════════════════
+   1) 우측 패널의 영토 워시
+   .right는 overflow:hidden + position absolute inset:0 →
+   ::before로 워시 한 겹. body 고정 라디얼은 그대로 둔다.
+   스크롤 유발 없음(절대배치·inset).
+   ════════════════════════════════════════════════════ */
+.right{ isolation:isolate; }
+.right::before{
+  content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(var(--terr-size) at var(--terr-pos), var(--terr-a), transparent 66%),
+    radial-gradient(calc(var(--terr-size)) at var(--terr-pos), var(--terr-b), transparent 80%),
+    linear-gradient(var(--terr-veil), var(--terr-veil));
+  opacity:0;
+  transition:opacity 1.1s cubic-bezier(.22,.61,.36,1), background 1.1s cubic-bezier(.22,.61,.36,1);
+}
+/* 답이 떠 있을 때만 방의 색이 켜진다(인삿말 단계는 중립 종이) */
+body[data-q] .right::before{ opacity:1; }
+.right-pad{ position:absolute; z-index:1; }  /* 내용은 워시 위로 */
+
+/* ════════════════════════════════════════════════════
+   2) 액센트 헤어라인 — 제목 아래 가느다란 영토색 선
+   (.a-head border가 아니라 ::after로 얇게: 위계 안 깨짐)
+   ════════════════════════════════════════════════════ */
+.answer .a-head{ position:relative; }
+.answer .a-head::after{
+  content:""; position:absolute; left:0; bottom:-14px;
+  width:34px; height:2px; border-radius:2px;
+  background:var(--terr-line);
+  opacity:0; transform:scaleX(.4); transform-origin:left;
+  transition:opacity .7s ease .15s, transform .8s cubic-bezier(.22,.61,.36,1) .15s, background .9s ease;
+}
+.answer.show .a-head.anim::after{ opacity:.9; transform:none; }
+.answer.show .a-head::after{ opacity:.9; transform:none; }
+/* 깊이가 깊을수록 선이 조금 길어진다(같은 방, 더 안쪽) */
+body[data-depth="2"] .answer .a-head::after{ width:46px; }
+body[data-depth="3"] .answer .a-head::after{ width:58px; opacity:.78; }
+
+/* ════════════════════════════════════════════════════
+   3) 고스트 번호 — 정보 아님(장식). 방마다 색·번호.
+   .a-head 우측에 옅게. 데스크탑 단일화면 안에서만.
+   ════════════════════════════════════════════════════ */
+.answer .a-head{ z-index:1; }
+.answer .a-head::before{
+  content:var(--terr-num);
+  position:absolute; right:-1vw; top:-.46em; z-index:-1;
+  font-family:var(--serif); font-style:italic; font-weight:500;
+  font-size:19vh; line-height:1; letter-spacing:-.02em;
+  color:var(--terr-ghost);
+  pointer-events:none; user-select:none;
+  transition:color 1s ease;
+}
+/* 후속질문엔 고스트 번호를 숨겨 위계 단순화(히어로에서만 큰 번호) */
+body[data-depth="1"] .answer .a-head::before,
+body[data-depth="2"] .answer .a-head::before,
+body[data-depth="3"] .answer .a-head::before{ opacity:0; }
+
+/* ════════════════════════════════════════════════════
+   4) follow pill hover — 그 방의 색으로 살짝 물든다
+   ════════════════════════════════════════════════════ */
+.follow{ transition:border-color .35s ease, background .45s ease, transform .25s ease; }
+.follow:hover{
+  border-color:var(--ink);
+  background:var(--terr-pill);
+  transform:translateY(-1px);
+}
+.follow .qmark{ transition:color .35s ease; }
+.follow:hover .qmark{ color:var(--terr-line); }
+
+/* ════════════════════════════════════════════════════
+   5) CTA 미세 톤 — 잉크 솔리드는 유지하되, hover 글로우만
+   방의 색으로(채도 신규색 아님 — 영토색 그림자 한 겹)
+   ════════════════════════════════════════════════════ */
+.cta{
+  box-shadow:0 14px 34px rgba(33,26,51,.13);
+  transition:transform .25s ease, box-shadow .5s ease;
+}
+.cta:hover{
+  box-shadow:0 16px 40px rgba(33,26,51,.15), 0 6px 22px var(--terr-pill);
+}
+
+/* ════════════════════════════════════════════════════
+   6) 좌측 활성 질문 — 영토색 한 줄로 '지금 이 방' 표식
+   (.qrow.active 에 왼쪽 액센트 바)
+   ════════════════════════════════════════════════════ */
+.qrow{ position:relative; }
+.qrow::before{
+  content:""; position:absolute; left:-2px; top:50%; transform:translateY(-50%) scaleY(0);
+  width:2px; height:20px; border-radius:2px;
+  background:var(--terr-line);
+  transition:transform .45s cubic-bezier(.22,.61,.36,1), background .8s ease;
+}
+.qrow.active::before{ transform:translateY(-50%) scaleY(1); }
+
+/* 직전 질문 한 줄(.prev-q) — 영토색 점으로 연결감 */
+.prev-q::before{
+  content:""; width:5px; height:5px; border-radius:50%;
+  background:var(--terr-line); flex:none; margin-right:2px; opacity:.8;
+}
+
+/* a-grid 셀(해외=04) hover — 방 색으로 미세 반응 */
+body[data-q="04"] .a-grid .cell:hover{ border-color:var(--terr-line); }
+body[data-q="04"] .a-grid .cell{ transition:border-color .4s ease; }
+
+/* a-figure 큰 숫자(후불=05) — 영토색 베이스라인 한 줄 */
+body[data-q="05"] .a-figure .fn{ position:relative; }
+body[data-q="05"] .a-figure.in .fn::after{
+  content:""; position:absolute; left:0; right:0; bottom:-6px; height:2px;
+  background:var(--terr-line); opacity:.5; border-radius:2px;
+}
+
+/* ════════════════════════════════════════════════════
+   인삿말 단계 — 방 선택 전엔 색을 비워 '문 앞' 느낌
+   (body에 data-q 없을 때 .greet em 만 은은히)
+   ════════════════════════════════════════════════════ */
+body:not([data-q]) .greet h2 em{ color:var(--ink-2); }
+
+/* ════════════════════════════════════════════════════
+   모바일(≤860): 절대배치 장식 축소/제거 — 레이아웃 보호
+   ════════════════════════════════════════════════════ */
+@media (max-width:860px){
+  .right{ overflow:visible; }
+  .right::before{
+    position:fixed; inset:0; z-index:-1;
+    opacity:0; transition:opacity 1s ease;
+    background:
+      radial-gradient(70vw 40vh at var(--terr-pos), var(--terr-a), transparent 70%),
+      linear-gradient(var(--terr-veil), var(--terr-veil));
+  }
+  body[data-q] .right::before{ opacity:1; }
+  .right-pad{ position:relative; }
+  .answer .a-head::before{ display:none; }      /* 고스트 번호 제거 */
+  .answer .a-head::after{ bottom:-10px; width:30px; }
+}
+
+/* ════════════════════════════════════════════════════
+   모션 절제 — reduce 시 워시는 즉시(전환 없음), 색은 유지
+   (base가 이미 transition을 0으로 만들지만 명시)
+   ════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion:reduce){
+  .right::before, .answer .a-head::after, .answer .a-head::before,
+  .qrow::before, .follow, .cta{ transition-duration:.01ms !important; }
+}

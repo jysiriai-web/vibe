@@ -1,0 +1,46 @@
+.soon {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  animation: fadeIn var(--t-med) var(--ease) both;
+}
+.soon__inner { max-width: 44em; }
+
+.soon__eyebrow { color: var(--ink-3); margin-bottom: var(--s-5); }
+.soon__headline {
+  font-family: var(--f-kr);
+  font-weight: var(--w-semibold);
+  font-size: var(--fs-h1);
+  line-height: var(--lh-head);
+  letter-spacing: var(--tracking-head);
+  white-space: pre-line;
+  color: var(--ink);
+}
+.soon__hero-sub {
+  margin-top: var(--s-4);
+  font-size: var(--fs-lead);
+  color: var(--ink-2);
+}
+
+.soon__teaser {
+  margin-top: var(--s-7);
+  padding-left: var(--s-5);
+  border-left: 2px solid var(--line-strong);
+}
+.soon__line {
+  font-size: var(--fs-h3);
+  line-height: 1.55;
+  color: var(--ink);
+}
+.soon__teaser-sub {
+  margin-top: var(--s-3);
+  font-size: var(--fs-body);
+  line-height: 1.7;
+  color: var(--ink-2);
+}
+
+.soon__tech { margin-top: var(--s-6); color: var(--ink-3); }
+
+.soon__cta { margin-top: var(--s-8); max-width: 540px; }

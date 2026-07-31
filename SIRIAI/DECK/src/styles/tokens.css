@@ -1,0 +1,138 @@
+/* =============================================================================
+   SIRIAI V3 — 디자인 토큰 (Single Source of Truth)
+   -----------------------------------------------------------------------------
+   ★ 클로드 디자인 핸드오프 지점 ★
+   비주얼을 바꾸려면 "거의 전부" 이 파일의 변수만 고치면 된다.
+   컴포넌트 구조/로직은 건드리지 말 것. 색·폰트·간격·라운드·모션만 여기서.
+
+   값은 SIRIAI 권위 기준 파일에서 실측:
+     V2/03_디자인/SIRIAI 브랜드 원칙 (Claude용).md + 디자인_가이드.html
+
+   ▣ 절대 준수 5
+   ① 배경 Paper #F3EEE2 · 텍스트 Ink #211A33
+   ② 영문 Helvetica/Arimo · 국문 Pretendard · 라벨 JetBrains Mono(UPPERCASE)
+   ③ ⛔ Schibsted Grotesk / Inter / Roboto / Arial단독 / 맑은고딕·굴림 금지
+   ④ 강조 = Ink 솔리드 알약 버튼 하나, 색감은 웜 워시(peach/lilac/cream)
+   ⑤ 순백+순흑·형광/무지개 그라데이션·이모지·진한 그림자·두꺼운 컬러박스 금지
+   ============================================================================= */
+
+:root {
+  /* ---- Color: core (권위 토큰) ----------------------------------------- */
+  --paper: #f3eee2;            /* 기본 배경 (따뜻한 크림 종이) */
+  --surface: #ffffff;          /* 카드 / 글래스 표면 */
+  --ink: #211a33;             /* 기본 텍스트 · CTA 버튼 */
+  --ink-2: rgba(33, 26, 51, 0.74); /* 보조 텍스트 (가독성 ↑) */
+  --ink-3: rgba(33, 26, 51, 0.58); /* 캡션 · 라벨 (가독성 ↑) */
+  --line: rgba(33, 26, 51, 0.15);  /* 헤어라인 · 구분선 */
+  --accent: #2a6fdb;           /* 파란 강조 — 텍스트 링크에만, 아주 드물게 */
+
+  /* 파생(편의) */
+  --paper-raised: #faf6ec;     /* Paper보다 살짝 밝은 면 */
+  --paper-sunken: #ece3d1;     /* 눌린/구분 면 */
+  --ink-ghost: rgba(33, 26, 51, 0.06);
+  --line-strong: rgba(33, 26, 51, 0.26);
+  --coming: rgba(33, 26, 51, 0.34); /* coming_soon 흐림 톤 */
+
+  /* ---- Color: 웜 워시 (색감의 진짜 출처 — 평평한 색면 금지) ----------- */
+  --peach: rgba(246, 201, 168, 0.5);
+  --lilac: rgba(221, 208, 239, 0.45);
+  --cream: rgba(255, 224, 196, 0.4);
+
+  /* 페이지 배경: Paper + 옅은 방사형 글로우 1~3겹 */
+  --bg-wash:
+    radial-gradient(60% 50% at 16% 6%, var(--peach), transparent 60%),
+    radial-gradient(55% 45% at 88% 4%, var(--lilac), transparent 60%),
+    var(--paper);
+
+  /* ---- Typography: 폰트 스택 (이 5종만) -------------------------------- */
+  --f-en: 'Helvetica Neue', 'Helvetica', 'Arimo', 'Pretendard', Arial, sans-serif;
+  --f-kr: 'Pretendard', system-ui, sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+  --f-serif: 'Bodoni Moda', Georgia, serif;
+  --f-jp: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Noto Sans JP', sans-serif;
+  --f-body: var(--f-kr); /* 본문 기본은 국문 Pretendard */
+
+  /* 타입 스케일 — 홈페이지 정렬 + 본문 가독성·레이아웃 확대 */
+  --fs-display: clamp(34px, 4.8vw, 66px); /* 히어로 */
+  --fs-h1: clamp(28px, 3.5vw, 52px);      /* 분야 헤드라인 (홈페이지 스케일) */
+  --fs-h2: clamp(21px, 2.3vw, 32px);
+  --fs-h3: clamp(18px, 1.6vw, 23px);
+  --fs-lead: clamp(15px, 1.2vw, 19px);
+  --fs-body: 16.5px;
+  --fs-sm: 14px;
+  --fs-label: 11.5px;  /* JetBrains Mono 라벨 */
+
+  /* 헤드라인 "읽고→접기" — 진입 시 크게 떠서 읽히고, 작게 줄어 상단에 박힌다.
+     resting = 부제(틀 없이 니즈를…) 정도로 작게. grow = 진입 시 확대 배율. */
+  --fs-head-rest: clamp(16px, 1.35vw, 20px);
+  --head-grow: 1.95;
+  --head-dur: 1.5s;
+
+  --lh-tight: 1.08;
+  --lh-head: 1.16;
+  --lh-body: 1.6;
+
+  --tracking-head: -0.015em;
+  --tracking-head-en: -0.022em;
+  --tracking-body: -0.005em;
+  --tracking-label: 0.18em;
+
+  --w-normal: 400;
+  --w-medium: 500;
+  --w-semibold: 600;
+  --w-bold: 700;
+
+  /* ---- Space scale ------------------------------------------------------ */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+  --s-9: 96px;
+  --s-10: 128px;
+  --edge: clamp(22px, 5vw, 64px); /* 화면 가장자리 여백 */
+
+  /* ---- Radius / border / shadow (권위 스케일) -------------------------- */
+  --r-sm: 12px;   /* 작은 카드 · 아이콘 버튼 */
+  --r-md: 18px;   /* 패널 · 글래스 바 */
+  --r-pill: 100px;/* 버튼 · 태그 알약 */
+  --bw: 1px;      /* 헤어라인 보더 */
+
+  --shadow: 0 16px 44px rgba(33, 26, 51, 0.13); /* 표준 그림자(유일) */
+  --shadow-soft: 0 8px 24px rgba(33, 26, 51, 0.08);
+  --shadow-pop: 0 22px 60px rgba(33, 26, 51, 0.18);
+
+  /* 글래스 표면 */
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-blur: blur(20px) saturate(1.5);
+
+  /* ---- Layout ----------------------------------------------------------- */
+  --maxw: 1320px;       /* 와이드 화면에서 가로 여백 줄이고 확대 */
+  --sidebar-w: 280px;   /* 목차 한 줄 표기 확보 */
+  --header-h: 60px;
+
+  /* ---- Motion ----------------------------------------------------------- */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  --t-fast: 180ms;
+  --t-med: 360ms;
+  --t-slow: 600ms;
+  --carousel-speed: 42s; /* 질문 칩 캐러셀 1회전 (느리게 = '살아있는') */
+
+  --z-base: 1;
+  --z-sidebar: 20;
+  --z-chatbot: 60;
+  --z-modal: 80;
+}
+
+/* 모션 최소화 선호: 전역 전환만 0으로. 캐러셀/플로팅 정지는 컴포넌트에서 처리 */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --t-fast: 0ms;
+    --t-med: 0ms;
+    --t-slow: 0ms;
+  }
+}

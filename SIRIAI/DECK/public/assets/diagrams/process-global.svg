@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 210" font-family="'Pretendard','Malgun Gothic','Apple SD Gothic Neo',sans-serif">
+  <rect width="1400" height="210" fill="#F3EEE2"/>
+  <text x="30" y="40" font-family="'JetBrains Mono','Courier New',monospace" font-size="12" letter-spacing="2.5" fill="#211A33" fill-opacity="0.46">진행 프로세스 — 계약부터 보고서까지</text>
+
+  <g text-anchor="middle">
+    <text x="122.5" y="92" font-family="'JetBrains Mono','Courier New',monospace" font-size="11" fill="#cabce8">01</text>
+    <rect x="30" y="104" width="185" height="58" rx="29" fill="#FBF8F1" stroke="#211A33" stroke-opacity="0.13"/>
+    <text x="122.5" y="139" font-size="14.5" font-weight="600" fill="#211A33">계약</text>
+    <text x="238" y="140" font-size="18" fill="#211A33" fill-opacity="0.4">→</text>
+
+    <text x="353.5" y="92" font-family="'JetBrains Mono','Courier New',monospace" font-size="11" fill="#cabce8">02</text>
+    <rect x="261" y="104" width="185" height="58" rx="29" fill="#FBF8F1" stroke="#211A33" stroke-opacity="0.13"/>
+    <text x="353.5" y="139" font-size="14.5" font-weight="600" fill="#211A33">1.5배수 리스트</text>
+    <text x="469" y="140" font-size="18" fill="#211A33" fill-opacity="0.4">→</text>
+
+    <text x="584.5" y="92" font-family="'JetBrains Mono','Courier New',monospace" font-size="11" fill="#cabce8">03</text>
+    <rect x="492" y="104" width="185" height="58" rx="29" fill="#FBF8F1" stroke="#211A33" stroke-opacity="0.13"/>
+    <text x="584.5" y="139" font-size="14.5" font-weight="600" fill="#211A33">컨펌 · 발송</text>
+    <text x="700" y="140" font-size="18" fill="#211A33" fill-opacity="0.4">→</text>
+
+    <text x="815.5" y="92" font-family="'JetBrains Mono','Courier New',monospace" font-size="11" fill="#cabce8">04</text>
+    <rect x="723" y="104" width="185" height="58" rx="29" fill="#e9e3f3" stroke="#cabce8"/>
+    <text x="815.5" y="139" font-size="14.5" font-weight="700" fill="#5a4a85">업로드 전담 관리</text>
+    <text x="931" y="140" font-size="18" fill="#211A33" fill-opacity="0.4">→</text>
+
+    <text x="1046.5" y="92" font-family="'JetBrains Mono','Courier New',monospace" font-size="11" fill="#cabce8">05</text>
+    <rect x="954" y="104" width="185" height="58" rx="29" fill="#FBF8F1" stroke="#211A33" stroke-opacity="0.13"/>
+    <text x="1046.5" y="139" font-size="14.5" font-weight="600" fill="#211A33">완료 기준 정산</text>
+    <text x="1162" y="140" font-size="18" fill="#211A33" fill-opacity="0.4">→</text>
+
+    <text x="1277.5" y="92" font-family="'JetBrains Mono','Courier New',monospace" font-size="11" fill="#cabce8">06</text>
+    <rect x="1185" y="104" width="185" height="58" rx="29" fill="#FBF8F1" stroke="#211A33" stroke-opacity="0.13"/>
+    <text x="1277.5" y="139" font-size="14.5" font-weight="600" fill="#211A33">실시간 보고서</text>
+  </g>
+</svg>
