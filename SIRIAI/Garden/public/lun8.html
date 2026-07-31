@@ -488,6 +488,16 @@ th.memo-col, td.memo-col { width:44px; text-align:center; }
 .ms-c .ms-v { font-size: 27px; font-weight: 800; letter-spacing: -.03em; line-height: 1.05;
   font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ms-c .ms-v small { font-size: 12.5px; font-weight: 700; color: var(--faint); letter-spacing: 0; }
+/* 카드 아래 한 줄 — 플랫폼별 내역. 합계만 있으면 '틱톡 몇 건이냐'에 답을 못 한다. */
+.ms-c .ms-sub { display:block; margin-top:5px; font-size:11.5px; color:var(--muted); line-height:1.4; }
+.ms-c .ms-sub b { color:var(--ink); font-weight:800; }
+/* 날짜 그룹 안의 구분줄 — 아직 안 올린 사람과 올린 사람을 가른다 */
+.md-sec { font-size:11.5px; font-weight:800; color:var(--needs-ink); background:var(--needs-bg);
+  padding:5px 12px; margin:2px 0 4px; border-radius:7px; }
+.md-sec.ok { color:var(--ok-ink); background:var(--ok-bg); }
+.md-n .md-left { color:var(--needs-ink); font-weight:800; }
+.mc-link { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:700;
+  color:var(--accent-ink); background:var(--accent-soft); padding:3px 9px; border-radius:20px; text-decoration:none; }
 .ms-c.warn .ms-v { color: var(--needs-ink); }
 .msum-go { width: 100%; margin-top: 16px; padding: 18px; font-size: 17px; }
 
@@ -4178,6 +4188,15 @@ function mSummary(){
   const todayRows = inC.filter(inUpload).filter(d=> normDay(dueDay(d))===today && !isDropped(d));
   const todayGeon = todayRows.reduce((a,d)=> a + platsOn().filter(p=>d[p]).length, 0);
   const todayUp = todayRows.reduce((a,d)=> a + platsOn().filter(p=> d[p] && uploaded(d,p)).length, 0);
+  const todayLeft = todayGeon - todayUp;   // 오늘 아직 안 올라온 것 — '오늘 뭘 해야 하나' 가 이 숫자다
+  /* 플랫폼별로 갈라 센다. 폰에서 제일 자주 묻는 게 '틱톡 몇 건 · 인스타 몇 건' 인데
+     합계만 있으면 매번 PC 를 열어야 했다. */
+  const upBy = {}, pendBy = {};
+  platsOn().forEach(p=>{
+    upBy[p]   = pairs.filter(x=>x.p===p && uploaded(x.d,x.p)).length;
+    pendBy[p] = inC.filter(d=> pendingSlot(d,p)).length;
+  });
+  const pendG = platsOn().reduce((a,p)=>a+pendBy[p],0);
   // 미업로드(지연) — 기준일이 지났는데 아직 안 올린 건
   const lateG = lateGeon();
   const lateN = lateCount() + dropSoonCount();
@@ -4190,10 +4209,14 @@ function mSummary(){
     </div>
     <div class="msum-when${fresh}">${_lastScanIso ? '마지막 스캔 <b>'+esc(stamp)+'</b>' : '마지막 스캔 시각을 몰라요 — 스캔하면 갱신돼요'}</div>
     <div class="msum-grid">
-      <button class="ms-c" data-msum="upload"><span class="ms-k">업로드</span><span class="ms-v">${up}<small> / ${goal||pairs.length}건</small></span></button>
-      <button class="ms-c" data-msum="today"><span class="ms-k">오늘 예정</span><span class="ms-v">${todayRows.length}<small>명 · ${todayUp}/${todayGeon}건</small></span></button>
-      <button class="ms-c${lateG?' warn':''}" data-msum="late"><span class="ms-k">미업로드</span><span class="ms-v">${lateG}<small>건 · ${dropSoonCount()?`${lateCount()}명 + 탈락예정 ${dropSoonCount()}명`:`${lateN}명`}</small></span></button>
-      <div class="ms-c ms-flat"><span class="ms-k">검수완료</span><span class="ms-v">${pairs.filter(x=>done(x.d[x.p])).length}<small>건</small></span></div>
+      <button class="ms-c" data-msum="upload"><span class="ms-k">업로드</span><span class="ms-v">${up}<small> / ${goal||pairs.length}건</small></span>
+        <span class="ms-sub">${platsOn().map(p=>`${pName(p)} <b>${upBy[p]}</b>`).join(' · ')}</span></button>
+      <button class="ms-c" data-msum="today"><span class="ms-k">오늘 올릴 것</span><span class="ms-v">${todayLeft}<small>건</small></span>
+        <span class="ms-sub">${todayRows.length}명 중 ${todayUp}건 올림</span></button>
+      <button class="ms-c" data-msum="all"><span class="ms-k">업로드 예정</span><span class="ms-v">${pendG}<small>건</small></span>
+        <span class="ms-sub">${platsOn().map(p=>`${pName(p)} <b>${pendBy[p]}</b>`).join(' · ')}</span></button>
+      <button class="ms-c${lateG?' warn':''}" data-msum="late"><span class="ms-k">미업로드</span><span class="ms-v">${lateG}<small>건</small></span>
+        <span class="ms-sub">${dropSoonCount()?`${lateCount()}명 + 탈락예정 ${dropSoonCount()}명`:`${lateN}명`}</span></button>
     </div>
     <button class="btn primary msum-go" id="mGo">상세 보기 →</button>
   </div>`;
@@ -4229,7 +4252,8 @@ function mByDay(list, card){
     const past = i>=0 && t>=0 && i < t;
     const isToday = i>=0 && i===t;
     const left = rows.reduce((a,d)=> a + platsOn().filter(p=> d[p] && !uploaded(d,p)).length, 0);
-    return { k, rows, i, past, isToday, left };
+    const up   = rows.reduce((a,d)=> a + platsOn().filter(p=> d[p] && uploaded(d,p)).length, 0);
+    return { k, rows, i, past, isToday, left, up };
   };
   const ms = keys.map(meta);
   /* 순서는 날짜순 하나로 간다 — 예정일 미정 → 7/23 … 8/4 → 일정 밖.
@@ -4246,8 +4270,16 @@ function mByDay(list, card){
     const label = m.k==='__unset' ? '예정일 미정' : m.k + (m.isToday?' · 오늘':m.past?' · 지남':'');
     const urgent = m.past && m.left > 0;
     return `<details class="mday${m.past?' past':''}${m.isToday?' today':''}${urgent?' urgent':''}" data-day="${esc(m.k)}"${open?' open':''}>
-      <summary><b>${esc(label)}</b><span class="md-n">${m.rows.length}명${m.left?` · 남음 ${m.left}건`:' · 다 올림'}</span></summary>
-      ${m.rows.map(card).join('')}</details>`;
+      <summary><b>${esc(label)}</b><span class="md-n">${m.up?`올림 ${m.up}`:''}${m.up&&m.left?' · ':''}${m.left?`<b class="md-left">남음 ${m.left}</b>`:(m.up?'':'—')}</span></summary>
+      ${(function(){
+        /* 그 날짜의 사람을 '아직 안 올린 사람' 과 '올린 사람' 으로 갈라 보여준다.
+           ⚠️ 예전엔 섞여 있어서, 펼쳐도 누가 올렸고 누가 안 올렸는지 카드를 하나씩 읽어야 했다.
+           위쪽이 할 일, 아래쪽이 확인용이다. */
+        const left = m.rows.filter(d=> platsOn().some(p=> d[p] && !uploaded(d,p)));
+        const done_ = m.rows.filter(d=> !left.includes(d));
+        return (left.length ? `<div class="md-sec">아직 안 올림 ${left.length}명</div>` + left.map(card).join('') : '')
+             + (done_.length ? `<div class="md-sec ok">올림 ${done_.length}명</div>` + done_.map(card).join('') : '');
+      })()}</details>`;
   }).join('');
 }
 
@@ -4278,6 +4310,8 @@ function mDetail(){
       <div class="mc-st">${st}</div>
       <div class="mc-b">
         <span class="mc-day">${dueDay(d)?esc(dueDay(d)):'미정'}</span>
+        ${platsOn().filter(p=> d[p] && d[p].c1 && d[p].c1.url).map(p=>
+          `<a class="mc-link" href="${esc(d[p].c1.url)}" target="_blank" rel="noopener"><i class="pmark ${p}">${PLAT_MARK[p]||''}</i>보기</a>`).join('')}
         ${d.email?`<button class="mc-mail" data-mail="${esc(d.email)}">✉ ${esc(d.email)}</button>`:'<span class="cmuted">이메일 없음</span>'}
       </div>
     </div>`;
