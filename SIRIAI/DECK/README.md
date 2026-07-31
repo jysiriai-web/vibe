@@ -34,3 +34,20 @@ SIRIAI 사업소개 산출물 폴더. 두 갈래입니다 — **① 챗봇형 �
 ## 작업 방식
 - **디자인은 클로드 디자인**에서 진행. 이 폴더에선 **콘텐츠(정본 4파일) 관리·구조화**만.
 - 정본 4파일이 기준이고, `_archive`/자료정리 등은 참고·리서치용.
+
+## 배포 (siriai-business.vercel.app)
+소스는 클디 Export zip(`서비스 소개서 파일 확인.zip`)의 `deploy/` 폴더 통째.
+배포처는 **`https://siriai-business.vercel.app` 한 곳만** (`siriai-qa-deck`은 폐기).
+
+순서:
+1. zip 압축 풀기 → `deploy/`
+2. **`python _docs/seo_patch.py deploy/index.html`**  ← 빠뜨리면 SEO 태그가 사라진다
+3. `vercel deploy --prod --yes`
+
+**2번이 왜 필요한가** — `index.html`은 클디가 매번 새로 내보내는 산출물이라,
+siriai.co.kr 통합 SEO 태그(`<title>` · `canonical` · `/portfolio` 상대경로)를
+손으로 넣어두면 다음 export 때 조용히 덮인다. 그래서 배포 직전에 스크립트로 항상 다시 붙인다.
+여러 번 돌려도 중복되지 않는다(멱등). 클디 원본에 반영되면 스크립트는 "이미 있음"만 찍고 넘어간다.
+
+> `/portfolio`는 상대경로라 **siriai.co.kr 라우팅이 붙은 뒤에만** 열린다.
+> vercel.app 주소로 직접 들어가면 그 링크는 404 — 의도된 동작.
