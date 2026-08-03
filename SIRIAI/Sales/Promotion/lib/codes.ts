@@ -13,10 +13,11 @@ export type { Company };
  * 마스터시트가 더러워지지 않는다. 게이트 UI에는 노출되지 않으니 직접 입력해서 사용.
  */
 const TEST_COMPANIES: Company[] = [
-  { code: "TEST-COLOR", brand: "샘플 브랜드 (색조)", segment: "beauty", gubun: "메이크업" },
+  { code: "TEST-COLOR", brand: "샘플 브랜드 (색조)", segment: "beauty", gubun: "색조" },
   { code: "TEST-SKIN", brand: "샘플 브랜드 (스킨케어)", segment: "skincare", gubun: "스킨케어" },
-  // 구분값이 빈 케이스(실데이터의 55%) — 중립 문구가 제대로 나오는지 확인용
-  { code: "TEST-NEUTRAL", brand: "샘플 브랜드", segment: "skincare", gubun: "" },
+  // 전용 세그먼트가 없는 구분 — 8월 실데이터 270건 중 68건(헤어바디·향수·이너뷰티).
+  // 데이터는 스킨케어 것을 쓰되 문구만 중립으로 나오는지 확인용.
+  { code: "TEST-NEUTRAL", brand: "샘플 브랜드", segment: "skincare", gubun: "향수" },
 ];
 
 const BY_CODE: Map<string, Company> = new Map(

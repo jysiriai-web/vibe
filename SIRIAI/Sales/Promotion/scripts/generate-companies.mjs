@@ -10,21 +10,27 @@
 import fs from "node:fs";
 
 // ── 시트 구조 설정 (여기만 바꾸면 다른 시트에 맞출 수 있음) ─────────────
+// 현재 기준: 마스터시트 `26년 8월` 탭 (일반 아웃바운드).
+// 참고 — `26년 7월 (인터참)` 탭은 열이 다르다: gubun=D(3) brand=E(4) code=N(13)
+//        contactEmail=L(11) contactName=I(8) instagram=H(7) phone=K(10)
 const CONFIG = {
   headerRow: 8, // 헤더가 있는 행(1-based). 데이터는 그 다음 행부터.
   col: {
-    // 0-based 열 인덱스 (A=0, B=1, …, N=13)
-    gubun: 3, // D — 카테고리 구분
-    brand: 4, // E — 브랜드명
-    code: 13, // N — 프로모션 코드
-    email: 6, // G — 공식 이메일   (없애려면 -1)
-    contactEmail: 11, // L — 담당자 이메일
-    contactName: 8, // I — 담당자명
-    instagram: 7, // H — 인스타
-    phone: 10, // K — 담당자 직통
+    // 0-based 열 인덱스 (A=0, B=1, …, X=23)
+    gubun: 1, // B — 구분
+    brand: 2, // C — 브랜드명
+    code: 23, // X — 프로모션 코드
+    email: 6, // G — 이메일       (없애려면 -1)
+    contactEmail: -1, // 8월 탭엔 담당자 이메일 열이 따로 없음
+    contactName: 7, // H — 담당자
+    instagram: 5, // F — 인스타
+    phone: 8, // I — 담당자 연락처
   },
-  // 세그먼트 분류 규칙: 구분 문자열 → 세그먼트 키
-  segmentOf: (gubun) => (gubun.includes("메이크업") ? "beauty" : "skincare"),
+  // 세그먼트 분류 규칙: 구분 문자열 → 세그먼트 키.
+  // 8월 구분은 5버킷(스킨케어·색조·헤어바디·향수·이너뷰티) — "메이크업"은 안 쓴다.
+  // 색조만 beauty, 나머지는 skincare 데이터를 쓰되 문구는 중립으로 나간다
+  // (중립 판정은 lib/segments.ts 의 COPY_CONFIDENT_GUBUN 이 담당).
+  segmentOf: (gubun) => (/색조|메이크업/.test(gubun) ? "beauty" : "skincare"),
 };
 // ──────────────────────────────────────────────────────────────
 

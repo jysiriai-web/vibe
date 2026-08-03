@@ -194,11 +194,20 @@ export function getSegment(id: SegmentId): Segment {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   구분(시트 D열)이 비어 있는 브랜드 — 현재 493건 중 271건(55%).
-   로스터/차트 데이터는 스킨케어 것을 그대로 쓰되, 브랜드의 카테고리를
-   단정하는 노출 문구는 전부 중립으로 바꾼다. "스킨케어 브랜드를 위한…"이
-   틀린 브랜드에게 그대로 나가면 부스에서 바로 신뢰를 잃기 때문.
+   문구를 단정해도 되는 구분값 — 이 목록에 없으면(빈 값 포함) 중립으로 간다.
+   로스터/차트 데이터는 세그먼트 것을 그대로 쓰되, 브랜드의 카테고리를
+   단정하는 노출 문구만 중립으로 바꾼다. "스킨케어 브랜드를 위한…"이
+   틀린 브랜드에게 그대로 나가면 첫 화면에서 바로 신뢰를 잃기 때문.
+
+   8월 구분 5버킷 중 색조·스킨케어만 전용 세그먼트가 있다.
+   헤어바디·향수·이너뷰티는 전용 라인업이 없어 중립으로 처리한다
+   (전용 세그먼트를 만들려면 해당 카테고리 크리에이터 명단·사진부터 필요).
 ─────────────────────────────────────────────────────────────── */
+const COPY_CONFIDENT_GUBUN: Record<string, SegmentId> = {
+  색조: "beauty",
+  메이크업: "beauty", // 7월(인터참) 시트 표기 호환
+  스킨케어: "skincare",
+};
 const NEUTRAL_COPY = {
   label: "추천 라인업",
   kicker: "SIRIAI — CURATED SELECTION",
@@ -208,10 +217,10 @@ const NEUTRAL_COPY = {
     "브랜드의 감도에 맞춰 선별한 크리에이터 라인업입니다. 카테고리와 타깃을 공유해 주시면, 더 정밀하게 맞춘 라인업으로 다시 제안드립니다.",
 } as const;
 
-/** 회사에 맞는 세그먼트. 구분값이 없으면 노출 문구만 중립으로 덮어쓴다(데이터는 동일). */
+/** 회사에 맞는 세그먼트. 전용 세그먼트가 없는 구분이면 노출 문구만 중립으로 덮어쓴다(데이터는 동일). */
 export function getSegmentForCompany(company: { segment: SegmentId; gubun: string }): Segment {
   const base = getSegment(company.segment);
-  if (company.gubun.trim()) return base;
+  if (COPY_CONFIDENT_GUBUN[company.gubun.trim()]) return base;
 
   // 마지막 지표는 세그먼트 특화 문구("루틴/성분 콘텐츠")이므로 함께 중립화
   const metrics = base.metrics.map((m, i) =>
