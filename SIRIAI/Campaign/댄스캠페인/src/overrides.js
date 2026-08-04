@@ -18,6 +18,16 @@ export const reviewText = (pass) => (pass ? REVIEW_OK : REVIEW_NO);
 // contentB 는 인스타 콘텐츠②(미러/추가). 스캔이 채우고 사람도 고치는 칸이라 잠금 대상이다.
 // 조회수(views)는 일부러 뺐다 — 계속 자라는 숫자라 한번 잠그면 영영 멈춘다.
 export const OVERRIDE_FIELDS = ['contentA', 'contentB', 'soundOk', 'soundSection', 'hashtagOk'];
+
+/* 플랫폼별 드랍 표식 — 콘텐츠 칸에 이 값이 있으면 '이 자리는 안 채운다'는 뜻이다(주소가 아니다).
+ *
+ * ⚠️ 판정을 여기 한 곳에만 둔다. 처음엔 같은 정규식을 파일마다 복사해 뒀는데,
+ * content-core.js 에서 정의 줄 하나가 빠진 채로 커밋돼 **틱톡 스캔이 통째로 죽었다**
+ * (isDropMark is not defined — 업로드 스캔·조회수 스캔 둘 다). 규칙이 흩어져 있으면
+ * 한 벌만 어긋나도 아무도 모른다. 브라우저 쪽(lun8.html·worker.html)은 import 를 못 쓰므로
+ * 같은 정규식을 쓰되, 바꿀 일이 생기면 **여기와 그 두 곳을 반드시 같이** 고칠 것. */
+export const DROP_MARK_RE = /^(드랍|드롭|drop)$/i;
+export const isDropMark = (v) => DROP_MARK_RE.test(String(v == null ? '' : v).trim());
 // 대시보드에서 편집 허용하는 필드(화이트리스트). nick·link·notice·schedDate·memo 는
 // 자동스캔이 안 건드려서 잠금(OVERRIDE) 대상은 아니고 편집만 허용.
 export const EDITABLE_FIELDS = ['nick', 'link', 'notice', 'contentA', 'schedDate', 'fixedDate', 'soundOk', 'soundSection', 'hashtagOk', 'memo', 'mirror',

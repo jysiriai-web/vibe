@@ -129,7 +129,7 @@ import { runContentScan, judgeOneLink, scanOneProfile } from './content-core.js'
 import { checkExitLocation } from './tiktok-videos.js';
 import { listCampaigns, getCampaign, getFx, setCalibration, setFallbackRate, getStaleDays, setService } from './campaigns.js';
 import { getMarketUsdKrw } from './fx.js';
-import { EDITABLE_FIELDS, OVERRIDE_FIELDS, LEGACY_COL_FIELD, reviewText } from './overrides.js';
+import { EDITABLE_FIELDS, OVERRIDE_FIELDS, LEGACY_COL_FIELD, reviewText, isDropMark } from './overrides.js';
 // 상태 계층 — GARDEN_STATE=sheet 면 시트가 진실, 기본(local)은 지금까지처럼 로컬 파일.
 import { CLOUD, isLocalOnly, cloudConfigError } from './cloud.js';
 import { mode as stateMode, readOrders, writeOrders, updateOrders, readOverrides, setOverrideStore, clearOverrideStore, resetOverridesFromSheet, readBest, toggleBest, readAll, pendingState } from './store.js';
@@ -1058,7 +1058,6 @@ export async function handler(req, res) {
       /* ⚠️ '드랍' 은 콘텐츠가 아니라 '이 자리는 안 채운다'는 표시다(플랫폼별 드랍).
          has() 로만 보면 참이라, 접어 둔 자리가 고객 납품시트에 링크 '드랍' 으로 들어간다.
          화면(platDropped)과 같은 규칙을 서버에도 둔다 — 한쪽만 알면 갈린다. */
-      const isDropMark = (v) => /^(드랍|드롭|drop)$/i.test(String(v == null ? '' : v).trim());
       const okRow = (b) => b && has(b.contentA) && !isDropMark(b.contentA)
         && revState(b.soundOk) === 'pass' && revState(b.soundSection) === 'pass' && revState(b.hashtagOk) === 'pass';
       // 지원타입 = 이 사람이 실제로 참여한 플랫폼(콘텐츠 유무가 아니라 배정 기준).

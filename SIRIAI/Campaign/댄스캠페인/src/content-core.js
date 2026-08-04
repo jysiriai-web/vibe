@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { getAccountsFromSheet, pushCellsToSheet } from './sheet.js';
 import { detectCampaign, videoIdFromLink } from './content-detect.js';
 import { launchBrowser, fetchVideos, fetchVideoByLink, warmContext, closeWarm } from './tiktok-videos.js';
-import { isLockedField } from './overrides.js';
+import { isLockedField, isDropMark } from './overrides.js';
 import { readOverrides } from './store.js';
 
 function prevDetected(campaign) {
@@ -128,9 +128,16 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
   //  · perf(조회수 스캔, 납품 탭): 업로드된 계정만(링크 있음 or 감지됨) — 조회수 갱신용.
   //    링크가 있는데 목록에 영상이 안 뜨던 계정도 여기서 영상 페이지 직접 열어(fetchVideoByLink) 채운다.
   //  · full(Shift+클릭): 전체 재스캔.
+  /* '드랍' 은 콘텐츠가 아니라 '이 자리는 안 채운다'는 표시다 — 판정은 overrides.js 한 곳에서.
+     안 거르면 조회수 스캔이 접어 둔 계정까지 틱톡 프로필을 열어 본다(차단 위험만 늘고 얻는 건 없다). */
   const isUploaded = (a) => (prev[a.handle] && prev[a.handle].uploaded)
     || !!(a.contentLink && String(a.contentLink).trim() && !isDropMark(a.contentLink));
-  let targets = full ? accounts : perf ? accounts.filter(isUploaded) : accounts.filter((a) => !isUploaded(a));
+  /* 접어 둔 자리는 어느 쪽으로도 안 본다 — 안 올리기로 결론이 난 자리를 계속 긁으면
+     틱톡 차단 위험만 늘고 얻는 게 없다. 철회하면 칸이 비어서 저절로 다시 대상이 된다. */
+  const isDropped = (a) => isDropMark(a.contentLink);
+  let targets = full ? accounts.filter((a) => !isDropped(a))
+    : perf ? accounts.filter(isUploaded)
+    : accounts.filter((a) => !isUploaded(a) && !isDropped(a));
   // 특정 계정만 보라고 지정되면 그것만 — '오늘 올리는 몇 명'만 확인할 때.
   if (Array.isArray(only) && only.length) {
     const want = new Set(only.map((v) => String(v).replace(/^@/, '').toLowerCase()));
@@ -254,7 +261,9 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
   // (예전엔 detected 만 세서, 사람이 손으로 링크 넣은 계정이 스캔 요약 카운트에서 빠졌다 — @asumin0318 사례)
   const upHandles = new Set();
   for (const a of accounts) {
-    if ((detected[a.handle] && detected[a.handle].uploaded) || (a.contentLink && String(a.contentLink).trim())) upHandles.add(a.handle);
+    // 드랍은 업로드가 아니다 — 안 거르면 스캔 요약의 '누적 N건'이 접은 자리만큼 부풀어 오른다.
+    if ((detected[a.handle] && detected[a.handle].uploaded)
+      || (a.contentLink && String(a.contentLink).trim() && !isDropMark(a.contentLink))) upHandles.add(a.handle);
   }
   const totalUp = upHandles.size;
 
