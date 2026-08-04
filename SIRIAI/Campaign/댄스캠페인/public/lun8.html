@@ -1842,7 +1842,13 @@ const gPicked = (id,p) => !gOff.has(gKey(id,p));
 // 일정 스트립 선택(일자·주차)을 통과하는가. 여러 탭이 같은 규칙을 써야 숫자가 안 어긋난다.
 function dayWeekPass(d){
   if(!WEEKS().length) return true;
-  if(state.day) return dayBucket(d)===state.day;
+  /* 지난 날은 '올린 날' 기준으로 거른다 — 칩이 보여 주는 숫자와 같은 축이어야 한다.
+     24일 예정이던 사람이 26일에 올렸으면 그건 26일 건이다(대표 확인).
+     오늘·앞으로는 아직 안 올라온 게 대부분이라 예정일 기준이 맞다(그날 뭘 할지 정하는 화면). */
+  if(state.day){
+    if(isPastDay(state.day)) return viewPlats().some(p=> d[p] && upDaysOf(d,p).includes(state.day));
+    return dayBucket(d)===state.day;
+  }
   if(state.week) return inWeek(d, state.week);
   return true;
 }
@@ -4103,8 +4109,10 @@ function recruitSubtabs(){
   // 마루 인원은 마루가 LINE 으로 직접 챙긴다 — 우리 '해야 할 일'에서 뺀다.
   const unsent = inC.filter(oursToContact).filter(d=> !d.notice).length;
   const unfixed = inC.filter(oursToContact).filter(d=> !d.sched).length;
-  // 건수가 0 이면 평범한 탭, 남아 있으면 긴급 표시. 숫자만 바뀌면 아무도 안 본다.
-  const todoTab = (k, label, n) => `<button class="subtab ${n?'urgent':'pend'} ${state.plat===k?'active':''}" data-plat="${k}"><span class="dot"></span>${label} <span class="cmuted">${n}</span></button>`;
+  /* 색은 '지금 해야 하나'만 말한다 — 남았으면 빨강, 0이면 아무 강조도 없다.
+     ⚠️ 예전엔 0일 때 .pend(하늘색 상자)였다. 할 일이 없는데도 파란 상자로 눈에 띄어
+     '뭔가 해야 하나' 싶게 만들었다. 하늘색은 '업로드 예정'(그냥 안내)에만 남긴다. */
+  const todoTab = (k, label, n) => `<button class="subtab ${n?'urgent':''} ${state.plat===k?'active':''}" data-plat="${k}"><span class="dot"></span>${label} <span class="cmuted">${n}</span></button>`;
   return todoTab('unsent', '확정메일 미발송', unsent) + todoTab('unfixed', '날짜 미확정', unfixed);
 }
 function platSubtabs(){
