@@ -386,9 +386,12 @@ tbody tr:hover td.pgrp-tk { background: rgba(17,20,23,.04); }
 .dday .dd { font-size:10.5px; font-weight:700; color:var(--faint); }
 .dday .dn { font-size:16px; font-weight:800; line-height:1.1; font-variant-numeric:tabular-nums; }
 .dday .dleft { font-size:9.5px; font-weight:700; color:var(--faint); line-height:1.1; }
-/* 그날 실제로 올라온 건수 — 예정(큰 숫자)과 다른 축이라 색으로 갈라 둔다. */
+/* 지난 날 = 큰 숫자가 '최종 업로드 건수'다. 예정을 보여주는 날과 헷갈리면 안 되므로
+   '최종' 이라고 적고 색을 갈라 둔다(예정=먹색, 최종=초록). */
 .dday .dup { font-size:9.5px; font-weight:800; color:var(--ok-ink); line-height:1.1; }
-.dday.over .dup { color:var(--ok-ink); }
+.dday.done .dn { color:var(--ok-ink); }
+.dday.done { background:var(--ok-bg); border-color:#c8e8da; }
+.dday.done.on { border-color:var(--ok-ink); }
 .dday.over .dleft { color:var(--needs-ink); }
 .dday:hover { border-color:var(--accent); }
 .dday.over { background:var(--needs-bg); border-color:#f3cccc; }
@@ -1683,6 +1686,12 @@ const done = p => p && p.snd==='p' && p.sec==='p' && p.hash==='p';
 /* 검수 3칸 중 하나라도 '미준수(f)' 면 그 콘텐츠는 통과 못 한 것이다 — 확정된 결과지 대기가 아니다.
    이걸 안 가르면 '미준수로 찍었는데 화면은 검수대기' 가 되어, 고쳐 받아야 할 건이 조용히 묻힌다. */
 const revFail = p => !!p && (p.snd==='f' || p.sec==='f' || p.hash==='f');
+/* 미검수 = 올라왔는데 검수 3칸 중 아직 확인 안 된 칸이 있는 것.
+   ⚠️ 미준수(f)는 뺀다 — 그건 '아직 안 봤다'가 아니라 '보고 떨어뜨렸다'로 결론이 난 건이다.
+   섞으면 '아직 볼 게 몇 건인가'를 못 세고, 떨어뜨린 건이 영영 이 탭에 남는다. */
+const unrev = (d, p) => uploaded(d, p) && !done(d[p]) && !revFail(d[p]);
+const unrevGeon = () => D.filter(inCampaign).filter(inUpload).filter(coPass).filter(qPass)
+  .reduce((n, d) => n + viewPlats().filter(p => d[p] && unrev(d, p)).length, 0);
 // 어느 칸이 미준수인지 — 툴팁으로 알려주면 편집 모달을 안 열어도 무엇을 고쳐 받을지 안다.
 const revFailWhat = p => [[p&&p.snd,'음원'],[p&&p.sec,'음원구간'],[p&&p.hash,'해시태그']]
   .filter(([v])=>v==='f').map(([,n])=>n).join('·');
@@ -1988,6 +1997,9 @@ function todayIdx(){
   if(t < first) return -1;              // 아직 시작 전
   return -1;
 }
+/* 그 날이 지났나 — 일정칩이 '예정'을 보여줄지 '최종 업로드'를 보여줄지 가른다.
+   todayIdx() 가 캠페인 뒤면 length 를 돌려주므로, 끝난 뒤엔 모든 날이 지난 날이 된다(의도). */
+const isPastDay = day => { const i = dayIdx(day); return i >= 0 && i < todayIdx(); };
 /* 지연 = 예정일이 오늘보다 이전인데 아직 안 올라온 것. 예정일이 없거나 일정 밖이면 지연 판정 안 함. */
 function isLate(d, p){
   if(!WEEKS().length) return false;
@@ -2407,17 +2419,26 @@ function schedStrip(){
   // 큰 숫자 = 그 날 예정 건수(시트와 그대로 대조됨). 이미 올라간 만큼은 '남음'으로만 덧붙인다 —
   // 색으로 경고하지 않는 건, 손쓸 수 없는 과거까지 빨갛게 남는 걸 피하려는 것과 같은 이유다.
   const cell = x=>{
-    /* 아래 작은 줄에 '그날 실제로 올라온 건수'를 둔다. 큰 숫자(예정)와 다른 축이다 —
-       7/24 로 잡혀 있던 사람이 7/26 에 올렸으면 7/26 의 올림에 잡힌다.
-       남음은 툴팁으로 내렸다. 칩이 42px 라 세 숫자를 나란히 두면 아무것도 안 읽힌다. */
-    const t = `${x.day} · 예정 ${x.geon}건 / ${x.myeong}명`
-            + ` · 이 날 실제 업로드 ${x.up}건`
-            + (x.geon!==x.left ? ` · 예정분 중 아직 ${x.left}건 남음` : '')
-            ;   // 몰림 기준 문구 제거 — 판정은 화면에 안 띄우기로(대표 지시)
-    return `<button class="dday${state.day===x.day?' on':''}" data-day="${x.day}" title="${esc(t)}">`
-         + `<span class="dd">${x.day}</span><span class="dn">${x.geon}<i>건</i></span>`
-         + (x.up ? `<span class="dup">올림 ${x.up}</span>`
-                 : (x.geon!==x.left ? `<span class="dleft">${x.left} 남음</span>` : '')) + `</button>`;
+    /* 지난 날은 큰 숫자를 '그 날 실제로 올라온 건수'로 바꾼다. 이미 끝난 날에 '예정 4건'은
+       아무 쓸모가 없고(그 날 뭘 할지 정하는 숫자다), 알고 싶은 건 '결국 몇 건 올라왔나'다.
+       오늘·앞으로는 반대다 — 아직 안 끝났으니 예정과 남음이 할 일을 말해 준다.
+       ⚠️ 올린 날 기준이라 예정일과 다른 축이다: 7/24 로 잡힌 사람이 7/26 에 올렸으면 7/26 에 잡힌다.
+       그래서 칩을 눌렀을 때 걸리는 필터(예정일 기준)와 숫자가 다를 수 있다 — 툴팁에 둘 다 적는다. */
+    const past = isPastDay(x.day);
+    const t = past
+      ? `${x.day} 최종 업로드 ${x.up}건 — 이 날 실제로 올라온 것(예정일이 달라도 포함)`
+        + `\n이 날로 잡혀 있던 건 ${x.geon}건 / ${x.myeong}명`
+        + (x.left ? ` · 그 중 ${x.left}건은 아직 안 올라옴` : '')
+      : `${x.day} · 예정 ${x.geon}건 / ${x.myeong}명`
+        + (x.up ? ` · 지금까지 ${x.up}건 올라옴` : '')
+        + (x.geon!==x.left ? ` · 예정분 중 아직 ${x.left}건 남음` : '');
+    return `<button class="dday${state.day===x.day?' on':''}${past?' done':''}" data-day="${x.day}" title="${esc(t)}">`
+         + `<span class="dd">${x.day}</span>`
+         + (past
+             ? `<span class="dn">${x.up}<i>건</i></span><span class="dup">최종</span>`
+             : `<span class="dn">${x.geon}<i>건</i></span>`
+               + (x.geon!==x.left ? `<span class="dleft">${x.left} 남음</span>` : ''))
+         + `</button>`;
   };
   const grp = w=> `<div class="dgrp"><div class="ddays">${w.days.map(cell).join('')}</div>`
     + `<div class="dcap">${esc(w.label)} ${w.days[0].day}–${w.days[w.days.length-1].day}</div></div>`;
@@ -2627,7 +2648,9 @@ function uploadAllCols(){
 
 function viewUploadAll(){
   const rows = D.filter(inCampaign).filter(inUpload).filter(dayWeekPass)
-    .filter(coPass).filter(qPass).filter(contentPass).filter(d=> platsOn().some(p=>d[p]));
+    .filter(coPass).filter(qPass).filter(contentPass).filter(d=> platsOn().some(p=>d[p]))
+    // 미검수 탭 — 아직 확인할 칸이 남은 사람만
+    .filter(d=> state.plat!=='unrev' || platsOn().some(p=> d[p] && unrev(d,p)));
   const cols = uploadAllCols();
   const pairs = [];
   rows.forEach(d=> platsOn().forEach(p=>{ if(d[p]) pairs.push({ d, p }); }));
@@ -3210,7 +3233,8 @@ function viewUpload(){
   if(state.plat==='dropsoon') return viewUploadDropSoon();
   if(state.plat==='dropped')  return viewUploadDropped();
   if(state.plat==='todo')     return viewUploadTodo();
-  if(state.plat==='all') return viewUploadAll();
+  // 미검수는 전체 표를 그대로 쓰고 행만 좁힌다 — 열·요약이 전체와 같아야 나란히 읽힌다.
+  if(state.plat==='unrev' || state.plat==='all') return viewUploadAll();
   const p = state.plat;
   let rows = D.filter(inCampaign).filter(inUpload).filter(d=> d.plats.includes(p) && d[p]!==null)
     .filter(dayWeekPass).filter(coPass).filter(qPass).filter(contentPass);
@@ -4094,6 +4118,7 @@ function platSubtabs(){
     <button class="subtab tk ${state.plat==='tk'?'active':''}" data-plat="tk"><i class="pmark tk">${PLAT_MARK.tk}</i>틱톡${platCountLab('tk')}</button>
     <button class="subtab ig ${state.plat==='ig'?'active':''}" data-plat="ig"><i class="pmark ig">${PLAT_MARK.ig}</i>인스타${platCountLab('ig')}</button>
     ${state.view==='upload' ? ((st)=>`<button class="subtab pend ${state.plat==='todo'?'active':''}" data-plat="todo" title="앞으로 올라올 건 — 확정일 기준(보수) ~ 예정일 기준(널널)"><span class="dot"></span>업로드 예정 <span class="cmuted">${st.low===st.high?st.low:st.low+'~'+st.high}건</span></button>`)(pendStats()) : ''}
+    ${state.view==='upload' ? ((g)=>`<button class="subtab unrev ${state.plat==='unrev'?'active':''}" data-plat="unrev" title="올라왔는데 음원·음원구간·해시태그 중 아직 확인 안 된 칸이 있는 건 — 미준수로 판정난 건은 뺐어요"><span class="dot"></span>미검수 <span class="cmuted">${g}건</span></button>`)(unrevGeon()) : ''}
     ${state.view==='upload' ? ((n,g)=>`<button class="subtab late ${n?'urgent':''} ${state.plat==='late'?'active':''}" data-plat="late" title="기준일이 지난 지 ${DROP_AFTER_DAYS}일 안쪽 — 리마인드 대상 · 미업로드 ${g}건"><span class="dot"></span>일정 미준수 <span class="cmuted">${n}명</span></button>`)(lateCount(), lateGeon()) : ''}
     ${state.view==='upload' ? ((n)=>`<button class="subtab drop ${n?'urgent':''} ${state.plat==='dropsoon'?'active':''}" data-plat="dropsoon" title="기준일이 ${DROP_AFTER_DAYS}일 넘게 지났어요 — 탈락 예고를 보낼 차례"><span class="dot"></span>탈락 예정 <span class="cmuted">${n}명</span></button>`)(dropSoonCount()) : ''}
     ${state.view==='upload' ? ((g)=>`<button class="subtab gone ${state.plat==='dropped'?'active':''}" data-plat="dropped" title="결론이 난 사람 — 확보 건수에서 빠지고 추가 모집 계산에 들어갑니다"><span class="dot"></span>최종 드랍 <span class="cmuted">${g}건</span></button>`)(droppedGeon()) : ''}
