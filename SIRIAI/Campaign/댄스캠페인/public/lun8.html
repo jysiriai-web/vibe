@@ -2833,6 +2833,11 @@ function syncCopyBtn(){
   const dn = document.querySelectorAll('#content .rowsel:checked').length;
   const db = document.getElementById('btnDelRows');
   if(db){ db.textContent = dn ? `🗑 ${dn}줄 삭제` : '🗑 선택 삭제'; db.disabled = !dn; }
+  // 일괄 드랍도 같은 규칙 — 몇 명을 대상으로 하는지 누르기 전에 보여야 한다.
+  const bd = document.getElementById('btnBulkDrop');
+  if(bd){ bd.textContent = dn ? `⊘ ${dn}명 자리 드랍` : '⊘ 선택 자리 드랍'; bd.disabled = !dn; }
+  const bu = document.getElementById('btnBulkUndrop');
+  if(bu){ bu.textContent = dn ? `↩ ${dn}명 철회` : '↩ 드랍 철회'; bu.disabled = !dn; }
 }
 function syncScanBtn(){
   // 버튼이 아니라 '선택 N명' 표시를 갱신한다. 표를 다시 그리지 않고 숫자만 바꾼다.
@@ -3091,6 +3096,58 @@ async function deleteSelected(){
 function delBtn(){
   if(!LOCAL.on) return '';   // 사람 명단을 지우는 일 — 팀 URL 에서는 안 보이게
   return `<button class="btn small danger" id="btnDelRows" title="체크한 줄을 마스터시트에서 지워요 — 되돌릴 수 없어요">🗑 선택 삭제</button>`;
+}
+/* 탈락 예정 탭 전용 — 체크한 사람들의 '안 올린 자리'만 한꺼번에 접는다.
+   의견시트 행16: 한쪽을 이미 올린 사람은 캠페인 드랍이 아니다. 나머지 한 자리만 접고
+   '하나 업로드로 마무리' 해야 하는데, 지금은 한 명씩 편집창을 열어야 했다.
+   철회도 같은 자리에 둔다 — 사람이 실수로 접을 수 있고, 되돌릴 데가 없으면 손을 못 댄다. */
+function bulkDropBtns(){
+  if(!LOCAL.on || state.plat!=='dropsoon') return '';
+  // 처음엔 잠가 둔다 — 아무도 안 골랐는데 눌러지면 '눌렀는데 아무 일도 안 나네' 가 된다.
+  return `<button class="btn small danger" id="btnBulkDrop" disabled title="체크한 사람의 아직 안 올린 자리만 접어요 — 이미 올린 콘텐츠는 그대로 인정됩니다">⊘ 선택 자리 드랍</button>`
+       + `<button class="btn small" id="btnBulkUndrop" disabled title="체크한 사람의 접어둔 자리를 되돌려요">↩ 드랍 철회</button>`;
+}
+// 체크된 줄 → 사람. 선택 삭제와 같은 방식(행번호)을 쓴다 — 이름 매칭은 엉뚱한 사람을 잡는다.
+function pickedRows(){
+  const tbl = document.querySelector('#content table[data-tid]');
+  if(!tbl) return [];
+  return [...tbl.querySelectorAll('tbody tr .rowsel')].filter(c=>c.checked)
+    .map(c=>Number(c.dataset.row)).filter(n=>Number.isFinite(n)&&n>1)
+    .map(r=> D.find(x=>Number(x.id)===r)).filter(Boolean);
+}
+async function bulkDrop(undo){
+  const picked = pickedRows();
+  if(!picked.length) return toast('먼저 사람을 체크해주세요.');
+  const cells = [], lines = [];
+  picked.forEach(d=>{
+    platsOn().forEach(p=>{
+      if(!d[p]) return;
+      if(undo){
+        if(!platDropped(d,p)) return;
+        cells.push({ row:d.id, field:p+'.contentA', value:'' });
+        lines.push(`  · ${d.nick} ${pName(p)} 되돌림`);
+      } else {
+        if(uploaded(d,p) || platDropped(d,p)) return;   // 이미 올렸거나 이미 접은 자리는 건드리지 않는다
+        cells.push({ row:d.id, field:p+'.contentA', value:'드랍' });
+        lines.push(`  · ${d.nick} ${pName(p)} 접기`);
+      }
+    });
+  });
+  if(!cells.length) return toast(undo ? '되돌릴 자리가 없어요.' : '접을 자리가 없어요 — 고른 사람은 이미 다 올렸거나 이미 접혀 있어요.');
+  const L = [undo ? `${cells.length}개 자리를 되돌릴까요?` : `${cells.length}개 자리를 접을까요?`, ''];
+  L.push(...lines.slice(0,20));
+  if(lines.length>20) L.push(`  · 외 ${lines.length-20}개`);
+  if(!undo) L.push('', '이미 올린 콘텐츠는 그대로 인정돼요. 접은 자리만 확보·목표에서 빠집니다.',
+                       '나중에 올리면 그 자리에 링크를 넣는 것만으로 되돌아와요.');
+  if(!confirm(L.join(String.fromCharCode(10)))) return;
+  try {
+    const res = await fetch(localApi('/api/cells?campaign=' + state.campaign), { method:'POST',
+      headers:{'Content-Type':'application/json'}, body: JSON.stringify({ cells }) });
+    const j = await res.json();
+    if(j.error) throw new Error(j.error);
+    toast(`${cells.length}개 자리 ${undo?'되돌렸어요':'접었어요'}.` + (j.lockWarn?` <b>${esc(j.lockWarn)}</b>`:''), j.lockWarn?'bad':'');
+    await loadData();
+  } catch(e){ toast('실패: ' + esc(e.message||e), 'bad'); }
 }
 function copyBtn(){
   return `<button class="btn small" id="btnCopyTbl" title="지금 보이는 표를 엑셀에 붙일 수 있게 복사해요 — 줄을 체크하면 그것만">⧉ 표 복사</button>`;
@@ -4169,7 +4226,7 @@ function platSubtabs(){
     ${state.view==='upload' ? ((g)=>`<button class="subtab gone ${state.plat==='dropped'?'active':''}" data-plat="dropped" title="결론이 난 사람 — 확보 건수에서 빠지고 추가 모집 계산에 들어갑니다"><span class="dot"></span>최종 드랍 <span class="cmuted">${g}건</span></button>`)(droppedGeon()) : ''}
     ${state.view==='garden' ? `<button class="subtab hist ${state.plat==='hist'?'active':''}" data-plat="hist"><span class="dot"></span>집행 내역 <span class="cmuted">${ORDERS.length}</span></button>` : ''}
     ${state.view==='recruit' ? recruitSubtabs() : ''}
-    ${state.view==='recruit' ? recruitTools() : `${gardenSvcNote()}<span class="sub-tools">${searchBox()}<button class="btn small${state.briefOpen?' primary':''}" id="btnBrief" title="지금 상태를 문장으로 — 보고·문의 답변에 그대로 쓰세요">📋 현황</button><span id="hideSlot" class="sub-hide"></span>${resetBtn()}${copyBtn()}${delBtn()}</span>`}</div>`;
+    ${state.view==='recruit' ? recruitTools() : `${gardenSvcNote()}<span class="sub-tools">${searchBox()}<button class="btn small${state.briefOpen?' primary':''}" id="btnBrief" title="지금 상태를 문장으로 — 보고·문의 답변에 그대로 쓰세요">📋 현황</button><span id="hideSlot" class="sub-hide"></span>${resetBtn()}${copyBtn()}${bulkDropBtns()}${delBtn()}</span>`}</div>`;
 }
 /* ============ 매뉴얼 · 가이드 ============
    내용은 public/knowledge.js 하나뿐이다(MANUAL/GUIDE). 여기서 복붙하지 않는다 —
@@ -5254,6 +5311,8 @@ document.getElementById('content').addEventListener('click', e=>{
     if(nf){ state.hasContent = nf.dataset.contentf==='1'; render(); return; } }
   { const b = e.target.closest('#btnCopyTbl'); if(b){ copyTable(b); return; } }
   { const b = e.target.closest('#btnDelRows'); if(b){ deleteSelected(); return; } }
+  { const b = e.target.closest('#btnBulkDrop');   if(b){ bulkDrop(false); return; } }
+  { const b = e.target.closest('#btnBulkUndrop'); if(b){ bulkDrop(true);  return; } }
   { const sa = e.target.closest('.rowselall');
     if(sa){ document.querySelectorAll('#content .rowsel').forEach(x=>{ x.checked = sa.checked; });
       syncCopyBtn(); return; } }

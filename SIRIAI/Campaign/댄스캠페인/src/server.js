@@ -809,6 +809,51 @@ export async function handler(req, res) {
       }
     }
 
+    /* 여러 칸 한 번에 — 일괄 처리용(탈락 예정 탭에서 여러 명의 플랫폼을 한꺼번에 접을 때).
+       ⚠️ /api/cell 을 N 번 부르면 안 된다. 브릿지 왕복이 한 번에 10~40초라 9명이면 5분이 넘고,
+       중간에 끊기면 절반만 반영된 채로 남는다. 한 번에 보내고 결과도 한 번에 돌려준다.
+       검증은 /api/cell 과 같은 규칙을 쓴다 — 여기만 느슨하면 우회로가 된다. */
+    if (path === '/api/cells' && req.method === 'POST') {
+      const body = await readBody(req);
+      const list = Array.isArray(body.cells) ? body.cells : [];
+      if (!list.length) return send(res, 400, { error: '보낼 칸이 없어요' });
+      if (list.length > 120) return send(res, 400, { error: '한 번에 120칸까지만 보낼 수 있어요 — ' + list.length + '칸이 들어왔습니다.' });
+      const cells = [];
+      for (const c of list) {
+        const row = Number(c && c.row);
+        const field = String((c && c.field) || '');
+        const dot = field.indexOf('.');
+        const baseField = dot > 0 ? field.slice(dot + 1) : field;
+        const platPrefix = dot > 0 ? field.slice(0, dot) : '';
+        if (platPrefix && !['tk', 'ig'].includes(platPrefix)) return send(res, 400, { error: '플랫폼은 tk/ig 만 (' + field + ')' });
+        if (!row || !EDITABLE_FIELDS.includes(baseField)) return send(res, 400, { error: `행/필드가 올바르지 않아요: ${row}·${field}` });
+        const value = c.value == null ? '' : String(c.value);
+        if (baseField === 'link' && value.trim()) {
+          const ok = platPrefix === 'ig' ? /instagram\.com\/[A-Za-z0-9._]+/i.test(value) : /@[A-Za-z0-9._]+/.test(value);
+          if (!ok) return send(res, 400, { error: '계정 링크 형식이 올바르지 않아요: ' + value });
+        }
+        cells.push({ row, field, value, baseField });
+      }
+      try {
+        await pushCellsToSheet(campaign.sheet, cells.map(({ row, field, value }) => ({ row, field, value })));
+      } catch (e) {
+        return send(res, 500, { error: '시트 쓰기 실패: ' + ((e && e.message) || e) });
+      }
+      /* 잠금은 칸마다 따로 기록한다. 하나가 실패해도 나머지는 남겨야 하므로 모아서 보고한다 —
+         잠금이 안 걸리면 다음 스캔이 그 칸을 도로 덮어쓴다(조용히 되돌아가는 경로다). */
+      const lockFail = [];
+      for (const c of cells) {
+        try {
+          const w = (OVERRIDE_FIELDS.includes(c.baseField) && !c.value.trim())
+            ? await clearOverrideStore(campaign, c.row, c.field)
+            : await setOverrideStore(campaign, c.row, c.field, c.value);
+          if (w && w.durable === false) lockFail.push(c.row + '·' + c.field);
+        } catch { lockFail.push(c.row + '·' + c.field); }
+      }
+      return send(res, 200, { ok: true, written: cells.length,
+        lockWarn: lockFail.length ? `잠금 기록 실패 ${lockFail.length}칸 — 다음 스캔이 덮어쓸 수 있어요 (${lockFail.slice(0, 5).join(', ')})` : undefined });
+    }
+
     // 콘텐츠 스캔 (대시보드 버튼) — 백그라운드 Playwright, 진행상황은 status 폴링
     if (path === '/api/content-scan' && req.method === 'POST') {
       const _b = await readBody(req).catch(() => ({}));
