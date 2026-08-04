@@ -1869,7 +1869,18 @@ function dayWeekPass(d){
      24일 예정이던 사람이 26일에 올렸으면 그건 26일 건이다(대표 확인).
      오늘·앞으로는 아직 안 올라온 게 대부분이라 예정일 기준이 맞다(그날 뭘 할지 정하는 화면). */
   if(state.day){
-    if(isPastDay(state.day)) return viewPlats().some(p=> d[p] && upDaysOf(d,p).includes(state.day));
+    if(isPastDay(state.day)){
+      /* ⚠️ 처음엔 '올린 날에 올린 사람'만 통과시켰다. 그랬더니 **아무것도 안 올린 사람이
+         통째로 빠져서** 「일정 미준수」·「탈락 예정」·「최종 드랍」 탭이 빈 표가 됐다 —
+         바로 그 사람들을 보려고 만든 탭인데 켜는 순간 사라졌다(탭 배지는 N명인데 표는 0줄).
+         자리마다 기준을 나눈다: 올린 자리는 '올린 날', 아직 안 올린 자리는 '예정일'.
+         그래야 같은 사람이 두 날짜에 겹쳐 뜨지도 않는다. */
+      return viewPlats().some(p=>{
+        if(!d[p]) return false;
+        const ups = upDaysOf(d, p);
+        return ups.length ? ups.includes(state.day) : dayBucket(d) === state.day;
+      });
+    }
     return dayBucket(d)===state.day;
   }
   if(state.week) return inWeek(d, state.week);
@@ -2092,7 +2103,9 @@ function pendStats(){
   const high = low + g.loose;              // 널널 — 확정일 없는 것까지 다 온다고 볼 때
   return { rows, g, n, low, high };
 }
-const droppedRows = ()=> D.filter(inCampaign).filter(isDropped);
+/* 최종 드랍 목록 — 배지와 표가 같은 모집단을 쓰게 필터를 같이 태운다.
+   ⚠️ inUpload(확정메일 관문)는 일부러 안 태운다: 확정메일을 보내기 전에 드랍된 사람도 있다. */
+const droppedRows = ()=> D.filter(inCampaign).filter(coPass).filter(qPass).filter(dayWeekPass).filter(isDropped);
 const droppedGeon = ()=> droppedRows().reduce((a,d)=> a + platsOn().filter(p=> d[p]).length, 0);
 
 /* excludeId: 편집 모달에서 '나를 뺀' 값이 필요할 때. 표시 숫자는 항상 나를 포함해 스트립과 일치시킨다. */
@@ -4035,17 +4048,22 @@ function viewSettle(){
 /* 하위탭 숫자 = 연락할 사람 수(명). 표가 한 사람 한 줄이라 탭도 사람으로 센다 —
    탭엔 10, 표엔 6줄이면 4줄을 어디서 놓쳤나 찾게 된다. 건수는 툴팁과 KPI 가 말한다.
    확정메일 안 보낸 사람은 지연으로 안 센다(inUpload) — 확정을 안 해놓고 늦었다고 할 수 없다. */
+/* 하위탭 배지의 모집단 — 표와 **같은 필터**를 탄다.
+   ⚠️ 예전엔 배지만 필터를 안 태워서, 일자칩을 켜면 배지는 '4명'인데 표는 0줄이었다.
+   숫자를 보고 눌렀는데 아무도 없으면 사람은 화면이 고장난 줄 안다.
+   기준은 pendStats(업로드 예정)가 이미 쓰던 것과 같게 맞춘다. */
+const tabRows = ()=> D.filter(inCampaign).filter(inUpload).filter(coPass).filter(qPass).filter(dayWeekPass);
 function lateCount(){
-  return D.filter(inCampaign).filter(inUpload).filter(d=> !isDropped(d) && lateSlots(d) && !isDropSoon(d)).length;
+  return tabRows().filter(d=> !isDropped(d) && lateSlots(d) && !isDropSoon(d)).length;
 }
 // 탈락 예정 — 기준일이 DROP_AFTER_DAYS 일 넘게 지난 사람.
 function dropSoonCount(){
-  return D.filter(inCampaign).filter(inUpload).filter(isDropSoon).length;
+  return tabRows().filter(isDropSoon).length;
 }
 // 같은 조건의 건수(사람×플랫폼). 확보·정산은 건으로 세므로 이 숫자도 어딘가엔 있어야 한다.
 function lateGeon(){
   let n = 0;
-  D.filter(inCampaign).filter(inUpload).forEach(d=>{ if(isDropped(d)) return; n += lateSlots(d); });
+  tabRows().forEach(d=>{ if(isDropped(d)) return; n += lateSlots(d); });
   return n;
 }
 /* 지금 어떤 SMM 서비스로 얼마에 사는지. 가드닝 탭에서만 뜬다.
