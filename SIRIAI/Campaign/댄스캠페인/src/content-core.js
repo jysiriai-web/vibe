@@ -128,7 +128,8 @@ export async function runContentScan(campaign, { onProgress, onWarmup, waitForGo
   //  · perf(조회수 스캔, 납품 탭): 업로드된 계정만(링크 있음 or 감지됨) — 조회수 갱신용.
   //    링크가 있는데 목록에 영상이 안 뜨던 계정도 여기서 영상 페이지 직접 열어(fetchVideoByLink) 채운다.
   //  · full(Shift+클릭): 전체 재스캔.
-  const isUploaded = (a) => (prev[a.handle] && prev[a.handle].uploaded) || !!(a.contentLink && String(a.contentLink).trim());
+  const isUploaded = (a) => (prev[a.handle] && prev[a.handle].uploaded)
+    || !!(a.contentLink && String(a.contentLink).trim() && !isDropMark(a.contentLink));
   let targets = full ? accounts : perf ? accounts.filter(isUploaded) : accounts.filter((a) => !isUploaded(a));
   // 특정 계정만 보라고 지정되면 그것만 — '오늘 올리는 몇 명'만 확인할 때.
   if (Array.isArray(only) && only.length) {

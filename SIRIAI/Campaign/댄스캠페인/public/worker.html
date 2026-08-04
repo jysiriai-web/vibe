@@ -1010,6 +1010,8 @@
         var b = a.tk; if (!b) return;
         var link = String(b.contentA || b.contentB || '').trim();
         if (!link) return;
+        // '드랍' 은 주소가 아니라 '이 자리는 안 채운다'는 표시 — 조회수 대상이 아니다.
+        if (/^(드랍|드롭|drop)$/i.test(link)) return;
         up.push(b.handle);
         var v = String(b.views == null ? '' : b.views).replace(/[,\s]/g, '');
         if (!v || isNaN(Number(v)) || Number(v) === 0) miss.push(b.handle);
