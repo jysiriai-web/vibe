@@ -1055,7 +1055,12 @@ export async function handler(req, res) {
          멀티플랫폼 캠페인은 '한 사람'이 아니라 '사람×플랫폼'이 납품 단위다. */
       const plats = (campaign.serviceIds ? Object.keys(campaign.serviceIds) : ['tk']).filter((p) => p === 'tk' || p === 'ig');
       const PN = { tk: '틱톡', ig: '인스타' };
-      const okRow = (b) => b && has(b.contentA) && revState(b.soundOk) === 'pass' && revState(b.soundSection) === 'pass' && revState(b.hashtagOk) === 'pass';
+      /* ⚠️ '드랍' 은 콘텐츠가 아니라 '이 자리는 안 채운다'는 표시다(플랫폼별 드랍).
+         has() 로만 보면 참이라, 접어 둔 자리가 고객 납품시트에 링크 '드랍' 으로 들어간다.
+         화면(platDropped)과 같은 규칙을 서버에도 둔다 — 한쪽만 알면 갈린다. */
+      const isDropMark = (v) => /^(드랍|드롭|drop)$/i.test(String(v == null ? '' : v).trim());
+      const okRow = (b) => b && has(b.contentA) && !isDropMark(b.contentA)
+        && revState(b.soundOk) === 'pass' && revState(b.soundSection) === 'pass' && revState(b.hashtagOk) === 'pass';
       // 지원타입 = 이 사람이 실제로 참여한 플랫폼(콘텐츠 유무가 아니라 배정 기준).
       const applyTypeOf = (a) => plats.filter((p) => a[p]).map((p) => PN[p]).join('+') || '';
       /* 차수를 여기서 정하지 않는다 — 시트에 이미 적힌 'N차' 중 최대 + 1 이 답이고, 그건 브릿지가 안다.

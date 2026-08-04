@@ -2181,6 +2181,10 @@ function toast(msg, kind){
 
 function contentCell(c, p){
   if(!c) return `<span class="emptydot">·</span>`;
+  /* '드랍' 은 주소가 아니라 '이 자리는 안 채운다'는 표시다(플랫폼별 드랍).
+     ⚠️ 그냥 링크로 그리면 href="드랍" 인 죽은 링크가 되고, 글자는 '콘텐츠①' 이라
+     올라온 것처럼 보인다 — 표에서 제일 헷갈리는 종류의 거짓말이다. */
+  if(PLAT_DROP_RE.test(String(c.url||'').trim())) return `<span class="chip drop">드랍</span>`;
   if(state.raw) return `<span class="rawurl">${c.url}</span>`;
   // onclick="return false" 가 남아 있어 링크가 안 열렸다 — 조회전용 시절 클릭을 막던 잔재다.
   // 콘텐츠는 검수하려고 여는 것이라 열려야 한다. 주소는 시트에서 온 값이므로 이스케이프한다.
@@ -2658,7 +2662,7 @@ function uploadAllCols(){
         `<span class="cp">${acctLink(r[p].h, p)}</span>`).join('')}</div>` },
     // 콘텐츠는 플랫폼별로 나란히 — 두 영상을 같은 줄에서 열어야 미러링을 본다.
     // 몇 개 올라왔나로 정렬한다 — 눌러서 올라온 사람을 위로 모으는 게 이 열을 정렬하는 이유다.
-    { key:'content', label:'콘텐츠', sv:r=> platsOn().filter(p=>r[p] && r[p].c1).length, cell:r=>
+    { key:'content', label:'콘텐츠', sv:r=> platsOn().filter(p=>uploaded(r,p)).length, cell:r=>
       `<div class="cpair">${platsOn().filter(p=>r[p]).map(p=>
         `<span class="cp">${PLAT_MARK[p]?`<i class="pmark ${p}">${PLAT_MARK[p]}</i>`:''}${contentCell(r[p].c1, p)}</span>`).join('')}</div>` },
     // 정렬: 손댈 게 있는 것(미준수)이 위로 오게 — 검수완료만 세면 미준수가 대기 사이에 묻힌다.
@@ -3354,7 +3358,8 @@ function viewUpload(){
       cell:r=> isDropped(r) ? `<span class="chip drop">최종 드랍</span>`
         : dueDay(r) ? (isLate(r,p)?`<span class="chip needs">${esc(dueDay(r))} 지남</span>`:`<b>${esc(dueDay(r))}</b>`)
         : `<span class="cmuted">미정</span>` },
-    { key:'c1', label:'콘텐츠①', sv:r=> r[p].c1?1:0, cell:r=>contentCell(r[p].c1, p) },
+    // 정렬은 '올라온 것' 기준 — 드랍 표시를 콘텐츠로 세면 접어 둔 자리가 올라온 것들 사이에 낀다.
+    { key:'c1', label:'콘텐츠①', sv:r=> uploaded(r,p)?1:0, cell:r=>contentCell(r[p].c1, p) },
     { key:'c2', label:'콘텐츠②', hideable:true, empty:r=>!r[p].c2, sortable:false, cell:r=>contentCell(r[p].c2, p) },
     { key:'snd', label:'음원', hideable:true, empty:()=>false, sv:r=>r[p].snd, cell:r=>revSel(r[p].snd, r.id, 'snd', p) },
     { key:'sec', label:'음원구간', hideable:true, empty:()=>false, sv:r=>r[p].sec, cell:r=>revSel(r[p].sec, r.id, 'sec', p) },
@@ -4556,7 +4561,8 @@ function mDetail(){
       <div class="mc-st">${st}</div>
       <div class="mc-b">
         <span class="mc-day">${dueDay(d)?esc(dueDay(d)):'미정'}</span>
-        ${platsOn().filter(p=> d[p] && d[p].c1 && d[p].c1.url).map(p=>
+        ${/* 드랍 표시는 주소가 아니다 — 그대로 링크로 그리면 '보기' 를 눌렀을 때 아무 데도 안 간다. */''}
+        ${platsOn().filter(p=> uploaded(d,p) && d[p].c1 && d[p].c1.url).map(p=>
           `<a class="mc-link" href="${esc(d[p].c1.url)}" target="_blank" rel="noopener"><i class="pmark ${p}">${PLAT_MARK[p]||''}</i>보기</a>`).join('')}
         ${d.email?`<button class="mc-mail" data-mail="${esc(d.email)}">✉ ${esc(d.email)}</button>`:'<span class="cmuted">이메일 없음</span>'}
       </div>
