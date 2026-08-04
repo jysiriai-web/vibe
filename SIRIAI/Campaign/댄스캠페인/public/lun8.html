@@ -386,6 +386,9 @@ tbody tr:hover td.pgrp-tk { background: rgba(17,20,23,.04); }
 .dday .dd { font-size:10.5px; font-weight:700; color:var(--faint); }
 .dday .dn { font-size:16px; font-weight:800; line-height:1.1; font-variant-numeric:tabular-nums; }
 .dday .dleft { font-size:9.5px; font-weight:700; color:var(--faint); line-height:1.1; }
+/* 그날 실제로 올라온 건수 — 예정(큰 숫자)과 다른 축이라 색으로 갈라 둔다. */
+.dday .dup { font-size:9.5px; font-weight:800; color:var(--ok-ink); line-height:1.1; }
+.dday.over .dup { color:var(--ok-ink); }
 .dday.over .dleft { color:var(--needs-ink); }
 .dday:hover { border-color:var(--accent); }
 .dday.over { background:var(--needs-bg); border-color:#f3cccc; }
@@ -617,6 +620,14 @@ body.phone #content { padding: 0; }
 .mform .row2 { display:flex; gap:14px; }
 .mform .row2 .row { flex:1; }
 .mform label.h { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--faint); }
+/* 업로드일 — 편집이 아니라 사실이라 입력칸이 아니다(콘텐츠 링크에서 계산된다). */
+.uprow { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:2px 0 2px; }
+.uprow .upk { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--faint); }
+.uprow .upv { font-size:13px; font-weight:800; color:var(--ok-ink); background:var(--ok-bg);
+  padding:3px 9px; border-radius:20px; font-variant-numeric:tabular-nums; }
+.uprow .upv em { font-style:normal; font-weight:700; opacity:.6; }
+.uprow .upv.unk { color:var(--muted); background:var(--card); border:1px solid var(--line); font-weight:700; }
+.uprow .upv.drop { color:var(--needs-ink); background:var(--needs-bg); }
 /* 검수·미러링 드롭다운 — 값이 색으로 보인다(마스터시트와 같은 규칙). */
 select.selc-v { font-weight:800; }
 select.selc-v.sel-ok   { background:var(--ok-bg);    color:var(--ok-ink);    border-color:#a7e3cd; }
@@ -1878,6 +1889,49 @@ const WEEKS   = ()=> (cfg().weeks || []);
 const ALLDAYS = ()=> { const seen={}, out=[]; WEEKS().forEach(w=> (w.days||[]).forEach(d=>{ if(!seen[d]){ seen[d]=1; out.push(d); } })); return out; };
 /* 자유입력 예정일을 'M/D'로 정규화. '07/24' '7-24' '7월 24일' '7/24(협의)' → '7/24'. 실패하면 '' */
 function normDay(s){ const m = String(s==null?'':s).trim().match(/(\d{1,2})\s*[\/월.\-]\s*(\d{1,2})/); return m ? (+m[1])+'/'+(+m[2]) : ''; }
+/* 실제로 언제 올렸나 — 콘텐츠 URL 하나로 나온다. 시트에 열을 만들 필요가 없다.
+ *  · 틱톡  : 영상 ID 상위 32비트가 유닉스 초다.
+ *  · 인스타: 단축코드를 base64 로 풀면 미디어 ID, 그 상위 41비트가 2011-08-24 기준 ms 다.
+ * 확정일과는 다른 값이다 — 확정일은 '언제 올리기로 했나'(추측), 이건 '언제 올렸나'(사실).
+ * ⚠️ 스캔이 저장한 takenAt 보다 이쪽이 정확하다. 스캔은 시각을 못 잡으면 00:00 으로 적는데
+ *    (실측 32건 중 4건이 그랬다) URL 계산은 분 단위까지 맞는다. 그래서 URL 을 먼저 본다. */
+const IG64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+function upAtMs(url){
+  const u = String(url||'');
+  const tk = u.match(/tiktok\.com\/[^\/]*\/video\/(\d{15,25})/i) || u.match(/\/video\/(\d{15,25})/);
+  if(tk){ const sec = Number(BigInt(tk[1]) >> 32n);
+    return (sec > 1400000000 && sec < 2000000000) ? sec*1000 : 0; }
+  const ig = u.match(/instagram\.com\/(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/i);
+  if(ig){ let id = 0n;
+    for(const ch of ig[1]){ const i = IG64.indexOf(ch); if(i < 0) return 0; id = id*64n + BigInt(i); }
+    const ms = Number(id >> 23n) + 1314220021721;
+    return (ms > 1500000000000 && ms < 2500000000000) ? ms : 0; }
+  return 0;
+}
+// 'M/D' — 일정 스트립·확정일과 같은 표기. 한국 시간 기준(캠페인이 그 기준으로 돈다).
+function upDay(url){ const ms = upAtMs(url); if(!ms) return '';
+  const d = new Date(ms + 9*3600*1000); return (d.getUTCMonth()+1)+'/'+d.getUTCDate(); }
+function upStamp(url){ const ms = upAtMs(url); if(!ms) return '';
+  const d = new Date(ms + 9*3600*1000);
+  const p = n => String(n).padStart(2,'0');
+  return (d.getUTCMonth()+1)+'/'+d.getUTCDate()+' '+p(d.getUTCHours())+':'+p(d.getUTCMinutes()); }
+// 그 사람의 그 플랫폼이 실제로 올라간 날들(콘텐츠 두 칸 모두)
+function upDaysOf(d, p){ const x = d && d[p]; if(!x) return [];
+  return [x.c1, x.c2].map(c=> c && c.url ? upDay(c.url) : '').filter(Boolean); }
+/* 편집창에만 보여 준다 — 표에 열을 하나 더 늘리면 가로가 또 밀린다(대표 지시).
+   드랍이면 날짜 대신 그렇게 적는다. 링크는 있는데 날짜가 안 나오는 경우
+   ('올렸다고 손으로 적은 링크'가 게시물 주소가 아닐 때)는 숨기지 말고 그대로 말한다. */
+function upLine(d, p){
+  const x = d && d[p]; if(!x) return '';
+  if(isDropped(d)) return `<div class="uprow"><span class="upk">업로드일</span><span class="upv drop">드랍</span></div>`;
+  const parts = [x.c1, x.c2].map((c,i)=>{
+    if(!c || !c.url) return '';
+    const s = upStamp(c.url);
+    return `<span class="upv${s?'':' unk'}">${s ? esc(s) : '날짜 못 읽음'}${i ? ' <em>②</em>' : ''}</span>`;
+  }).filter(Boolean);
+  if(!parts.length) return `<div class="uprow"><span class="upk">업로드일</span><span class="upv unk">아직 없음</span></div>`;
+  return `<div class="uprow"><span class="upk">업로드일</span>${parts.join('')}</div>`;
+}
 /* 집계·필터의 기준 날짜 — 확정일이 있으면 그게 진짜다. 없으면 희망일로 임시 집계.
    두 열을 만든 이유가 "누가 언제 바꿨나"를 남기는 것이므로, 기준은 항상 확정일 우선. */
 /* (effDay 는 없앴다 — dueDay 와 기준이 갈리는 순간 화면이 서로 다른 말을 한다) */
@@ -2015,7 +2069,7 @@ function schedStats(excludeId){
   const rows = D.filter(inCampaign).filter(inUpload).filter(coPass).filter(qPass)
     .filter(d=> useContent ? contentPass(d) : true)
     .filter(d=> oursToSchedule(d) || hasDay(d)).filter(d=> d.id!==excludeId);
-  const byDay = {}; ALLDAYS().forEach(dy=> byDay[dy] = { day:dy, geon:0, left:0, myeong:0 });
+  const byDay = {}; ALLDAYS().forEach(dy=> byDay[dy] = { day:dy, geon:0, left:0, myeong:0, up:0 });
   const unset = {geon:0,left:0,myeong:0}, off = {geon:0,left:0,myeong:0};
   rows.forEach(d=>{
     const b = dayBucket(d);
@@ -2026,6 +2080,10 @@ function schedStats(excludeId){
     const done = ps.filter(p=> uploaded(d,p)).length;
     // 드랍한 사람은 건수가 0이다. 명수에만 세면 '10건 / 6명' 같은 안 맞는 짝이 된다.
     t.geon += g; t.left += (g - done); if(!isDropped(d)) t.myeong += 1;
+    /* 실제로 올라간 날에 따로 센다 — 예정일 칸(t)이 아니라 '올린 날' 칸에 붙는다.
+       7/24 로 잡혀 있던 사람이 7/26 에 올렸으면 그건 7/26 에 세야 '그날 몇 건 올라왔나'가 맞다.
+       예정일 밖(캠페인 기간 전후)에 올린 건은 셀 칸이 없으니 그냥 버린다. */
+    ps.forEach(p=>{ upDaysOf(d, p).forEach(dy=>{ if(byDay[dy]) byDay[dy].up += 1; }); });
   });
   const overBy = cfg().spreadOverBy==null ? 3 : cfg().spreadOverBy;
   const weeks = WEEKS().map(w=>{
@@ -2349,12 +2407,17 @@ function schedStrip(){
   // 큰 숫자 = 그 날 예정 건수(시트와 그대로 대조됨). 이미 올라간 만큼은 '남음'으로만 덧붙인다 —
   // 색으로 경고하지 않는 건, 손쓸 수 없는 과거까지 빨갛게 남는 걸 피하려는 것과 같은 이유다.
   const cell = x=>{
+    /* 아래 작은 줄에 '그날 실제로 올라온 건수'를 둔다. 큰 숫자(예정)와 다른 축이다 —
+       7/24 로 잡혀 있던 사람이 7/26 에 올렸으면 7/26 의 올림에 잡힌다.
+       남음은 툴팁으로 내렸다. 칩이 42px 라 세 숫자를 나란히 두면 아무것도 안 읽힌다. */
     const t = `${x.day} · 예정 ${x.geon}건 / ${x.myeong}명`
-            + (x.geon!==x.left ? ` · 아직 ${x.left}건 남음` : '')
+            + ` · 이 날 실제 업로드 ${x.up}건`
+            + (x.geon!==x.left ? ` · 예정분 중 아직 ${x.left}건 남음` : '')
             ;   // 몰림 기준 문구 제거 — 판정은 화면에 안 띄우기로(대표 지시)
     return `<button class="dday${state.day===x.day?' on':''}" data-day="${x.day}" title="${esc(t)}">`
          + `<span class="dd">${x.day}</span><span class="dn">${x.geon}<i>건</i></span>`
-         + (x.geon!==x.left ? `<span class="dleft">${x.left} 남음</span>` : '') + `</button>`;
+         + (x.up ? `<span class="dup">올림 ${x.up}</span>`
+                 : (x.geon!==x.left ? `<span class="dleft">${x.left} 남음</span>` : '')) + `</button>`;
   };
   const grp = w=> `<div class="dgrp"><div class="ddays">${w.days.map(cell).join('')}</div>`
     + `<div class="dcap">${esc(w.label)} ${w.days[0].day}–${w.days[w.days.length-1].day}</div></div>`;
@@ -4595,6 +4658,7 @@ function openRowEdit(id, rowPlat){
           <div class="row"><label class="h">음원구간</label>${revEditSel('reSec_'+pp, x.sec)}</div>
           <div class="row"><label class="h">해시태그</label>${revEditSel('reHash_'+pp, x.hash)}</div>
         </div>
+        ${upLine(d, pp)}
         <div class="row"><label class="h">${pName(pp)} 비고</label><textarea class="inp" id="rePMemo_${pp}" placeholder="${pName(pp)} 특이사항">${esc(x.memo||'')}</textarea></div>
       </div>`; };
     // 미러링·날짜는 사람 단위라 플랫폼 묶음 밖에 한 번만 둔다.
