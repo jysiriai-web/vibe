@@ -45,9 +45,22 @@ SIRIAI 사업소개 산출물 폴더. 두 갈래입니다 — **① 챗봇형 �
 3. `vercel deploy --prod --yes`
 
 **2번이 왜 필요한가** — `index.html`은 클디가 매번 새로 내보내는 산출물이라,
-siriai.co.kr 통합 SEO 태그(`<title>` · `canonical` · `/portfolio` 상대경로)를
-손으로 넣어두면 다음 export 때 조용히 덮인다. 그래서 배포 직전에 스크립트로 항상 다시 붙인다.
+siriai.co.kr 통합 SEO 태그(`<title>` · `canonical`)를 손으로 넣어두면
+다음 export 때 조용히 덮인다. 그래서 배포 직전에 스크립트로 항상 다시 붙인다.
 여러 번 돌려도 중복되지 않는다(멱등). 클디 원본에 반영되면 스크립트는 "이미 있음"만 찍고 넘어간다.
 
-> `/portfolio`는 상대경로라 **siriai.co.kr 라우팅이 붙은 뒤에만** 열린다.
-> vercel.app 주소로 직접 들어가면 그 링크는 404 — 의도된 동작.
+### ⛔ 링크는 절대주소를 유지한다 (건드리지 말 것)
+포트폴리오 링크를 `/portfolio` 상대경로로 바꾸면 **siriai.co.kr 을 거쳐 들어올 때만** 열린다.
+그런데 **아웃바운드 메일로 이미 나간 링크는 `siriai-business.vercel.app`** 이라,
+그 메일을 받은 사람은 포트폴리오 버튼에서 404 를 만난다. 그래서 되돌렸다.
+
+`seo_patch.py` 의 `APPLY_LINK_REWRITE = False` 가 이걸 막고 있다.
+바꾼다면 **메일에 나가는 링크까지 siriai.co.kr 로 한 번에** 옮기는 시점에 같이 해야 한다.
+
+| 진입점 | 상태 |
+|---|---|
+| `siriai-business.vercel.app` | 메일에 이미 나간 링크. 계속 살아 있어야 함 |
+| `siriai.co.kr/business` | 같은 페이지를 프록시. canonical 이 가리키는 정본 |
+
+> 두 주소가 같은 내용을 서빙해도 canonical 덕분에 검색 신호는 `siriai.co.kr/business` 로 모인다.
+> 즉 **메일 링크를 안 바꿔도 SEO 통합은 이미 되고 있다.**

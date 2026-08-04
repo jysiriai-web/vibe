@@ -26,7 +26,14 @@ import sys
 TITLE = "사업소개 | SIRIAI — 인플루언서 마케팅 · 셀러브리티 · 브랜딩"
 CANONICAL = "https://siriai.co.kr/business"
 
-# 이 페이지가 가리키는 형제 페이지(포트폴리오). 절대주소 → 상대경로.
+# 형제 페이지(포트폴리오) 링크를 절대주소 → 상대경로로 바꾸는 기능.
+#
+# ⛔ 현재 꺼둠 (2026-08-04) — 포트폴리오 쪽이 롤백됐고 아직 준비 안 됨.
+#    상대경로 /portfolio 는 siriai.co.kr 을 거쳐 들어올 때만 열리고,
+#    siriai-business.vercel.app 으로 직접 들어오면 404 가 난다.
+#    포트폴리오가 정식으로 준비되면 아래를 True 로 바꾸면 된다.
+APPLY_LINK_REWRITE = False
+
 LINK_MAP = {
     "https://siriai-portfolio.vercel.app/": "/portfolio",
     "https://siriai-portfolio.vercel.app": "/portfolio",
@@ -73,17 +80,20 @@ def patch(html):
             ("canonical: 추가 — " + CANONICAL) if ok else "⚠ canonical: <head> 를 못 찾음"
         )
 
-    # 3. 형제 페이지 링크 — 절대주소를 상대경로로
-    # 긴 것부터 바꿔야 끝의 슬래시 없는 형태가 앞의 것을 잘라먹지 않는다
-    for src in sorted(LINK_MAP, key=len, reverse=True):
-        n = html.count(src)
-        if n:
-            html = html.replace(src, LINK_MAP[src])
-            done.append("링크: %s → %s (%d곳)" % (src, LINK_MAP[src], n))
+    # 3. 형제 페이지 링크 — 절대주소를 상대경로로 (현재 꺼져 있음)
+    if not APPLY_LINK_REWRITE:
+        done.append("링크 상대경로: 꺼짐 — 포트폴리오 준비 전이라 절대주소 그대로 둠")
+    else:
+        # 긴 것부터 바꿔야 끝의 슬래시 없는 형태가 앞의 것을 잘라먹지 않는다
+        for src in sorted(LINK_MAP, key=len, reverse=True):
+            n = html.count(src)
+            if n:
+                html = html.replace(src, LINK_MAP[src])
+                done.append("링크: %s → %s (%d곳)" % (src, LINK_MAP[src], n))
 
-    leftover = len(re.findall(r"siriai-portfolio\.vercel\.app", html))
-    if leftover:
-        done.append("⚠ 남은 vercel.app 절대주소 %d곳 — LINK_MAP 확인 필요" % leftover)
+        leftover = len(re.findall(r"siriai-portfolio\.vercel\.app", html))
+        if leftover:
+            done.append("⚠ 남은 vercel.app 절대주소 %d곳 — LINK_MAP 확인 필요" % leftover)
 
     return html, done
 
