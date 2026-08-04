@@ -1981,6 +1981,11 @@ function upDaysOf(d, p){ const x = d && d[p]; if(!x) return [];
    나중에 올리면 그 자리에 URL 을 붙여넣는 것으로도 저절로 복구된다. */
 function dropBtn(d, pp){
   const on = platDropped(d, pp);
+  /* ⚠️ 이미 올라온 자리에는 버튼을 잠근다. 예전엔 항상 눌렸고, 누르면 입력칸의 실제 URL 을
+     '드랍' 으로 덮어썼다 — 되돌리기는 빈칸이라 **원래 링크가 안 돌아온다**(손으로 붙인 링크면 영영).
+     일괄 드랍(bulkDrop)은 uploaded 면 건너뛰는데 이 창만 안 막고 있었다. 규칙을 맞춘다. */
+  if(!on && uploaded(d, pp))
+    return `<button type="button" class="pdrop" disabled title="이미 올라온 자리예요 — 접으려면 콘텐츠① 링크를 먼저 비우세요">✕ 이 플랫폼 드랍</button>`;
   return `<button type="button" class="pdrop${on?' on':''}" data-pdrop="${pp}"`
     + ` title="${on?'되돌리기 — 이 플랫폼을 다시 올릴 자리로 되돌립니다':'이 플랫폼은 안 올리는 것으로 접습니다 (확보·목표에서 빠짐, 언제든 되돌릴 수 있어요)'}">`
     + `${on?'↩ 되돌리기':'✕ 이 플랫폼 드랍'}</button>`;
@@ -2547,9 +2552,11 @@ function schedStrip(){
 function viewRecruit(){
   let rows = D.filter(inCampaign);
   const all = rows;
-  if(state.day && WEEKS().length) rows = rows.filter(d=> dayBucket(d)===state.day);
-  // 일자 필터가 걸려 있으면 그쪽이 우선 — 더 좁은 조건이라 둘을 겹치면 헷갈린다.
-  else if(state.week && WEEKS().length) rows = rows.filter(d=> inWeek(d, state.week));
+  /* ⚠️ 여기만 dayBucket(예정일)으로 직접 걸렀다. 업로드탭은 dayWeekPass 를 타는데,
+     그건 지난 날이면 '올린 날' 기준이라 **같은 칩을 눌러도 탭마다 다른 사람이 떴다**.
+     오늘(캠페인 마지막 날) 기준으로는 거의 모든 날이 '지난 날'이라 늘 어긋난다.
+     판정을 한 곳(dayWeekPass)으로 모은다 — 주차 필터도 그 안에 들어 있다. */
+  rows = rows.filter(dayWeekPass);
   // 플랫폼은 하위탭으로 고르므로 표에서는 로고만 — 글자 칩은 자리만 먹는다.
   const platCol = { key:'plats', label:'플랫폼', hideable:true, empty:()=>false, sv:r=>r.plats.length,
     cell:r=>platIcons(r) };
@@ -3139,7 +3146,7 @@ function pickedRows(){
 async function bulkDrop(undo){
   const picked = pickedRows();
   if(!picked.length) return toast('먼저 사람을 체크해주세요.');
-  const cells = [], lines = [];
+  let cells = []; const lines = [];   // cells 는 보내기 직전 재대조에서 걸러낼 수 있어 let
   picked.forEach(d=>{
     platsOn().forEach(p=>{
       if(!d[p]) return;
@@ -3155,6 +3162,22 @@ async function bulkDrop(undo){
     });
   });
   if(!cells.length) return toast(undo ? '되돌릴 자리가 없어요.' : '접을 자리가 없어요 — 고른 사람은 이미 다 올렸거나 이미 접혀 있어요.');
+  /* ⚠️ 여기까지의 판단은 **화면 스냅샷**이다. 확인창을 읽는 사이(또는 20초 자동 갱신 직전)
+     그 사람이 실제로 올렸을 수 있는데, 그대로 쓰면 방금 올라온 URL 을 '드랍' 으로 덮는다.
+     그래서 보내기 직전에 시트를 다시 읽어 대조한다. 되돌리기(undo)는 지우는 값이 없으니 건너뛴다. */
+  if(!undo){
+    try {
+      await loadData();
+      const stale = cells.filter(c=>{ const d=D.find(x=>Number(x.id)===c.row); if(!d) return true;
+        const p=c.field.split('.')[0]; return uploaded(d,p); });
+      if(stale.length){
+        const who = stale.map(c=>{ const d=D.find(x=>Number(x.id)===c.row); return (d?d.nick:'행'+c.row)+' '+pName(c.field.split('.')[0]); });
+        toast(`그 사이 <b>${stale.length}자리</b>가 올라왔어요 — 그 자리는 빼고 진행합니다.<br>${esc(who.slice(0,5).join(' · '))}`, 'bad');
+        cells = cells.filter(c=>!stale.includes(c));
+        if(!cells.length) return;
+      }
+    } catch(e){ return toast('시트를 다시 못 읽었어요 — 안전하게 중단합니다: ' + esc(e.message||e), 'bad'); }
+  }
   const L = [undo ? `${cells.length}개 자리를 되돌릴까요?` : `${cells.length}개 자리를 접을까요?`, ''];
   L.push(...lines.slice(0,20));
   if(lines.length>20) L.push(`  · 외 ${lines.length-20}개`);
@@ -4102,7 +4125,8 @@ function remindPlats(){
 }
 function remindMissing(d){
   const lateOnly = state.plat==='late' || state.plat==='dropsoon';
-  return remindPlats().filter(p=> d[p] && !uploaded(d,p) && (!lateOnly || isLate(d,p)));
+  // 접어 둔 자리는 리마인드 대상이 아니다 — 안 올리기로 한 사람에게 "왜 안 올리냐" 고 보내면 안 된다.
+  return remindPlats().filter(p=> liveSlot(d,p) && !uploaded(d,p) && (!lateOnly || isLate(d,p)));
 }
 /* 지금 탭에서 메일 받을 사람. ⚠️ 탭이 나뉜 만큼 목록도 나뉘어야 한다 —
    안 그러면 '일정 미준수'와 '탈락 예정' 양쪽에서 같은 사람 주소가 복사돼
@@ -4146,7 +4170,7 @@ function remindMode(targets){
    이걸 안 보여주면 '어제 7명이었는데 오늘 2명이네? 5명 어디 갔지' 가 된다. */
 function waitingNewDate(){
   return D.filter(inCampaign).filter(inUpload).filter(oursToSchedule).filter(d=> !isDropped(d))
-    .filter(d=> platsOn().some(p=> d[p] && !uploaded(d,p)))
+    .filter(d=> platsOn().some(p=> liveSlot(d,p) && !uploaded(d,p)))
     .filter(d=>{ const i=dayIdx(normDay(d.sched)), t=dayIdx(TODAY()); return i>=0 && t>=0 && i<t; })
     .filter(d=> !lateSlots(d));
 }
@@ -4461,7 +4485,8 @@ function mSummary(){
   // 오늘 예정 — 기준일(확정일 우선)이 오늘인 사람
   const today = TODAY();
   const todayRows = inC.filter(inUpload).filter(d=> normDay(dueDay(d))===today && !isDropped(d));
-  const todayGeon = todayRows.reduce((a,d)=> a + platsOn().filter(p=>d[p]).length, 0);
+  // 접어 둔 자리는 '오늘 올릴 것'이 아니다 — PC 는 pendingSlot 으로 이미 빼는데 폰만 세고 있었다.
+  const todayGeon = todayRows.reduce((a,d)=> a + platsOn().filter(p=>liveSlot(d,p)).length, 0);
   const todayUp = todayRows.reduce((a,d)=> a + platsOn().filter(p=> d[p] && uploaded(d,p)).length, 0);
   const todayLeft = todayGeon - todayUp;   // 오늘 아직 안 올라온 것 — '오늘 뭘 해야 하나' 가 이 숫자다
   /* 플랫폼별로 갈라 센다. 폰에서 제일 자주 묻는 게 '틱톡 몇 건 · 인스타 몇 건' 인데
@@ -4526,7 +4551,7 @@ function mByDay(list, card){
     const i = k==='__unset' ? -1 : dayIdx(k);
     const past = i>=0 && t>=0 && i < t;
     const isToday = i>=0 && i===t;
-    const left = rows.reduce((a,d)=> a + platsOn().filter(p=> d[p] && !uploaded(d,p)).length, 0);
+    const left = rows.reduce((a,d)=> a + platsOn().filter(p=> liveSlot(d,p) && !uploaded(d,p)).length, 0);
     const up   = rows.reduce((a,d)=> a + platsOn().filter(p=> d[p] && uploaded(d,p)).length, 0);
     return { k, rows, i, past, isToday, left, up };
   };
@@ -4550,7 +4575,7 @@ function mByDay(list, card){
         /* 그 날짜의 사람을 '아직 안 올린 사람' 과 '올린 사람' 으로 갈라 보여준다.
            ⚠️ 예전엔 섞여 있어서, 펼쳐도 누가 올렸고 누가 안 올렸는지 카드를 하나씩 읽어야 했다.
            위쪽이 할 일, 아래쪽이 확인용이다. */
-        const left = m.rows.filter(d=> platsOn().some(p=> d[p] && !uploaded(d,p)));
+        const left = m.rows.filter(d=> platsOn().some(p=> liveSlot(d,p) && !uploaded(d,p)));
         const done_ = m.rows.filter(d=> !left.includes(d));
         return (left.length ? `<div class="md-sec">아직 안 올림 ${left.length}명</div>` + left.map(card).join('') : '')
              + (done_.length ? `<div class="md-sec ok">올림 ${done_.length}명</div>` + done_.map(card).join('') : '');
@@ -5490,7 +5515,13 @@ document.getElementById('modal').addEventListener('click', e=>{
   const b = e.target.closest('[data-pdrop]'); if(!b) return;
   const pp = b.dataset.pdrop, el = document.getElementById('reC1_'+pp);
   if(!el) return;
-  const on = /^(드랍|드롭|drop)$/i.test(el.value.trim());
+  const cur = el.value.trim();
+  const on = /^(드랍|드롭|drop)$/i.test(cur);
+  /* 버튼을 그릴 때도 막지만(dropBtn) 여기서 한 번 더 본다 — 창을 연 뒤 입력칸에 링크를
+     붙여넣고 누를 수 있다. 실제 URL 을 말없이 '드랍' 으로 덮으면 되돌릴 방법이 없다. */
+  if(!on && cur && !/^(드랍|드롭|drop)$/i.test(cur)){
+    if(!confirm('콘텐츠① 에 이미 값이 있어요:\n\n  ' + cur.slice(0,90) + '\n\n지우고 「드랍」으로 바꿀까요? 되돌려도 이 값은 안 돌아옵니다.')) return;
+  }
   el.value = on ? '' : '드랍';
   b.classList.toggle('on', !on);
   b.textContent = on ? '✕ 이 플랫폼 드랍' : '↩ 되돌리기';

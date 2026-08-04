@@ -228,9 +228,15 @@ export function resetOverridesFromSheet(campaign) {
     // 시트를 못 읽으면 로컬을 건드리지 않는다 — 빈 값으로 갈아끼우면 잠금이 통째로 날아간다.
     if (isSheet()) ov = normalizeOverrides((await getState(campaign.sheet)).overrides || {});
     else return { skipped: '시트 모드가 아니라 그대로 둡니다' };
+    /* ⚠️ '아직 시트에 못 올린 잠금'(pending)이 있었으면 그건 여기서 사라진다 —
+       행이 지워져 그 잠금의 행 번호 자체가 뜻을 잃었기 때문에 되살릴 수도 없다.
+       다만 **말없이** 지우면 안 된다. 지웠다는 사실을 돌려줘서 사람이 알게 한다
+       (검수 잠금을 손으로 다시 걸어야 할 수도 있다). */
+    const hadPending = !!readPending(campaign).overrides;
     writeJson(campaign.dataDir, ovFile(campaign.dataDir), ov);
     clearPending(campaign, 'overrides');
-    return { local: 'ok', count: Object.keys(ov).length };
+    return { local: 'ok', count: Object.keys(ov).length,
+      droppedPending: hadPending || undefined };
   });
 }
 

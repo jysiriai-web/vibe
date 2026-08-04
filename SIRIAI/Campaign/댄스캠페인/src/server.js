@@ -312,6 +312,11 @@ function gardenOffKeys(accounts) {
 function droppedKeys(accounts) {
   const s = new Set();
   for (const a of accounts || []) {
+    /* 플랫폼별 드랍 — '이 자리는 안 올린다'로 접어 둔 칸. 사람 단위 '최종 드랍'과 이유는 다르지만
+       돈에 대해서는 똑같다: 안 올릴 자리의 팔로워를 사서 채울 이유가 없다.
+       ⚠️ 위 주석대로 화면(gStat)만 막으면 소용없다 — 실제로 주문을 넣는 건 이 경로다. */
+    if (a.tk && isDropMark(a.tk.contentA) && hKey(a.handle)) s.add('tk|' + hKey(a.handle));
+    if (a.ig && isDropMark(a.ig.contentA) && hKey(a.igHandle)) s.add('ig|' + hKey(a.igHandle));
     if (String(a.fixedDate || '').trim() !== '최종 드랍') continue;
     if (hKey(a.handle)) s.add('tk|' + hKey(a.handle));
     if (hKey(a.igHandle)) s.add('ig|' + hKey(a.igHandle));
@@ -748,8 +753,15 @@ export async function handler(req, res) {
          ⚠️ 실패를 삼키면 안 된다. 여기서 못 맞추면 다음 읽기 때 잠금이 어긋난 채로
          시트에 되쓰이므로, 사람이 알고 새로고침이라도 해야 한다. */
       let ovWarn = null;
-      try { await resetOverridesFromSheet(campaign); }
-      catch (e) { ovWarn = '검수 잠금 정리가 안 됐어요 — 화면을 새로고침해주세요: ' + ((e && e.message) || e); }
+      try {
+        const rr = await resetOverridesFromSheet(campaign);
+        if (rr && rr.droppedPending) ovWarn = '아직 시트에 못 올린 검수 잠금이 있었는데 행이 지워지면서 사라졌어요 — 필요하면 다시 걸어주세요.';
+      } catch (e) { ovWarn = '검수 잠금 정리가 안 됐어요 — 화면을 새로고침해주세요: ' + ((e && e.message) || e); }
+      /* 브릿지 쪽 잠금 밀기가 실패하면 r.overrideError 로 온다. ...r 로 응답에 실리긴 하는데
+         화면 토스트가 그 이름을 안 읽어서 "N명 지웠어요" 만 떴다 — 같은 ovWarn 으로 합친다. */
+      if (r && r.overrideError) {
+        ovWarn = (ovWarn ? ovWarn + ' / ' : '') + '시트 쪽 잠금 밀기 실패: ' + r.overrideError;
+      }
       return send(res, 200, { ok: true, ...r, ovWarn });
     }
 
@@ -834,13 +846,11 @@ export async function handler(req, res) {
         }
         cells.push({ row, field, value, baseField });
       }
-      try {
-        await pushCellsToSheet(campaign.sheet, cells.map(({ row, field, value }) => ({ row, field, value })));
-      } catch (e) {
-        return send(res, 500, { error: '시트 쓰기 실패: ' + ((e && e.message) || e) });
-      }
-      /* 잠금은 칸마다 따로 기록한다. 하나가 실패해도 나머지는 남겨야 하므로 모아서 보고한다 —
-         잠금이 안 걸리면 다음 스캔이 그 칸을 도로 덮어쓴다(조용히 되돌아가는 경로다). */
+      /* ⚠️ 잠금을 **먼저** 남긴다. 예전엔 시트 쓰기가 던지면 그 자리에서 500 을 돌려주고
+         잠금은 한 칸도 안 남겼다 — 그런데 브릿지는 이미 일부를 썼을 수 있다. 그러면
+         '시트엔 절반이 써졌는데 화면은 실패라 하고, 써진 칸은 잠기지도 않아 다음 스캔이
+         조용히 되돌리는' 최악이 된다. 잠금은 값(의도)까지 들고 있어서 시트 쓰기가 실패해도
+         화면이 그 값을 보여주고 pending 으로 재시도 대상이 된다. */
       const lockFail = [];
       for (const c of cells) {
         try {
@@ -849,6 +859,16 @@ export async function handler(req, res) {
             : await setOverrideStore(campaign, c.row, c.field, c.value);
           if (w && w.durable === false) lockFail.push(c.row + '·' + c.field);
         } catch { lockFail.push(c.row + '·' + c.field); }
+      }
+      try {
+        await pushCellsToSheet(campaign.sheet, cells.map(({ row, field, value }) => ({ row, field, value })));
+      } catch (e) {
+        // 시트 쓰기는 실패했지만 의도는 남았다 — 그 사실을 정확히 말한다(성공이라고 하지 않는다).
+        return send(res, 502, {
+          error: '시트 쓰기 실패: ' + ((e && e.message) || e),
+          intentSaved: cells.length - lockFail.length,
+          hint: '고친 값은 화면에 남아 있고 다음 저장 때 다시 올라갑니다. 일부만 써졌을 수 있으니 시트를 확인해주세요.',
+        });
       }
       return send(res, 200, { ok: true, written: cells.length,
         lockWarn: lockFail.length ? `잠금 기록 실패 ${lockFail.length}칸 — 다음 스캔이 덮어쓸 수 있어요 (${lockFail.slice(0, 5).join(', ')})` : undefined });
