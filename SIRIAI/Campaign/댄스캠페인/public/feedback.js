@@ -102,7 +102,16 @@
     if (pending) $('#fbInput')?.focus();
   }
 
-  function open() { $('#fbPanel').hidden = false; setPicking(true); render(); load(true); }
+  /* 의견 시트 링크 — 남긴 의견과 처리 여부가 쌓이는 곳(마스터시트의 「의견」 탭).
+     이 파일은 캠페인 설정을 모르므로 대시보드가 window.FB_SHEET_URL 로 알려 준다.
+     못 받으면 버튼을 숨긴다 — 눌러도 아무 데도 안 가는 링크가 제일 나쁘다. */
+  function wireSheetLink() {
+    const a = $('#fbSheet'); if (!a) return;
+    const u = window.FB_SHEET_URL || '';
+    if (!u) { a.hidden = true; return; }
+    a.hidden = false; a.href = u;
+  }
+  function open() { $('#fbPanel').hidden = false; setPicking(true); wireSheetLink(); render(); load(true); }
   function close() { $('#fbPanel').hidden = true; setPicking(false); pending = null; }
 
   function setPicking(on) {
