@@ -4181,14 +4181,20 @@ function viewSettle(){
      30,000엔을 과다계상하고 있었다. 상한은 settleActual 이 안다(마진 시뮬과 같은 함수). */
   const act = settleActual();
   const total = act.totYen;
-  const settledGeon = rows.reduce((a,r)=> a+settleCalc(r).dc, 0);
-  const unpaid = rows.filter(r=>!r.settle.paid).length;
-  const capN = cfg().settleCap || 105;
+  /* 미입금은 **지급 의무가 있는 사람**만 센다. 예전엔 전원(87명)을 세서, 업로드도 안 한
+     사람까지 '미입금' 에 들어가 있었다 — 돈을 줘야 할 사람 수를 못 읽는 숫자였다. */
+  const owed = rows.filter(r=> anyUploaded(r));
+  const unpaid = owed.filter(r=>!r.settle.paid).length;
   const kpis = `<div class="cards">
     ${kpi('정산 총액 (자동계산)', `${nf(total)}<span class="of"> 엔</span>`, { ic:IC.yen,
       sub:`시리아이 ${nf(act.siYen)} + 마루 ${nf(act.mYen)}` + (act.mOver ? ` <span class="cmuted">· 마루 초과 ${act.mOver}건은 계약 상한으로 제외</span>` : '') })}
-    ${kpi('정산 건수 · 건', `${settledGeon}<span class="of"> / ${capN} 상한</span>`, { ic:IC.cap, sub:'목표 100 + 오버부킹 5 = 105건' })}
-    ${kpi('미입금 · 명', `${unpaid}<span class="of"> 명</span>`, { ic:IC.wallet, accent:'var(--needs-ink)' })}
+    ${/* ⚠️ 예전엔 '119 / 105 상한' 이었다. 그 105(오버부킹 포함 인정상한)는 이 캠페인의 정산에
+          실제로 안 쓰인다 — 실행사는 플랫폼별 계약 수량으로, 자체는 사람 단위로 계산한다.
+          안 쓰는 기준을 옆에 붙여 두면 '105 를 넘었는데 왜 다 주지?' 로 읽힌다. */''}
+    ${kpi('지급 대상 · 건', `${act.mGeon + act.siPeople}<span class="of"> 건</span>`, { ic:IC.cap,
+      sub:`시리아이 ${act.siPeople}명 + 마루 ${act.mGeon}건` + (act.mOver?` <span class="cmuted">· 초과 ${act.mOver}건 제외</span>`:'') })}
+    ${kpi('미입금 · 명', `${unpaid}<span class="of"> / ${owed.length} 명</span>`, { ic:IC.wallet,
+      accent: unpaid?'var(--needs-ink)':undefined, sub:'업로드가 있어 지급 의무가 있는 사람 기준' })}
   </div>`;
   /* 지급 전에 사람이 정해야 하는 것들 — 안 보이면 그냥 0원으로 지나간다.
      실제로 최우수가 한 명도 안 정해진 채 '자동계산 총액' 만 보고 있었다. */
