@@ -1069,7 +1069,20 @@ export async function handler(req, res) {
       if (!campaign.deliverySheetId) return send(res, 400, { error: '이 캠페인엔 납품시트 설정이 없어요 (campaigns.json deliverySheetId)' });
       const body = await readBody(req);
       const has = (v) => !!(v != null && String(v).trim());
-      const revState = (v) => { const s = String(v == null ? '' : v).trim(); if (!s) return 'none'; if (/다름|누락|미준수|미사용|불가|없음|이슈|문제|✗|✘/i.test(s)) return 'fail'; if (/확인|준수|사용|완료|ok|pass|✓|✔/i.test(s)) return 'pass'; return 'none'; };
+      /* 검수 문구 → 통과/실패/미확인.
+         ⚠️ **검사 순서가 곧 정확도다.** '미확인' 은 통과어 '확인' 을 품고 있어서, 미확인을 먼저
+            걸러내지 않으면 `/확인/` 에 걸려 **준수로 뒤집힌다** — 실측: '미확인' → pass.
+            그러면 아직 검수도 안 끝난 콘텐츠가 클라이언트 납품시트에 들어간다.
+            화면(public/lun8.html revFlag)은 이 순서를 이미 지키고 있었는데 서버만 빠져 있었다.
+            ⚠️ 이 두 곳은 한 벌이다 — 한쪽만 고치면 화면은 '검수중' 인데 납품은 나간다. */
+      const revState = (v) => {
+        const s = String(v == null ? '' : v).trim();
+        if (!s) return 'none';
+        if (/미확인|확인중|확인 중|검토중|대기|보류/i.test(s)) return 'none';   // ① 반드시 맨 먼저
+        if (/다름|누락|미준수|미사용|불가|없음|이슈|문제|✗|✘/i.test(s)) return 'fail';  // ② 실패가 통과보다 먼저('미준수'가 '준수'를 품는다)
+        if (/확인|준수|사용|완료|ok|pass|✓|✔/i.test(s)) return 'pass';
+        return 'none';
+      };
       const accounts = await buildAccounts(campaign, await readOrders(campaign));
       /* ⚠️ 예전엔 계정 단위(a.contentLink = 틱톡 콘텐츠)로만 만들어서 인스타 업로드가 통째로 빠졌다.
          멀티플랫폼 캠페인은 '한 사람'이 아니라 '사람×플랫폼'이 납품 단위다. */
