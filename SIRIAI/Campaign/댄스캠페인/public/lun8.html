@@ -3257,14 +3257,18 @@ function filterBar(){
   // 눌렀을 때 결과가 어긋난다(전체 기준으로 세고 있었다).
   const n = D.filter(inCampaign).filter(inUpload).filter(dayWeekPass).filter(coPass).filter(qPass)
     .filter(remindScope)
-    .filter(d=> platsOn().some(p=> d[p] && d[p].c1)).length;
+    // 칩 숫자도 필터와 같은 기준(uploaded) — 드랍을 세면 누르기 전과 후가 달라진다.
+    .filter(d=> viewPlats().some(p=> uploaded(d,p))).length;
   const ct = `<span class="fchip-g"><span class="fchip-lab">콘텐츠</span>`
     + `<button class="fchip${state.hasContent?' on':''}" data-contentf="${state.hasContent?0:1}">올라온 사람만 <b>${n}</b></button></span>`;
   // 안내줄('무엇으로 걸러졌나 + 필터 초기화')은 필터를 켜는 이 줄에 붙는다.
   return `<div class="fbar">${co}${ct}<span id="dayNoteSlot" class="fbar-note"></span></div>`;
 }
 // 콘텐츠가 하나라도 올라온 사람인가. 플랫폼 탭에서는 그 플랫폼만 본다.
-const contentPass = d => !state.hasContent || viewPlats().some(p=> d[p] && d[p].c1);
+/* '올라온 사람만' — 드랍은 올라온 게 아니다.
+   ⚠️ 예전엔 d[p].c1 만 봐서, 접어 둔 자리('드랍'도 c1 에 들어간다)가 콘텐츠로 잡혔다.
+   필터를 켜도 드랍한 사람이 그대로 남아 '올라온 사람만'이 거짓말을 했다(실측 5명). */
+const contentPass = d => !state.hasContent || viewPlats().some(p=> uploaded(d,p));
 
 /* 일정 미준수 — 윤경님이 '연락하고 표기하는' 한 가지 일만 하는 화면.
    업로드탭 다른 하위탭은 '올라왔나'를 보지만, 여기는 '아직 안 올라온 사람에게 무엇을 했나'를 본다.
