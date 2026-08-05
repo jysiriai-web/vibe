@@ -1926,9 +1926,29 @@ const isoToMD = v => { const m = String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/
    셋을 한 칸에 두면 '이 사람 어디까지 갔나'를 한 눈에 본다. 열을 새로 파지 않아도 된다. */
 const FIXED_STATES = ['확정메일 발송', '최종 드랍'];
 const isFixedState = v => FIXED_STATES.includes(String(v||'').trim());
-// 예정일(확정일 우선)에서 며칠 지났나. 음수면 아직 안 왔다.
+/* 'M/D' 두 개 사이의 **실제 달력 일수**. 캠페인이 연말을 넘기면 12/28 → 1/3 처럼 월이 작아지는데,
+   그때는 뒤엣것을 다음 해로 본다(캠페인이 1년을 넘기지는 않는다).
+   ⚠️ 시각은 안 쓴다 — UTC 자정끼리 빼서 서머타임·시간대 때문에 하루가 밀리는 걸 막는다. */
+function mdGap(fromMD, toMD){
+  const pa = s => { const m = String(s||'').match(/(\d{1,2})\s*\/\s*(\d{1,2})/); return m ? [+m[1], +m[2]] : null; };
+  const a = pa(fromMD), b = pa(toMD);
+  if(!a || !b) return null;
+  const Y = 2000;                                   // 기준 연도는 아무거나 — 차이만 쓴다
+  const roll = (b[0] < a[0] - 6) ? 1 : 0;           // 월이 크게 작아졌으면 해를 넘긴 것
+  return Math.round((Date.UTC(Y+roll, b[0]-1, b[1]) - Date.UTC(Y, a[0]-1, a[1])) / 86400000);
+}
+/* 예정일(확정일 우선)에서 며칠 지났나. 음수면 아직 안 왔다.
+ *
+ * ⚠️ 예전엔 **캠페인 일정표의 순번 차이**로 셌다. 캠페인이 끝나면 todayIdx() 가 마지막+1 에
+ *    고정되므로, 마지막 날(8/4) 예정 미납자는 8/6 이든 8/20 이든 영영 '경과 1일' 이다.
+ *    2일이 기준인 '탈락 예정' 으로 절대 안 넘어가, 결론을 내야 할 사람이 영구히 대기에 남는다.
+ *    (실측 2026-08-06: あづき·MIYU·ymk_0626 세 명이 이 상태였다)
+ *    일정표에 없는 날(캠페인 밖으로 다시 잡아준 날짜)도 같은 이유로 0 이 됐다.
+ * → 실제 달력으로 센다. 일정 안이든 밖이든, 캠페인이 끝났든 아니든 같은 답이 나온다. */
 function daysLate(d, p){
-  // isLate 와 같은 기준이어야 '지연 목록에 있는데 경과가 오늘'이 안 생긴다.
+  const g = mdGap(dueDay(d), TODAY());
+  if(g != null) return g;
+  // 날짜를 못 읽을 때만 옛 방식으로 물러난다(예정일 표기가 자유입력이라 별별 게 다 들어온다).
   const i = dayIdx(dueDay(d)), t = todayIdx();
   return (i < 0 || t < 0) ? 0 : (t - i);
 }
