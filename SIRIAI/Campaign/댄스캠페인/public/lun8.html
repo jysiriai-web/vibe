@@ -335,9 +335,16 @@ textarea.inp:focus { height: 100px; }
 .rev-sel.rev-pass { background: var(--ok-bg); color: var(--ok-ink); border-color: var(--ok-bg); }
 .rev-sel.rev-fail { background: var(--needs-bg); color: var(--needs-ink); border-color: var(--needs-bg); }
 .rev-sel.rev-none { background: var(--gray-bg); color: var(--gray-ink); border-color: var(--gray-bg); }
-/* 정산 제외 — 켜졌을 때만 색이 붙는다. '포함'은 기본값이라 조용해야 한다(87행이 전부 빨개지면 못 읽는다). */
+/* 정산 제외 — 켜졌을 때만 색이 붙는다. '포함'은 기본값이라 조용해야 한다(87행이 전부 빨개지면 못 읽는다).
+   전부 제외(off)와 한쪽만 제외(part)는 무게가 달라서 색도 다르게 한다. */
 .rev-sel.inc.off { background: var(--needs-bg); color: var(--needs-ink); border-color: var(--needs-bg); }
+.rev-sel.inc.part { background: var(--warn-bg, var(--gray-bg)); color: var(--warn, var(--needs-ink)); border-color: var(--warn-bg, var(--gray-bg)); }
 tr:has(.rev-sel.inc.off) .amt { opacity:.5; text-decoration: line-through; }
+/* 참여 열 — 플랫폼 알약 + 몇 건 지급인지. 지급에서 빠진 자리는 흐리게 + 사유를 달아 둔다. */
+.geoncell { display:flex; flex-wrap:wrap; align-items:center; gap:4px; }
+.geoncell small { font-size:11px; white-space:nowrap; }
+.plat-pill.cut { opacity:.55; text-decoration: line-through; }
+.plat-pill.cut small { display:block; font-size:9.5px; text-decoration:none; opacity:.9; letter-spacing:-.2px; }
 .pay-sel { font-size:13px; font-weight:700; padding:5px 9px; border-radius:9px; border:1.5px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer; font-family:var(--sans); }
 .pay-sel:focus { outline:none; border-color:var(--accent); }
 
@@ -739,6 +746,22 @@ select.selc-v.sel-todo { background:var(--card);     color:var(--muted);     bor
 .sim-ctl label small { color:var(--faint); font-size:12px; margin-left:4px; }
 .sim-in { width:120px; background:var(--card); border:1.5px solid var(--line); color:var(--ink); font-family:var(--sans); font-size:14px; font-weight:600; text-align:right; padding:7px 10px; border-radius:9px; outline:none; font-variant-numeric:tabular-nums; }
 .sim-in:focus { border-color:var(--accent); }
+/* 내가 바꾼 칸 — 실제값이 아니라 가정이라는 걸 칸에서 바로 알아야 한다. */
+.sim-ctl.edited .sim-in { border-color:var(--warn, var(--gold)); background:var(--warn-bg, transparent); }
+.sim-ctl.edited label small { color:var(--warn, var(--gold)); font-weight:700; }
+.sim-warn { margin:12px 0 4px; padding:10px 12px; border-radius:10px; background:var(--warn-bg, var(--gray-bg)); font-size:13px; line-height:1.6; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.sim-gap { margin:2px 0 12px; padding:10px 12px; border-radius:10px; background:var(--gray-bg); color:var(--ink); font-size:13px; line-height:1.65; }
+/* 접힌 시뮬 카드 — 누르면 열린다는 걸 보이게. 결과를 미리 보여줘서 열 이유를 만든다. */
+.sim-head { cursor:pointer; }
+.sim-head.closed:hover { background:var(--accent-soft); }
+.sim-head:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.sim-peek { margin-left:auto; text-align:right; line-height:1.25; }
+.sim-peek b { font-size:19px; font-weight:800; letter-spacing:-.02em; }
+.sim-peek b.pos { color:var(--ok-ink); } .sim-peek b.neg { color:var(--needs-ink); }
+.sim-peek small { display:block; font-size:11.5px; color:var(--faint); }
+.sim-head .chev { font-size:12.5px; font-weight:700; color:var(--muted); white-space:nowrap; }
+.sim-head.closed .chev { background:var(--accent-soft); color:var(--accent); padding:5px 11px; border-radius:999px; }
+.dot-auto { color:var(--ok-ink); font-weight:900; }
 .stack { height:30px; border-radius:10px; overflow:hidden; display:flex; margin:18px 0 14px; }
 .stack span { height:100%; transition:width .25s; }
 .legend { display:grid; grid-template-columns:1fr 1fr; gap:10px 20px; }
@@ -1512,16 +1535,39 @@ function fromApi(a){
   };
 }
 
-/* 정산포함(AT열) 해석. 돈이 걸린 판정이라 규칙을 좁게 잡는다:
-   **명시적으로 '제외'라고 말한 것만 제외**하고, 나머지는 전부 포함이다.
-   비어 있는 칸을 제외로 읽으면(=화이트리스트식) 87명 중 아무도 정산 대상이 아니게 된다 —
-   기본값이 위험한 쪽으로 기울면 조용히 아무도 못 받는다. 애매한 글자도 포함으로 둔다:
-   덜 주는 실수는 사람이 항의해서 드러나지만, 빠뜨린 사람은 아무도 말해주지 않는다. */
+/* 정산포함(AT열) 해석.
+ *
+ * ⚠️ 구조 문제: **AT열은 사람 단위인데, 실제로 빼야 하는 건 거의 항상 자리(플랫폼) 단위다.**
+ *   실측 ZUNA:) 행9 — 틱톡 11,100명(정상) · 인스타 555명(기준 미달). 사람을 통째로 빼면
+ *   멀쩡한 틱톡까지 빠져 5,000엔을 덜 준다. 마루 초과 6명 중 2명도 인스타는 계약 안이라
+ *   사람으로 빼면 인스타 21건이 19건이 된다.
+ *   → 한 칸으로 둘 다 표현한다. 사람이 쓰는 말 그대로 읽는다:
+ *        (빈칸)        전부 포함
+ *        제외          이 사람 전부 제외
+ *        인스타 제외    인스타 자리만 제외 (틱톡은 지급)
+ *        틱톡 제외      틱톡 자리만 제외
+ *   플랫폼 이름은 pName() 과 같은 말을 쓴다 — 화면·시트·코드가 다른 단어를 쓰면 또 갈린다.
+ *
+ * 기본값은 **포함**이다. 비어 있는 칸을 제외로 읽으면 87명 중 아무도 정산 대상이 아니게 된다.
+ * 덜 주는 실수는 사람이 항의해서 드러나지만, 빠뜨린 사람은 아무도 말해주지 않는다. */
+const INC_WORDS = '제외|미포함|불포함|빼기|안줌|no|x';
 function settleIncOf(v){
-  const t = String(v==null?'':v).trim().toLowerCase();
-  if(t==='') return true;
-  if(/^(제외|미포함|불포함|x|no|false|0|아니오|안함|보류)$/.test(t)) return false;
-  return true;
+  const t = String(v==null?'':v).trim();
+  if(!t) return { all:true, off:[] };                    // 빈칸 = 전부 포함
+  const off = [];
+  PLAT_KEYS.forEach(p=>{                                  // '인스타 제외' 처럼 플랫폼이 붙은 경우
+    if(new RegExp('(' + PLAT_NAME[p] + '|' + p + ')\\s*(만)?\\s*(' + INC_WORDS + ')', 'i').test(t)) off.push(p);
+  });
+  if(off.length) return { all:true, off };                // 그 자리만 빠지고 나머지는 지급
+  if(new RegExp('^(' + INC_WORDS + '|false|0|아니오|안함|보류)$', 'i').test(t)) return { all:false, off:[] };
+  return { all:true, off:[] };                            // 못 알아들은 글자는 포함으로 — 안전한 쪽
+}
+/* 시트에 되쓸 문자열. 화면에서 고른 것을 사람이 읽는 말로 되돌린다.
+   ⚠️ 여기와 settleIncOf 는 반드시 짝이다 — 한쪽만 고치면 저장은 되는데 다시 읽을 때 무시된다. */
+function settleIncText(inc){
+  if(!inc || (inc.all && !inc.off.length)) return '';
+  if(!inc.all) return '제외';
+  return inc.off.map(p=> PLAT_NAME[p] + ' 제외').join(' · ');
 }
 
 /* 지급 여부 — 시트는 O/V/완료/TRUE 등 제각각이라 '비어 있지 않으면 지급'이 가장 안전하다.
@@ -1723,7 +1769,12 @@ const state = { view:'recruit', plat:'all', platOnly:'', qaLang:'ja', raw:false,
 const cfg = ()=> CAMPAIGNS[state.campaign];
 const platsOn = ()=> cfg().plats;
 const hasIG = ()=> platsOn().includes('ig');
-const pName = p => p==='tk' ? '틱톡' : '인스타';
+/* 플랫폼 이름 — **한 곳에서만** 정한다. 화면·시트·정산포함 해석이 다른 단어를 쓰면 갈린다.
+   ⚠️ pName 은 삼항식이라 'all' 같은 값을 넣으면 조용히 '인스타' 로 샌다(실제로 두 번 당했다).
+   모르는 값은 그대로 돌려줘서 화면에 이상하게 보이게 둔다 — 조용히 틀린 이름을 대는 것보다 낫다. */
+const PLAT_NAME = { tk:'틱톡', ig:'인스타' };
+const PLAT_KEYS = Object.keys(PLAT_NAME);
+const pName = p => PLAT_NAME[p] || String(p||'');
 
 /* ============ 헬퍼 ============ */
 const nf = n => (typeof n==='number' ? n.toLocaleString() : n);
@@ -3872,7 +3923,9 @@ function deliverBar(){
   const u = deliverUrl(p);
   const open = u ? `<a class="btn small ghost" href="${esc(u)}" target="_blank" rel="noopener"
       title="클라이언트가 보는 최종본${p?' — '+pName(p)+' 탭으로 바로 열려요':''}">📗 납품시트 열기${p?' · '+pName(p):''}</a>` : '';
-  return `<div class="bar"><button class="btn small" id="btnDeliver">📤 납품시트 기입</button>${open}`
+  /* 순서는 **하는 순서**대로: 먼저 시트를 열어 지금 상태를 보고, 그 다음에 기입한다.
+     기입을 왼쪽에 두면 확인 없이 먼저 누르게 된다 — 되돌리기 어려운 쪽이 뒤에 와야 한다. */
+  return `<div class="bar">${open}<button class="btn small" id="btnDeliver">📤 납품시트 기입</button>`
     + `<span class="cmuted">조회수·좋아요는 작업 콘솔 [성과 갱신]에서 채워요</span>`
     + `<span class="spacer"></span></div>`;
 }
@@ -3958,22 +4011,51 @@ function viewDeliver(){
 const FEE_DEFAULT = 5000, FEE_BOTH_DEFAULT = 12000;
 const feeOf = c => { const v = coInfo(c).fee; return Number.isFinite(Number(v)) ? Number(v) : FEE_DEFAULT; };
 const feeBothOf = c => { const v = coInfo(c).feeBoth; return Number.isFinite(Number(v)) ? Number(v) : null; };
-/* 정산 대상인가 — 마스터시트 AT열('정산포함')이 유일한 판정처다.
+/* 정산 대상인가 — **사람 판단(AT열)** 기준.
    ⚠️ 이 판정은 **돈에만** 걸린다. 제외해도 콘텐츠는 이미 클라이언트에 납품됐고 목표 건수에도
    들어간다(실행사 초과분과 같은 성격이다). 납품 숫자에 이걸 끼워 넣으면 두 숫자가 섞인다. */
-const payable = d => !(d.settle && d.settle.inc === false);
+const incOf = d => (d.settle && d.settle.inc) || { all:true, off:[] };
+const payable = d => incOf(d).all;                       // 사람 전체를 뺐나
+const payableSlot = (d,p) => payable(d) && !incOf(d).off.includes(p);   // 이 자리를 뺐나
+/* 지급 대상 자리 수 — 올라왔고 + 사람이 빼지 않은 것. 실행사 계약 상한은 여기 안 든다
+   (그건 사람별이 아니라 플랫폼 전체에 걸리는 규칙이라 agencyOverMap 이 따로 본다). */
+const paidSlots = d => platsOn().filter(p=> uploaded(d,p) && payableSlot(d,p));
+
+/* 이 자리가 왜 지급에서 빠졌나 — 화면이 이유를 말할 수 있게 한 곳에서 답한다.
+   세 가지 성격이 섞여 있고, 사람이 고칠 수 있는 건 셋째뿐이다:
+     ① 계약 상한  — 실행사 플랫폼별 계약 수량 초과. 코드가 계산한다(먼저 올린 순).
+     ② 미러링     — 같은 영상이라 자동으로 1건만 인정. 2건으로 밀려면 개별단가.
+     ③ 사람 판단  — AT열. 팔로워 미달·중복지원 등. 이것만 화면에서 고른다.
+   ⚠️ 셋을 한 드롭다운에 섞으면, 자동으로 빠진 걸 사람이 '포함' 으로 되돌리려다
+      아무 일도 안 일어나는 조용한 무동작이 된다(마루 우수 ★ 에서 이미 당했다). */
+function slotWhy(d,p){
+  if(!uploaded(d,p)) return null;
+  if(!payable(d))                 return { by:'사람', txt:'정산 제외', tip:'마스터시트 정산포함(AT열) = 제외' };
+  if(incOf(d).off.includes(p))    return { by:'사람', txt:pName(p)+' 제외', tip:'마스터시트 정산포함(AT열)에서 이 플랫폼만 뺐어요' };
+  const o = isAgency(d) ? agencyOverOf(d) : null;
+  if(o && o.plats && o.plats.includes(pName(p)))
+    return { by:'계약', txt:'계약 상한 초과', tip:`${coLabel(d.co)} ${pName(p)} 계약 ${nf(o.quota)}건을 넘겨 올라온 자리예요 — 납품엔 들어가고 지급만 빠져요(먼저 올린 순으로 계약분을 채웁니다)` };
+  return null;
+}
 
 function settleCalc(d){
   const s=d.settle, plats=platsOn();
-  let dc=0; plats.forEach(p=>{ if(d[p]&&done(d[p])) dc++; });
+  /* ⚠️ 지급 대상 자리만 센다. 예전엔 검수완료된 자리를 전부 셌는데, 사람이 한쪽 플랫폼만
+     빼기로 해도(ZUNA 인스타 555명) 그 자리가 그대로 계산에 들어갔다.
+     dc = 사람이 빼지 않은 검수완료 자리. cut = 그렇게 빠진 자리(설명용). */
+  const live = plats.filter(p=> d[p] && done(d[p]));
+  const dcArr = live.filter(p=> payableSlot(d,p));
+  const cut   = live.filter(p=> !payableSlot(d,p));
+  let dc = dcArr.length;
   const mir = isMirrored(d);
   /* 제외는 개별단가보다도 먼저 본다 — '안 준다'고 정한 사람에게 개별단가가 남아 있으면
      그 금액이 그대로 나간다. 사람이 마지막에 내린 결정이 이겨야 한다. */
   if(!payable(d)) return { amt:0, tag:['excl','정산 제외'],
     bd:`마스터시트 정산포함(AT열) = 제외 — 납품은 그대로, 지급만 안 합니다`
-       + (s.override!=null?`\n※ 개별단가 ${nf(s.override)}엔이 적혀 있지만 제외가 이깁니다.`:''), dc, mir };
+       + (s.override!=null?`\n※ 개별단가 ${nf(s.override)}엔이 적혀 있지만 제외가 이깁니다.`:''), dc:0, mir, cut:live };
   if(s.override!=null) return { amt:s.override, tag:['ovr','특별'],
-    bd:`개별단가(자동수식 무시): ${nf(s.override)}엔` + (mir?' · 미러링 건':''), dc, mir };
+    bd:`개별단가(자동수식 무시): ${nf(s.override)}엔` + (mir?' · 미러링 건':'')
+       + (cut.length?`\n※ ${cut.map(pName).join('·')} 자리를 뺐지만 개별단가가 그대로 적용됩니다.`:''), dc, mir, cut };
   // 미러링은 같은 영상이라 콘텐츠로는 1건 — 자동값은 1건 기준으로 낸다.
   const payDc = mir ? Math.min(dc,1) : dc;
   /* 양쪽 묶음가는 그 진행사에 feeBoth 가 있을 때만 — 실행사는 보통 건당 정산이라 없다. */
@@ -3988,12 +4070,14 @@ function settleCalc(d){
   const parts=[ bothOk
     ? `양쪽 업로드(미러링 아님) ${nf(both)}`
     : `콘텐츠 ${payDc}건 × ${nf(unit)}(${esc(coLabel(d.co))}) ${nf(base)}`];
+  if(cut.length) parts.push(`${cut.map(pName).join('·')} 자리는 정산에서 제외(납품엔 포함)`);
   if(mir && dc>1) parts.push(`미러링이라 ${dc}건 중 1건만 자동 인정`);
   if(best) parts.push(`최우수 +${nf(best)}`);
   if(ref)  parts.push(`추천 ${d.refCount}×3,000 +${nf(ref)}`);
   let bd = parts.join('  ·  ')+` = ${nf(raw)}`+(raw>30000?' → 3만 cap':'');
   if(mir && dc>1) bd += `\n※ 2건으로 쳐주기로 했다면 개별단가에 금액을 넣으세요(예: ${nf(both ?? FEE_BOTH_DEFAULT)} 또는 10,000).`;
-  return { amt, tag: mir&&dc>1?['mir','미러링 1건'] : raw>30000?['cap','3만 cap']:['auto','자동'], bd, dc, mir };
+  return { amt, tag: cut.length?['excl','일부 제외'] : mir&&dc>1?['mir','미러링 1건'] : raw>30000?['cap','3만 cap']:['auto','자동'],
+           bd, dc, mir, cut };
 }
 
 /* ============ 정산: 마진 시뮬 (진행사별 원고료 원가 반영) ============ */
@@ -4011,12 +4095,15 @@ function settleActual(){
   let exclPeople = 0, exclGeon = 0;
   const mUp = {}; platsOn().forEach(p=> mUp[p] = 0);
   inC.forEach(d=>{
-    const ups = platsOn().filter(p=> uploaded(d,p)).length;
-    /* ⚠️ 제외자는 실행사 상한 계산에서도 빠져야 한다. 자리만 차지하고 돈은 안 받으면
-       뒤에 올린 사람이 대신 초과분으로 밀려 애먼 사람이 못 받는다. */
-    if(!payable(d)){ if(ups){ exclPeople++; exclGeon += ups; } return; }
-    if(isAgency(d)){ platsOn().forEach(p=>{ if(uploaded(d,p)) mUp[p]++; }); return; }
+    const upAll = platsOn().filter(p=> uploaded(d,p));      // 올라온 자리 전부(납품 기준)
+    const ups   = upAll.filter(p=> payableSlot(d,p)).length; // 사람이 안 뺀 자리(지급 기준)
+    /* ⚠️ 사람이 뺀 자리는 실행사 상한 계산에서도 빠져야 한다. 자리만 차지하고 돈은 안 받으면
+       뒤에 올린 사람이 대신 초과분으로 밀려 애먼 사람이 못 받는다.
+       ⚠️ 자리 단위로 센다 — ZUNA 처럼 한쪽만 뺀 사람을 통째로 빼면 멀쩡한 틱톡까지 사라진다. */
+    const cutN = upAll.length - ups;
+    if(cutN){ exclGeon += cutN; if(!ups) exclPeople++; }
     if(!ups) return;
+    if(isAgency(d)){ upAll.forEach(p=>{ if(payableSlot(d,p)) mUp[p]++; }); return; }
     siPeople++;
     const amt = settleCalc(d).amt;
     siYen += amt;
@@ -4030,7 +4117,8 @@ function settleActual(){
       if(rawSum > 0){
         /* 실제로 지급된 보너스 = 그 사람 지급액에서 원고료를 뺀 나머지. 상한에 걸려 잘렸으면
            그만큼 줄어든다. 원값을 그대로 쌓으면 내역 합이 총액보다 커진다(실측 33,000 vs 30,000). */
-        const ups = platsOn().filter(p=> uploaded(d,p)).length;
+        // ⚠️ settleCalc 과 **같은 자리 수**를 써야 한다 — 여기만 전체 자리를 쓰면 원고료를
+        //    과대 추정해 보너스가 음수로 깎인다(한쪽만 뺀 사람에게서 드러난다).
         const mir = isMirrored(d);
         const payN = mir ? Math.min(ups,1) : ups;
         const bothOk = feeBothOf(d.co)!=null && !mir && payN>=2;
@@ -4070,16 +4158,18 @@ function agencyOverMap(){
   /* 정산포함(AT열)도 스탬프에 넣는다 — 사람이 시트에서 '제외' 로 바꾸면 배분이 통째로 달라진다
      (제외자가 비운 자리를 뒤에 올린 사람이 이어받는다). 캐시가 그걸 놓치면 옛 배분이 굳는다. */
   const stamp = state.campaign + '|' + D.filter(inCampaign).filter(isAgency)
-    .map(d=> d.id + ':' + (payable(d)?'y':'n') + ':' + platsOn().map(p=> uploaded(d,p) ? ((d[p].c1||{}).url||'1') : '0').join(',')).join(';');
+    .map(d=> d.id + ':' + platsOn().map(p=> (payableSlot(d,p)?'y':'n') + (uploaded(d,p) ? ((d[p].c1||{}).url||'1') : '0')).join(',')).join(';');
   if(_overCache && _overStamp === stamp) return _overCache;
   const quota = cfg().agencyQuota || null;
   const map = new Map();   // id -> { n, plats:[], pay, quota }
   if(quota){
     platsOn().forEach(p=>{
       const q = quota[p]; if(q == null) return;
-      /* ⚠️ 제외자(AT열)는 줄에서 아예 뺀다. 남겨두면 돈은 안 받으면서 계약 자리를 하나 먹어,
-         뒤에 올린 멀쩡한 사람이 초과분으로 밀린다 — 총액도 1건(6,000엔)만큼 덜 나온다. */
-      const ups = D.filter(inCampaign).filter(d=> isAgency(d) && payable(d) && uploaded(d,p))
+      /* ⚠️ 사람이 뺀 자리(AT열)는 줄에서 아예 뺀다. 남겨두면 돈은 안 받으면서 계약 자리를 하나 먹어,
+         뒤에 올린 멀쩡한 사람이 초과분으로 밀린다 — 총액도 1건(6,000엔)만큼 덜 나온다.
+         ⚠️ payable(사람) 이 아니라 payableSlot(자리) 로 본다 — 초과 6명 중 2명은 인스타도
+            올렸고 그건 계약 안이라 지급 대상이다. 사람으로 빼면 인스타 21건이 19건이 된다. */
+      const ups = D.filter(inCampaign).filter(d=> isAgency(d) && payableSlot(d,p) && uploaded(d,p))
         .map(d=>({ d, at: upAtMs((d[p].c1||{}).url || '') || 0 }))
         .sort((a,b)=> a.at - b.at);          // 먼저 올린 순
       ups.forEach(({d}, i)=>{
@@ -4098,12 +4188,11 @@ const agencyOverOf = d => isAgency(d) ? (agencyOverMap().get(d.id) || null) : nu
    ⚠️ settleCalc 을 쓰면 안 된다. 그건 사람 단위 규칙(미러링 1건·묶음가)이 섞여 있어
    실행사에 적용하면 표 합계와 총액이 갈린다(실측 6,000엔 어긋남). */
 function agencyPay(d){
-  /* 제외자는 0. ⚠️ 상한(quota)이 없는 캠페인은 아래 폴백이 '올라온 자리 수' 로 그냥 곱하므로,
-     여기서 안 막으면 제외했는데 돈이 그대로 나간다(상한이 있는 지금은 위에서 걸러지지만
-     상한 없는 다음 캠페인에서 조용히 새는 자리다). */
-  if(!payable(d)) return 0;
   const o = agencyOverMap().get(d.id);
-  const n = o ? o.pay : platsOn().filter(p=> uploaded(d,p)).length;
+  /* ⚠️ 상한(quota)이 없는 캠페인은 폴백이 '올라온 자리 수' 를 그냥 곱한다. 거기서 사람이 뺀
+     자리를 안 빼면 제외했는데 돈이 그대로 나간다 — 지금은 상한이 있어 위에서 걸러지지만
+     상한 없는 다음 캠페인에서 조용히 새는 자리다. */
+  const n = o ? o.pay : paidSlots(d).length;
   return n * feeOf(d.co);
 }
 
@@ -4118,7 +4207,15 @@ function basisGeon(basis){
   const inC = D.filter(inCampaign);
   const cnt = (agency, f) => inC.filter(d=> isAgency(d)===agency)
     .reduce((a,d)=> a + platsOn().filter(p=> d[p] && f(d,p)).length, 0);
-  if(basis==='done') return { M: cnt(true,(d,p)=>uploaded(d,p)), S: cnt(false,(d,p)=>uploaded(d,p)) };
+  /* ⚠️ 완료 기준에서 **매출 건수와 정산 건수가 다르다.**
+     매출은 클라이언트에 넘어간 것 전부(마루 37) · 원가는 계약 상한까지만(마루 31).
+     예전엔 37 하나만 띄우고 원가는 31 기준으로 계산해, 화면 숫자와 금액이 서로 다른 말을 했다.
+     둘 다 돌려주고 화면이 나란히 적는다 — 그 6건이 '납품은 했는데 돈은 안 주는' 자리다. */
+  if(basis==='done'){
+    const act = settleActual();
+    return { M: cnt(true,(d,p)=>uploaded(d,p)), S: cnt(false,(d,p)=>uploaded(d,p)),
+             payM: act.mGeon, payS: act.siPeople, overM: act.mOver, excl: act.exclGeon };
+  }
   if(basis==='live') return { M: cnt(true,(d,p)=>liveSlot(d,p)), S: cnt(false,(d,p)=>liveSlot(d,p)) };
   // 착수 전 — 계약서 숫자 그대로. 없으면 지금 확보분으로 대신한다(추정하지 않는다).
   const sec = cfg().secure || {};
@@ -4127,19 +4224,52 @@ function basisGeon(basis){
   const S = sec.SIRIAI || cnt(false,()=>true);
   return { M, S };
 }
+/* 지금 이 캠페인이 어느 단계인가 — 사람이 매번 고르게 하지 않는다.
+   일정(weeks)의 마지막 날이 지났으면 '완료', 첫날이 지났으면 '진행 중', 아니면 '착수 전'.
+   ⚠️ 일정이 없는 캠페인(베이온)은 판단 근거가 없다 — 업로드가 하나라도 있으면 진행 중으로 본다.
+   기본값이 틀리면 대표님이 '진행 중' 추정치를 실제로 착각한다. */
+function autoBasis(){
+  const w = cfg().weeks;
+  const days = w ? w.flatMap(x=> x.days||[]) : [];
+  if(days.length){
+    if(days.every(dy=> isPastDay(dy))) return 'done';
+    if(days.some(dy=> isPastDay(dy)))  return 'live';
+    return 'plan';
+  }
+  const anyUp = D.filter(inCampaign).some(d=> platsOn().some(p=> uploaded(d,p)));
+  return anyUp ? 'live' : 'plan';
+}
+/* 가드닝 실제 지출(원). 시뮬이 손입력 100만을 기본으로 들고 있었는데, 실제 집행액은
+   대시보드가 이미 알고 있다(주문 기록). 포기·취소된 주문은 돈이 안 나갔으므로 뺀다 —
+   가드닝 탭의 '지금까지 지출' 카드와 **같은 식**이어야 두 화면이 같은 말을 한다. */
+function gardenSpentWon(){
+  if(typeof ORDERS === 'undefined' || !Array.isArray(ORDERS)) return null;
+  const live = ORDERS.filter(o=> !o.abandoned && !o.canceled);
+  if(!live.length) return 0;
+  const usd = live.reduce((a,o)=> a + (Number(o.cost)||0), 0);
+  const krw = live.reduce((a,o)=> a + (Number(o.costKrw)||0), 0);
+  const w = (typeof wonNum==='function') ? wonNum(usd) : null;
+  if(w==null || !isFinite(w)) return null;      // 환율을 아직 못 받았으면 손입력을 유지한다
+  return Math.round(w + krw);
+}
 function simDefaults(basis){
-  basis = basis || 'done';                   // 캠페인이 끝났으면 '완료'가 기본 — 실제가 제일 중요하다
+  basis = basis || autoBasis();
   const g = basisGeon(basis);
   const act = settleActual();
   const ag = COS().find(c=>c.role==='agency'), me = COS().find(c=>c.role==='self');
   const maruFee = ag ? feeOf(ag.id) : FEE_DEFAULT, siFee = me ? feeOf(me.id) : FEE_DEFAULT;
+  const gSpent = gardenSpentWon();
   /* 완료 기준일 때만 실제 지급액을 쓴다. 앞 단계는 아직 사람이 안 정해진 추정이라
      '건수 × 단가' 가 맞다 — 다만 그게 추정이라는 걸 화면에 적는다. */
   /* ⚠️ 실제 지급액을 여기 박아 두지 않는다. simResult 가 그릴 때마다 다시 계산한다 —
      박아 두면 최우수를 고르거나 업로드가 늘어도 시뮬만 옛 금액에 멈춘다. */
   return { basis, maruGeon:g.M, siGeon:g.S, rev:150000, fx:9.3, maruFee, siFee,
     bonus: basis==='done' ? 0 : 0,   // 완료는 원가에 이미 포함 · 앞 단계는 아직 정해진 보너스가 없다
-    garden:1000000, ops:1000000 };
+    /* 가드닝은 실제 집행액이 있으면 그걸 깐다. 없으면(환율 미수신·주문 없음) 손입력 기본값.
+       ⚠️ 0 을 그냥 깔면 안 된다 — '아직 못 읽었다' 와 '진짜 0원' 이 구분되지 않는다. */
+    garden: gSpent!=null ? gSpent : 1000000, gardenAuto: gSpent!=null,
+    ops:1000000,
+    touched:{} };   // 사람이 손댄 칸 — 실제값을 덮어썼는지 화면이 말할 수 있게
 }
 /* 기준을 바꾸면 건수·보너스만 다시 깔고, 사람이 손으로 고친 단가·환율·부대비용은 유지한다. */
 function setBasis(b){
@@ -4149,10 +4279,16 @@ function setBasis(b){
      반드시 새로 깔아야 한다 — 안 그러면 '완료'의 실제 금액이 '착수 전' 화면에 남는다. */
   state.sim = Object.assign(d, { rev:keep.rev ?? d.rev, fx:keep.fx ?? d.fx,
     maruFee:keep.maruFee ?? d.maruFee, siFee:keep.siFee ?? d.siFee,
-    garden:keep.garden ?? d.garden, ops:keep.ops ?? d.ops });
+    garden:keep.garden ?? d.garden, ops:keep.ops ?? d.ops,
+    /* 기준을 바꾸면 '손댔다' 표시는 지운다 — 새 기준의 실제값을 봐야 하는데
+       옛 기준에서 손댄 흔적이 남아 추정으로 굳어 버리면 이유 없이 숫자가 다르다. */
+    touched:{} });
   render();
 }
-function ensureSim(){ if(!state.sim || state.simCampaign!==state.campaign){ state.sim=simDefaults('done'); state.simCampaign=state.campaign; } }
+/* 기준을 사람이 안 골랐으면 **캠페인 단계로 자동 판정**한다.
+   ⚠️ 예전엔 무조건 'done' 이었다 — 아직 진행 중인 캠페인을 열어도 '완료' 라고 적혀
+      아직 안 올라온 사람 몫이 빠진 금액을 최종값으로 착각하게 만든다. */
+function ensureSim(){ if(!state.sim || state.simCampaign!==state.campaign){ state.sim=simDefaults(autoBasis()); state.simCampaign=state.campaign; } }
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const man = n => (Math.round(n/1000)/10).toLocaleString('ko-KR')+'만원';
 function simResult(){
@@ -4163,9 +4299,15 @@ function simResult(){
      시리아이는 사람 단위 묶음가라 '건수 × 단가' 로는 절대 안 맞는다.
      ⚠️ 여기서 반드시 **지금 다시 계산**한다. state.sim 에 박아 두면 최우수를 고르거나
         업로드가 늘어도 시뮬이 옛 금액을 계속 말한다 — 화면 두 곳이 다른 돈을 말하게 된다. */
+  /* 완료 기준에서도 사람이 조정할 수 있어야 한다 — '마루 37건으로 보이는데 실제 정산은 31건'
+     처럼 **화면 건수와 지급 건수가 다른** 상황에서 what-if 를 못 하면 시뮬이 쓸모없다.
+     그래서 잠그지 않고, 손대면 그 칸만 추정으로 전환한다(touched). 안 손댄 칸은 실제값 그대로. */
+  const t = s.touched || {};
   const exact = (s.basis === 'done') ? settleActual() : null;
-  const maruCost = (exact ? exact.mYen : s.maruGeon*s.maruFee) * s.fx;
-  const siCost   = (exact ? exact.siYen : s.siGeon*s.siFee)    * s.fx;
+  const useM = exact && !t.maruGeon && !t.maruFee;   // 마루: 안 손댔으면 실제 지급액
+  const useS = exact && !t.siGeon   && !t.siFee;
+  const maruCost = (useM ? exact.mYen : s.maruGeon*s.maruFee) * s.fx;
+  const siCost   = (useS ? exact.siYen : s.siGeon*s.siFee)    * s.fx;
   /* ⚠️ 보너스를 따로 더하면 **두 번 센다** — settleCalc 이 이미 최우수·추천을 amt 에 넣었고
      siYen 은 그 합이다. 완료 기준에서는 0 으로 두고, 내역 표시용으로만 값을 들고 있는다. */
   const bonusYen = exact ? 0 : (s.bonus || 0);
@@ -4179,47 +4321,80 @@ function simResult(){
 function simSection(){
   ensureSim();
   const s=state.sim;
-  const head = `<div class="sim-head" id="simHead">
+  /* 접힌 상태가 '누르면 열린다' 로 읽혀야 한다.
+     ⚠️ 예전엔 오른쪽 끝에 '열기 ▼' 글자만 있었다 — 카드가 그냥 안내문처럼 보여서
+        아무도 안 눌렀다. 지금은 ① 카드 전체가 버튼처럼 눌리는 티(hover·커서),
+        ② 접힌 채로도 **순마진 결과를 미리 보여준다**. 안에 뭐가 있는지 알아야 연다. */
+  const pv = simResult();
+  const cur0 = s.basis || autoBasis();
+  const basisLab = (BASIS.find(x=>x[0]===cur0)||[])[1] || '';
+  const peek = state.simOpen ? '' :
+    `<div class="sim-peek"><b class="${pv.net>=0?'pos':'neg'}">${man(pv.net)}</b>`
+    + `<small>${basisLab} 기준 순마진 · 마진율 ${pv.pct.toFixed(1)}%</small></div>`;
+  const head = `<div class="sim-head${state.simOpen?'':' closed'}" id="simHead" role="button" tabindex="0"
+      aria-expanded="${state.simOpen?'true':'false'}" title="${state.simOpen?'접기':'눌러서 자세히 보기 — 건수·단가·부대비용을 바꿔가며 계산할 수 있어요'}">
     <span class="si">${IC.chart}</span>
-    <div><div class="t">마진 시뮬레이션 <span class="chip stale" style="vertical-align:middle">예상</span></div><div class="d">진행사별 원고료(마루 6,000엔·시리아이 5,000엔/건)·보너스·가드닝을 원가로 넣어 순마진·마진율 계산</div></div>
-    <span class="chev">${state.simOpen?'닫기 ▲':'열기 ▼'}</span>
+    <div><div class="t">마진 시뮬레이션 <span class="chip stale" style="vertical-align:middle">예상</span></div><div class="d">진행사별 원고료·보너스·가드닝을 원가로 넣어 순마진·마진율 계산</div></div>
+    ${peek}
+    <span class="chev">${state.simOpen?'접기 ▲':'펼치기 ▼'}</span>
   </div>`;
   if(!state.simOpen) return `<div class="sim">${head}</div>`;
-  /* ⚠️ 완료 기준에서는 건수·단가가 원가에 안 쓰인다(실제 지급액을 그대로 쓴다).
-     그런데 입력칸이 열려 있으면 사람은 고치고 나서 '왜 안 바뀌지' 를 겪는다 —
-     더 나쁘게는, 건수를 늘리면 **매출만 오르고 원가는 그대로**라 마진이 거짓으로 좋아진다.
-     그래서 완료 기준에선 잠그고 이유를 적는다. what-if 는 앞 두 단계에서 한다. */
-  const locked = (s.basis === 'done');
-  const row=(k,lab,small,unit,lock)=>{
-    const off = lock && locked;
-    return `<div class="sim-ctl${off?' off':''}"><label>${lab}${small?`<small>${small}</small>`:''}</label>`
-      + `<span><input type="number" class="sim-in" data-k="${k}" value="${s[k]}"${off?' disabled title="완료 기준은 실제값이라 못 고쳐요 — 바꾸려면 착수 전·진행 중을 고르세요"':''}>`
+  /* ⚠️ 예전엔 완료 기준에서 건수·단가를 **잠갔다.** 이유는 있었다 — 건수를 늘리면 매출만 오르고
+     원가는 실제값이라 마진이 거짓으로 좋아졌기 때문이다. 그런데 그 대가로 what-if 를 통째로
+     못 하게 됐다('마루 37건으로 보이는데 실제 정산은 31건, 이걸 바꿔보고 싶다').
+     지금은 잠그지 않고 **손댄 칸만 추정으로 전환**한다(simResult 의 touched). 손 안 댄 칸은
+     실제 지급액 그대로다. 무엇이 실제이고 무엇이 내가 바꾼 값인지 칸마다 적는다. */
+  const t = s.touched || {};
+  const done = (s.basis === 'done');
+  const row=(k,lab,small,unit,est)=>{
+    const edited = done && est && t[k];
+    return `<div class="sim-ctl${edited?' edited':''}"><label>${lab}${small?`<small>${small}</small>`:''}</label>`
+      + `<span><input type="number" class="sim-in" data-k="${k}" value="${s[k]}">`
       + `<span class="cmuted" style="margin-left:6px">${unit}</span></span></div>`;
   };
-  const cur = s.basis || 'done';
+  const cur = s.basis || autoBasis();
+  const auto = autoBasis();
+  const g = basisGeon(cur);
   const basisBar = `<div class="sim-basis">기준
-    ${BASIS.map(([k,lab,desc])=> `<button class="btn small${cur===k?' primary':''}" data-basis="${k}" title="${desc}">${lab}</button>`).join('')}
-    <span class="cmuted">${(BASIS.find(x=>x[0]===cur)||[])[2]||''}${cur==='done' ? ' · 원가는 <b>정산 탭과 같은 실제 지급액</b>' : ' · 원가는 건수×단가 <b>추정</b>'} · 부대비용은 직접 수정</span></div>`;
+    ${BASIS.map(([k,lab,desc])=> `<button class="btn small${cur===k?' primary':''}" data-basis="${k}" title="${esc(desc)}">${lab}${k===auto?' <span class="dot-auto" title="지금 캠페인 단계">·</span>':''}</button>`).join('')}
+    <span class="cmuted">${(BASIS.find(x=>x[0]===cur)||[])[2]||''}${cur==='done' ? ' · 원가는 <b>정산 탭과 같은 실제 지급액</b>' : ' · 원가는 건수×단가 <b>추정</b>'}</span></div>`;
+  /* 완료 기준에서 **매출 건수 ≠ 정산 건수** 라는 사실을 화면이 먼저 말한다.
+     이게 안 적혀 있으면 '마루 37건인데 왜 원가는 31건치지?' 를 아무도 못 푼다. */
+  const gapNote = (cur==='done' && g.payM!=null && (g.M!==g.payM || g.S!==g.payS)) ? `<div class="sim-gap">
+    <b>매출 건수와 정산 건수가 다릅니다.</b>
+    매출은 클라이언트에 넘어간 <b>${g.M+g.S}건</b> 전부 · 원가는 실제 지급분
+    <b>마루 ${g.payM}건 · 시리아이 ${g.payS}명</b> 기준이에요.
+    ${g.overM?`마루 <b>${g.overM}건</b>은 계약 상한을 넘겨 납품엔 들어가고 지급만 빠졌어요.`:''}
+    ${g.excl?` 정산 제외로 뺀 자리 <b>${g.excl}건</b>.`:''}
+  </div>` : '';
   const body = `<div class="sim-body">
     ${basisBar}
+    ${gapNote}
     ${simHero()}
     <div class="sim-grid">
       <div>
         <div class="sim-grp">건수 · 매출</div>
-        ${row('maruGeon','마루 콘텐츠', locked?'실제 업로드(고정)':'기준값·수정가능','건', true)}
-        ${row('siGeon','시리아이 콘텐츠', locked?'실제 업로드(고정)':'기준값·수정가능','건', true)}
+        ${row('maruGeon','마루 콘텐츠', done?(t.maruGeon?'내가 바꾼 값':`납품 ${g.M}건${g.payM!=null&&g.payM!==g.M?` · 지급은 ${g.payM}건`:''}`):'기준값·수정가능','건', true)}
+        ${row('siGeon','시리아이 콘텐츠', done?(t.siGeon?'내가 바꾼 값':`납품 ${g.S}건${g.payS!=null?` · 지급 ${g.payS}명`:''}`):'기준값·수정가능','건', true)}
         ${row('rev','업로드당 매출','PI 정산','원')}
         ${row('fx','환율','1엔 = ? 원','원')}
       </div>
       <div>
         <div class="sim-grp">원가 · 부대비용</div>
-        ${row('maruFee','마루 원고료', locked?'실제 지급액 사용':'콘텐츠당','엔', true)}
-        ${row('siFee','시리아이 원고료', locked?'실제 지급액 사용':'콘텐츠당','엔', true)}
-        ${locked ? `<div class="sim-ctl off"><label>추천·우수 보너스<small>원고료에 이미 포함</small></label><span><b>${nf(simResult().bonusNote)}</b><span class="cmuted" style="margin-left:6px">엔</span></span></div>` : row('bonus','추천·우수 보너스','시리아이 총액','엔')}
-        ${row('garden','가드닝 지출','충전 비용 합','원')}
+        ${row('maruFee','마루 원고료', done?(t.maruFee||t.maruGeon?'추정 계산중':'실제 지급액 사용'):'콘텐츠당','엔', true)}
+        ${row('siFee','시리아이 원고료', done?(t.siFee||t.siGeon?'추정 계산중':'실제 지급액 사용'):'콘텐츠당','엔', true)}
+        ${(done && !t.siGeon && !t.siFee)
+          ? `<div class="sim-ctl off"><label>추천·우수 보너스<small>원고료에 이미 포함</small></label><span><b>${nf(simResult().bonusNote)}</b><span class="cmuted" style="margin-left:6px">엔</span></span></div>`
+          : row('bonus','추천·우수 보너스','시리아이 총액','엔')}
+        ${row('garden','가드닝 지출', s.gardenAuto && !t.garden ? '가드닝 탭 실제 집행액' : '내가 넣은 값','원')}
         ${row('ops','운영·인건비','1개월','원')}
       </div>
     </div>
+    ${done && (t.maruGeon||t.siGeon||t.maruFee||t.siFee) ? `<div class="sim-warn">
+      <b>지금은 실제값이 아니라 가정으로 계산 중이에요.</b>
+      손댄 칸: ${['maruGeon','siGeon','maruFee','siFee'].filter(k=>t[k]).map(k=>({maruGeon:'마루 건수',siGeon:'시리아이 건수',maruFee:'마루 원고료',siFee:'시리아이 원고료'}[k])).join(' · ')}
+      <button class="btn small" id="simReset">실제값으로 되돌리기</button>
+    </div>` : ''}
     <div class="stack" id="simStack"></div>
     <div class="legend">
       <div class="li"><span class="sw" style="background:var(--blue)"></span>마루 원고료<span class="amt" id="simLegMaru">–</span></div>
@@ -4252,19 +4427,58 @@ function updateSim(){
 
 function viewSettle(){
   const rows = D.filter(inCampaign);
+  /* 정산 표 — **대표님이 캠페인당 딱 한 번 보는 화면**이다. 코드를 모르는 사람이 한 줄만 읽고
+     '이 사람에게 왜 이 금액인가' 를 알 수 있어야 한다. 그래서 순서를 결정 흐름대로 둔다:
+       줄 것인가(정산포함) → 무엇에 대해(참여) → 얼마(금액) → 왜 그 금액인가(개별단가·추천·보너스)
+       → 어떻게 줄 것인가(방식) → 줬는가(완료·입금·입금일) → 남길 말(비고)
+     ⚠️ 미러링 열을 따로 두지 않는다 — 금액 태그와 참여 열이 이미 말한다. 열이 늘수록
+        정작 결정해야 할 칸이 묻힌다. */
   const cols = [
-    { key:'co', label:'진행사', sv:r=>r.co, cell:r=>coChip(r.co) },
-    { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.nick, cell:r=>nickCell(r) },
-    // 미러링이면 금액이 왜 적은지 여기서 바로 보인다(자동값은 1건 기준).
-    { key:'mir', label:'미러링', sv:r=>r.mir==='m1'?1:0,
-      cell:r=> r.mir==='m1'
-        ? `<span class="mirct" title="같은 영상이라 자동값은 1건 기준이에요. 2건으로 쳐주려면 개별단가에 금액을 넣으세요.">미러링</span>`
-        : '<span class="emptydot">·</span>' },
-    { key:'pay', label:'정산 방식', sv:r=>r.settle.pay, cell:r=>`<select class="pay-sel" data-pay="${r.id}"><option value=""${r.settle.pay?'':' selected'}>미정</option>${PAY_OPTS.map(o=>`<option${o===r.settle.pay?' selected':''}>${o}</option>`).join('')}</select>` },
-    /* ⚠️ 실행사는 행 금액을 다 더해도 총액이 안 나온다 — 플랫폼별 계약 상한이 걸리기 때문이다.
-       그 사실을 행에 적지 않으면 사람이 검산하다 어긋난 숫자를 보고 어느 쪽이 맞는지 모른다
-       (실측: 마루 행 합 216,000 vs 실제 지급 186,000). 상한에 걸린 자리는 '초과'로 표시한다. */
-    { key:'amt', label:'정산 금액', cls:'num', thcls:'num', sv:r=>settleCalc(r).amt, cell:r=>{
+    { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.co+'|'+r.nick,
+      cell:r=>`${coChip(r.co)} ${nickCell(r)}` },
+    /* ① 줄 것인가 — 사람이 정하는 유일한 제외 수단(마스터시트 AT열).
+       ⚠️ 자동으로 빠진 자리(실행사 계약 상한·미러링)는 여기서 못 고친다. 섞어 두면
+          '포함' 으로 되돌려도 총액이 안 움직이는 조용한 무동작이 된다. 그래서 자동분은
+          금액 열의 태그로만 말하고, 이 열은 **사람 판단**만 담는다.
+       ⚠️ 제외는 자리(플랫폼) 단위여야 한다 — ZUNA 는 틱톡 11,100명(정상)·인스타 555명(미달)이라
+          사람을 통째로 빼면 멀쩡한 틱톡까지 빠져 5,000엔을 덜 준다. */
+    { key:'inc', label:'정산포함', sv:r=>{ if(!anyUploaded(r)) return 9;
+        return !payable(r) ? 0 : (incOf(r).off.length ? 1 : 2); },
+      cell:r=>{
+      if(!anyUploaded(r)) return '<span class="emptydot">·</span>';
+      const ups = platsOn().filter(p=> uploaded(r,p));
+      const inc = incOf(r);
+      const cur = !inc.all ? '제외' : (inc.off.length===1 && ups.length>1 ? inc.off[0]+':off' : '');
+      const opts = [['','전부 포함']];
+      if(ups.length>1) ups.forEach(p=> opts.push([p+':off', pName(p)+'만 제외']));
+      opts.push(['제외', ups.length>1?'전부 제외 ✕':'제외 ✕']);
+      const cls = !inc.all ? 'off' : inc.off.length ? 'part' : '';
+      return `<select class="rev-sel inc ${cls}" data-inc="${r.id}"
+        title="제외하면 지급만 빠져요 — 이미 납품된 콘텐츠와 목표 건수는 그대로입니다">${
+        opts.map(([v,l])=>`<option value="${v}"${v===cur?' selected':''}>${l}</option>`).join('')
+      }</select>`; } },
+    /* ② 무엇에 대해 — 몇 건을 어느 플랫폼에 올렸나. 금액의 근거라서 금액 바로 왼쪽에 둔다.
+       마스터시트는 1행 1사람이라 따로 안 적어도 되지만, 대시보드는 한 줄에 두 플랫폼이
+       섞여 있어 **명시하지 않으면 '2건 12,000엔' 의 2건이 무엇인지 알 수 없다.** */
+    { key:'geon', label:'참여', sv:r=> paidSlots(r).length*10 + platsOn().filter(p=>uploaded(r,p)).length,
+      cell:r=>{
+      const ups = platsOn().filter(p=> uploaded(r,p));
+      if(!ups.length) return '<span class="emptydot">·</span>';
+      const chips = ups.map(p=>{
+        const why = slotWhy(r,p);
+        return why
+          ? `<span class="plat-pill ${p} cut" title="${esc(why.tip)}">${pName(p)}<small>${esc(why.txt)}</small></span>`
+          : `<span class="plat-pill ${p}">${pName(p)}</span>`;
+      }).join('');
+      const pay = isAgency(r) ? (agencyOverOf(r) ? agencyOverOf(r).pay : paidSlots(r).length) : paidSlots(r).length;
+      const mir = isMirrored(r);
+      const note = mir ? `<small class="cmuted" title="같은 영상이라 1건으로 셉니다">미러링 · 1건 인정</small>`
+        : pay < ups.length ? `<small class="cmuted">${ups.length}건 중 <b>${pay}건</b> 지급</small>`
+        : `<small class="cmuted">${pay}건</small>`;
+      return `<div class="geoncell">${chips}${note}</div>`; } },
+    /* ③ 얼마 — 근거를 태그로 요약하고 자세한 내역은 마우스를 올리면 나온다. */
+    { key:'amt', label:'정산 금액', cls:'num', thcls:'num',
+      sv:r=> isAgency(r) ? agencyPay(r) : settleCalc(r).amt, cell:r=>{
       if(isAgency(r)){
         const ov = agencyOverOf(r), pay = agencyPay(r);
         const tip = `실행사는 건 단위 ${nf(feeOf(r.co))}엔 · 플랫폼별 계약 수량까지만 지급`
@@ -4274,27 +4488,35 @@ function viewSettle(){
       }
       const s=settleCalc(r);
       return `<span class="amt" title="${s.bd}">${nf(s.amt)}엔<span class="tag ${s.tag[0]}">${s.tag[1]}</span></span>`; } },
-    // 체크박스는 켜짐/꺼짐 둘뿐이라 '아직 안 봤다'와 '보고 아니라고 판단했다'가 구분되지 않았다.
-    // 드롭다운이면 미확인 상태가 남아 무엇을 아직 안 봤는지 알 수 있다.
-    /* ⚠️ 실행사에는 우수 보너스가 없다(건 단위 계약). 예전엔 마루 행에도 드롭다운이 떠서,
-       고르면 화면엔 '우수 ★' 로 남는데 총액은 1엔도 안 움직였다 — 골라 놓고 왜 반영이 안 되는지
-       아무도 모르는 조용한 무동작이다. 고를 수 없게 하고 이유를 적는다. */
-    { key:'best', label:'우수 선정', sv:r=>r.settle.best?1:0,
+    /* ④ 왜 그 금액인가 — 예외가 걸린 사람만 값이 있다. 비어 있으면 열째로 접힌다(hideable). */
+    { key:'ovr', label:'개별단가', cls:'num', thcls:'num', hideable:true, empty:r=>r.settle.override==null,
+      sv:r=> r.settle.override ?? -1,
+      cell:r=> r.settle.override==null ? '<span class="emptydot">·</span>'
+        : `<span class="amt" title="자동 계산을 무시하고 이 금액을 지급합니다">${nf(r.settle.override)}엔</span>` },
+    { key:'refBy', label:'추천인', hideable:true, empty:r=>!String(r.refBy||'').trim() && !(r.refCount>0),
+      sv:r=> (r.refCount||0)*1000 + (String(r.refBy||'').trim()?1:0), cell:r=>{
+      const by = String(r.refBy||'').trim(), n = Number(r.refCount)||0;
+      if(!by && !n) return '<span class="emptydot">·</span>';
+      /* 두 값은 뜻이 다르다: 추천인 = **이 사람을 누가 데려왔나**(응답시트에서 온 사실),
+         추천 수 = **이 사람이 데려와서 실제로 올린 수**(돈이 붙는 값). 한 칸에 두면 헷갈리므로
+         금액이 붙는 쪽을 굵게 낸다. */
+      return (n ? `<b title="이 사람이 데려와 실제로 참여한 수 — 3,000엔×${n}">추천 ${n}명</b>` : '')
+        + (by ? `<small class="cmuted" title="이 사람을 데려온 사람">${n?' · ':''}${esc(by)} 소개</small>` : ''); } },
+    /* ⑤ 추가 보너스 — 최우수는 사람이 고른다. 실행사는 건 단위 계약이라 해당 없음.
+       ⚠️ 예전엔 마루 행에도 드롭다운이 떠서, 고르면 화면엔 남는데 총액은 1엔도 안 움직였다. */
+    { key:'best', label:'추가 보너스', sv:r=>r.settle.best?1:0,
       cell:r=> isAgency(r)
         ? `<span class="cmuted" title="실행사는 건 단위 계약이라 우수 보너스가 없어요">해당 없음</span>`
-        : `<select class="rev-sel best ${r.settle.best?'on':''}" data-best="${r.id}">${
-        [['','미선정'],['1','우수 ★']].map(([v,l])=>`<option value="${v}"${(r.settle.best?'1':'')===v?' selected':''}>${l}</option>`).join('')
+        : `<select class="rev-sel best ${r.settle.best?'on':''}" data-best="${r.id}" title="우수 선정 시 +10,000엔">${
+        [['','미선정'],['1','우수 ★ +1만']].map(([v,l])=>`<option value="${v}"${(r.settle.best?'1':'')===v?' selected':''}>${l}</option>`).join('')
       }</select>` },
-    /* 정산포함(AT열) — 마스터시트에 열만 있고 아무도 안 읽던 칸이다. 여기서 고르면 시트에 쓰이고
-       금액이 즉시 반영된다. 업로드가 없는 사람은 어차피 0원이라 물어볼 게 없어 안 띄운다
-       (87행 전부에 드롭다운을 깔면 정작 결정해야 할 몇 건이 묻힌다). */
-    { key:'inc', label:'정산포함', sv:r=> anyUploaded(r) ? (payable(r)?1:0) : 2, cell:r=>{
-      if(!anyUploaded(r)) return '<span class="emptydot">·</span>';
-      return `<select class="rev-sel inc ${payable(r)?'':'off'}" data-inc="${r.id}"
-        title="제외하면 지급만 빠져요 — 이미 납품된 콘텐츠와 목표 건수는 그대로입니다">${
-        [['','포함'],['제외','제외 ✕']].map(([v,l])=>`<option value="${v}"${(payable(r)?'':'제외')===v?' selected':''}>${l}</option>`).join('')
-      }</select>`; } },
-    { key:'paid', label:'입금', sv:r=>r.settle.paid?1:0, cell:r=>`<button class="paid-tog ${r.settle.paid?'y':'n'}" data-paidtog="${r.id}">${r.settle.paid?'입금':'미입금'}</button>` },
+    /* ⑥ 어떻게 줄 것인가 */
+    { key:'pay', label:'정산 방식', sv:r=>r.settle.pay, cell:r=>`<select class="pay-sel" data-pay="${r.id}"><option value=""${r.settle.pay?'':' selected'}>미정</option>${PAY_OPTS.map(o=>`<option${o===r.settle.pay?' selected':''}>${o}</option>`).join('')}</select>` },
+    /* ⑦ 줬는가 — 입금 여부와 입금일은 같은 사실의 두 면이라 한 칸에 둔다.
+       따로 두면 '입금' 인데 날짜가 빈 행이 생겨 언제 줬는지 영영 모른다. */
+    { key:'paid', label:'입금', sv:r=>(r.settle.paid?1:0)*1000 + (r.paidDate?1:0), cell:r=>
+      `<button class="paid-tog ${r.settle.paid?'y':'n'}" data-paidtog="${r.id}">${r.settle.paid?'입금':'미입금'}</button>`
+      + (r.paidDate ? `<small class="cmuted" style="display:block">${esc(r.paidDate)}</small>` : '') },
     { key:'memo', label:'비고', cls:'memo-col', thcls:'memo-col', hideable:true, empty:r=>!r.settle.memo, sv:r=>r.settle.memo?1:0, cell:r=>memoCell(r.id, r.settle.memo) },
     { key:'edit', label:'', cell:r=>editBtn(r.id) },
   ];
@@ -5783,6 +6005,9 @@ document.getElementById('content').addEventListener('click', e=>{
   if(e.target.closest('#btnRemind')){ copyRemind(); return; }
   { const bd = e.target.closest('#btnDeliver'); if(bd){ runDeliverWrite(bd); return; } }
   const bs=e.target.closest('[data-basis]'); if(bs){ setBasis(bs.dataset.basis); return; }
+  /* 손댄 값을 실제값으로 되돌린다. ⚠️ touched 만 지우면 안 된다 — 입력칸에 남은 숫자가
+     그대로 있어서, 다음에 그 칸을 건드리는 순간 옛 가정이 되살아난다. 통째로 다시 깐다. */
+  if(e.target.closest('#simReset')){ setBasis(state.sim && state.sim.basis || autoBasis()); return; }
   if(e.target.closest('#simHead')){ state.simOpen=!state.simOpen; render(); return; }
 });
 // 인라인 편집: 검수 셀렉트 / 정산방식 / 최우수 체크
@@ -5811,17 +6036,37 @@ document.getElementById('content').addEventListener('change', e=>{
      '고쳤나?' 하고 한 번 더 고르다 원래대로 돌려놓는 일이 생긴다. */
   const ic=e.target.closest('[data-inc]');
   if(ic){ const d=D.find(x=>x.id===+ic.dataset.inc);
-    if(d){ const off = ic.value==='제외';
-      d.settle.inc = !off; render();
-      saveField(d.id,'settleInc', off ? '제외' : '');
-      toast(esc(d.nick) + (off ? ' — <b>정산 제외</b>로 바꿨어요. 납품 건수는 그대로예요.'
-                               : ' — 정산에 <b>다시 포함</b>했어요.')); }
+    if(d){
+      /* 값은 세 가지다: '' 전부 포함 / 'tk:off' 그 자리만 제외 / '제외' 전부 제외.
+         ⚠️ 시트에 쓰는 문자열은 settleIncText 가 만든다 — 읽는 쪽(settleIncOf)과 짝이라
+            여기서 직접 문자열을 짜면 저장은 되는데 다시 읽을 때 무시된다. */
+      const v = ic.value;
+      const inc = v==='제외' ? { all:false, off:[] }
+        : /:off$/.test(v) ? { all:true, off:[v.split(':')[0]] }
+        : { all:true, off:[] };
+      d.settle.inc = inc;
+      const txt = settleIncText(inc);
+      render();
+      saveField(d.id,'settleInc', txt);
+      const amt = isAgency(d) ? agencyPay(d) : settleCalc(d).amt;
+      toast(esc(d.nick) + ' — ' + (txt ? `<b>${esc(txt)}</b>` : '<b>전부 포함</b>')
+        + ` · 지급 <b>${nf(amt)}엔</b> <span class="cmuted">(납품 건수는 그대로)</span>`); }
     return; }
 });
 // 시뮬 입력 → 실시간 재계산 (포커스 유지)
 document.getElementById('content').addEventListener('input', e=>{
   const inp=e.target.closest('.sim-in'); if(!inp) return;
-  ensureSim(); state.sim[inp.dataset.k]=parseFloat(inp.value)||0; updateSim();
+  ensureSim();
+  const k = inp.dataset.k;
+  state.sim[k]=parseFloat(inp.value)||0;
+  /* 손댄 칸을 기록한다 — 완료 기준에서 이 칸들은 실제 지급액 대신 '건수×단가' 추정으로 넘어간다.
+     ⚠️ 여기서 render() 를 부르면 안 된다(입력 중 포커스가 날아간다). 배지는 다음 렌더에 붙고,
+        숫자는 updateSim 이 즉시 다시 계산한다. */
+  if(['maruGeon','siGeon','maruFee','siFee','garden'].includes(k)){
+    state.sim.touched = state.sim.touched || {};
+    state.sim.touched[k] = true;
+  }
+  updateSim();
 });
 
 document.getElementById('camp').addEventListener('change', e=>{
