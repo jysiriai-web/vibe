@@ -54,13 +54,8 @@ const FIELD_HEADERS = {
      그 결과 정산의 '추천 3,000×N' 이 늘 0 이었다 — 화면엔 항목이 있는데 값이 없는 상태다.
      ⚠️ '추천 보너스' 열은 안 읽는다. 그건 시트가 계산한 파생값이고, 금액 계산은 대시보드 몫이다
         (같은 값을 두 곳에서 계산하면 반드시 갈라진다). */
-  refBy: ['추천인', '추천출처', '추천'],
-  refCount: ['추천수'],
-  /* 친구추천. 시트에 '추천인'(누가 데려왔나) · '추천 수'(그 사람이 데려와 실제로 올린 수) 열이
-     있는데 브릿지가 안 읽어서, 대시보드는 refBy:'' / refCount:0 을 하드코딩하고 있었다.
-     그 결과 정산의 '추천 3,000×N' 이 늘 0 이었다 — 화면엔 항목이 있는데 값이 없는 상태다.
-     ⚠️ '추천 보너스' 열은 안 읽는다. 그건 시트가 계산한 파생값이고, 금액 계산은 대시보드 몫이다
-        (같은 값을 두 곳에서 계산하면 반드시 갈라진다). */
+  /* ⚠️ 여기 같은 두 줄이 두 번 적혀 있었다. 이 파일은 나중 선언이 이기므로 동작은 같았지만,
+     한쪽만 고치면 조용히 갈라진다(이 프로젝트가 setCell_ 로 이미 당한 함정이다). 한 벌만 둔다. */
   refBy: ['추천인', '추천출처', '추천'],
   refCount: ['추천수'],
   notice: ['안내여부', '안내', '공지', '확정메일'],
@@ -329,6 +324,11 @@ function readAccounts_() {
       best: COL.best ? String(row[COL.best - 1] || '') : '',
       priceOverride: COL.override ? row[COL.override - 1] : '',
       settleMemo: COL.settleMemo ? String(row[COL.settleMemo - 1] || '') : '',
+      /* 친구추천. ⚠️ 열은 찾아 두고(COL.refBy/refCount) **응답에 안 실어 보내고 있었다** —
+         그래서 대시보드 정산의 '추천 3,000×N' 이 늘 0 이었다. 값이 없는 게 아니라 안 온 것이다.
+         (실측: 마스터 G열에 추천인이 적힌 사람이 있는데 화면엔 0으로 떴다) */
+      refBy: COL.refBy ? String(row[COL.refBy - 1] || '') : '',
+      refCount: COL.refCount ? (Number(row[COL.refCount - 1]) || 0) : 0,
       views: row[COL.views - 1],
       likes: row[COL.likes - 1],
       comments: row[COL.comments - 1],
