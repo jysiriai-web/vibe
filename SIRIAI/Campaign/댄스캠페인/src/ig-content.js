@@ -55,8 +55,13 @@ function inWindow(post, since) {
  *   · 프로필에서 훑는 게시물 12 → 24개
  *   · 못 본 계정은 끝나고 한 번 더 — 그 사이 차단이 풀리는 경우가 많다
  * 45명 기준 10분 → 20분쯤. 놓치는 것보다 낫다. */
-export async function runIgContentScan(campaign, { onProgress, onWarmup, waitForGo, onBlocked, since = '', delayMs = 2000, limit = 0, shouldStop, only, concurrency = 5, deep = false, perf = false } = {}) {
+export async function runIgContentScan(campaign, { onProgress, onWarmup, waitForGo, onBlocked, since = '', delayMs = 2000, limit = 0, shouldStop, only, concurrency = 5, deep = false, perf = false, slow = false } = {}) {
   if (deep) { concurrency = 2; delayMs = Math.max(delayMs, 4500); }
+  /* slow — 한 번에 하나씩, 아주 천천히. 인스타가 막는 건 IP 위치가 아니라
+     '짧은 시간에 여러 프로필을 연속으로 여는 패턴' 이다(출구는 이미 국내 회선인데도 막혔다).
+     빨리 끝내는 것보다 끝까지 가는 게 나을 때 쓴다 — 34명이면 20~30분쯤 걸린다.
+     IG_SLOW_MS 로 간격을 바꿀 수 있다(기본 30초). */
+  if (slow) { concurrency = 1; delayMs = Math.max(Number(process.env.IG_SLOW_MS) || 30000, delayMs); }
   const pageMax = deep ? 24 : 12;
   // 캠페인 시작일이 있으면 그 전 게시물은 볼 이유가 없다 — 프로필을 직접 여는 경로에서
   // '어디까지 거슬러 올라갈지'를 정해 준다. 없으면 21일 전까지만(캠페인 콘텐츠는 늘 최근이다).
@@ -105,7 +110,9 @@ export async function runIgContentScan(campaign, { onProgress, onWarmup, waitFor
      58계정 중 27건이 '게시물을 못 열었어요' 로 끝났는데(계정당 4건씩 일정) 스캔은 끝까지
      달린 뒤에야 실패 목록을 보여줬다. 그때는 이미 VPN 을 바꿀 시점이 지난 뒤다.
      이제 연속 IG_BLOCK_STREAK 건이면 멈추고 사람을 부른다. */
-  const IG_BLOCK_STREAK = Number(process.env.IG_BLOCK_STREAK || 4);
+  /* slow 모드는 더 참는다 — 천천히 도는데 4연속 실패로 바로 멈추면 천천히 도는 의미가 없다.
+     간격이 크면 한두 건 실패는 '막혔다'가 아니라 그냥 그 계정이 안 열린 것일 때가 많다. */
+  const IG_BLOCK_STREAK = Number(process.env.IG_BLOCK_STREAK || (slow ? 8 : 4));
   let consecFail = 0, blocked = false;
   /* 이번 실행에서 '결론이 난' 계정. detected 는 지난 기록(prev)을 깔고 시작하므로
      그걸로 재개 큐를 만들면, 이번에 아직 안 본 계정이 '이미 봤다' 로 빠진다. */

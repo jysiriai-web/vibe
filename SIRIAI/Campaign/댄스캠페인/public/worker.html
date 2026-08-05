@@ -1206,8 +1206,13 @@
       api('/api/ig-content-status?campaign=' + CAMP).then(function (st) {
         if (!st) return;
         // 아직 도는 중이면 끝까지 지켜본다 — 예전엔 '이 창 밖에서 돎' 이라고만 적고 영영 안 풀렸다.
-        if (['confirm', 'login', 'scan'].includes(st.phase)) {
-          say('진행 중이던 인스타 업로드 스캔에 다시 붙었어요.');
+        /* '끝난 상태'가 아니면 전부 다시 붙는다. 예전엔 confirm/login/scan 만 봐서
+           **막힌(blocked) 스캔에는 안 붙었다** — 화면을 새로고침하면 재개·중지 버튼이
+           통째로 사라져, 멈춘 스캔을 되살릴 방법이 없어졌다. */
+        if (!['done', 'error', 'idle'].includes(st.phase || 'idle')) {
+          say(st.phase === 'blocked'
+            ? '인스타 스캔이 <b>막혀서 멈춰</b> 있어요 — 아래에서 재개하거나 중지할 수 있어요.'
+            : '진행 중이던 인스타 업로드 스캔에 다시 붙었어요.');
           pollIgContent();
           return;
         }

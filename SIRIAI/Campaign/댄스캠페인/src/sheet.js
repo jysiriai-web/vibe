@@ -11,6 +11,11 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // 브릿지 호출 공용. Apps Script 는 가끔 JSON 대신 HTML 오류페이지를 순간적으로 뱉는다(구글 일시 오류).
 // 그때 res.json() 이 'Unexpected token <' 로 크래시하던 것 → 응답을 텍스트로 받아 파싱, 실패 시 재시도.
 // 여기 쓰기(cells·updates·sync·deliver)는 전부 idempotent(같은 값/중복제외)라 재시도해도 안전하다.
+/* 재시도 간격 — 구글 Apps Script 는 간헐적으로 404/HTML 오류페이지를 준다(실측: 직접 호출 3번 중 1번).
+ * ⚠️ 예전엔 0.5초·1초 뒤에 다시 걸었는데, 구글 쪽 딸꾹질은 수십 초 단위라 세 번이 전부 그 안에 들어갔다.
+ * 그러면 스캔이 브라우저를 띄우기도 전에 '시트 읽기 실패'로 통째로 죽는다(실제로 그랬다).
+ * 2초부터 두 배씩 — 5번이면 30초까지 버틴다. */
+const bridgeBackoff = (i) => 2000 * Math.pow(2, i);
 async function bridgeCall(url, opts, tries = 3) {
   let lastErr;
   for (let i = 0; i < tries; i++) {
@@ -20,14 +25,14 @@ async function bridgeCall(url, opts, tries = 3) {
       text = await res.text();
     } catch (e) {
       lastErr = e; // 네트워크 오류 → 재시도
-      if (i < tries - 1) { await sleep(500 * (i + 1)); continue; }
+      if (i < tries - 1) { await sleep(bridgeBackoff(i)); continue; }
       throw lastErr;
     }
     let data;
     try { data = JSON.parse(text); }
     catch {
       lastErr = new Error('브릿지가 JSON이 아닌 응답을 줬어요 (구글 Apps Script 일시 오류 — 잠시 후 다시 시도하세요).');
-      if (i < tries - 1) { await sleep(500 * (i + 1)); continue; } // HTML 오류페이지 → 재시도
+      if (i < tries - 1) { await sleep(bridgeBackoff(i)); continue; } // HTML 오류페이지 → 재시도
       throw lastErr;
     }
     if (data.error) throw new Error('시트 응답: ' + data.error); // 브릿지가 명시한 오류 = 진짜 오류, 재시도 안 함
@@ -48,7 +53,9 @@ const bridgePost = (sheet, payload) =>
 
 export async function getAccountsFromSheet(sheet) {
   ensure(sheet);
-  const data = await bridgeCall(`${sheet.url}?action=list&token=${encodeURIComponent(sheet.token)}`, {});
+  /* 읽기는 5번까지 참는다(쓰기는 3번 그대로 — 재시도가 중복 기록이 될 수 있어서).
+     이 호출 하나가 실패하면 스캔·대시보드가 통째로 죽는다. 구글이 딸꾹질하는 30초를 버티는 게 맞다. */
+  const data = await bridgeCall(`${sheet.url}?action=list&token=${encodeURIComponent(sheet.token)}`, {}, 5);
   // 헤더행을 못 찾았으면 브릿지가 '추측한 좌표'로 읽어 온 값이다. 쓰기는 이미 막혀 있으니
   // 읽기도 같이 막는다 — 남의 열을 우리 값이라고 화면에 띄우는 게 더 위험하다.
   if (data.colinfo && data.colinfo.headerFound === false) {

@@ -1202,7 +1202,11 @@ export async function handler(req, res) {
       if (CLOUD) return send(res, 501, { error: '인스타 업로드 스캔은 대표님 PC 에서만 돌아요(크롬 창이 필요해요).' });
       /* 이미 돌고 있으면 새로 시작하지 않는다 — 틱톡 쪽엔 있던 가드가 여기만 없어서,
          두 번 누르거나 창을 두 개 열면 크롬 두 개가 같은 시트에 동시에 썼다. */
-      if (igContentState && ['confirm', 'login', 'scan'].includes(igContentState.phase)) {
+      /* ⚠️ '끝난 상태'만 통과시킨다 — 화이트리스트로 두면 새 상태가 생길 때마다 빠진다.
+         실제로 'blocked'(막혀서 사람을 기다리는 중)가 목록에 없어서, 막힌 스캔이 있는데도
+         새 스캔이 시작됐다. 그러면 igContentState 가 덮여 앞 스캔은 재개할 UI 를 잃고
+         영영 멈춘 채로 남는다(감지한 셀도 시트에 안 올라간다). */
+      if (igContentState && !['done', 'error', 'idle'].includes(igContentState.phase || 'idle')) {
         return send(res, 200, { running: true });
       }
       igContentState = { phase: 'confirm', done: 0, total: 0 };
@@ -1217,6 +1221,9 @@ export async function handler(req, res) {
           only: (body && Array.isArray(body.only) && body.only) || (url.searchParams.get('only') || '').split(',').filter(Boolean),
           // 정밀 모드 — 느리게 깊게 본다(45명 기준 10분 → 20분쯤). 놓치는 것보다 낫다.
           deep: url.searchParams.get('deep') === '1' || !!(body && body.deep),
+          /* 아주 천천히 — 한 번에 하나씩, 30초 간격. 인스타가 '연속으로 여는 패턴'을 막을 때 쓴다.
+             오래 걸리지만 끝까지 간다(빨리 끝내는 것보다 끝까지 가는 게 나을 때가 있다). */
+          slow: url.searchParams.get('slow') === '1' || !!(body && body.slow),
           shouldStop: () => scanAbort.has('ig-content-scan'),
           onWarmup: () => { igContentState.phase = 'login'; },
           /* 연속 실패 = 막힘. 여기서 멈춰야 사람이 VPN 을 바꿀 기회가 생긴다 —
