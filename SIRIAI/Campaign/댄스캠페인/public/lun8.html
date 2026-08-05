@@ -2832,7 +2832,17 @@ function secureKpi(geon, mirCut){
   /* 요건(팔로워 1,000) 미달로 빠진 건수. 가드닝으로 채우면 다시 잡히므로
      '제외' 가 아니라 '아직'에 가깝다 — 그래서 문구를 다르게 쓴다. */
   const lowSlots = D.filter(inCampaign).reduce((a,d)=> a + lowReqOf(d), 0);
-  const lowNote = lowSlots ? ` <span class="warn-t">· 팔로워 ${nf(GMIN)} 미달 ${lowSlots}건은 아직 미포함</span>` : '';
+  /* ⚠️ 미달인데 **이미 올라온** 자리는 성격이 다르다. '아직 미포함' 은 가드닝으로 채우면
+     돌아온다는 뜻인데, 이미 납품된 건은 돌아올 게 아니라 **돈을 줄지 말지** 정할 건이다.
+     끝난 캠페인에서 이 문구를 그대로 두면 확보(118)가 업로드(119)보다 작은 이유를 못 읽는다. */
+  let lowUp = 0;
+  D.filter(inCampaign).forEach(d=> platsOn().forEach(p=>{
+    if(uploaded(d,p) && d[p] && d[p].fol != null && d[p].fol < GMIN) lowUp++; }));
+  const lowNote = !lowSlots ? ''
+    : lowUp >= lowSlots
+      ? ` <span class="warn-t">· 팔로워 ${nf(GMIN)} 미달 ${lowSlots}건은 확보에서 빠졌지만 <b>이미 올라왔어요</b> — 지급 여부는 정산 탭 「정산포함」에서</span>`
+      : ` <span class="warn-t">· 팔로워 ${nf(GMIN)} 미달 ${lowSlots}건은 아직 미포함`
+        + (lowUp ? ` <b>(그중 ${lowUp}건은 이미 업로드됨)</b>` : '') + `</span>`;
   const ok = geon >= sec.target, mid = geon >= cap;
   const accent = ok ? 'var(--ok-ink)' : mid ? 'var(--warn)' : 'var(--needs)';
   const sub = (ok ? `목표 ${sec.target}건 달성 — 미업로드 여유까지 확보`
