@@ -231,6 +231,10 @@ td.nick { max-width: 220px; overflow-wrap: anywhere; }
 .empty-tr td { padding: 34px 16px; text-align: center; color: var(--muted); font-size: 15px; }
 .empty-tr:hover td { background: transparent; }
 .note-line { font-size: 12.5px; color: var(--faint); margin: 0 0 14px; line-height:1.55; }
+/* 지급 전 확정할 것 — 돈이 걸린 안내라 회색으로 묻히면 안 된다. */
+.note-line.warn { color: var(--warn-ink); background: var(--warn-bg); border: 1px solid #f0cf94;
+  border-radius: 10px; padding: 11px 14px; font-size: 13px; }
+.note-line.warn b { color: var(--warn-ink); }
 /* 필터 줄 — 진행사·콘텐츠. 하위탭(플랫폼)·일정 칩과 다른 축이라 따로 둔다. */
 .fbar { display:flex; align-items:center; gap:8px 18px; flex-wrap:wrap; margin:0 0 10px; min-height:30px; }
 /* 안내줄은 필터를 켜는 줄 오른쪽 끝에 — 켜는 곳과 끄는 곳이 같아야 찾는다. */
@@ -4118,17 +4122,41 @@ function viewSettle(){
     { key:'memo', label:'비고', cls:'memo-col', thcls:'memo-col', hideable:true, empty:r=>!r.settle.memo, sv:r=>r.settle.memo?1:0, cell:r=>memoCell(r.id, r.settle.memo) },
     { key:'edit', label:'', cell:r=>editBtn(r.id) },
   ];
-  const total = rows.reduce((a,r)=> a+settleCalc(r).amt, 0);
+  /* ⚠️ 총액은 settleCalc 을 그냥 다 더하면 안 된다. 실행사(마루)는 **플랫폼별 계약 수량까지만**
+     지급하는데 settleCalc 은 사람 한 명씩만 보므로 그 상한을 모른다.
+     실측: 마루 37건을 전부 계산해 216,000 이 떴는데 실제 지급은 31건 186,000 —
+     30,000엔을 과다계상하고 있었다. 상한은 settleActual 이 안다(마진 시뮬과 같은 함수). */
+  const act = settleActual();
+  const total = act.totYen;
   const settledGeon = rows.reduce((a,r)=> a+settleCalc(r).dc, 0);
   const unpaid = rows.filter(r=>!r.settle.paid).length;
   const capN = cfg().settleCap || 105;
   const kpis = `<div class="cards">
-    ${kpi('정산 총액 (자동계산)', `${nf(total)}<span class="of"> 엔</span>`, { ic:IC.yen, sub:'대시보드가 로우데이터로 계산' })}
+    ${kpi('정산 총액 (자동계산)', `${nf(total)}<span class="of"> 엔</span>`, { ic:IC.yen,
+      sub:`시리아이 ${nf(act.siYen)} + 마루 ${nf(act.mYen)}` + (act.mOver ? ` <span class="cmuted">· 마루 초과 ${act.mOver}건은 계약 상한으로 제외</span>` : '') })}
     ${kpi('정산 건수 · 건', `${settledGeon}<span class="of"> / ${capN} 상한</span>`, { ic:IC.cap, sub:'목표 100 + 오버부킹 5 = 105건' })}
     ${kpi('미입금 · 명', `${unpaid}<span class="of"> 명</span>`, { ic:IC.wallet, accent:'var(--needs-ink)' })}
   </div>`;
+  /* 지급 전에 사람이 정해야 하는 것들 — 안 보이면 그냥 0원으로 지나간다.
+     실제로 최우수가 한 명도 안 정해진 채 '자동계산 총액' 만 보고 있었다. */
+  const pend = (function(){
+    const inC = D.filter(inCampaign);
+    const items = [];
+    const noBest = inC.filter(d=>!isAgency(d) && anyUploaded(d)).length;
+    if(!inC.some(d=>d.settle && d.settle.best))
+      items.push(`<b>최우수 미선정</b> — 고르면 1인당 +10,000엔 (대상 ${noBest}명)`);
+    const low = [];
+    inC.forEach(d=> platsOn().forEach(p=>{ if(uploaded(d,p) && Number((d[p]||{}).fol||0) < (cfg().min||1000))
+      low.push(`${esc(d.nick)} ${pName(p)} ${nf((d[p]||{}).fol||0)}명`); }));
+    if(low.length) items.push(`<b>팔로워 ${nf(cfg().min||1000)} 미달인데 업로드 ${low.length}건</b> — 정산 포함 여부 결정 필요 <span class="cmuted">${low.join(' · ')}</span>`);
+    const mir = inC.filter(d=> d.mir==='m1' && platsOn().filter(p=>uploaded(d,p)).length>1);
+    if(mir.length) items.push(`<b>미러링 ${mir.length}명</b> — 자동은 1건만 인정. 2건으로 쳐주려면 개별단가 입력 <span class="cmuted">${mir.map(d=>esc(d.nick)).join(' · ')}</span>`);
+    if(!items.length) return '';
+    return `<div class="note-line warn"><b>지급 전 확정할 것 ${items.length}가지</b><br>`
+      + items.map(x=>'· '+x).join('<br>') + `</div>`;
+  })();
   // 정산탭은 하위탭 도구줄이 없다 — 복사 버튼만 표 위에 따로 얹는다.
-  return simSection() + kpis + `<div class="bar"><span class="spacer"></span>${copyBtn()}</div>` + renderTable(cols, rows, {tableId:'settle'}) +
+  return simSection() + kpis + pend + `<div class="bar"><span class="spacer"></span>${copyBtn()}</div>` + renderTable(cols, rows, {tableId:'settle'}) +
     `<div class="note-line">금액 <b>자동계산</b>(마우스 올리면 내역): 콘텐츠당 <b>마루 6,000엔 · 시리아이 5,000엔</b> + 최우수 1만 + 추천 3천×N, <b>3만 cap</b>. 정산 방식은 기프트카드(아마존·구글·애플) 드롭다운. 특별케이스는 편집에서 개별단가 입력(수식 무시).</div>`
     /* 친구추천 — 공식에는 있는데 값이 없으면 '왜 0인지' 를 말해야 한다.
        마스터의 '추천인' 열은 모집 동기화가 응답폼에서 자동 기입하고, '추천 수' 는 시트 수식이
