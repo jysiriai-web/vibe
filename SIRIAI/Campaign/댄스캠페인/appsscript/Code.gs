@@ -84,12 +84,17 @@ const FIELD_HEADERS = {
   pay: ['정산방식'],
   best: ['우수 선정', '최우수'],       // 시트가 '최우수'(옛 체크박스) → '우수 선정'(드롭다운)으로 바뀌는 중이라 둘 다
   override: ['개별단가'],
+  /* 정산포함 — 이 사람(자리)을 정산에 넣을지 사람이 정하는 칸.
+     팔로워 기준 미달인데 올라온 건, 중복 지원, 실행사와 겹친 건처럼 '납품은 하되 돈은 다시 본다'
+     가 여기 쌓인다. ⚠️ 시트엔 열이 있는데 아무도 안 읽고 있었다 — 사람이 '제외' 라고 적어도
+     대시보드 금액이 1엔도 안 움직였다(조용한 무동작). 판정은 대시보드가 한다. */
+  settleInc: ['정산포함', '정산 포함'],
   settleMemo: ['정산 비고'],
 };
 // DEFAULT_COL 에 좌표를 두지 않는 필드 — 헤더로만 찾는다.
 // 정산 열은 마스터마다 자리가 달라서, 폴백을 주면 돈 관련 값을 엉뚱한 칸에 쓴다.
 // 못 찾으면 0(없음)으로 두고 doPost 가 skipped 로 시끄럽게 돌려준다.
-var HEADER_ONLY_FIELDS = ['pay', 'best', 'override', 'settleMemo'];
+var HEADER_ONLY_FIELDS = ['pay', 'best', 'override', 'settleInc', 'settleMemo'];
 // 플랫폼별로 두 벌 존재하는 항목. 접두어만 갈아끼워 같은 규칙으로 찾는다.
 var PLAT_FIELDS = ['nick', 'link', 'followers', 'gardening', 'contentA', 'contentB',
                    'soundOk', 'soundSection', 'hashtagOk', 'views', 'likes', 'comments', 'shares', 'memo'];
@@ -323,6 +328,7 @@ function readAccounts_() {
       pay: COL.pay ? String(row[COL.pay - 1] || '') : '',
       best: COL.best ? String(row[COL.best - 1] || '') : '',
       priceOverride: COL.override ? row[COL.override - 1] : '',
+      settleInc: COL.settleInc ? String(row[COL.settleInc - 1] || '') : '',
       settleMemo: COL.settleMemo ? String(row[COL.settleMemo - 1] || '') : '',
       /* 친구추천. ⚠️ 열은 찾아 두고(COL.refBy/refCount) **응답에 안 실어 보내고 있었다** —
          그래서 대시보드 정산의 '추천 3,000×N' 이 늘 0 이었다. 값이 없는 게 아니라 안 온 것이다.

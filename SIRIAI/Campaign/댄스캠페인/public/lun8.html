@@ -335,6 +335,9 @@ textarea.inp:focus { height: 100px; }
 .rev-sel.rev-pass { background: var(--ok-bg); color: var(--ok-ink); border-color: var(--ok-bg); }
 .rev-sel.rev-fail { background: var(--needs-bg); color: var(--needs-ink); border-color: var(--needs-bg); }
 .rev-sel.rev-none { background: var(--gray-bg); color: var(--gray-ink); border-color: var(--gray-bg); }
+/* 정산 제외 — 켜졌을 때만 색이 붙는다. '포함'은 기본값이라 조용해야 한다(87행이 전부 빨개지면 못 읽는다). */
+.rev-sel.inc.off { background: var(--needs-bg); color: var(--needs-ink); border-color: var(--needs-bg); }
+tr:has(.rev-sel.inc.off) .amt { opacity:.5; text-decoration: line-through; }
 .pay-sel { font-size:13px; font-weight:700; padding:5px 9px; border-radius:9px; border:1.5px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer; font-family:var(--sans); }
 .pay-sel:focus { outline:none; border-color:var(--accent); }
 
@@ -578,6 +581,7 @@ body.phone #content { padding: 0; }
 .sm-item b { display:block; font-size:13.5px; font-weight:700; }
 .sm-item span { display:block; font-size:11.5px; color:var(--faint); margin-top:1px; }
 .sm-item.master b::before { content:'📄 '; }
+.sm-item.deliver b::before { content:'📗 '; }
 .sm-item.recruit b::before { content:'📥 '; }
 /* 비고 말풍선 — 읽기와 고치기를 가른다. 읽으려고 편집 모달을 열면 저장 여부를 신경 쓰게 된다. */
 .memo-pop { position:absolute; z-index:60; background:var(--card); border:1px solid var(--line); border-radius:12px;
@@ -1364,6 +1368,11 @@ const CAMPAIGNS = {
             secure:{ target:125, SIRIAI:94, MARU:31 }, sub:'댄스챌린지', scan:'—', sheet:'https://docs.google.com/spreadsheets/d/1PjiAHc7Zfonl1jXBPqzE8LmDBjCfAHcK6ycGUsLEcf8/edit',
             // 모집시트 — 진행사마다 하나. 마스터와 같은 자리에 둔다(정적 정보라 서버 왕복할 이유가 없다).
             recruits:[{company:'SIRIAI',url:'https://docs.google.com/spreadsheets/d/1Ov0v2JnLH9aLo0cZ8X1GnsNSOGKNJYfNiL8A3rVG9JU/edit'},{company:'MARU',url:'https://docs.google.com/spreadsheets/d/1slDXWW_S6HUUptAxRJ6VcgmXPPcO2lJJIOGVFwMOFmY/edit'}],
+            /* 납품시트 — 클라이언트에게 실제로 넘어가는 최종본. 우리 마스터가 아니라 **저쪽이 보는 화면**이라
+               숫자가 어긋나면 그게 바로 클레임이다. 플랫폼마다 탭(gid)이 따로라 gid 까지 들고 있는다
+               ('시트는 열었는데 탭을 못 찾아 다른 탭 숫자를 세는' 실수를 없앤다).
+               서버의 campaigns.json deliverySheetId 와 같은 시트다 — 한쪽만 고치면 화면과 기입이 갈라진다. */
+            deliver:{ id:'1mnrjdi5vFfceXy5i_Oi2LnjGpJTTYsxIRL6dPBJHgCo', tabs:{ tk:'716789430', ig:'1478197709' } },
             weeks:[ { label:'1주차', share:0.60, days:['7/23','7/24','7/25','7/26','7/27','7/28'] },
                     { label:'2주차', share:0.40, days:['7/29','7/30','7/31','8/1','8/2','8/3','8/4'] } ],
             spreadOverBy:3 },
@@ -1493,9 +1502,26 @@ function fromApi(a){
               best: !!String(a.best==null?'':a.best).trim(),
               override: numOrNull(a.priceOverride),
               paid: paidFlag(a.paid),
+              /* 정산포함(AT열) — 사람이 '이 사람은 돈 안 준다'고 정하는 유일한 칸.
+                 팔로워 미달·중복지원처럼 납품은 하되 지급은 다시 보는 건이 여기 쌓인다.
+                 ⚠️ 이 열은 시트에 있는데 코드가 아무도 안 읽고 있었다 — '제외'라고 적어도
+                    금액이 1엔도 안 움직였다. 비어 있으면 포함(기본값)이다. */
+              inc: settleIncOf(a.settleInc),
               // 정산 비고 열이 따로 있으면 그걸 쓰고, 없으면 지급일이라도 보여준다.
               memo: String(a.settleMemo||'').trim() || (a.paidDate ? ('지급일 '+a.paidDate) : '') }
   };
+}
+
+/* 정산포함(AT열) 해석. 돈이 걸린 판정이라 규칙을 좁게 잡는다:
+   **명시적으로 '제외'라고 말한 것만 제외**하고, 나머지는 전부 포함이다.
+   비어 있는 칸을 제외로 읽으면(=화이트리스트식) 87명 중 아무도 정산 대상이 아니게 된다 —
+   기본값이 위험한 쪽으로 기울면 조용히 아무도 못 받는다. 애매한 글자도 포함으로 둔다:
+   덜 주는 실수는 사람이 항의해서 드러나지만, 빠뜨린 사람은 아무도 말해주지 않는다. */
+function settleIncOf(v){
+  const t = String(v==null?'':v).trim().toLowerCase();
+  if(t==='') return true;
+  if(/^(제외|미포함|불포함|x|no|false|0|아니오|안함|보류)$/.test(t)) return false;
+  return true;
 }
 
 /* 지급 여부 — 시트는 O/V/완료/TRUE 등 제각각이라 '비어 있지 않으면 지급'이 가장 안전하다.
@@ -3828,8 +3854,15 @@ const wonOf = usd => wonNum(usd).toLocaleString('ko-KR') + '원';
    눌러도 여기선 '시작했어요' 까지밖에 말할 수 없었다(진행률·로봇인증·중지는 작업 콘솔에 있다).
    두 화면을 오갈 바에는 한 곳에 두는 게 낫다 → 작업 콘솔 [조회수 스캔] 카드.
    납품시트 기입은 남긴다 — 돈도 브라우저도 안 쓰고 팀원도 할 수 있다. */
+/* 기입 버튼 옆에 '열어보기' 를 둔다 — 기입한 다음 사람이 제일 먼저 하는 일이 확인인데,
+   그동안은 시트 주소가 화면 어디에도 없어 북마크나 카톡을 뒤졌다.
+   지금 보고 있는 플랫폼의 탭으로 바로 보낸다(플랫폼마다 탭이 갈려 있다). */
 function deliverBar(){
-  return `<div class="bar"><button class="btn small" id="btnDeliver">📤 납품시트 기입</button>`
+  const p = (state.plat==='tk'||state.plat==='ig') ? state.plat : '';
+  const u = deliverUrl(p);
+  const open = u ? `<a class="btn small ghost" href="${esc(u)}" target="_blank" rel="noopener"
+      title="클라이언트가 보는 최종본${p?' — '+pName(p)+' 탭으로 바로 열려요':''}">📗 납품시트 열기${p?' · '+pName(p):''}</a>` : '';
+  return `<div class="bar"><button class="btn small" id="btnDeliver">📤 납품시트 기입</button>${open}`
     + `<span class="cmuted">조회수·좋아요는 작업 콘솔 [성과 갱신]에서 채워요</span>`
     + `<span class="spacer"></span></div>`;
 }
@@ -3915,10 +3948,20 @@ function viewDeliver(){
 const FEE_DEFAULT = 5000, FEE_BOTH_DEFAULT = 12000;
 const feeOf = c => { const v = coInfo(c).fee; return Number.isFinite(Number(v)) ? Number(v) : FEE_DEFAULT; };
 const feeBothOf = c => { const v = coInfo(c).feeBoth; return Number.isFinite(Number(v)) ? Number(v) : null; };
+/* 정산 대상인가 — 마스터시트 AT열('정산포함')이 유일한 판정처다.
+   ⚠️ 이 판정은 **돈에만** 걸린다. 제외해도 콘텐츠는 이미 클라이언트에 납품됐고 목표 건수에도
+   들어간다(실행사 초과분과 같은 성격이다). 납품 숫자에 이걸 끼워 넣으면 두 숫자가 섞인다. */
+const payable = d => !(d.settle && d.settle.inc === false);
+
 function settleCalc(d){
   const s=d.settle, plats=platsOn();
   let dc=0; plats.forEach(p=>{ if(d[p]&&done(d[p])) dc++; });
   const mir = isMirrored(d);
+  /* 제외는 개별단가보다도 먼저 본다 — '안 준다'고 정한 사람에게 개별단가가 남아 있으면
+     그 금액이 그대로 나간다. 사람이 마지막에 내린 결정이 이겨야 한다. */
+  if(!payable(d)) return { amt:0, tag:['excl','정산 제외'],
+    bd:`마스터시트 정산포함(AT열) = 제외 — 납품은 그대로, 지급만 안 합니다`
+       + (s.override!=null?`\n※ 개별단가 ${nf(s.override)}엔이 적혀 있지만 제외가 이깁니다.`:''), dc, mir };
   if(s.override!=null) return { amt:s.override, tag:['ovr','특별'],
     bd:`개별단가(자동수식 무시): ${nf(s.override)}엔` + (mir?' · 미러링 건':''), dc, mir };
   // 미러링은 같은 영상이라 콘텐츠로는 1건 — 자동값은 1건 기준으로 낸다.
@@ -3953,9 +3996,15 @@ function settleActual(){
   const inC = D.filter(inCampaign);
   const quota = cfg().agencyQuota || null;
   let siYen = 0, siPeople = 0, refYen = 0, bestYen = 0;
+  /* 정산 제외(AT열) 건수 — 화면이 '왜 총액이 줄었나' 를 말할 수 있어야 한다.
+     제외를 조용히 빼면 어제 맞던 숫자가 오늘 이유 없이 달라진 것처럼 보인다. */
+  let exclPeople = 0, exclGeon = 0;
   const mUp = {}; platsOn().forEach(p=> mUp[p] = 0);
   inC.forEach(d=>{
     const ups = platsOn().filter(p=> uploaded(d,p)).length;
+    /* ⚠️ 제외자는 실행사 상한 계산에서도 빠져야 한다. 자리만 차지하고 돈은 안 받으면
+       뒤에 올린 사람이 대신 초과분으로 밀려 애먼 사람이 못 받는다. */
+    if(!payable(d)){ if(ups){ exclPeople++; exclGeon += ups; } return; }
     if(isAgency(d)){ platsOn().forEach(p=>{ if(uploaded(d,p)) mUp[p]++; }); return; }
     if(!ups) return;
     siPeople++;
@@ -3993,7 +4042,8 @@ function settleActual(){
      표는 settleCalc(미러링 1건 규칙 포함)을 쓰고 있어 6,000엔이 갈렸다.
      표의 행을 다 더하면 총액이 나와야 한다 — 사람이 검산하는 방식이 그것이다. */
   const mYen = inC.filter(isAgency).reduce((a,d)=> a + agencyPay(d), 0);
-  return { siYen, siPeople, refYen, bestYen, mUp, mGeon, mOver, mYen, totYen: siYen+mYen };
+  return { siYen, siPeople, refYen, bestYen, mUp, mGeon, mOver, mYen, totYen: siYen+mYen,
+           exclPeople, exclGeon };
 }
 
 /* 실행사 계약 상한에 걸린 자리 — '누구의 어느 플랫폼이 초과분인가'.
@@ -4007,15 +4057,19 @@ function agencyOverMap(){
   /* ⚠️ 캐시 키에 **업로드 내용**이 들어가야 한다. 예전엔 사람 수만 봤는데, 사람 수가 그대로인 채
      콘텐츠가 바뀌거나 드랍을 걸면 옛 배분이 그대로 굳었다 — 상한이 조용히 풀려
      초과분이 되살아난다(1건당 6,000엔). 사람 수는 안 변하고 금액만 변하는 상황이 흔하다. */
+  /* 정산포함(AT열)도 스탬프에 넣는다 — 사람이 시트에서 '제외' 로 바꾸면 배분이 통째로 달라진다
+     (제외자가 비운 자리를 뒤에 올린 사람이 이어받는다). 캐시가 그걸 놓치면 옛 배분이 굳는다. */
   const stamp = state.campaign + '|' + D.filter(inCampaign).filter(isAgency)
-    .map(d=> d.id + ':' + platsOn().map(p=> uploaded(d,p) ? ((d[p].c1||{}).url||'1') : '0').join(',')).join(';');
+    .map(d=> d.id + ':' + (payable(d)?'y':'n') + ':' + platsOn().map(p=> uploaded(d,p) ? ((d[p].c1||{}).url||'1') : '0').join(',')).join(';');
   if(_overCache && _overStamp === stamp) return _overCache;
   const quota = cfg().agencyQuota || null;
   const map = new Map();   // id -> { n, plats:[], pay, quota }
   if(quota){
     platsOn().forEach(p=>{
       const q = quota[p]; if(q == null) return;
-      const ups = D.filter(inCampaign).filter(d=> isAgency(d) && uploaded(d,p))
+      /* ⚠️ 제외자(AT열)는 줄에서 아예 뺀다. 남겨두면 돈은 안 받으면서 계약 자리를 하나 먹어,
+         뒤에 올린 멀쩡한 사람이 초과분으로 밀린다 — 총액도 1건(6,000엔)만큼 덜 나온다. */
+      const ups = D.filter(inCampaign).filter(d=> isAgency(d) && payable(d) && uploaded(d,p))
         .map(d=>({ d, at: upAtMs((d[p].c1||{}).url || '') || 0 }))
         .sort((a,b)=> a.at - b.at);          // 먼저 올린 순
       ups.forEach(({d}, i)=>{
@@ -4034,6 +4088,10 @@ const agencyOverOf = d => isAgency(d) ? (agencyOverMap().get(d.id) || null) : nu
    ⚠️ settleCalc 을 쓰면 안 된다. 그건 사람 단위 규칙(미러링 1건·묶음가)이 섞여 있어
    실행사에 적용하면 표 합계와 총액이 갈린다(실측 6,000엔 어긋남). */
 function agencyPay(d){
+  /* 제외자는 0. ⚠️ 상한(quota)이 없는 캠페인은 아래 폴백이 '올라온 자리 수' 로 그냥 곱하므로,
+     여기서 안 막으면 제외했는데 돈이 그대로 나간다(상한이 있는 지금은 위에서 걸러지지만
+     상한 없는 다음 캠페인에서 조용히 새는 자리다). */
+  if(!payable(d)) return 0;
   const o = agencyOverMap().get(d.id);
   const n = o ? o.pay : platsOn().filter(p=> uploaded(d,p)).length;
   return n * feeOf(d.co);
@@ -4217,6 +4275,15 @@ function viewSettle(){
         : `<select class="rev-sel best ${r.settle.best?'on':''}" data-best="${r.id}">${
         [['','미선정'],['1','우수 ★']].map(([v,l])=>`<option value="${v}"${(r.settle.best?'1':'')===v?' selected':''}>${l}</option>`).join('')
       }</select>` },
+    /* 정산포함(AT열) — 마스터시트에 열만 있고 아무도 안 읽던 칸이다. 여기서 고르면 시트에 쓰이고
+       금액이 즉시 반영된다. 업로드가 없는 사람은 어차피 0원이라 물어볼 게 없어 안 띄운다
+       (87행 전부에 드롭다운을 깔면 정작 결정해야 할 몇 건이 묻힌다). */
+    { key:'inc', label:'정산포함', sv:r=> anyUploaded(r) ? (payable(r)?1:0) : 2, cell:r=>{
+      if(!anyUploaded(r)) return '<span class="emptydot">·</span>';
+      return `<select class="rev-sel inc ${payable(r)?'':'off'}" data-inc="${r.id}"
+        title="제외하면 지급만 빠져요 — 이미 납품된 콘텐츠와 목표 건수는 그대로입니다">${
+        [['','포함'],['제외','제외 ✕']].map(([v,l])=>`<option value="${v}"${(payable(r)?'':'제외')===v?' selected':''}>${l}</option>`).join('')
+      }</select>`; } },
     { key:'paid', label:'입금', sv:r=>r.settle.paid?1:0, cell:r=>`<button class="paid-tog ${r.settle.paid?'y':'n'}" data-paidtog="${r.id}">${r.settle.paid?'입금':'미입금'}</button>` },
     { key:'memo', label:'비고', cls:'memo-col', thcls:'memo-col', hideable:true, empty:r=>!r.settle.memo, sv:r=>r.settle.memo?1:0, cell:r=>memoCell(r.id, r.settle.memo) },
     { key:'edit', label:'', cell:r=>editBtn(r.id) },
@@ -4229,11 +4296,15 @@ function viewSettle(){
   const total = act.totYen;
   /* 미입금은 **지급 의무가 있는 사람**만 센다. 예전엔 전원(87명)을 세서, 업로드도 안 한
      사람까지 '미입금' 에 들어가 있었다 — 돈을 줘야 할 사람 수를 못 읽는 숫자였다. */
-  const owed = rows.filter(r=> anyUploaded(r));
+  /* 정산 제외(AT열)로 정한 사람은 지급 의무가 없다 — '미입금'에 남겨두면 영원히 안 지워지는
+     빚처럼 보인다. 총액에서 뺐으면 여기서도 빼야 두 숫자가 같은 말을 한다. */
+  const owed = rows.filter(r=> anyUploaded(r) && payable(r));
   const unpaid = owed.filter(r=>!r.settle.paid).length;
   const kpis = `<div class="cards">
     ${kpi('정산 총액 (자동계산)', `${nf(total)}<span class="of"> 엔</span>`, { ic:IC.yen,
-      sub:`시리아이 ${nf(act.siYen)} + 마루 ${nf(act.mYen)}` + (act.mOver ? ` <span class="cmuted">· 마루 초과 ${act.mOver}건은 계약 상한으로 제외</span>` : '') })}
+      sub:`시리아이 ${nf(act.siYen)} + 마루 ${nf(act.mYen)}`
+        + (act.mOver ? ` <span class="cmuted">· 마루 초과 ${act.mOver}건은 계약 상한으로 제외</span>` : '')
+        + (act.exclPeople ? ` <span class="cmuted">· 정산 제외 ${act.exclPeople}명(${act.exclGeon}건)</span>` : '') })}
     ${/* ⚠️ 예전엔 '119 / 105 상한' 이었다. 그 105(오버부킹 포함 인정상한)는 이 캠페인의 정산에
           실제로 안 쓰인다 — 실행사는 플랫폼별 계약 수량으로, 자체는 사람 단위로 계산한다.
           안 쓰는 기준을 옆에 붙여 두면 '105 를 넘었는데 왜 다 주지?' 로 읽힌다. */''}
@@ -4250,10 +4321,13 @@ function viewSettle(){
     const noBest = inC.filter(d=>!isAgency(d) && anyUploaded(d)).length;
     if(!inC.some(d=>d.settle && d.settle.best))
       items.push(`<b>최우수 미선정</b> — 고르면 1인당 +10,000엔 (대상 ${noBest}명)`);
+    /* 팔로워 미달 — ⚠️ 이미 '제외'로 결정한 사람은 빼야 한다. 결정을 내려도 목록이 그대로 남으면
+       무엇을 아직 안 정했는지 알 수 없어, 이 패널이 영원히 안 사라지는 잔소리가 된다. */
     const low = [];
-    inC.forEach(d=> platsOn().forEach(p=>{ if(uploaded(d,p) && Number((d[p]||{}).fol||0) < (cfg().min||1000))
-      low.push(`${esc(d.nick)} ${pName(p)} ${nf((d[p]||{}).fol||0)}명`); }));
-    if(low.length) items.push(`<b>팔로워 ${nf(cfg().min||1000)} 미달인데 업로드 ${low.length}건</b> — 정산 포함 여부 결정 필요 <span class="cmuted">${low.join(' · ')}</span>`);
+    inC.forEach(d=>{ if(!payable(d)) return;
+      platsOn().forEach(p=>{ if(uploaded(d,p) && Number((d[p]||{}).fol||0) < (cfg().min||1000))
+        low.push(`${esc(d.nick)} ${pName(p)} ${nf((d[p]||{}).fol||0)}명`); }); });
+    if(low.length) items.push(`<b>팔로워 ${nf(cfg().min||1000)} 미달인데 업로드 ${low.length}건</b> — 아래 표 <b>정산포함</b> 열에서 결정하세요 <span class="cmuted">${low.join(' · ')}</span>`);
     const mir = inC.filter(d=> d.mir==='m1' && platsOn().filter(p=>uploaded(d,p)).length>1);
     if(mir.length) items.push(`<b>미러링 ${mir.length}명</b> — 자동은 1건만 인정. 2건으로 쳐주려면 개별단가 입력 <span class="cmuted">${mir.map(d=>esc(d.nick)).join(' · ')}</span>`);
     if(!items.length) return '';
@@ -5448,9 +5522,19 @@ function copyCampLink(){
 /* 의견 패널이 쓸 시트 주소 — feedback.js 는 캠페인 설정을 모르므로 여기서 넘겨준다.
    의견은 마스터시트의 「의견」 탭에 쌓인다(브릿지 feedbackSheet_). */
 function syncFbSheetUrl(){ try { window.FB_SHEET_URL = cfg().sheet || ''; } catch {} }
+/* 납품시트 주소. 탭(gid)을 주면 그 탭이 바로 열린다 — 시트만 열어놓고 다른 탭 숫자를 세는 일을 막는다. */
+function deliverUrl(plat){
+  const dv = cfg().deliver; if(!dv || !dv.id) return '';
+  const gid = plat && dv.tabs ? dv.tabs[plat] : '';
+  return 'https://docs.google.com/spreadsheets/d/' + dv.id + '/edit' + (gid ? '#gid=' + gid : '');
+}
 function sheetList(){
   const out = [];
   if(cfg().sheet) out.push({ label:'마스터시트', sub:'모든 탭이 읽는 원본', url:cfg().sheet, kind:'master' });
+  /* 납품시트를 여기 올려둔다 — 클라이언트가 보는 최종본이라 확인 빈도가 모집시트보다 훨씬 높다.
+     플랫폼마다 탭이 따로라 항목도 플랫폼별로 낸다(한 줄로 묶으면 결국 탭을 손으로 찾게 된다). */
+  if(deliverUrl()) platsOn().forEach(p=>
+    out.push({ label:'납품시트 · '+pName(p), sub:'클라이언트가 보는 최종본', url:deliverUrl(p), kind:'deliver' }));
   (cfg().recruits||[]).forEach(r=> out.push({ label:'모집시트 · '+r.company, sub:'지원 폼 응답', url:r.url, kind:'recruit' }));
   return out;
 }
@@ -5705,6 +5789,16 @@ document.getElementById('content').addEventListener('change', e=>{
   const bt=e.target.closest('[data-best]');
   if(bt){ const d=D.find(x=>x.id===+bt.dataset.best);
     if(d){ d.settle.best = bt.tagName==='SELECT' ? bt.value==='1' : bt.checked; render(); saveField(d.id,'best', BEST_TEXT(d.settle.best)); }
+    return; }
+  /* 정산포함(AT열). 돈이 걸린 칸이라 바꾼 사실을 토스트로 말한다 — 드롭다운은 눌린 티가 잘 안 나서
+     '고쳤나?' 하고 한 번 더 고르다 원래대로 돌려놓는 일이 생긴다. */
+  const ic=e.target.closest('[data-inc]');
+  if(ic){ const d=D.find(x=>x.id===+ic.dataset.inc);
+    if(d){ const off = ic.value==='제외';
+      d.settle.inc = !off; render();
+      saveField(d.id,'settleInc', off ? '제외' : '');
+      toast(esc(d.nick) + (off ? ' — <b>정산 제외</b>로 바꿨어요. 납품 건수는 그대로예요.'
+                               : ' — 정산에 <b>다시 포함</b>했어요.')); }
     return; }
 });
 // 시뮬 입력 → 실시간 재계산 (포커스 유지)
