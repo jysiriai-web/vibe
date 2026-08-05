@@ -1887,7 +1887,16 @@ function dayWeekPass(d){
     }
     return dayBucket(d)===state.day;
   }
-  if(state.week) return inWeek(d, state.week);
+  if(state.week){
+    /* 주차도 일자와 같은 규칙 — 다 지난 주는 '올린 날' 축이다.
+       칩이 '1주차 최종 59건' 이라 해놓고 눌렀을 때 예정 46명이 뜨면 또 어긋난다. */
+    const w = WEEKS().find(x=> x.label===state.week);
+    const wDays = (w && w.days) || [];
+    const wPast = wDays.length && wDays.every(dy=> isPastDay(dy));
+    if(wPast && !['late','dropsoon','dropped'].includes(state.plat))
+      return viewPlats().some(p=> d[p] && upDaysOf(d,p).some(dy=> wDays.indexOf(dy) >= 0));
+    return inWeek(d, state.week);
+  }
   return true;
 }
 /* 업로드 상태. 예정일 전 → 지남 → 연락 → 새 날짜 → 드랍 → 올림 → 검수.
@@ -2176,7 +2185,13 @@ function schedStats(excludeId){
     const base = days.length ? Math.round(geon/days.length) : 0;   // days:[] 로 NaN 나는 것 방지
     days.forEach(x=>{ x.base=base; x.week=w.label; x.over=base+overBy;
       x.flag = x.geon===0 ? 'zero' : (x.left >= base+overBy ? 'over' : 'ok'); });
-    return { label:w.label, share:w.share, days, geon, base, over:base+overBy };
+    /* 주차 칩도 일자 칩과 **같은 축**이어야 한다. 예전엔 주차는 예정 기준, 일자는 올린 날 기준이라
+       같은 카드 안에서 '1주차 46건' 아래 일자 합이 59건이었다 — 둘 다 맞는 값인데 나란히 두면
+       화면이 스스로를 반박한다. 그 주가 다 지났으면 주차도 '최종 올라온 건수'를 말한다. */
+    const upSum = days.reduce((a,x)=>a+(x.up||0),0);
+    const wPast = days.length && days.every(x=> isPastDay(x.day));
+    return { label:w.label, share:w.share, days, geon, base, over:base+overBy,
+             up:upSum, past:wPast, shown: wPast ? upSum : geon };
   });
   const all = weeks.reduce((a,w)=> a.concat(w.days), []);
   return { weeks, unset, off,
@@ -2526,7 +2541,8 @@ function schedStrip(){
   // 한 줄 칩 — 라벨·숫자·기간을 가로로. 세로 3줄 상자는 정보량 대비 자리를 너무 먹는다.
   const wchip = w=>
     `<button class="wchip${state.week===w.label?' on':''}" data-week="${esc(w.label)}" title="${w.days[0].day}–${w.days[w.days.length-1].day}">`
-      + `<b>${esc(w.label)}</b> <span class="wn">${w.geon}</span><span class="of">건</span>`
+      + `<b>${esc(w.label)}</b> <span class="wn">${w.shown}</span><span class="of">건</span>`
+      + (w.past ? `<span class="of">최종</span>` : '')
       + `<span class="ws">${w.days[0].day}–${w.days[w.days.length-1].day}</span></button>`;
   // 미정도 주차 칩과 같은 모양·같은 줄. 세 줄(라벨/숫자/보조)을 맞춰야 높이가 어긋나지 않는다.
   const unsetChip = st.unset.geon
