@@ -3967,9 +3967,50 @@ function settleActual(){
     const pay = q==null ? mUp[p] : Math.min(mUp[p], q);
     mGeon += pay; mOver += Math.max(0, mUp[p]-pay);
   });
-  const ag = COS().find(c=>c.role==='agency');
-  const mYen = mGeon * (ag ? feeOf(ag.id) : FEE_DEFAULT);
+  /* ⚠️ 금액은 표와 **같은 함수**(agencyPay)로 낸다. 예전엔 여기서 건수×단가를 따로 곱했는데,
+     표는 settleCalc(미러링 1건 규칙 포함)을 쓰고 있어 6,000엔이 갈렸다.
+     표의 행을 다 더하면 총액이 나와야 한다 — 사람이 검산하는 방식이 그것이다. */
+  const mYen = inC.filter(isAgency).reduce((a,d)=> a + agencyPay(d), 0);
   return { siYen, siPeople, refYen, bestYen, mUp, mGeon, mOver, mYen, totYen: siYen+mYen };
+}
+
+/* 실행사 계약 상한에 걸린 자리 — '누구의 어느 플랫폼이 초과분인가'.
+ *
+ * 상한은 사람 단위가 아니라 **플랫폼 전체**에 걸린다. 그래서 '누가 초과인가' 는 순서를 정해야
+ * 답이 나온다. 여기서는 **업로드가 늦은 사람부터** 초과로 본다 — 계약 수량은 먼저 올린 사람이
+ * 채웠다고 보는 게 자연스럽고, 실제로 마루와도 그렇게 이야기했다(초과 7건 = 나중에 올라온 것).
+ * ⚠️ 이 순서가 바뀌면 '누가 돈을 받나' 가 바뀐다. 총액은 안 바뀌지만 사람은 바뀐다. */
+let _overCache = null, _overStamp = '';
+function agencyOverMap(){
+  const stamp = String(D.length) + '|' + state.campaign;
+  if(_overCache && _overStamp === stamp) return _overCache;
+  const quota = cfg().agencyQuota || null;
+  const map = new Map();   // id -> { n, plats:[], pay, quota }
+  if(quota){
+    platsOn().forEach(p=>{
+      const q = quota[p]; if(q == null) return;
+      const ups = D.filter(inCampaign).filter(d=> isAgency(d) && uploaded(d,p))
+        .map(d=>({ d, at: upAtMs((d[p].c1||{}).url || '') || 0 }))
+        .sort((a,b)=> a.at - b.at);          // 먼저 올린 순
+      ups.forEach(({d}, i)=>{
+        const cur = map.get(d.id) || { n:0, pay:0, plats:[], quota:q };
+        if(i < q) cur.pay++;                 // 상한 안 — 지급
+        else { cur.n++; if(!cur.plats.includes(pName(p))) cur.plats.push(pName(p)); }
+        map.set(d.id, cur);
+      });
+    });
+  }
+  _overCache = map; _overStamp = stamp;
+  return map;
+}
+const agencyOverOf = d => isAgency(d) ? (agencyOverMap().get(d.id) || null) : null;
+/* 실행사 한 사람의 지급액 — **자리 수 × 단가**. 계약이 건 단위라 여기엔 미러링·묶음가가 없다.
+   ⚠️ settleCalc 을 쓰면 안 된다. 그건 사람 단위 규칙(미러링 1건·묶음가)이 섞여 있어
+   실행사에 적용하면 표 합계와 총액이 갈린다(실측 6,000엔 어긋남). */
+function agencyPay(d){
+  const o = agencyOverMap().get(d.id);
+  const n = o ? o.pay : platsOn().filter(p=> uploaded(d,p)).length;
+  return n * feeOf(d.co);
 }
 
 /* 3단계 — '지금 어느 시점의 이야기인가'. 예전 기준(목표/확보/검수완료)은 무엇을 세는지
@@ -4111,7 +4152,19 @@ function viewSettle(){
         ? `<span class="mirct" title="같은 영상이라 자동값은 1건 기준이에요. 2건으로 쳐주려면 개별단가에 금액을 넣으세요.">미러링</span>`
         : '<span class="emptydot">·</span>' },
     { key:'pay', label:'정산 방식', sv:r=>r.settle.pay, cell:r=>`<select class="pay-sel" data-pay="${r.id}"><option value=""${r.settle.pay?'':' selected'}>미정</option>${PAY_OPTS.map(o=>`<option${o===r.settle.pay?' selected':''}>${o}</option>`).join('')}</select>` },
-    { key:'amt', label:'정산 금액', cls:'num', thcls:'num', sv:r=>settleCalc(r).amt, cell:r=>{ const s=settleCalc(r); return `<span class="amt" title="${s.bd}">${nf(s.amt)}엔<span class="tag ${s.tag[0]}">${s.tag[1]}</span></span>`; } },
+    /* ⚠️ 실행사는 행 금액을 다 더해도 총액이 안 나온다 — 플랫폼별 계약 상한이 걸리기 때문이다.
+       그 사실을 행에 적지 않으면 사람이 검산하다 어긋난 숫자를 보고 어느 쪽이 맞는지 모른다
+       (실측: 마루 행 합 216,000 vs 실제 지급 186,000). 상한에 걸린 자리는 '초과'로 표시한다. */
+    { key:'amt', label:'정산 금액', cls:'num', thcls:'num', sv:r=>settleCalc(r).amt, cell:r=>{
+      if(isAgency(r)){
+        const ov = agencyOverOf(r), pay = agencyPay(r);
+        const tip = `실행사는 건 단위 ${nf(feeOf(r.co))}엔 · 플랫폼별 계약 수량까지만 지급`
+          + (ov && ov.n ? ` / 초과 ${ov.n}건(${ov.plats.join('·')})은 납품엔 들어가지만 지급 제외` : '');
+        return `<span class="amt${ov&&ov.n?' dim':''}" title="${esc(tip)}">${nf(pay)}엔`
+          + (ov && ov.n ? `<span class="tag cap">초과 ${ov.n}건 제외</span>` : `<span class="tag auto">건 단위</span>`) + `</span>`;
+      }
+      const s=settleCalc(r);
+      return `<span class="amt" title="${s.bd}">${nf(s.amt)}엔<span class="tag ${s.tag[0]}">${s.tag[1]}</span></span>`; } },
     // 체크박스는 켜짐/꺼짐 둘뿐이라 '아직 안 봤다'와 '보고 아니라고 판단했다'가 구분되지 않았다.
     // 드롭다운이면 미확인 상태가 남아 무엇을 아직 안 봤는지 알 수 있다.
     { key:'best', label:'우수 선정', sv:r=>r.settle.best?1:0,
