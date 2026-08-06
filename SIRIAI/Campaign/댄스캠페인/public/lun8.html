@@ -1546,7 +1546,7 @@ function fromApi(a){
               best: !!String(a.best==null?'':a.best).trim(),
               override: numOrNull(a.priceOverride),
               paid: paidFlag(a.paid),
-              /* 정산포함(AT열) — 사람이 '이 사람은 돈 안 준다'고 정하는 유일한 칸.
+              /* 정산포함 — 사람이 '이 사람은 돈 안 준다'고 정하는 유일한 칸.
                  팔로워 미달·중복지원처럼 납품은 하되 지급은 다시 보는 건이 여기 쌓인다.
                  ⚠️ 이 열은 시트에 있는데 코드가 아무도 안 읽고 있었다 — '제외'라고 적어도
                     금액이 1엔도 안 움직였다. 비어 있으면 포함(기본값)이다. */
@@ -1556,9 +1556,10 @@ function fromApi(a){
   };
 }
 
-/* 정산포함(AT열) 해석.
+/* 정산포함 열 해석.  ⚠️ 열 문자로 부르지 말 것 — 브릿지는 **헤더 이름**으로 찾고,
+   실제로 2026-08-06 정산 구역을 재배치하면서 AT → AO 로 옮겨 갔다. 이름이 계약이다.
  *
- * ⚠️ 구조 문제: **AT열은 사람 단위인데, 실제로 빼야 하는 건 거의 항상 자리(플랫폼) 단위다.**
+ * ⚠️ 구조 문제: **이 열은 사람 단위인데, 실제로 빼야 하는 건 거의 항상 자리(플랫폼) 단위다.**
  *   실측 ZUNA:) 행9 — 틱톡 11,100명(정상) · 인스타 555명(기준 미달). 사람을 통째로 빼면
  *   멀쩡한 틱톡까지 빠져 5,000엔을 덜 준다. 마루 초과 6명 중 2명도 인스타는 계약 안이라
  *   사람으로 빼면 인스타 21건이 19건이 된다.
@@ -4052,7 +4053,7 @@ function viewDeliver(){
 const FEE_DEFAULT = 5000, FEE_BOTH_DEFAULT = 12000;
 const feeOf = c => { const v = coInfo(c).fee; return Number.isFinite(Number(v)) ? Number(v) : FEE_DEFAULT; };
 const feeBothOf = c => { const v = coInfo(c).feeBoth; return Number.isFinite(Number(v)) ? Number(v) : null; };
-/* 정산 대상인가 — **사람 판단(AT열)** 기준.
+/* 정산 대상인가 — **사람 판단(마스터시트 「정산포함」)** 기준.
    ⚠️ 이 판정은 **돈에만** 걸린다. 제외해도 콘텐츠는 이미 클라이언트에 납품됐고 목표 건수에도
    들어간다(실행사 초과분과 같은 성격이다). 납품 숫자에 이걸 끼워 넣으면 두 숫자가 섞인다. */
 const incOf = d => (d.settle && d.settle.inc) || { all:true, off:[] };
@@ -4066,13 +4067,13 @@ const paidSlots = d => platsOn().filter(p=> uploaded(d,p) && payableSlot(d,p));
    세 가지 성격이 섞여 있고, 사람이 고칠 수 있는 건 셋째뿐이다:
      ① 계약 상한  — 실행사 플랫폼별 계약 수량 초과. 코드가 계산한다(먼저 올린 순).
      ② 미러링     — 같은 영상이라 자동으로 1건만 인정. 2건으로 밀려면 개별단가.
-     ③ 사람 판단  — AT열. 팔로워 미달·중복지원 등. 이것만 화면에서 고른다.
+     ③ 사람 판단  — 「정산포함」 열. 팔로워 미달·중복지원 등. 이것만 화면에서 고른다.
    ⚠️ 셋을 한 드롭다운에 섞으면, 자동으로 빠진 걸 사람이 '포함' 으로 되돌리려다
       아무 일도 안 일어나는 조용한 무동작이 된다(마루 우수 ★ 에서 이미 당했다). */
 function slotWhy(d,p){
   if(!uploaded(d,p)) return null;
-  if(!payable(d))                 return { by:'사람', txt:'정산 제외', tip:'마스터시트 정산포함(AT열) = 제외' };
-  if(incOf(d).off.includes(p))    return { by:'사람', txt:pName(p)+' 제외', tip:'마스터시트 정산포함(AT열)에서 이 플랫폼만 뺐어요' };
+  if(!payable(d))                 return { by:'사람', txt:'정산 제외', tip:'마스터시트 「정산포함」 열 = 제외' };
+  if(incOf(d).off.includes(p))    return { by:'사람', txt:pName(p)+' 제외', tip:'마스터시트 「정산포함」 열에서 이 플랫폼만 뺐어요' };
   const o = isAgency(d) ? agencyOverOf(d) : null;
   if(o && o.plats && o.plats.includes(pName(p)))
     return { by:'계약', txt:'계약 상한 초과', tip:`${coLabel(d.co)} ${pName(p)} 계약 ${nf(o.quota)}건을 넘겨 올라온 자리예요 — 납품엔 들어가고 지급만 빠져요(먼저 올린 순으로 계약분을 채웁니다)` };
@@ -4092,7 +4093,7 @@ function settleCalc(d){
   /* 제외는 개별단가보다도 먼저 본다 — '안 준다'고 정한 사람에게 개별단가가 남아 있으면
      그 금액이 그대로 나간다. 사람이 마지막에 내린 결정이 이겨야 한다. */
   if(!payable(d)) return { amt:0, tag:['excl','정산 제외'],
-    bd:`마스터시트 정산포함(AT열) = 제외 — 납품은 그대로, 지급만 안 합니다`
+    bd:`마스터시트 「정산포함」 = 제외 — 납품은 그대로, 지급만 안 합니다`
        + (s.override!=null?`\n※ 개별단가 ${nf(s.override)}엔이 적혀 있지만 제외가 이깁니다.`:''), dc:0, mir, cut:live };
   if(s.override!=null) return { amt:s.override, tag:['ovr','특별'],
     bd:`개별단가(자동수식 무시): ${nf(s.override)}엔` + (mir?' · 미러링 건':'')
@@ -4131,7 +4132,7 @@ function settleActual(){
   const inC = D.filter(inCampaign);
   const quota = cfg().agencyQuota || null;
   let siYen = 0, siPeople = 0, refYen = 0, bestYen = 0;
-  /* 정산 제외(AT열) 건수 — 화면이 '왜 총액이 줄었나' 를 말할 수 있어야 한다.
+  /* 정산 제외 건수 — 화면이 '왜 총액이 줄었나' 를 말할 수 있어야 한다.
      제외를 조용히 빼면 어제 맞던 숫자가 오늘 이유 없이 달라진 것처럼 보인다. */
   let exclPeople = 0, exclGeon = 0;
   const mUp = {}; platsOn().forEach(p=> mUp[p] = 0);
@@ -4196,7 +4197,7 @@ function agencyOverMap(){
   /* ⚠️ 캐시 키에 **업로드 내용**이 들어가야 한다. 예전엔 사람 수만 봤는데, 사람 수가 그대로인 채
      콘텐츠가 바뀌거나 드랍을 걸면 옛 배분이 그대로 굳었다 — 상한이 조용히 풀려
      초과분이 되살아난다(1건당 6,000엔). 사람 수는 안 변하고 금액만 변하는 상황이 흔하다. */
-  /* 정산포함(AT열)도 스탬프에 넣는다 — 사람이 시트에서 '제외' 로 바꾸면 배분이 통째로 달라진다
+  /* 정산포함도 스탬프에 넣는다 — 사람이 시트에서 '제외' 로 바꾸면 배분이 통째로 달라진다
      (제외자가 비운 자리를 뒤에 올린 사람이 이어받는다). 캐시가 그걸 놓치면 옛 배분이 굳는다. */
   const stamp = state.campaign + '|' + D.filter(inCampaign).filter(isAgency)
     .map(d=> d.id + ':' + platsOn().map(p=> (payableSlot(d,p)?'y':'n') + (uploaded(d,p) ? ((d[p].c1||{}).url||'1') : '0')).join(',')).join(';');
@@ -4206,7 +4207,7 @@ function agencyOverMap(){
   if(quota){
     platsOn().forEach(p=>{
       const q = quota[p]; if(q == null) return;
-      /* ⚠️ 사람이 뺀 자리(AT열)는 줄에서 아예 뺀다. 남겨두면 돈은 안 받으면서 계약 자리를 하나 먹어,
+      /* ⚠️ 사람이 뺀 자리(「정산포함」)는 줄에서 아예 뺀다. 남겨두면 돈은 안 받으면서 계약 자리를 하나 먹어,
          뒤에 올린 멀쩡한 사람이 초과분으로 밀린다 — 총액도 1건(6,000엔)만큼 덜 나온다.
          ⚠️ payable(사람) 이 아니라 payableSlot(자리) 로 본다 — 초과 6명 중 2명은 인스타도
             올렸고 그건 계약 안이라 지급 대상이다. 사람으로 빼면 인스타 21건이 19건이 된다. */
@@ -4557,7 +4558,7 @@ function viewSettle(){
   const cols = [
     { key:'nick', label:'크리에이터', cls:'nick', sv:r=>r.co+'|'+r.nick,
       cell:r=>`${coChip(r.co)} ${nickCell(r)}` },
-    /* ① 줄 것인가 — 사람이 정하는 유일한 제외 수단(마스터시트 AT열).
+    /* ① 줄 것인가 — 사람이 정하는 유일한 제외 수단(마스터시트 「정산포함」 열).
        ⚠️ 자동으로 빠진 자리(실행사 계약 상한·미러링)는 여기서 못 고친다. 섞어 두면
           '포함' 으로 되돌려도 총액이 안 움직이는 조용한 무동작이 된다. 그래서 자동분은
           금액 열의 태그로만 말하고, 이 열은 **사람 판단**만 담는다.
@@ -4649,7 +4650,7 @@ function viewSettle(){
   const total = act.totYen;
   /* 미입금은 **지급 의무가 있는 사람**만 센다. 예전엔 전원(87명)을 세서, 업로드도 안 한
      사람까지 '미입금' 에 들어가 있었다 — 돈을 줘야 할 사람 수를 못 읽는 숫자였다. */
-  /* 정산 제외(AT열)로 정한 사람은 지급 의무가 없다 — '미입금'에 남겨두면 영원히 안 지워지는
+  /* 정산 제외로 정한 사람은 지급 의무가 없다 — '미입금'에 남겨두면 영원히 안 지워지는
      빚처럼 보인다. 총액에서 뺐으면 여기서도 빼야 두 숫자가 같은 말을 한다. */
   const owed = rows.filter(r=> anyUploaded(r) && payable(r));
   const unpaid = owed.filter(r=>!r.settle.paid).length;
@@ -4690,7 +4691,7 @@ function viewSettle(){
   // 정산탭은 하위탭 도구줄이 없다 — 복사 버튼만 표 위에 따로 얹는다.
   return simSection() + kpis + pend + `<div class="bar"><span class="spacer"></span>${copyBtn()}</div>` + renderTable(cols, rows, {tableId:'settle'}) +
     `<div class="note-line">금액 <b>자동계산</b>(마우스 올리면 내역): 콘텐츠당 <b>마루 6,000엔 · 시리아이 5,000엔</b> + 최우수 1만 + 추천 3천×N, <b>3만 cap</b>. 정산 방식은 기프트카드(아마존·구글·애플) 드롭다운. 특별케이스는 편집에서 개별단가 입력(수식 무시).<br>
-      <b>정산포함</b>을 「제외」로 두면 <b>지급에서만</b> 빠져요 — 이미 납품된 콘텐츠와 목표 건수는 그대로예요(마스터시트 <b>AT열</b>에 써집니다). 제외가 개별단가보다 우선이에요.
+      <b>정산포함</b>을 「제외」로 두면 <b>지급에서만</b> 빠져요 — 이미 납품된 콘텐츠와 목표 건수는 그대로예요(마스터시트 <b>「정산포함」</b> 열에 써집니다). 제외가 개별단가보다 우선이에요.
       마루는 <b>건 단위 계약</b>이라 우수 보너스가 없고, 플랫폼별 계약 수량(틱톡 ${nf((cfg().agencyQuota||{}).tk||0)} · 인스타 ${nf((cfg().agencyQuota||{}).ig||0)})까지만 지급돼요.</div>`
     /* 친구추천 — 공식에는 있는데 값이 없으면 '왜 0인지' 를 말해야 한다.
        마스터의 '추천인' 열은 모집 동기화가 응답폼에서 자동 기입하고, '추천 수' 는 시트 수식이
@@ -5284,7 +5285,7 @@ window.addEventListener('resize', ()=>{
    맨 위가 최신. 새 항목을 추가하면 아직 안 본 사람에게 사이드바에 점이 뜬다. */
 const CHANGELOG = [
   { v:'0805', d:'8/5', items:[
-    '정산 탭에 <b>정산포함</b> 열이 생겼어요 — 「제외」로 두면 그 사람은 <b>지급에서만</b> 빠져요. 이미 납품된 콘텐츠와 목표 건수는 그대로예요. 팔로워 미달 4건처럼 「납품은 했는데 돈은 다시 볼 건」을 여기서 정하세요. <b>마스터시트 AT열에 바로 써져요.</b>',
+    '정산 탭에 <b>정산포함</b> 열이 생겼어요 — 「제외」로 두면 그 사람은 <b>지급에서만</b> 빠져요. 이미 납품된 콘텐츠와 목표 건수는 그대로예요. 팔로워 미달 4건처럼 「납품은 했는데 돈은 다시 볼 건」을 여기서 정하세요. <b>마스터시트 「정산포함」 열에 바로 써져요.</b>',
     '<b>납품시트 링크</b>를 달았어요 — 상단 [📄 시트] 메뉴와 납품 탭 위쪽 [📗 납품시트 열기]. 지금 보고 있는 플랫폼 탭으로 바로 열려요.',
     '<b>마진 시뮬</b>이 3단계로 바뀌었어요 — <b>착수 전</b>(계약 수량) · <b>진행 중</b>(확보된 자리) · <b>완료</b>(실제 지급액). 완료 기준의 원가는 정산 탭 금액을 그대로 써서 두 화면이 절대 안 갈려요.',
     '정산 총액이 <b>마루 계약 상한</b>을 제대로 걸어요. 초과분은 납품엔 들어가고 지급만 빠져요(30,000엔이 과다계상되고 있었어요).',
@@ -6153,7 +6154,7 @@ document.getElementById('content').addEventListener('change', e=>{
   if(bt){ const d=D.find(x=>x.id===+bt.dataset.best);
     if(d){ d.settle.best = bt.tagName==='SELECT' ? bt.value==='1' : bt.checked; render(); saveField(d.id,'best', BEST_TEXT(d.settle.best)); }
     return; }
-  /* 정산포함(AT열). 돈이 걸린 칸이라 바꾼 사실을 토스트로 말한다 — 드롭다운은 눌린 티가 잘 안 나서
+  /* 정산포함. 돈이 걸린 칸이라 바꾼 사실을 토스트로 말한다 — 드롭다운은 눌린 티가 잘 안 나서
      '고쳤나?' 하고 한 번 더 고르다 원래대로 돌려놓는 일이 생긴다. */
   const ic=e.target.closest('[data-inc]');
   if(ic){ const d=D.find(x=>x.id===+ic.dataset.inc);
