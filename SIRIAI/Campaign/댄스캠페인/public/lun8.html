@@ -4304,12 +4304,26 @@ function simDefaults(basis){
      '건수 × 단가' 가 맞다 — 다만 그게 추정이라는 걸 화면에 적는다. */
   /* ⚠️ 실제 지급액을 여기 박아 두지 않는다. simResult 가 그릴 때마다 다시 계산한다 —
      박아 두면 최우수를 고르거나 업로드가 늘어도 시뮬만 옛 금액에 멈춘다. */
-  return { basis, maruGeon:g.M, siGeon:g.S, rev:150000, fx:9.3, maruFee, siFee,
+  /* ⚠️ 건수가 **두 가지**다. 예전엔 한 칸이 둘을 겸해서 '마루 37' 이라 적혀 있는데
+     원가는 31건 기준으로 계산됐다 — 화면 숫자를 곱해도 밑의 금액이 안 나온다.
+       delivU   납품 건수  = 매출의 근거 (계약 상한까지만 돈이 된다)
+       maruGeon 마루 정산 건수 · siGeon 시리아이 정산 인원 = 원가의 근거
+     이제 칸마다 하나의 뜻만 갖는다. */
+  const delivU = (g.M||0) + (g.S||0);                        // 올라간 것 전부(납품)
+  const payM = (g.payM!=null) ? g.payM : (g.M||0);           // 실제 지급 대상
+  const payS = (g.payS!=null) ? g.payS : (g.S||0);
+  /* 시리아이 단가는 **실지급 평균**으로 낸다. 사람 단위 묶음가(양쪽 12,000 / 한쪽 5,000)라
+     '인원 × 5,000' 으로는 절대 안 맞는다 — 46명×5,000=230,000 인데 실제는 471,000 이다.
+     평균을 쓰면 화면의 인원 × 단가가 밑의 금액과 딱 맞아, 사람이 눈으로 검산할 수 있다. */
+  const siFeeShown = (basis==='done' && payS>0) ? Math.round(act.siYen / payS) : siFee;
+  return { basis, delivU, maruGeon:payM, siGeon:payS, rev:150000, fx:9.3, maruFee, siFee:siFeeShown,
     bonus: basis==='done' ? 0 : 0,   // 완료는 원가에 이미 포함 · 앞 단계는 아직 정해진 보너스가 없다
     /* 가드닝은 실제 집행액이 있으면 그걸 깐다. 없으면(환율 미수신·주문 없음) 손입력 기본값.
        ⚠️ 0 을 그냥 깔면 안 된다 — '아직 못 읽었다' 와 '진짜 0원' 이 구분되지 않는다. */
     garden: gSpent!=null ? gSpent : 1000000, gardenAuto: gSpent!=null,
-    ops:1000000,
+    /* 운영·인건비 기본 0. 예전엔 100만이 박혀 있었는데 **아무 데서도 안 나오는 숫자**다.
+       가짜 비용을 기본으로 깔면 마진이 실제보다 나빠 보이고, 그걸 근거로 단가를 정하게 된다. */
+    ops:0,
     touched:{} };   // 사람이 손댄 칸 — 실제값을 덮어썼는지 화면이 말할 수 있게
 }
 /* 기준을 바꾸면 건수·보너스만 다시 깔고, 사람이 손으로 고친 단가·환율·부대비용은 유지한다. */
@@ -4338,7 +4352,7 @@ function setBasis(b){
  *    (20초마다 도는 자동 재조회에도 날아간다)
  * 저장하는 것은 **사람이 정하는 값만**이다: 매출단가·환율·부대비용·진행사 단가.
  * 건수와 실제 지급액은 데이터에서 나오므로 절대 저장하지 않는다 — 저장하면 옛 숫자가 굳는다. */
-const SIM_KEEP = ['rev','fx','maruFee','siFee','garden','ops'];
+const SIM_KEEP = ['rev','fx','maruFee','siFee','garden','ops'];   // ⚠️ 건수는 안 넣는다 — 데이터에서 나오는 값이라 저장하면 옛 숫자가 굳는다
 const simKey = ()=> 'lun8.sim.' + state.campaign;
 function simSave(){
   try {
@@ -4364,7 +4378,10 @@ const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const man = n => (Math.round(n/1000)/10).toLocaleString('ko-KR')+'만원';
 function simResult(){
   const s=state.sim;
-  const totU = s.maruGeon+s.siGeon;
+  /* ⚠️ **매출은 납품 건수**에서 나온다. 정산 건수(마루 31 · 시리아이 46명)로 매출을 곱하면
+     안 된다 — 우리가 돈을 못 준 초과분·제외분도 클라이언트에는 넘어갔기 때문이다.
+     예전엔 이 둘이 한 칸이라 '마루 37' 이 화면에 뜨는데 원가는 31 기준이었다. */
+  const totU = Number.isFinite(s.delivU) ? s.delivU : (s.maruGeon + s.siGeon);
   /* 완료 기준이면 **실제 지급액**을 쓴다(정산 탭과 같은 함수가 낸 값).
      시리아이는 사람 단위 묶음가라 '건수 × 단가' 로는 절대 안 맞는다.
      ⚠️ 여기서 반드시 **지금 다시 계산**한다. state.sim 에 박아 두면 최우수를 고르거나
@@ -4462,16 +4479,22 @@ function simSection(){
     ${simHero()}
     <div class="sim-grid">
       <div>
-        <div class="sim-grp">건수 · 매출</div>
-        ${row('maruGeon','마루 콘텐츠', done?(t.maruGeon?'내가 바꾼 값':`납품 ${g.M}건${g.payM!=null&&g.payM!==g.M?` · 지급은 ${g.payM}건`:''}`):'기준값·수정가능','건', true)}
-        ${row('siGeon','시리아이 콘텐츠', done?(t.siGeon?'내가 바꾼 값':`납품 ${g.S}건${g.payS!=null?` · 지급 ${g.payS}명`:''}`):'기준값·수정가능','건', true)}
+        <div class="sim-grp">매출</div>
+        ${/* 매출은 **납품 건수** 에서 나온다. 정산 건수를 여기 두면 우리가 돈을 못 준
+             초과분·제외분이 매출에서도 빠져 매출이 과소평가된다(실측 119 vs 77). */''}
+        ${row('delivU','납품 건수', t.delivU?'<b class="src-hand">내가 넣은 값</b>':`<b class="src-real">실측</b> 상한 ${rr.cap}건까지 매출`,'건', true)}
         ${row('rev','업로드당 매출','PI 정산','원')}
         ${row('fx','환율','1엔 = ? 원','원')}
       </div>
       <div>
         <div class="sim-grp">원가 · 부대비용</div>
-        ${row('maruFee','마루 원고료', done?(t.maruFee||t.maruGeon?'추정 계산중':'실제 지급액 사용'):'콘텐츠당','엔', true)}
-        ${row('siFee','시리아이 원고료', done?(t.siFee||t.siGeon?'추정 계산중':'실제 지급액 사용'):'콘텐츠당','엔', true)}
+        ${/* 여기는 **정산 대상만**. 납품 37건이 아니라 실제로 돈을 주는 31건이다.
+             시리아이 단가는 실지급 평균 — 묶음가(양쪽 12,000/한쪽 5,000)라 '인원×5,000' 으로는
+             절대 안 맞는다. 평균을 쓰면 인원 × 단가가 밑의 금액과 딱 맞아 눈으로 검산된다. */''}
+        ${row('maruGeon','마루 정산 건수', done?(t.maruGeon?'<b class="src-hand">내가 넣은 값</b>':`<b class="src-real">실측</b> 지급 대상${g.overM?` · 초과 ${g.overM}건 제외됨`:''}`):'기준값·수정가능','건', true)}
+        ${row('maruFee','마루 원고료', done?(t.maruFee||t.maruGeon?'추정 계산중':'<b class="src-real">실측</b> 건당'):'콘텐츠당','엔', true)}
+        ${row('siGeon','시리아이 정산 인원', done?(t.siGeon?'<b class="src-hand">내가 넣은 값</b>':'<b class="src-real">실측</b> 지급 대상'):'기준값·수정가능','명', true)}
+        ${row('siFee','시리아이 원고료', done?(t.siFee||t.siGeon?'추정 계산중':'<b class="src-real">실지급 평균</b> 1인당'):'콘텐츠당','엔', true)}
         ${(done && !t.siGeon && !t.siFee)
           ? `<div class="sim-ctl off"><label>추천·우수 보너스<small>원고료에 이미 포함</small></label><span><b>${nf(simResult().bonusNote)}</b><span class="cmuted" style="margin-left:6px">엔</span></span></div>`
           : row('bonus','추천·우수 보너스','시리아이 총액','엔')}
@@ -6160,7 +6183,7 @@ document.getElementById('content').addEventListener('input', e=>{
   /* 손댄 칸을 기록한다 — 완료 기준에서 이 칸들은 실제 지급액 대신 '건수×단가' 추정으로 넘어간다.
      ⚠️ 여기서 render() 를 부르면 안 된다(입력 중 포커스가 날아간다). 배지는 다음 렌더에 붙고,
         숫자는 updateSim 이 즉시 다시 계산한다. */
-  if(['maruGeon','siGeon','maruFee','siFee','garden','rev','fx','ops'].includes(k)){
+  if(['delivU','maruGeon','siGeon','maruFee','siFee','garden','rev','fx','ops'].includes(k)){
     state.sim.touched = state.sim.touched || {};
     state.sim.touched[k] = true;
   }
