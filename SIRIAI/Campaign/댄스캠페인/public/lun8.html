@@ -335,10 +335,20 @@ textarea.inp:focus { height: 100px; }
 .rev-sel.rev-pass { background: var(--ok-bg); color: var(--ok-ink); border-color: var(--ok-bg); }
 .rev-sel.rev-fail { background: var(--needs-bg); color: var(--needs-ink); border-color: var(--needs-bg); }
 .rev-sel.rev-none { background: var(--gray-bg); color: var(--gray-ink); border-color: var(--gray-bg); }
-/* 정산 제외 — 켜졌을 때만 색이 붙는다. '포함'은 기본값이라 조용해야 한다(87행이 전부 빨개지면 못 읽는다).
-   전부 제외(off)와 한쪽만 제외(part)는 무게가 달라서 색도 다르게 한다. */
+/* 정산 탭 드롭다운 — **업로드 탭 검수와 같은 규칙**으로 칠한다.
+   ⚠️ 예전엔 '제외' 에만 색을 넣고 기본값(포함)은 흰색으로 뒀다. 검수 열은 준수까지 초록으로
+      칠하는데 여기만 무색이라, 같은 화면 안에 규칙이 두 벌이 됐다 — 87행을 훑으면서
+      '이 사람 확인한 건가 안 한 건가' 를 색으로 못 읽는다. 상태는 전부 색을 갖는다.
+        포함 = 초록(줄 사람)  ·  일부 제외 = 주황(반만)  ·  전부 제외 = 빨강(안 줌) */
+.rev-sel.inc { background: var(--ok-bg); color: var(--ok-ink); border-color: var(--ok-bg); }
+.rev-sel.inc.part { background: var(--warn-bg); color: var(--warn-ink); border-color: var(--warn-bg); }
 .rev-sel.inc.off { background: var(--needs-bg); color: var(--needs-ink); border-color: var(--needs-bg); }
-.rev-sel.inc.part { background: var(--warn-bg, var(--gray-bg)); color: var(--warn, var(--needs-ink)); border-color: var(--warn-bg, var(--gray-bg)); }
+/* 우수 선정 — 고르면 금색, 아직 안 고른 건 회색(검수의 '미확인' 과 같은 뜻이다). */
+.rev-sel.best { background: var(--gray-bg); color: var(--gray-ink); border-color: var(--gray-bg); }
+.rev-sel.best.on { background: var(--warn-bg); color: var(--warn-ink); border-color: var(--warn); font-weight:800; }
+/* 정산 방식 — 정하면 초록, 미정은 회색. 미정인 채로 지급일이 오면 송금을 못 한다. */
+.pay-sel.set { background: var(--ok-bg); color: var(--ok-ink); border-color: var(--ok-bg); }
+.pay-sel.unset { background: var(--gray-bg); color: var(--gray-ink); border-color: var(--gray-bg); }
 tr:has(.rev-sel.inc.off) .amt { opacity:.5; text-decoration: line-through; }
 /* 참여 열 — 플랫폼 알약 + 몇 건 지급인지. 지급에서 빠진 자리는 흐리게 + 사유를 달아 둔다. */
 .geoncell { display:flex; flex-wrap:wrap; align-items:center; gap:4px; }
@@ -746,6 +756,12 @@ select.selc-v.sel-todo { background:var(--card);     color:var(--muted);     bor
 .sim-ctl label small { color:var(--faint); font-size:12px; margin-left:4px; }
 .sim-in { width:120px; background:var(--card); border:1.5px solid var(--line); color:var(--ink); font-family:var(--sans); font-size:14px; font-weight:600; text-align:right; padding:7px 10px; border-radius:9px; outline:none; font-variant-numeric:tabular-nums; }
 .sim-in:focus { border-color:var(--accent); }
+/* 숫자의 출처를 라벨에 박는다 — 실측인지, 내가 넣은 값인지, 그냥 박아 둔 가정인지.
+   섞여 있으면 마진율이 사실처럼 읽힌다(운영비 100만↔300만이면 54.5%↔42.9%다). */
+.src-real  { color:var(--ok-ink); font-weight:800; }
+.src-hand  { color:var(--accent); font-weight:800; }
+.src-guess { color:var(--warn-ink); font-weight:800; }
+.sim-ctl label small .src-guess::after { content:' ⚠'; }
 /* 내가 바꾼 칸 — 실제값이 아니라 가정이라는 걸 칸에서 바로 알아야 한다. */
 .sim-ctl.edited .sim-in { border-color:var(--warn, var(--gold)); background:var(--warn-bg, transparent); }
 .sim-ctl.edited label small { color:var(--warn, var(--gold)); font-weight:700; }
@@ -4302,18 +4318,48 @@ function setBasis(b){
   const d = simDefaults(b);
   /* 사람이 고친 값(단가·환율·부대비용)만 유지한다. 건수와 실제 지급액은 기준이 바뀌면
      반드시 새로 깔아야 한다 — 안 그러면 '완료'의 실제 금액이 '착수 전' 화면에 남는다. */
-  state.sim = Object.assign(d, { rev:keep.rev ?? d.rev, fx:keep.fx ?? d.fx,
-    maruFee:keep.maruFee ?? d.maruFee, siFee:keep.siFee ?? d.siFee,
-    garden:keep.garden ?? d.garden, ops:keep.ops ?? d.ops,
-    /* 기준을 바꾸면 '손댔다' 표시는 지운다 — 새 기준의 실제값을 봐야 하는데
-       옛 기준에서 손댄 흔적이 남아 추정으로 굳어 버리면 이유 없이 숫자가 다르다. */
-    touched:{} });
+  /* 기준을 바꾸면 건수·실제 지급액은 새로 깔고, **사람이 정한 값은 지키다.**
+     ⚠️ 여기서 touched 를 통째로 비우면 안 된다. [실제값으로 되돌리기] 도 이 함수를 타는데,
+        그러면 대표님이 넣어 둔 운영비까지 100만 가정으로 되돌아간다(저장본도 같이 날아간다).
+        되돌릴 것은 what-if 로 만진 **건수·단가**뿐이다. */
+  const saved = simLoad();
+  d.touched = {};
+  SIM_KEEP.forEach(k=>{
+    if(Number.isFinite(saved[k])){ d[k] = saved[k]; d.touched[k] = true; }
+    else if(Number.isFinite(keep[k]) && keep.touched && keep.touched[k]){ d[k] = keep[k]; d.touched[k] = true; }
+  });
+  state.sim = d;
   render();
 }
+/* 사람이 손으로 넣는 값은 **저장한다.** 캠페인마다 따로.
+ *
+ * ⚠️ 예전엔 메모리에만 있었다. 운영비를 300만으로 고쳐도 새로고침하면 100만으로 되돌아간다 —
+ *    고친 줄 알고 그 화면으로 마진을 판단하는데, 다음에 열면 다시 거짓말을 한다.
+ *    (20초마다 도는 자동 재조회에도 날아간다)
+ * 저장하는 것은 **사람이 정하는 값만**이다: 매출단가·환율·부대비용·진행사 단가.
+ * 건수와 실제 지급액은 데이터에서 나오므로 절대 저장하지 않는다 — 저장하면 옛 숫자가 굳는다. */
+const SIM_KEEP = ['rev','fx','maruFee','siFee','garden','ops'];
+const simKey = ()=> 'lun8.sim.' + state.campaign;
+function simSave(){
+  try {
+    const s = state.sim; if(!s) return;
+    const out = {};
+    SIM_KEEP.forEach(k=>{ if(s.touched && s.touched[k]) out[k] = s[k]; });
+    localStorage.setItem(simKey(), JSON.stringify(out));
+  } catch {}
+}
+function simLoad(){ try { return JSON.parse(localStorage.getItem(simKey()) || '{}') || {}; } catch { return {}; } }
 /* 기준을 사람이 안 골랐으면 **캠페인 단계로 자동 판정**한다.
    ⚠️ 예전엔 무조건 'done' 이었다 — 아직 진행 중인 캠페인을 열어도 '완료' 라고 적혀
       아직 안 올라온 사람 몫이 빠진 금액을 최종값으로 착각하게 만든다. */
-function ensureSim(){ if(!state.sim || state.simCampaign!==state.campaign){ state.sim=simDefaults(autoBasis()); state.simCampaign=state.campaign; } }
+function ensureSim(){
+  if(state.sim && state.simCampaign===state.campaign) return;
+  const d = simDefaults(autoBasis());
+  const saved = simLoad();
+  d.touched = d.touched || {};
+  SIM_KEEP.forEach(k=>{ if(Number.isFinite(saved[k])){ d[k] = saved[k]; d.touched[k] = true; } });
+  state.sim = d; state.simCampaign = state.campaign;
+}
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const man = n => (Math.round(n/1000)/10).toLocaleString('ko-KR')+'만원';
 function simResult(){
@@ -4429,8 +4475,11 @@ function simSection(){
         ${(done && !t.siGeon && !t.siFee)
           ? `<div class="sim-ctl off"><label>추천·우수 보너스<small>원고료에 이미 포함</small></label><span><b>${nf(simResult().bonusNote)}</b><span class="cmuted" style="margin-left:6px">엔</span></span></div>`
           : row('bonus','추천·우수 보너스','시리아이 총액','엔')}
-        ${row('garden','가드닝 지출', s.gardenAuto && !t.garden ? '가드닝 탭 실제 집행액' : '내가 넣은 값','원')}
-        ${row('ops','운영·인건비','1개월','원')}
+        ${row('garden','가드닝 지출', s.gardenAuto && !t.garden ? '<b class="src-real">실측</b> 가드닝 탭 집행액' : '<b class="src-hand">내가 넣은 값</b>','원')}
+        ${/* ⚠️ 운영·인건비는 **아무 데서도 안 나온다.** 100만은 그냥 박아 둔 가정이고, 이 값이
+             마진율을 통째로 흔든다(100만↔300만이면 54.5%↔42.9%). 실측인 척하면 안 된다.
+             한 번 넣으면 이 캠페인에 저장된다(simSave). */''}
+        ${row('ops','운영·인건비', t.ops ? '<b class="src-hand">내가 넣은 값</b> · 저장됨' : '<b class="src-guess">가정</b> 실제 값으로 바꿔주세요','원')}
       </div>
     </div>
     ${done && (t.maruGeon||t.siGeon||t.maruFee||t.siFee) ? `<div class="sim-warn">
@@ -4560,7 +4609,7 @@ function viewSettle(){
         [['','미선정'],['1','우수 ★ +1만']].map(([v,l])=>`<option value="${v}"${(r.settle.best?'1':'')===v?' selected':''}>${l}</option>`).join('')
       }</select>` },
     /* ⑥ 어떻게 줄 것인가 */
-    { key:'pay', label:'정산 방식', sv:r=>r.settle.pay, cell:r=>`<select class="pay-sel" data-pay="${r.id}"><option value=""${r.settle.pay?'':' selected'}>미정</option>${PAY_OPTS.map(o=>`<option${o===r.settle.pay?' selected':''}>${o}</option>`).join('')}</select>` },
+    { key:'pay', label:'정산 방식', sv:r=>r.settle.pay, cell:r=>`<select class="pay-sel ${r.settle.pay?'set':'unset'}" data-pay="${r.id}"><option value=""${r.settle.pay?'':' selected'}>미정</option>${PAY_OPTS.map(o=>`<option${o===r.settle.pay?' selected':''}>${o}</option>`).join('')}</select>` },
     /* ⑦ 줬는가 — 입금 여부와 입금일은 같은 사실의 두 면이라 한 칸에 둔다.
        따로 두면 '입금' 인데 날짜가 빈 행이 생겨 언제 줬는지 영영 모른다. */
     { key:'paid', label:'입금', sv:r=>(r.settle.paid?1:0)*1000 + (r.paidDate?1:0), cell:r=>
@@ -6111,10 +6160,11 @@ document.getElementById('content').addEventListener('input', e=>{
   /* 손댄 칸을 기록한다 — 완료 기준에서 이 칸들은 실제 지급액 대신 '건수×단가' 추정으로 넘어간다.
      ⚠️ 여기서 render() 를 부르면 안 된다(입력 중 포커스가 날아간다). 배지는 다음 렌더에 붙고,
         숫자는 updateSim 이 즉시 다시 계산한다. */
-  if(['maruGeon','siGeon','maruFee','siFee','garden'].includes(k)){
+  if(['maruGeon','siGeon','maruFee','siFee','garden','rev','fx','ops'].includes(k)){
     state.sim.touched = state.sim.touched || {};
     state.sim.touched[k] = true;
   }
+  simSave();     // 손으로 넣은 값은 남는다 — 새로고침하면 되돌아가던 것
   updateSim();
 });
 
