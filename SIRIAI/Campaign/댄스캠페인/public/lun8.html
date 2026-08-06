@@ -4135,6 +4135,11 @@ function settleActual(){
   /* 정산 제외 건수 — 화면이 '왜 총액이 줄었나' 를 말할 수 있어야 한다.
      제외를 조용히 빼면 어제 맞던 숫자가 오늘 이유 없이 달라진 것처럼 보인다. */
   let exclPeople = 0, exclGeon = 0;
+  /* 시리아이 원고료 구성. 사람마다 규칙이 달라 **하나의 단가로 못 쪼갠다** —
+     양쪽 12,000 / 한쪽 5,000 / 미러링은 같은 영상이라 1건(5,000). 화면이 이 구성을 그대로 적어야
+     대표님이 총액을 눈으로 검산할 수 있다. (평균단가를 만들어 보여줬더니 계약에 없는
+      10,239엔 같은 숫자가 화면에 떠서 오히려 혼란을 만들었다) */
+  let siBoth = 0, siOne = 0, siMir = 0;
   const mUp = {}; platsOn().forEach(p=> mUp[p] = 0);
   inC.forEach(d=>{
     const upAll = platsOn().filter(p=> uploaded(d,p));      // 올라온 자리 전부(납품 기준)
@@ -4147,6 +4152,7 @@ function settleActual(){
     if(!ups) return;
     if(isAgency(d)){ upAll.forEach(p=>{ if(payableSlot(d,p)) mUp[p]++; }); return; }
     siPeople++;
+    if(isMirrored(d)) siMir++; else if(ups >= 2) siBoth++; else siOne++;
     const amt = settleCalc(d).amt;
     siYen += amt;
     /* 보너스 '표시값' — ⚠️ 원값을 그대로 쌓으면 안 된다. 개별단가가 있으면 자동 계산이 통째로
@@ -4182,7 +4188,7 @@ function settleActual(){
      표는 settleCalc(미러링 1건 규칙 포함)을 쓰고 있어 6,000엔이 갈렸다.
      표의 행을 다 더하면 총액이 나와야 한다 — 사람이 검산하는 방식이 그것이다. */
   const mYen = inC.filter(isAgency).reduce((a,d)=> a + agencyPay(d), 0);
-  return { siYen, siPeople, refYen, bestYen, mUp, mGeon, mOver, mYen, totYen: siYen+mYen,
+  return { siYen, siPeople, siBoth, siOne, siMir, refYen, bestYen, mUp, mGeon, mOver, mYen, totYen: siYen+mYen,
            exclPeople, exclGeon };
 }
 
@@ -4313,11 +4319,14 @@ function simDefaults(basis){
   const delivU = (g.M||0) + (g.S||0);                        // 올라간 것 전부(납품)
   const payM = (g.payM!=null) ? g.payM : (g.M||0);           // 실제 지급 대상
   const payS = (g.payS!=null) ? g.payS : (g.S||0);
-  /* 시리아이 단가는 **실지급 평균**으로 낸다. 사람 단위 묶음가(양쪽 12,000 / 한쪽 5,000)라
-     '인원 × 5,000' 으로는 절대 안 맞는다 — 46명×5,000=230,000 인데 실제는 471,000 이다.
-     평균을 쓰면 화면의 인원 × 단가가 밑의 금액과 딱 맞아, 사람이 눈으로 검산할 수 있다. */
-  const siFeeShown = (basis==='done' && payS>0) ? Math.round(act.siYen / payS) : siFee;
-  return { basis, delivU, maruGeon:payM, siGeon:payS, rev:150000, fx:9.3, maruFee, siFee:siFeeShown,
+  /* ⚠️ 시리아이는 **단가로 표현할 수 없다.** 사람마다 규칙이 다르다(양쪽 12,000 / 한쪽 5,000 /
+     미러링 1건). 46명 × 5,000 = 230,000 인데 실제는 471,000 이다.
+     한때 평균(471,000÷46=10,239)을 단가처럼 보여줬는데, **계약에 없는 숫자**라 대표님이
+     '이게 왜 10,239지?' 하고 걸렸다 — 검산하라고 만든 숫자가 오히려 의심을 만들었다.
+     → 완료 기준에서는 시리아이 원고료 칸을 **합계**로 둔다. 구성은 라벨에 그대로 적는다.
+       마루는 진짜 건 단위(6,000/건)라 그대로 단가로 둔다. 회사마다 계약이 다르니 화면도 다르다. */
+  const siShown = (basis==='done') ? act.siYen : siFee;
+  return { basis, delivU, maruGeon:payM, siGeon:payS, rev:150000, fx:9.3, maruFee, siFee:siShown,
     bonus: basis==='done' ? 0 : 0,   // 완료는 원가에 이미 포함 · 앞 단계는 아직 정해진 보너스가 없다
     /* 가드닝은 실제 집행액이 있으면 그걸 깐다. 없으면(환율 미수신·주문 없음) 손입력 기본값.
        ⚠️ 0 을 그냥 깔면 안 된다 — '아직 못 읽었다' 와 '진짜 0원' 이 구분되지 않는다. */
@@ -4401,10 +4410,13 @@ function simResult(){
   const freeU = totU - billU;                       // 납품은 했는데 돈은 못 받는 건수
   const revenue = billU * s.rev;
   const exact = (s.basis === 'done') ? settleActual() : null;
-  const useM = exact && !t.maruGeon && !t.maruFee;   // 마루: 안 손댔으면 실제 지급액
-  const useS = exact && !t.siGeon   && !t.siFee;
-  const maruCost = (useM ? exact.mYen : s.maruGeon*s.maruFee) * s.fx;
-  const siCost   = (useS ? exact.siYen : s.siGeon*s.siFee)    * s.fx;
+  /* 마루는 진짜 건 단위 계약이라 **건수 × 단가** 가 정확히 실제 지급액과 같다(31 × 6,000 = 186,000).
+     시리아이는 사람마다 규칙이 달라 단가로 못 쪼갠다 → 완료 기준에선 siFee 가 **합계**다.
+     ⚠️ 손 안 댄 칸은 여기서 **매번 다시 계산**한다. 박아 두면 최우수를 고를 때 시뮬만
+        옛 금액에 멈춘다(실측: 최우수 3명 = +30,000 이 시뮬에 안 붙던 사고). */
+  const siTot   = (exact && !t.siFee) ? exact.siYen : s.siFee;
+  const maruCost = (exact && !t.maruGeon && !t.maruFee ? exact.mYen : s.maruGeon*s.maruFee) * s.fx;
+  const siCost   = (exact ? siTot : s.siGeon*s.siFee) * s.fx;
   /* ⚠️ 보너스를 따로 더하면 **두 번 센다** — settleCalc 이 이미 최우수·추천을 amt 에 넣었고
      siYen 은 그 합이다. 완료 기준에서는 0 으로 두고, 내역 표시용으로만 값을 들고 있는다. */
   const bonusYen = exact ? 0 : (s.bonus || 0);
@@ -4413,7 +4425,7 @@ function simResult(){
   const cost = maruCost+siCost+bonus+s.garden+s.ops;
   const net = revenue-cost;
   const pct = revenue>0? net/revenue*100 : 0;
-  return { totU, billU, freeU, cap, revenue, maruCost, siCost, bonus, bonusNote, inCost: !!exact, cost, net, pct };
+  return { totU, billU, freeU, cap, revenue, maruCost, siCost, siTot, bonus, bonusNote, inCost: !!exact, cost, net, pct };
 }
 function simSection(){
   ensureSim();
@@ -4443,10 +4455,15 @@ function simSection(){
      실제 지급액 그대로다. 무엇이 실제이고 무엇이 내가 바꾼 값인지 칸마다 적는다. */
   const t = s.touched || {};
   const done = (s.basis === 'done');
-  const row=(k,lab,small,unit,est)=>{
+  /* val 을 주면 그 값을 보여준다.
+     ⚠️ 실측값은 state 가 아니라 **매번 다시 계산된 값**이라, 칸에 s[k] 를 그리면 뒤처진다 —
+        최우수를 고르면 총액은 687,000 으로 가는데 시리아이 합계 칸은 471,000 에 멈춰
+        같은 화면이 두 말을 했다. 손 안 댄 칸은 계산값을, 손댄 칸은 사람이 넣은 값을 보여준다. */
+  const row=(k,lab,small,unit,est,val)=>{
     const edited = done && est && t[k];
+    const shown = (val!=null && !t[k]) ? val : s[k];
     return `<div class="sim-ctl${edited?' edited':''}"><label>${lab}${small?`<small>${small}</small>`:''}</label>`
-      + `<span><input type="number" class="sim-in" data-k="${k}" value="${s[k]}">`
+      + `<span><input type="number" class="sim-in" data-k="${k}" value="${shown}">`
       + `<span class="cmuted" style="margin-left:6px">${unit}</span></span></div>`;
   };
   const cur = s.basis || autoBasis();
@@ -4474,6 +4491,8 @@ function simSection(){
     ${g.overM?`마루 <b>${g.overM}건</b>은 계약 상한을 넘겨 납품엔 들어가고 지급만 빠졌어요. `:''}
     ${g.excl?`정산 제외로 뺀 자리 <b>${g.excl}건</b>.`:''}
   </div>` : '';
+  /* 라벨에서 쓸 실측 스냅샷. settleActual 은 전 인원을 훑으므로 라벨마다 부르면 낭비다. */
+  const a2 = done ? settleActual() : {};
   const body = `<div class="sim-body">
     ${basisBar}
     ${gapNote}
@@ -4489,15 +4508,25 @@ function simSection(){
       </div>
       <div>
         <div class="sim-grp">원가 · 부대비용</div>
-        ${/* 여기는 **정산 대상만**. 납품 37건이 아니라 실제로 돈을 주는 31건이다.
-             시리아이 단가는 실지급 평균 — 묶음가(양쪽 12,000/한쪽 5,000)라 '인원×5,000' 으로는
-             절대 안 맞는다. 평균을 쓰면 인원 × 단가가 밑의 금액과 딱 맞아 눈으로 검산된다. */''}
+        ${/* 여기는 **정산 대상만** — 납품 건수가 아니라 실제로 돈을 주는 수다.
+             ⚠️ 두 회사를 같은 모양으로 그리면 안 된다. 계약이 다르다:
+               마루   건 단위 6,000 → 건수 × 단가가 실제 지급액과 **정확히** 같다(31×6,000=186,000)
+               시리아이 사람 단위(양쪽 12,000 / 한쪽 5,000 / 미러링 1건) → **단가로 못 쪼갠다.**
+                      한때 평균(471,000÷46=10,239)을 단가처럼 보여줬다가 '계약에 없는 숫자'
+                      라는 지적을 받았다. 완료 기준에선 **합계**로 두고 구성을 라벨에 적는다. */''}
         ${row('maruGeon','마루 정산 건수', done?(t.maruGeon?'<b class="src-hand">내가 넣은 값</b>':`<b class="src-real">실측</b> 지급 대상${g.overM?` · 초과 ${g.overM}건 제외됨`:''}`):'기준값·수정가능','건', true)}
-        ${row('maruFee','마루 원고료', done?(t.maruFee||t.maruGeon?'추정 계산중':'<b class="src-real">실측</b> 건당'):'콘텐츠당','엔', true)}
-        ${row('siGeon','시리아이 정산 인원', done?(t.siGeon?'<b class="src-hand">내가 넣은 값</b>':'<b class="src-real">실측</b> 지급 대상'):'기준값·수정가능','명', true)}
-        ${row('siFee','시리아이 원고료', done?(t.siFee||t.siGeon?'추정 계산중':'<b class="src-real">실지급 평균</b> 1인당'):'콘텐츠당','엔', true)}
-        ${(done && !t.siGeon && !t.siFee)
-          ? `<div class="sim-ctl off"><label>추천·우수 보너스<small>원고료에 이미 포함</small></label><span><b>${nf(simResult().bonusNote)}</b><span class="cmuted" style="margin-left:6px">엔</span></span></div>`
+        ${row('maruFee','마루 원고료', done?(t.maruFee||t.maruGeon?'<b class="src-hand">내가 넣은 값</b>':'<b class="src-real">실측</b> 건당'):'콘텐츠당','엔', true)}
+        ${done
+          ? row('siFee','시리아이 원고료 <b>합계</b>',
+              t.siFee ? '<b class="src-hand">내가 넣은 값</b>'
+                      : `<b class="src-real">실측</b> ${a2.siPeople}명 — 양쪽 ${a2.siBoth}×12,000` +
+                        (a2.siOne?` · 한쪽 ${a2.siOne}×5,000`:'') + (a2.siMir?` · 미러링 ${a2.siMir}×5,000`:'') +
+                        (a2.refYen||a2.bestYen ? ` + 보너스 ${nf(a2.refYen+a2.bestYen)}` : ''),
+              '엔', true, a2.siYen)
+          : row('siGeon','시리아이 콘텐츠','기준값·수정가능','건', true) +
+            row('siFee','시리아이 원고료','콘텐츠당','엔', true)}
+        ${done
+          ? `<div class="sim-ctl off"><label>추천·우수 보너스<small>위 합계에 <b>이미 포함</b>${a2.bestYen?'':' · 최우수 미선정'}</small></label><span><b>${nf(a2.refYen + a2.bestYen)}</b><span class="cmuted" style="margin-left:6px">엔</span></span></div>`
           : row('bonus','추천·우수 보너스','시리아이 총액','엔')}
         ${row('garden','가드닝 지출', s.gardenAuto && !t.garden ? '<b class="src-real">실측</b> 가드닝 탭 집행액' : '<b class="src-hand">내가 넣은 값</b>','원')}
         ${/* ⚠️ 운영·인건비는 **아무 데서도 안 나온다.** 100만은 그냥 박아 둔 가정이고, 이 값이
