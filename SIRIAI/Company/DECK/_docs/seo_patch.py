@@ -26,6 +26,15 @@ import sys
 TITLE = "사업소개 | SIRIAI — 인플루언서 마케팅 · 셀러브리티 · 브랜딩"
 CANONICAL = "https://siriai.co.kr/business"
 
+# 페이지가 반드시 들르는 외부 서버들. (호스트, crossorigin 필요 여부)
+# 폰트 파일은 crossorigin 으로 받으므로 그 표시가 없으면 연결이 재사용되지 않는다.
+PRECONNECT = [
+    ("https://cdn.jsdelivr.net", True),  # Pretendard
+    ("https://fonts.googleapis.com", False),  # Arimo CSS
+    ("https://fonts.gstatic.com", True),  # 실제 폰트 파일
+    ("https://script.google.com", False),  # 미팅 예약 조회
+]
+
 # 형제 페이지(포트폴리오) 링크를 절대주소 → 상대경로로 바꾸는 기능.
 #
 # ⛔ 현재 꺼둠 (2026-08-04) — 포트폴리오 쪽이 롤백됐고 아직 준비 안 됨.
@@ -78,6 +87,21 @@ def patch(html):
             html, ok = _insert_after_charset(html, tag)
         done.append(
             ("canonical: 추가 — " + CANONICAL) if ok else "⚠ canonical: <head> 를 못 찾음"
+        )
+
+    # 2-b. preconnect — 외부 서버에 미리 연결해둔다
+    # 폰트와 예약 조회는 다른 서버에서 온다. 브라우저는 그 주소를 만나고 나서야
+    # DNS 조회 → TCP → TLS 를 시작하는데, 미리 해두면 그 대기시간이 사라진다.
+    if re.search(r'rel=["\']?preconnect', html, re.I):
+        done.append("preconnect: 이미 있음 — 건너뜀")
+    else:
+        tags = "".join(
+            '\n  <link rel="preconnect" href="%s"%s>' % (h, " crossorigin" if co else "")
+            for h, co in PRECONNECT
+        )
+        html, ok = _insert_after_charset(html, tags)
+        done.append(
+            ("preconnect: %d곳 추가" % len(PRECONNECT)) if ok else "⚠ preconnect: <head> 를 못 찾음"
         )
 
     # 3. 형제 페이지 링크 — 절대주소를 상대경로로 (현재 꺼져 있음)

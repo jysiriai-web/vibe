@@ -42,7 +42,15 @@ SIRIAI 사업소개 산출물 폴더. 두 갈래입니다 — **① 챗봇형 �
 순서:
 1. zip 압축 풀기 → `deploy/`
 2. **`python _docs/seo_patch.py deploy/index.html`**  ← 빠뜨리면 SEO 태그가 사라진다
-3. `vercel deploy --prod --yes`
+3. **`python _docs/optimize_assets.py deploy`**  ← 빠뜨리면 36MB 그대로 나간다
+4. `vercel deploy --prod --yes`
+
+**3번이 하는 일** — 클디가 내보내는 이미지는 2000~2750px 원본 PNG 라 다섯 장이 28MB다.
+해상도는 그대로 두고 WebP 고품질로만 다시 인코딩해 **36MB → 9MB** 로 줄인다.
+변환할 때마다 원본과 화질을 실제로 비교(PSNR)해서 기준(38dB) 미달이면 그 파일은 원본을 남긴다.
+이미 압축된 JPG 는 다시 인코딩하면 손해라 자동으로 걸러진다.
+같은 스크립트가 React 도 `_docs/vendor/` 의 사본으로 자체 호스팅한다 — support.js 의 SRI 해시를
+먼저 대조하고 일치할 때만 바꾸므로, 어긋나면 unpkg 를 그대로 쓰고 화면이 비는 일은 없다.
 
 **2번이 왜 필요한가** — `index.html`은 클디가 매번 새로 내보내는 산출물이라,
 siriai.co.kr 통합 SEO 태그(`<title>` · `canonical`)를 손으로 넣어두면
