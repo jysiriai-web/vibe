@@ -4095,9 +4095,21 @@ function settleCalc(d){
   if(!payable(d)) return { amt:0, tag:['excl','정산 제외'],
     bd:`마스터시트 「정산포함」 = 제외 — 납품은 그대로, 지급만 안 합니다`
        + (s.override!=null?`\n※ 개별단가 ${nf(s.override)}엔이 적혀 있지만 제외가 이깁니다.`:''), dc:0, mir, cut:live };
-  if(s.override!=null) return { amt:s.override, tag:['ovr','특별'],
-    bd:`개별단가(자동수식 무시): ${nf(s.override)}엔` + (mir?' · 미러링 건':'')
-       + (cut.length?`\n※ ${cut.map(pName).join('·')} 자리를 뺐지만 개별단가가 그대로 적용됩니다.`:''), dc, mir, cut };
+  /* 개별단가 = **그 사람의 원고료**를 사람이 직접 정한 값이다.
+     ⚠️ 예전엔 이게 있으면 최우수·추천까지 통째로 무시했다. 그러면 마스터시트에 인당 금액을
+        적어 두는 순간, 나중에 최우수를 골라도 1엔도 안 오른다 — 조용한 무동작이다.
+        원고료만 대체하고 **보너스는 그 위에 더한다.** 3만 상한은 그대로. */
+  if(s.override!=null){
+    const bO = s.best?10000:0, rO = (d.refCount||0)*3000;
+    const rawO = s.override + bO + rO;
+    const parts=[`개별단가 ${nf(s.override)}`];
+    if(bO) parts.push(`최우수 +${nf(bO)}`);
+    if(rO) parts.push(`추천 ${d.refCount}×3,000 +${nf(rO)}`);
+    return { amt: Math.min(rawO, 30000), tag:['ovr','개별단가'],
+      bd: parts.join('  ·  ') + ` = ${nf(rawO)}` + (rawO>30000?' → 3만 cap':'')
+         + (mir?'\n※ 미러링 건':'')
+         + (cut.length?`\n※ ${cut.map(pName).join('·')} 자리를 뺐지만 개별단가가 우선입니다.`:''), dc, mir, cut };
+  }
   // 미러링은 같은 영상이라 콘텐츠로는 1건 — 자동값은 1건 기준으로 낸다.
   const payDc = mir ? Math.min(dc,1) : dc;
   /* 양쪽 묶음가는 그 진행사에 feeBoth 가 있을 때만 — 실행사는 보통 건당 정산이라 없다. */
@@ -4134,7 +4146,7 @@ function settleActual(){
   let siYen = 0, siPeople = 0, refYen = 0, bestYen = 0;
   /* 정산 제외 건수 — 화면이 '왜 총액이 줄었나' 를 말할 수 있어야 한다.
      제외를 조용히 빼면 어제 맞던 숫자가 오늘 이유 없이 달라진 것처럼 보인다. */
-  let exclPeople = 0, exclGeon = 0;
+  let exclPeople = 0, exclGeon = 0, mFix = 0;   // mFix = 개별단가로 확정된 실행사 건수
   /* 시리아이 원고료 구성. 사람마다 규칙이 달라 **하나의 단가로 못 쪼갠다** —
      양쪽 12,000 / 한쪽 5,000 / 미러링은 같은 영상이라 1건(5,000). 화면이 이 구성을 그대로 적어야
      대표님이 총액을 눈으로 검산할 수 있다. (평균단가를 만들어 보여줬더니 계약에 없는
@@ -4150,7 +4162,13 @@ function settleActual(){
     const cutN = upAll.length - ups;
     if(cutN){ exclGeon += cutN; if(!ups) exclPeople++; }
     if(!ups) return;
-    if(isAgency(d)){ upAll.forEach(p=>{ if(payableSlot(d,p)) mUp[p]++; }); return; }
+    if(isAgency(d)){
+      /* 개별단가가 적힌 사람은 상한 줄에 안 선다(agencyOverMap 과 같은 규칙).
+         대신 금액을 단가로 나눠 **건수만** 따로 센다 — 화면의 '마루 N건' 이 지급액과 맞아야 한다. */
+      const ov = d.settle && d.settle.override;
+      if(ov != null){ const f = feeOf(d.co) || 1; mFix += Math.round(ov / f); return; }
+      upAll.forEach(p=>{ if(payableSlot(d,p)) mUp[p]++; }); return;
+    }
     siPeople++;
     if(isMirrored(d)) siMir++; else if(ups >= 2) siBoth++; else siOne++;
     const amt = settleCalc(d).amt;
@@ -4187,6 +4205,7 @@ function settleActual(){
   /* ⚠️ 금액은 표와 **같은 함수**(agencyPay)로 낸다. 예전엔 여기서 건수×단가를 따로 곱했는데,
      표는 settleCalc(미러링 1건 규칙 포함)을 쓰고 있어 6,000엔이 갈렸다.
      표의 행을 다 더하면 총액이 나와야 한다 — 사람이 검산하는 방식이 그것이다. */
+  mGeon += mFix;   // 개별단가로 확정된 건수도 인정 건수다
   const mYen = inC.filter(isAgency).reduce((a,d)=> a + agencyPay(d), 0);
   return { siYen, siPeople, siBoth, siOne, siMir, refYen, bestYen, mUp, mGeon, mOver, mYen, totYen: siYen+mYen,
            exclPeople, exclGeon };
@@ -4206,7 +4225,8 @@ function agencyOverMap(){
   /* 정산포함도 스탬프에 넣는다 — 사람이 시트에서 '제외' 로 바꾸면 배분이 통째로 달라진다
      (제외자가 비운 자리를 뒤에 올린 사람이 이어받는다). 캐시가 그걸 놓치면 옛 배분이 굳는다. */
   const stamp = state.campaign + '|' + D.filter(inCampaign).filter(isAgency)
-    .map(d=> d.id + ':' + platsOn().map(p=> (payableSlot(d,p)?'y':'n') + (uploaded(d,p) ? ((d[p].c1||{}).url||'1') : '0')).join(',')).join(';');
+    .map(d=> d.id + ':' + ((d.settle&&d.settle.override)!=null ? 'o'+d.settle.override : '-') + ':'
+      + platsOn().map(p=> (payableSlot(d,p)?'y':'n') + (uploaded(d,p) ? ((d[p].c1||{}).url||'1') : '0')).join(',')).join(';');
   if(_overCache && _overStamp === stamp) return _overCache;
   const quota = cfg().agencyQuota || null;
   const map = new Map();   // id -> { n, plats:[], pay, quota }
@@ -4217,7 +4237,10 @@ function agencyOverMap(){
          뒤에 올린 멀쩡한 사람이 초과분으로 밀린다 — 총액도 1건(6,000엔)만큼 덜 나온다.
          ⚠️ payable(사람) 이 아니라 payableSlot(자리) 로 본다 — 초과 6명 중 2명은 인스타도
             올렸고 그건 계약 안이라 지급 대상이다. 사람으로 빼면 인스타 21건이 19건이 된다. */
-      const ups = D.filter(inCampaign).filter(d=> isAgency(d) && payableSlot(d,p) && uploaded(d,p))
+      /* ⚠️ 개별단가가 적힌 사람은 줄에서 뺀다. 금액이 이미 확정됐는데 계약 자리까지 먹으면
+         뒤에 올린 멀쩡한 사람이 초과분으로 밀린다(1건 6,000엔이 엉뚱한 사람에게 간다). */
+      const ups = D.filter(inCampaign).filter(d=> isAgency(d) && payableSlot(d,p) && uploaded(d,p)
+                    && !(d.settle && d.settle.override != null))
         .map(d=>({ d, at: upAtMs((d[p].c1||{}).url || '') || 0 }))
         .sort((a,b)=> a.at - b.at);          // 먼저 올린 순
       ups.forEach(({d}, i)=>{
@@ -4236,6 +4259,13 @@ const agencyOverOf = d => isAgency(d) ? (agencyOverMap().get(d.id) || null) : nu
    ⚠️ settleCalc 을 쓰면 안 된다. 그건 사람 단위 규칙(미러링 1건·묶음가)이 섞여 있어
    실행사에 적용하면 표 합계와 총액이 갈린다(실측 6,000엔 어긋남). */
 function agencyPay(d){
+  if(!payable(d)) return 0;
+  /* 개별단가가 적혀 있으면 **그 금액이 답이다.** 사람이 마지막에 내린 결정이 계약 상한 계산보다
+     우선한다 — 실제로 '틱톡은 초과라 빼고 인스타 1건만 6,000' 같은 건은 자리 규칙으로는
+     표현이 안 되고 금액으로만 정확히 적힌다.
+     ⚠️ 이걸 안 읽으면 시트에 6,000 을 적어도 화면은 12,000 을 말한다(조용한 무동작). */
+  const ovr = d.settle && d.settle.override;
+  if(ovr != null) return ovr;
   const o = agencyOverMap().get(d.id);
   /* ⚠️ 상한(quota)이 없는 캠페인은 폴백이 '올라온 자리 수' 를 그냥 곱한다. 거기서 사람이 뺀
      자리를 안 빼면 제외했는데 돈이 그대로 나간다 — 지금은 상한이 있어 위에서 걸러지지만
